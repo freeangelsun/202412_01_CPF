@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "officialArtifacts",
+    "officialDocxCount",
+    "officialPdfCount"
+  ],
+  "properties": {
+    "officialArtifacts": {
+      "type": "array",
+      "minItems": 12
+    },
+    "officialDocxCount": {
+      "const": 11
+    },
+    "officialPdfCount": {
+      "const": 11
+    }
+  }
+}

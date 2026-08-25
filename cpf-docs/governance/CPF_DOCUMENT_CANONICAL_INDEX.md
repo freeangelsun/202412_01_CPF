@@ -48,3 +48,17 @@ README와 Developer/Batch/Operator/Gateway/Specification 등 공식 사용자 �
 - 정책을 대체한 ADR/Starter/Generated Domain 별도 정본은 Final Target에 의미를 흡수한 뒤 Delete Manifest로 제거한다.
 - 삭제 전 링크/Verifier/다음 세션 진입점이 삭제 문서를 요구하지 않는지 확인한다.
 - released DB migration처럼 제품 동작상 immutable history가 필요한 자산은 문서 History 삭제 규칙의 대상이 아니다.
+
+## Documentation Harness 정본
+
+CPF 공식 사용자 산출물의 생성·현행화·Visual QA·Packaging 기준은 다음 디렉터리를 단일 정본으로 사용한다.
+
+- `documentation-harness/CPF_DOCUMENTATION_HARNESS.md`
+- `documentation-harness/harness.json`
+- `documentation-harness/scope.json`
+- `documentation-harness/profiles/*.json`
+
+Harness는 사용자 명시 요청에 의해서만 수정한다. Source 변경, QA Finding, 작성자 판단은 Harness 자동 수정 권한이 아니다. 새 Source와 Harness가 충돌하면 `HARNESS_CHANGE_REQUIRED` 또는 `HARNESS_SOURCE_CONFLICT`로 기록하고 사용자 승인 없이 목차·규격·Coverage를 바꾸지 않는다.
+
+과거 분산 Documentation 작성 지침은 Harness의 `DELETE_MANIFEST.txt`에 기록된 exact path를 기준으로 제거하며, 제거 이후 이 Index에서 Harness만 산출물 작성 기준으로 사용한다.
+

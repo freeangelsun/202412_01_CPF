@@ -1,0 +1,676 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "locked": true,
+  "sourceBaseline": {
+    "file": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_104217.zip",
+    "sha256": "014a313a55c1852ac6131103668b3fe53e31a390e23ae7105aed97158977bad9"
+  },
+  "items": [
+    {
+      "id": "ARCH_OWNER",
+      "capability": "Module Ownership/Public API/SPI/Internal",
+      "primaryDocument": "ARCHITECTURE_DESIGN",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "TOPOLOGY",
+      "capability": "Same JVM/분리 WAS/MSA/Multi-instance 및 Domain Invocation parity",
+      "primaryDocument": "ARCHITECTURE_DESIGN",
+      "secondaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "alsoRequiredIn": [
+        "README",
+        "SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "SYSTEM6",
+      "capability": "Canonical System6 생성·전파·검증·신뢰경계",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "ARCHITECTURE_DESIGN",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "OPERATION_ID",
+      "capability": "operationId 단일 정본/Registry/Policy/Discovery",
+      "primaryDocument": "SPECIFICATION",
+      "secondaryDocument": "OPERATOR_MANUAL",
+      "alsoRequiredIn": [
+        "README",
+        "FRAMEWORK_DEVELOPER_GUIDE"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "INSTANCE_ID",
+      "capability": "Runtime instanceId 결정·중복·관측",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "RESULT_ERROR",
+      "capability": "표준 Result/Error/Business/Technical/UNKNOWN",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "LOCAL_TX",
+      "capability": "Local Transaction REQUIRED/REQUIRES_NEW 및 경계",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "DISTRIBUTED_TX",
+      "capability": "Remote Side Effect/Saga/TCC/XA/Compensation",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "IDEMPOTENCY",
+      "capability": "Durable Idempotency/duplicate/retry safety",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "BATCH_DEVELOPER_GUIDE"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "RECONCILE",
+      "capability": "UNKNOWN/Reconcile/결과 확정",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "alsoRequiredIn": [
+        "README",
+        "BATCH_OPERATOR_GUIDE"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "ASYNC_WORKFLOW",
+      "capability": "Async operation/Workflow/context propagation",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "STARTER",
+      "capability": "Public Profile/Starter/Capability/Provider/internal leaf",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "COMMON",
+      "capability": "cpf-common Framework 공통 기능과 Runtime wiring 경계",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "ARCHITECTURE_DESIGN",
+      "alsoRequiredIn": [
+        "README",
+        "SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "GENERATED_DOMAIN",
+      "capability": "Generated Domain IA/business feature/package/base rules",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "TECHNICAL_STANDARD",
+      "alsoRequiredIn": [
+        "README",
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "DOMAIN_SETUP",
+      "capability": "Domain create/setup/sync/diff/remove/verify lifecycle",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "PERSISTENCE",
+      "capability": "JDBC/MyBatis/JPA/Repository/Paging/Cursor/Bulk/Lock",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_STANDARD",
+        "DATABASE_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "CACHE",
+      "capability": "Caffeine/Redis/Valkey/TTL/Invalidation/Multi-instance/Stampede",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "LOCK",
+      "capability": "Distributed Lock/optimistic concurrency",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "DATABASE_STANDARD",
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "DB3",
+      "capability": "Oracle/PostgreSQL/MariaDB logical/physical binding",
+      "primaryDocument": "DATABASE_STANDARD",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "DB_LIFECYCLE",
+      "capability": "Fresh Init/Migration/Seed/Upgrade/Rollback/Recovery/Runtime Query",
+      "primaryDocument": "DATABASE_STANDARD",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BACKOFFICE",
+      "capability": "cpf-backoffice Owner/optional business domain boundary",
+      "primaryDocument": "ARCHITECTURE_DESIGN",
+      "secondaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "alsoRequiredIn": [
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BACKOFFICE_WEB",
+      "capability": "DB-less Channel/BFF/browser session/CSRF boundary",
+      "primaryDocument": "ARCHITECTURE_DESIGN",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "GATEWAY",
+      "capability": "Optional Gateway/route/trust/rate/resilience/admission/drain",
+      "primaryDocument": "GATEWAY_GUIDE",
+      "secondaryDocument": "ARCHITECTURE_DESIGN",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "EXT_HTTP",
+      "capability": "External HTTP/timeout/retry/deadline/credential/UNKNOWN",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "FIXED_LENGTH",
+      "capability": "Fixed-length layout/version/encoding/byte length/masking",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "GRAPHQL_REALTIME",
+      "capability": "GraphQL 및 Realtime/SSE 선택 Capability",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "MESSAGING",
+      "capability": "Kafka/RabbitMQ/JMS/IBM MQ/Event Schema/Outbox/Inbox/DLQ/Replay",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "FILE",
+      "capability": "Attachment/Object Storage S3/File transfer/checksum/inspection",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "SECURITY",
+      "capability": "AuthN/OIDC/JWT/SSO/AuthZ/Permission/Role/Session",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "TECHNICAL_STANDARD",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "CRYPTO_PRIVACY",
+      "capability": "Encryption/Crypto/Secret/Cert/KMS/HSM/Masking/Retention",
+      "primaryDocument": "TECHNICAL_STANDARD",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "OPERATOR_MANUAL",
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "APPROVAL_AUDIT",
+      "capability": "Approval/SoD/Break-glass/Reason/Audit",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "alsoRequiredIn": [
+        "README",
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BATCH_DEV",
+      "capability": "Tasklet/Chunk/Partition/Remote Chunk/Remote Step/On-demand",
+      "primaryDocument": "BATCH_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BATCH_TOPOLOGY",
+      "capability": "Control Plane/Scheduler/Worker/Center-Cut/Agent",
+      "primaryDocument": "BATCH_DEVELOPER_GUIDE",
+      "secondaryDocument": "BATCH_OPERATOR_GUIDE",
+      "alsoRequiredIn": [
+        "README",
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BATCH_RECOVERY",
+      "capability": "Restart/Rerun/Reprocess/Reconcile/Checkpoint/Process kill",
+      "primaryDocument": "BATCH_OPERATOR_GUIDE",
+      "secondaryDocument": "BATCH_DEVELOPER_GUIDE",
+      "alsoRequiredIn": [
+        "README",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BATCH_LEASE",
+      "capability": "Lease/Fencing/Heartbeat/stale worker/reassignment",
+      "primaryDocument": "BATCH_OPERATOR_GUIDE",
+      "secondaryDocument": "BATCH_DEVELOPER_GUIDE",
+      "alsoRequiredIn": [
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "ADM",
+      "capability": "ADM platform control plane: health/log/trace/config/incident/recovery/runtime/batch/gateway/security",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "ARCHITECTURE_DESIGN",
+      "alsoRequiredIn": [
+        "README",
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "OPENAPI_FRONTEND",
+      "capability": "OpenAPI operationId/generated client/route coverage/error/accessibility",
+      "primaryDocument": "SPECIFICATION",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "ARCHITECTURE_DESIGN",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "OBSERVABILITY",
+      "capability": "Log/Metric/Trace/Timeline/transaction-operation-instance correlation",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "README",
+        "FRAMEWORK_DEVELOPER_GUIDE"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "CONFIG",
+      "capability": "Safe default/property/profile/policy/per-call precedence/dynamic/secret",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "OPERATOR_MANUAL",
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BOOTSTRAP_CLI",
+      "capability": "Prerequisite→DB→Migration→Seed→Build/Test→Runtime/Health; CLI inventory",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "EDU35",
+      "capability": "Online 20 + Batch 15 canonical education coverage",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "BATCH_DEVELOPER_GUIDE",
+      "alsoRequiredIn": [
+        "DELIVERABLE_INDEX"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "BUILD_RELEASE",
+      "capability": "Java25/build/test/BOM/publication/SBOM/license/vulnerability/secret/reproducibility",
+      "primaryDocument": "TECHNICAL_SPECIFICATION",
+      "secondaryDocument": "TECHNICAL_STANDARD",
+      "alsoRequiredIn": [
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "PUBLIC_WORKSPACE",
+      "capability": "Public developer workspace/binary distribution/release acceptance (README에서는 내부 Release 용어를 주 사용자 용어로 쓰지 않음)",
+      "primaryDocument": "TECHNICAL_SPECIFICATION",
+      "secondaryDocument": "ARCHITECTURE_DESIGN",
+      "alsoRequiredIn": [
+        "DELIVERABLE_INDEX"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "COMMON_CODE_PARAM",
+      "capability": "cpf-common 공통 코드/파라미터/메시지/영업일/Template",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION",
+        "README"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "DATA_QUALITY",
+      "capability": "Data Quality Rule/Decision/Correction",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "ARCHIVE_TABULAR",
+      "capability": "Archive/Checksum/Extract 및 Tabular Read/Write",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "NOTIFICATION",
+      "capability": "Notification Operations/Provider/Receipt/Reconcile",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "OPERATOR_MANUAL",
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "AI_INTEGRATION",
+      "capability": "AI Operations/Provider/Policy/Risk/Telemetry/UNKNOWN",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "FEATURE_FLAG_STATE",
+      "capability": "Platform State Operations/Feature Flag/State Transition",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "RUNTIME_CONTROL",
+      "capability": "Managed Runtime Start/Stop/Restart/Drain/Result tracking",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION",
+        "ARCHITECTURE_DESIGN"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "SERVICE_REGISTRY",
+      "capability": "Service/Channel Registry endpoint/version/zone/weight/health/draining/TTL",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "ARCHITECTURE_DESIGN",
+      "alsoRequiredIn": [
+        "SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "DYNAMIC_LOG",
+      "capability": "Dynamic Log Level/Log Policy/Runtime status",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "INCIDENT",
+      "capability": "Incident lifecycle/recovery/evidence",
+      "primaryDocument": "OPERATOR_MANUAL",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_SPECIFICATION"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "DIGITAL_SIGNATURE",
+      "capability": "Digital Signature/Key lifecycle/Rekey",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "SPECIFICATION",
+      "alsoRequiredIn": [
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "MASKING_SENSITIVE",
+      "capability": "Masking Policy/Sensitive Data Access/Approval/Audit",
+      "primaryDocument": "FRAMEWORK_DEVELOPER_GUIDE",
+      "secondaryDocument": "OPERATOR_MANUAL",
+      "alsoRequiredIn": [
+        "SPECIFICATION",
+        "TECHNICAL_STANDARD"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "OPENAPI_OPERATIONS",
+      "capability": "OpenAPI snapshot/operationId/generated client/coverage",
+      "primaryDocument": "SPECIFICATION",
+      "secondaryDocument": "TECHNICAL_SPECIFICATION",
+      "alsoRequiredIn": [
+        "FRAMEWORK_DEVELOPER_GUIDE",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    },
+    {
+      "id": "JOB_PACK_DEPLOY",
+      "capability": "Batch Job Pack/Artifact/Deployment/Approved Launch/Rollback",
+      "primaryDocument": "BATCH_DEVELOPER_GUIDE",
+      "secondaryDocument": "BATCH_OPERATOR_GUIDE",
+      "alsoRequiredIn": [
+        "SPECIFICATION",
+        "OPERATOR_MANUAL"
+      ],
+      "mustHaveSourceEvidence": true,
+      "omission": "hard_fail"
+    }
+  ],
+  "sourceDrivenAdditionsPolicy": "새 Public Capability/Runtime/DB/CLI가 나타나 기존 항목에 매핑할 수 없으면 문서 작성자가 항목을 추가하지 않는다. HARNESS_CHANGE_REQUIRED를 기록하고 사용자 명시 요청으로 Harness Profile/coverage를 개정한다."
+}

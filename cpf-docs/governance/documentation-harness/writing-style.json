@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "locked": true,
+  "language": {
+    "primary": "ko-KR",
+    "english_use": "고유 기술명, API, Class, Method, Property, Header, 상태값, 표준 제품명에만 사용",
+    "mixed_language_for_decoration": "forbidden"
+  },
+  "voice": {
+    "default_ending": "합니다/됩니다 체",
+    "normative_document": "필수/금지/권장/허용",
+    "active_voice_preferred": true,
+    "actor_must_be_clear": true,
+    "preferred_actors": [
+      "CPF",
+      "Framework",
+      "개발자",
+      "운영자",
+      "Gateway",
+      "Scheduler",
+      "Worker",
+      "Agent",
+      "Control Plane",
+      "Domain"
+    ],
+    "avoid_passive_when_actor_matters": true
+  },
+  "sentence": {
+    "one_primary_idea": true,
+    "korean_char_review_trigger": 90,
+    "korean_char_hard_review_trigger": 140,
+    "exceptions": [
+      "API signature",
+      "path",
+      "legal phrase",
+      "table value"
+    ],
+    "condition_before_instruction": true,
+    "double_negative": "forbidden",
+    "ambiguous_pronoun": "forbidden"
+  },
+  "paragraph": {
+    "preferred_sentences_min": 2,
+    "preferred_sentences_max": 4,
+    "single_sentence_paragraph": "allowed only for transition, warning, definition, or short caption",
+    "wall_of_text": "forbidden",
+    "first_sentence_contains_main_point": true
+  },
+  "lists": {
+    "parallel_structure_required": true,
+    "numbered_for_sequence": true,
+    "bulleted_for_nonsequence": true,
+    "preferred_max_items_before_grouping": 7,
+    "intro_sentence_required_unless_heading_is_self_explanatory": true
+  },
+  "headings": {
+    "descriptive": true,
+    "empty_heading": "forbidden",
+    "skip_level": "forbidden",
+    "generic_titles_forbidden": [
+      "개요",
+      "기타",
+      "참고",
+      "추가 정보",
+      "상세 내용",
+      "핵심 해석",
+      "이 구조의 장점",
+      "왜 좋은가",
+      "기반 기술",
+      "개발자에게 좋은 점",
+      "AI를 위한 설명",
+      "그림 없이 읽는 설명",
+      "Public Consumer Acceptance"
+    ],
+    "benefit_heading_in_readme": "동작 또는 구조를 말하면서 사용자가 얻는 편의가 자연스럽게 드러나는 문장형 제목을 사용한다."
+  },
+  "benefit_expression": {
+    "explicit_marketing_section": "forbidden",
+    "pattern": [
+      "사용자 상황/불편",
+      "CPF가 제공하는 구조 또는 자동화",
+      "개발자/운영자가 덜 해야 하는 일 또는 할 수 있게 되는 일"
+    ],
+    "forbidden_buzzwords": [
+      "혁신적",
+      "최고의",
+      "엔터프라이즈급",
+      "생산성 극대화",
+      "차세대",
+      "완벽한",
+      "압도적",
+      "강력한"
+    ],
+    "preferred_examples": [
+      "Header를 개발자가 직접 조립하지 않아도 됩니다.",
+      "Same JVM과 Remote 배치가 달라져도 같은 Domain Invocation 계약을 사용합니다.",
+      "UNKNOWN을 성공/실패로 억지 판정하지 않고 Reconcile할 수 있습니다.",
+      "Batch 재시작과 재처리를 구분해 운영 실수를 줄입니다."
+    ]
+  },
+  "code_formatting": {
+    "paths_classes_methods_properties_headers_status_codes": "backticks",
+    "ui_control": "bold in prose",
+    "raw_url_in_body": "forbidden; use descriptive links",
+    "placeholder_style": "UPPER_SNAKE_CASE or <descriptive-placeholder> only where source syntax requires it"
+  },
+  "cross_reference": {
+    "descriptive_link_text": true,
+    "here_click_text": "forbidden",
+    "relative_repo_links_required": true,
+    "broken_link": "hard_fail"
+  },
+  "truth": {
+    "source_identifier_invention": "hard_fail",
+    "unverified_command": "hard_fail",
+    "unverified_path": "hard_fail",
+    "target_contract_may_be_explained": true,
+    "implementation_gap_goes_to_evidence_not_user_doc": true
+  },
+  "license": {
+    "separate_license_file_assumption": "forbidden",
+    "allowed_phrase": "Community & Evaluation License",
+    "license_file_link": "forbidden"
+  },
+  "naming": {
+    "module_name_as_primary_owner_label": true,
+    "system_code_as_module_name": "forbidden",
+    "system_code_usage": "runtime/transaction identity only; show as secondary metadata when necessary"
+  }
+}

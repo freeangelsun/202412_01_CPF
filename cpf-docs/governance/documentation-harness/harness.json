@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "1.0",
+  "version": "1.0.0",
+  "title": "CPF 공식 산출물 작성 하네스",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "changePolicy": {
+    "autoModify": false,
+    "sourceChangeDoesNotAuthorizeHarnessChange": true,
+    "qaFindingDoesNotAuthorizeHarnessChange": true,
+    "assistantPreferenceDoesNotAuthorizeHarnessChange": true,
+    "allowedTrigger": "사용자가 하네스 자체를 수정·추가·삭제하라고 명시적으로 요청한 경우만",
+    "onMismatch": "HARNESS_CHANGE_REQUIRED를 기록하고 산출물 작성 중 임의 Profile/목차/규칙 추가를 금지한다.",
+    "versioning": "사용자 승인 수정 시 semantic version을 증가시키고 변경 이유/요청 문구/영향 문서를 CHANGELOG에 기록한 뒤 HARNESS_LOCK.json을 재생성한다."
+  },
+  "sessionStartOrder": [
+    "HARNESS_LOCK.json 검증",
+    "최신 Source 파일명/SHA-256 확인",
+    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md 확인",
+    "현재 사용자 Steering 확인",
+    "scope.json 확인",
+    "대상 Profile 로드",
+    "product-coverage.json과 Source Inventory 비교",
+    "CLI/API/Module/DB/OpenAPI/Consumer exact inventory",
+    "작성 시작"
+  ],
+  "sourceTruthPriority": [
+    "최신 사용자 명시 Steering",
+    "최상위 CPF Target Requirements와 Architecture/Specification",
+    "현재 Source exact identifier/consumer",
+    "Harness content/format rules"
+  ],
+  "criticalRule": "Harness는 Content/Format/Validation 방법을 결정하지만 제품의 실행 식별자는 현재 Source에서 매 세션 재확인한다. Harness가 Source에 없는 API/CLI를 만들어내는 근거가 될 수 없다.",
+  "sourceDrift": {
+    "newFeatureWithoutCoverage": "HARNESS_CHANGE_REQUIRED",
+    "renamedCanonicalIdentifier": "SOURCE_DRIFT_REVIEW",
+    "removedIdentifierUsedByProfile": "HARNESS_SOURCE_CONFLICT",
+    "previousEvidenceInheritance": false
+  },
+  "generationFreedom": {
+    "writerMayChoose": [
+      "자연스러운 한국어 문장 표현",
+      "Source에서 확인된 실제 값/예시",
+      "Profile이 명시적으로 허용한 범위 안의 H3 세분화가 있는 경우에 한함"
+    ],
+    "writerMayNotChoose": [
+      "공식 문서 수/경로",
+      "H1/H2 이름/순서",
+      "Content Model 순서",
+      "표 Type/Column/Alignment",
+      "그림 Type/위치/Label 규격",
+      "Font/Margin/Spacing/Color Token",
+      "Visual QA 생략",
+      "Coverage 생략",
+      "License 처리",
+      "CLI/API 추정",
+      "Harness 수정"
+    ]
+  },
+  "completionGate": {
+    "required": [
+      "SEMANTIC_PASS",
+      "SOURCE_IDENTITY_PASS",
+      "CROSS_DOCUMENT_PASS",
+      "VISUAL_PASS",
+      "ACCESSIBILITY_PASS",
+      "PDF_PREFLIGHT_PASS",
+      "LINK_PASS",
+      "UNICODE_NFC_PASS",
+      "PACKAGE_INTEGRITY_PASS"
+    ],
+    "allRequired": true,
+    "partialPass": "forbidden",
+    "notExecuted": "FAIL or BLOCKED_EXTERNAL, never PASS"
+  },
+  "references": [
+    "scope.json",
+    "design-tokens.json",
+    "writing-style.json",
+    "terminology.json",
+    "content-models.json",
+    "table-presets.json",
+    "figure-presets.json",
+    "product-coverage.json",
+    "SOURCE_BASELINE.json",
+    "profiles/*.json",
+    "HARNESS_LOCK.json"
+  ]
+}

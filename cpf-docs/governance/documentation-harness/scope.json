@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "officialArtifacts": [
+    {
+      "id": "README",
+      "path": "README.md",
+      "format": "markdown",
+      "orientation": "screen",
+      "profile": "README.json",
+      "toc": "visible_manual_toc",
+      "companionPdf": false
+    },
+    {
+      "id": "FRAMEWORK_DEVELOPER_GUIDE",
+      "path": "cpf-docs/guides/02_프레임워크_개발자_가이드.docx",
+      "pdf": "cpf-docs/guides/02_프레임워크_개발자_가이드.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "FRAMEWORK_DEVELOPER_GUIDE.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "BATCH_DEVELOPER_GUIDE",
+      "path": "cpf-docs/guides/03_배치_개발자_가이드.docx",
+      "pdf": "cpf-docs/guides/03_배치_개발자_가이드.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "BATCH_DEVELOPER_GUIDE.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "OPERATOR_MANUAL",
+      "path": "cpf-docs/guides/04_운영자_매뉴얼.docx",
+      "pdf": "cpf-docs/guides/04_운영자_매뉴얼.pdf",
+      "format": "docx+pdf",
+      "orientation": "portrait",
+      "profile": "OPERATOR_MANUAL.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "BATCH_OPERATOR_GUIDE",
+      "path": "cpf-docs/guides/05_배치_운영_가이드.docx",
+      "pdf": "cpf-docs/guides/05_배치_운영_가이드.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "BATCH_OPERATOR_GUIDE.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "GATEWAY_GUIDE",
+      "path": "cpf-docs/guides/06_Gateway_개발_사용_가이드.docx",
+      "pdf": "cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "GATEWAY_GUIDE.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "SPECIFICATION",
+      "path": "cpf-docs/guides/07_Specification_기술_명세.docx",
+      "pdf": "cpf-docs/guides/07_Specification_기술_명세.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "SPECIFICATION.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "ARCHITECTURE_DESIGN",
+      "path": "cpf-docs/deliverables/아키텍처설계서.docx",
+      "pdf": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "ARCHITECTURE_DESIGN.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "TECHNICAL_SPECIFICATION",
+      "path": "cpf-docs/deliverables/기술사양서.docx",
+      "pdf": "cpf-docs/deliverables/기술사양서.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "TECHNICAL_SPECIFICATION.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "TECHNICAL_STANDARD",
+      "path": "cpf-docs/deliverables/기술표준서.docx",
+      "pdf": "cpf-docs/deliverables/기술표준서.pdf",
+      "format": "docx+pdf",
+      "orientation": "portrait",
+      "profile": "TECHNICAL_STANDARD.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "DATABASE_STANDARD",
+      "path": "cpf-docs/deliverables/데이터베이스표준서.docx",
+      "pdf": "cpf-docs/deliverables/데이터베이스표준서.pdf",
+      "format": "docx+pdf",
+      "orientation": "landscape",
+      "profile": "DATABASE_STANDARD.json",
+      "toc": "word_auto_h1_h2"
+    },
+    {
+      "id": "DELIVERABLE_INDEX",
+      "path": "cpf-docs/deliverables/산출물목록.docx",
+      "pdf": "cpf-docs/deliverables/산출물목록.pdf",
+      "format": "docx+pdf",
+      "orientation": "portrait",
+      "profile": "DELIVERABLE_INDEX.json",
+      "toc": "word_auto_h1_h2"
+    }
+  ],
+  "forbiddenAdditionalOfficialArtifacts": true,
+  "officialDocxCount": 11,
+  "officialPdfCount": 11,
+  "rootReadmeCount": 1
+}

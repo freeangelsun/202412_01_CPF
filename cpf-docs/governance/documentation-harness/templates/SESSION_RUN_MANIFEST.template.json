@@ -1,0 +1,30 @@
+{
+  "harnessVersion": "1.0.0",
+  "harnessLockSha256": "FILL_FROM_HARNESS_LOCK",
+  "source": {
+    "file": "FILL_LATEST_SOURCE_ZIP",
+    "sha256": "FILL_SHA256",
+    "gitSha": "OPTIONAL_IF_AVAILABLE"
+  },
+  "targetDocuments": [
+    "FILL_DOCUMENT_IDS"
+  ],
+  "sourceInventory": {
+    "module": "PENDING",
+    "api": "PENDING",
+    "cli": "PENDING",
+    "db": "PENDING",
+    "openapi": "PENDING",
+    "consumer": "PENDING"
+  },
+  "gates": {
+    "semantic": "NOT_EXECUTED",
+    "visual": "NOT_EXECUTED",
+    "accessibility": "NOT_EXECUTED",
+    "pdfPreflight": "NOT_EXECUTED",
+    "links": "NOT_EXECUTED",
+    "packageIntegrity": "NOT_EXECUTED"
+  },
+  "harnessDrift": "NONE",
+  "notes": []
+}

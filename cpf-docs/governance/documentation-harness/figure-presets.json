@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "locked": true,
+  "commonRulesRef": "design-tokens.json#/figures",
+  "presets": {
+    "README_HERO": {
+      "aspect": "16:6",
+      "minRaster": "1920x720",
+      "maxNodes": 8,
+      "titleInside": true,
+      "labelMaxWords": 3,
+      "background": "dark",
+      "mandatoryCaption": true
+    },
+    "ARCHITECTURE_TOPOLOGY": {
+      "aspect": "16:9",
+      "minRaster": "1600x900",
+      "direction": "top-down or left-right, one direction only",
+      "maxNodes": 12,
+      "maxEdgeCrossings": 2,
+      "labelMaxWords": 3
+    },
+    "REQUEST_FLOW": {
+      "aspect": "16:9",
+      "direction": "left-to-right",
+      "maxNodes": 7,
+      "exceptionBranch": "below main flow",
+      "labelMaxWords": 3,
+      "arrowLabelMaxWords": 2
+    },
+    "STATE_TRANSITION": {
+      "aspect": "16:9",
+      "direction": "left-to-right for happy path; recovery below",
+      "maxStates": 8,
+      "statusColorSemantic": true
+    },
+    "LIFECYCLE": {
+      "aspect": "16:9",
+      "direction": "left-to-right",
+      "maxStages": 8,
+      "numberStages": true
+    },
+    "OWNERSHIP_BOUNDARY": {
+      "aspect": "16:9",
+      "containersMax": 6,
+      "useBoundaryLines": true,
+      "dependencyArrowSingleDirection": true
+    },
+    "OPERATION_TRACE": {
+      "aspect": "16:9",
+      "lanes": [
+        "transactionId",
+        "operationId",
+        "instanceId",
+        "Log/Trace/Timeline"
+      ],
+      "maxLanes": 5
+    },
+    "DECISION_FLOW": {
+      "aspect": "16:9",
+      "maxDecisionNodes": 5,
+      "yesNoLabelsMaxWords": 2
+    },
+    "CAPABILITY_GALLERY": {
+      "aspect": "16:9",
+      "cardsMin": 4,
+      "cardsMax": 8,
+      "cardTextLinesMax": 3,
+      "decorativeIconsAllowed": true
+    },
+    "DB3_LIFECYCLE": {
+      "aspect": "16:9",
+      "stages": [
+        "Canonical",
+        "Init",
+        "Migration",
+        "Seed",
+        "Runtime",
+        "Upgrade",
+        "Rollback/Recovery"
+      ],
+      "vendorBands": [
+        "Oracle",
+        "PostgreSQL",
+        "MariaDB"
+      ]
+    },
+    "BATCH_TOPOLOGY": {
+      "aspect": "16:9",
+      "requiredNodes": [
+        "Control Plane",
+        "Scheduler",
+        "Worker",
+        "Center-Cut",
+        "Agent"
+      ],
+      "showDataOrLeaseBoundary": true
+    },
+    "BATCH_RECOVERY": {
+      "aspect": "16:9",
+      "requiredLabels": [
+        "Restart",
+        "Rerun",
+        "Reprocess",
+        "Reconcile"
+      ],
+      "showDecisionNotMarketing": true
+    },
+    "GENERATOR_FLOW": {
+      "aspect": "16:9",
+      "requiredStages": [
+        "Domain Input",
+        "Generator",
+        "Generated Domain",
+        "Starter/DB",
+        "Build/Test"
+      ],
+      "maxWordsPerStage": 3
+    },
+    "GATEWAY_OPTIONALITY": {
+      "aspect": "16:9",
+      "requiredPaths": [
+        "Gateway path",
+        "Direct allowed path"
+      ],
+      "mustNotDepictAutomaticFallback": true
+    },
+    "SECURITY_AUDIT_FLOW": {
+      "aspect": "16:9",
+      "requiredConcepts": [
+        "Identity",
+        "Permission",
+        "Approval",
+        "Audit"
+      ],
+      "secretsAsReferencesOnly": true
+    }
+  }
+}

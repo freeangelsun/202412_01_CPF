@@ -1,0 +1,506 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "documentId": "GATEWAY_GUIDE",
+  "title": "CPF Gateway 개발/사용 가이드",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "structureLocked": true,
+  "h1OrderLocked": true,
+  "additionalH1": false,
+  "tocRequired": true,
+  "primaryPersona": [
+    "Gateway 개발자",
+    "Platform 운영자",
+    "Architect"
+  ],
+  "entryCondition": "Gateway를 사용할지 결정하거나 Route/Policy를 개발·운영해야 하는 상태",
+  "exitCondition": "Gateway Optionality를 이해하고 Route/Security/Resilience를 구성하며 장애와 Rollback을 판단할 수 있다.",
+  "orientation": "landscape",
+  "pageCountReviewRange": {
+    "min": 45,
+    "max": 75
+  },
+  "globalRules": {
+    "allH1MustAppearExactlyOnce": true,
+    "allRequiredH2MustAppearExactlyOnce": true,
+    "renamingHeadings": "forbidden",
+    "reorderingHeadings": "forbidden",
+    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
+    "extraSections": "forbidden without user-authorized harness revision"
+  },
+  "sections": [
+    {
+      "title": "Gateway 사용 여부 결정",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Gateway를 사용하는 경우",
+        "Gateway 없이 허용된 Direct Public HTTP를 사용하는 경우",
+        "자동 Direct Fallback이 아닌 이유",
+        "보안 계약은 동일하게 적용",
+        "선택 Checklist"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DECISION"
+      ],
+      "figures": [
+        "GATEWAY_OPTIONALITY"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Gateway Topology",
+      "model": "ARCHITECTURE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "External Trust Boundary",
+        "Route",
+        "Backend Domain",
+        "Registry",
+        "ADM / Control",
+        "Multi-instance"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ROLE"
+      ],
+      "figures": [
+        "ARCHITECTURE_TOPOLOGY"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Routing",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Route Source",
+        "Path / Method",
+        "Target",
+        "Version",
+        "Priority",
+        "변경 반영",
+        "검증"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "OPTION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Domain Route",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Domain / operationId",
+        "Target System",
+        "Registry Metadata",
+        "Health / Maintenance / Draining",
+        "잘못된 Target"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "OPTION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Canonical Context / Header",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Untrusted Header 제거",
+        "Trusted Identity",
+        "System6 구성",
+        "Target 검증",
+        "Management API 제외"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SYSTEM6"
+      ],
+      "figures": [
+        "REQUEST_FLOW"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Authentication",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Client Identity",
+        "OIDC/JWT/Service Identity",
+        "실패",
+        "Audit",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "API",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Authorization",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Permission",
+        "Caller Policy",
+        "Operation Policy",
+        "403",
+        "Audit",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "API",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Timeout",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Connect / Read / Overall Deadline",
+        "Budget",
+        "Backend 영향",
+        "504",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "OPTION",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Retry",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Retryable 오류",
+        "Non-retryable",
+        "Backoff",
+        "Idempotency",
+        "UNKNOWN",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DECISION",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Rate Limit",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "정책",
+        "Key",
+        "429",
+        "Multi-instance Counter",
+        "운영 확인",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "OPTION",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Error Mapping",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Backend 오류",
+        "Gateway 오류",
+        "CPF Result",
+        "민감정보",
+        "Trace linkage"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "HTTP 상태 처리",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "401",
+        "403",
+        "404",
+        "409",
+        "429",
+        "500",
+        "503"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "HTTP_STATUS"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Health",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Gateway Instance",
+        "Route Backend",
+        "Registry",
+        "Dependency",
+        "Draining"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "HA",
+      "model": "ARCHITECTURE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Multi-instance",
+        "Load Balance",
+        "Shared State",
+        "Failure Domain",
+        "Failover"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DECISION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Canary",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "대상 Version",
+        "Weight",
+        "Health",
+        "전환",
+        "Rollback 기준"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Rollback",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "변경 전 Snapshot",
+        "Route / Policy",
+        "실행",
+        "검증",
+        "Audit"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Gateway 장애",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "접속 불가",
+        "일부 Route 404",
+        "401/403",
+        "429",
+        "500/503",
+        "Timeout",
+        "특정 Instance 오류",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "HTTP_STATUS",
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Gateway 없이 배포",
+      "model": "ARCHITECTURE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "허용 Direct Path",
+        "동일 AuthN/AuthZ",
+        "System6",
+        "Audit",
+        "배포/운영 정책",
+        "금지 자동 Fallback"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "TOPOLOGY_COMPARE"
+      ],
+      "figures": [
+        "GATEWAY_OPTIONALITY"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "개발 예",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Route 정의",
+        "Security",
+        "Timeout / Retry",
+        "Error Mapping",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "OPTION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "운영 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "배포 후",
+        "Route 변경 후",
+        "Policy 변경 후",
+        "Instance 추가/제거",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Source / API 길찾기",
+      "model": "DOCUMENT_INDEX_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Gateway Runtime",
+        "Route",
+        "Policy",
+        "Registry",
+        "Security",
+        "Rate Limit",
+        "Audit",
+        "ADM",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SOURCE_NAV"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    }
+  ],
+  "specialRules": {}
+}

@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "renderMatrix": {
+    "README": [
+      {
+        "viewport": "1440x900",
+        "theme": "light"
+      },
+      {
+        "viewport": "1440x900",
+        "theme": "dark"
+      },
+      {
+        "viewport": "390x844",
+        "theme": "light"
+      },
+      {
+        "viewport": "390x844",
+        "theme": "dark"
+      }
+    ],
+    "DOCX": "11 documents; render all to PDF with final fonts and field updates",
+    "PDF": "11 documents; render every page to PNG or equivalent for visual inspection"
+  },
+  "hardFail": {
+    "croppedText": 0,
+    "croppedImage": 0,
+    "textImageOverlap": 0,
+    "figureLabelOverlap": 0,
+    "tableClip": 0,
+    "brokenGlyph": 0,
+    "brokenKorean": 0,
+    "brokenLink": 0,
+    "brokenImageLink": 0,
+    "nonCodeCenterAlignedTableBodyCells": 0,
+    "mechanicalEqualWidthTables": 0,
+    "blankPages": 0,
+    "headingOnlyPages": 0,
+    "manualDecorativeLineBreaksCausingRaggedTables": 0,
+    "fontSubstitutionInFinalPdf": 0
+  },
+  "reviewTriggers": {
+    "pageDensityBelowPct": 35,
+    "tableHasMoreThanColumnsPortrait": 6,
+    "tableHasMoreThanColumnsLandscape": 8,
+    "sentenceKoreanCharsOver": 90,
+    "paragraphSentencesOver": 4,
+    "listItemsOver": 7,
+    "readmeImageTextPxBelow": 28,
+    "docFigureTextPtBelow": 10,
+    "tableFontPtBelow": 9.0
+  },
+  "mandatoryInspection": {
+    "allPagesQuickScan": true,
+    "fullSizePages": [
+      "cover",
+      "toc",
+      "first content page",
+      "every page with a figure",
+      "every page with a wide table",
+      "every code-heavy page",
+      "every page where table crosses page boundary",
+      "last page"
+    ],
+    "figureInspection": [
+      "100%",
+      "200% for labels/boundaries",
+      "check Korean/English glyph",
+      "check dark/light contrast",
+      "check caption matches figure",
+      "check figure not duplicating prose verbatim"
+    ],
+    "tableInspection": [
+      "actual Word tblGrid",
+      "cell width",
+      "header alignment",
+      "body alignment",
+      "wrap",
+      "row page split",
+      "repeat header",
+      "font size",
+      "padding"
+    ]
+  },
+  "fixLoop": [
+    "collect all failures",
+    "group by root cause",
+    "apply global token/profile fix where applicable",
+    "regenerate all impacted documents",
+    "rerender",
+    "repeat full high-risk checks",
+    "only then mark VISUAL_PASS"
+  ],
+  "passDefinition": "Visual PASS는 자동검사 결과가 아니라 최종 렌더의 실제 육안 검수와 hardFail 0을 함께 만족한 상태다."
+}

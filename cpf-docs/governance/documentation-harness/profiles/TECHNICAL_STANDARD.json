@@ -1,0 +1,673 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "documentId": "TECHNICAL_STANDARD",
+  "title": "CPF 기술표준서",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "structureLocked": true,
+  "h1OrderLocked": true,
+  "additionalH1": false,
+  "tocRequired": true,
+  "primaryPersona": [
+    "CPF 개발자",
+    "Code Reviewer",
+    "Framework Maintainer"
+  ],
+  "entryCondition": "구현 또는 PR이 CPF 표준을 준수하는지 판단해야 하는 상태",
+  "exitCondition": "각 규칙을 필수/금지/권장/허용으로 판정하고 올바른/잘못된 구현과 검사 방법을 확인할 수 있다.",
+  "orientation": "portrait",
+  "pageCountReviewRange": {
+    "min": 70,
+    "max": 110
+  },
+  "globalRules": {
+    "allH1MustAppearExactlyOnce": true,
+    "allRequiredH2MustAppearExactlyOnce": true,
+    "renamingHeadings": "forbidden",
+    "reorderingHeadings": "forbidden",
+    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
+    "extraSections": "forbidden without user-authorized harness revision"
+  },
+  "sections": [
+    {
+      "title": "표준 적용 범위",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "대상 Source",
+        "적용 우선순위",
+        "예외 승인"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Naming",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Module",
+        "Package",
+        "Class",
+        "Method",
+        "Property",
+        "operationId"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Directory",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Repository Root",
+        "Generated Domain",
+        "Runtime",
+        "Docs / Evidence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Java Package",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Domain Base",
+        "Business Feature",
+        "Technical Role",
+        "Internal"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Module Ownership",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Owner",
+        "소유 가능",
+        "소유 금지",
+        "Consumer"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Dependency",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "허용 Dependency",
+        "금지 Dependency",
+        "Internal",
+        "Cycle"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Public / Internal API",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Public API",
+        "SPI",
+        "Internal",
+        "Compatibility"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Controller",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfController",
+        "@CpfOnlineTransaction",
+        "Validation",
+        "System6"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Service",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfService",
+        "Transaction",
+        "Domain Invocation"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Repository",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfRepository",
+        "Data Access",
+        "Lock",
+        "DB Owner",
+        "Data Quality",
+        "Cursor / Paging",
+        "Bulk"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Header / Context",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "System6",
+        "Trust",
+        "Propagation",
+        "Management API 제외"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Transaction",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Local",
+        "Remote Side Effect",
+        "UNKNOWN",
+        "Saga/TCC/XA"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Error",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Business",
+        "Technical",
+        "Validation",
+        "External",
+        "Mapping"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Retry",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Retryable",
+        "Backoff",
+        "Idempotency",
+        "Deadline",
+        "UNKNOWN"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Idempotency",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Key",
+        "Durability",
+        "Conflict",
+        "Concurrent request"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Security",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Authentication",
+        "Authorization",
+        "Permission",
+        "Secret",
+        "Masking",
+        "Crypto / Encryption",
+        "Digital Signature",
+        "Masking / Sensitive Data",
+        "Secret / Certificate"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Audit",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Reason",
+        "Approval",
+        "SoD",
+        "Break-glass",
+        "Tamper Evidence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Logging / Trace",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Correlation",
+        "Structured fields",
+        "Sensitive data",
+        "instanceId",
+        "Observability / Timeline"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Batch",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Job/Step",
+        "Scheduler/Worker",
+        "Lease/Fencing",
+        "Recovery"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Database",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "DB3",
+        "Naming",
+        "Migration",
+        "Seed",
+        "Upgrade",
+        "Rollback"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Generator",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Canonical Input",
+        "Catalog",
+        "User-owned Source",
+        "Sync"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Generated Domain",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Directory",
+        "Package",
+        "Feature",
+        "Base",
+        "No duplicate segment"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Configuration",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Precedence",
+        "Default",
+        "Override",
+        "Dynamic",
+        "Secret"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "CPF Framework Common 표준",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Code / Parameter / Message",
+        "Calendar / Template",
+        "Owner / Persistence",
+        "Cache / Change propagation"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Integration / Messaging / Notification 표준",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Timeout / Deadline",
+        "Retry / Idempotency",
+        "Schema / DLQ / Replay",
+        "AI / Webhook",
+        "Notification",
+        "UNKNOWN / Reconcile"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "File / Archive / Object Storage 표준",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Attachment",
+        "Inspection / Checksum",
+        "Archive",
+        "Tabular",
+        "S3",
+        "Sensitive data"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "OpenAPI / Frontend 연계 표준",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "operationId",
+        "Generated Client",
+        "Route Coverage",
+        "Auth / Error",
+        "Accessibility"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Test",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Unit",
+        "Contract",
+        "Runtime",
+        "Failure",
+        "DB3",
+        "Evidence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Code Review Gate",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Owner",
+        "Consumer",
+        "Error",
+        "Security",
+        "DB",
+        "Generator",
+        "Docs"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "금지 패턴",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Self-HTTP",
+        "Cross-domain DB",
+        "Internal direct dependency",
+        "Protected Header manual build",
+        "UNKNOWN forced result",
+        "Unbounded retry",
+        "Sensitive log",
+        "Stale docs"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    }
+  ],
+  "specialRules": {
+    "normativeTermsOnly": [
+      "필수",
+      "금지",
+      "권장",
+      "허용"
+    ],
+    "ambiguousRule": "hard_fail"
+  }
+}

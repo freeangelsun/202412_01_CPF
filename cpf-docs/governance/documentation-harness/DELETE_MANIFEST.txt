@@ -1,0 +1,13 @@
+# CPF documentation harness superseded-file delete manifest
+# Root-relative exact paths only. Do not use glob. Apply only after overlay verification and explicit local execution.
+cpf-docs/documentation-standards/BATCH_DEVELOPER_MANUAL_WRITING_STANDARD.md
+cpf-docs/documentation-standards/BATCH_OPERATION_MANUAL_WRITING_STANDARD.md
+cpf-docs/documentation-standards/CPF_OFFICIAL_DOCUMENT_REORGANIZATION_STANDARD.md
+cpf-docs/documentation-standards/DEVELOPER_MANUAL_WRITING_STANDARD.md
+cpf-docs/documentation-standards/GATEWAY_OPERATION_MANUAL_WRITING_STANDARD.md
+cpf-docs/documentation-standards/OPERATOR_MANUAL_WRITING_STANDARD.md
+cpf-docs/documentation-standards/README_WRITING_AND_REVIEW_STANDARD.md
+cpf-docs/documentation-standards/SPECIFICATION_DOCUMENT_WRITING_STANDARD.md
+cpf-docs/documentation-standards/IMMUTABLE_SHA256SUMS.txt
+cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md
+cpf-docs/guides/source/DOCUMENTATION_STRUCTURE.md

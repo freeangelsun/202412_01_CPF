@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "docxShell": {
+    "cover": {
+      "required": true,
+      "page": 1,
+      "headerFooterOnCover": false,
+      "alignmentException": "표지 Title/Subtitle만 중앙 정렬 허용",
+      "elementsInOrder": [
+        "CPF wordmark/text identity",
+        "문서 제목",
+        "문서 한 줄 목적",
+        "대상 독자",
+        "문서 버전",
+        "기준 Source identity short form"
+      ],
+      "titleMaxLines": 2,
+      "purposeMaxLines": 2,
+      "noDecorativeGrayBoxes": true,
+      "noLongLegalText": true
+    },
+    "toc": {
+      "required": true,
+      "startsAfterCover": true,
+      "heading": "목차",
+      "levels": [
+        "H1",
+        "H2"
+      ],
+      "showH3": false,
+      "pageNumbers": true,
+      "hyperlinks": true,
+      "manualTypedToc": "forbidden",
+      "updateFieldsBeforeFinalPdf": true
+    },
+    "numbering": {
+      "H1": "1.",
+      "H2": "1.1",
+      "H3": "1.1.1",
+      "automaticMultilevelList": true,
+      "manualNumberTyping": "forbidden"
+    },
+    "header": {
+      "fromFirstContentPage": true,
+      "left": "short document title",
+      "right": "document version",
+      "importantUniqueInformation": "forbidden"
+    },
+    "footer": {
+      "fromTocOrContent": true,
+      "left": "Core Platform Framework",
+      "center": "blank",
+      "right": "page number",
+      "importantUniqueInformation": "forbidden"
+    },
+    "sectionStart": {
+      "pageBreakEveryH1": false,
+      "remainingSpaceRuleMm": 55,
+      "h1SpaceBeforePt": 24,
+      "h1AfterTableOrFigureMinPt": 18
+    },
+    "lastPage": {
+      "mustContainMeaningfulContent": true,
+      "signaturePage": "forbidden unless deliverable profile explicitly requires",
+      "lowDensityReviewBelowPercent": 35
+    }
+  },
+  "readmeShell": {
+    "order": [
+      "Hero",
+      "visible manual TOC",
+      "locked H1 panels",
+      "documentation navigation",
+      "Community & Evaluation License"
+    ],
+    "headingNumbering": "none; brochure titles remain natural sentences",
+    "toc": "H1 anchors only",
+    "heroWidth": "100%",
+    "coreVisualWidth": "100%",
+    "horizontalTwoColumnHero": "forbidden on mobile-critical content",
+    "unsupportedCssDependency": "forbidden"
+  },
+  "metadata": {
+    "documentVersionFormat": "HARNESS_VERSION + document revision; do not invent release status",
+    "sourceIdentity": "short SHA 또는 Source ZIP SHA-256를 표지/문서 정보에 넣을 수 있으나 QA PASS 문구는 넣지 않는다.",
+    "dates": "YYYY-MM-DD",
+    "timezone": "KST when time is shown"
+  }
+}

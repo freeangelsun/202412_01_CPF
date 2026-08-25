@@ -1,0 +1,878 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "documentId": "OPERATOR_MANUAL",
+  "title": "CPF 운영자 매뉴얼",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "structureLocked": true,
+  "h1OrderLocked": true,
+  "additionalH1": false,
+  "tocRequired": true,
+  "primaryPersona": [
+    "Application 운영자",
+    "Platform 운영자"
+  ],
+  "entryCondition": "장애 신고 또는 운영 변경 요청을 받은 상태",
+  "exitCondition": "현재 상태를 식별하고 권한 범위의 안전한 조치를 수행한 뒤 정상화/에스컬레이션을 판정할 수 있다.",
+  "orientation": "portrait",
+  "pageCountReviewRange": {
+    "min": 85,
+    "max": 135
+  },
+  "globalRules": {
+    "allH1MustAppearExactlyOnce": true,
+    "allRequiredH2MustAppearExactlyOnce": true,
+    "renamingHeadings": "forbidden",
+    "reorderingHeadings": "forbidden",
+    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
+    "extraSections": "forbidden without user-authorized harness revision"
+  },
+  "sections": [
+    {
+      "title": "운영자가 먼저 확인할 것",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "권한과 접근",
+        "현재 Environment / System",
+        "시간 범위",
+        "transactionId / operationId / instanceId 확보",
+        "변경 전 Evidence 확보",
+        "위험 조치 전 확인"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "거래 찾기",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "거래 검색 키",
+        "시간 / System / 상태 Filter",
+        "Paging / Detail",
+        "검색 결과가 없을 때",
+        "관련 Trace / Log 연결"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "transactionId로 전체 흐름 추적",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "거래 시작점",
+        "Hop",
+        "Log",
+        "Trace",
+        "Timeline",
+        "실패 구간",
+        "관련 operationId / instanceId"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [
+        "OPERATION_TRACE"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "operationId로 처리 기능 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Canonical Operation",
+        "Handler",
+        "Policy",
+        "Caller 허용",
+        "Discovery 상태",
+        "NOT_DISCOVERED / INACTIVE_CANDIDATE",
+        "OpenAPI 연결"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "instanceId로 처리 Runtime 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "SystemCode와 구분",
+        "Host / Application",
+        "중복 Instance",
+        "Health",
+        "Build SHA",
+        "Draining / Maintenance",
+        "재기동 판단"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Log 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "검색 기준",
+        "Transaction / Operation / Instance correlation",
+        "Error Log",
+        "민감정보 Masking",
+        "Remote Log / Export",
+        "Log 누락"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Trace / Timeline 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Trace 시작",
+        "Span / Hop",
+        "Timeline Event",
+        "외부 호출",
+        "Retry Attempt",
+        "UNKNOWN",
+        "Audit 연결"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Health 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Application Health",
+        "Dependency Health",
+        "Registry Health",
+        "DB / Messaging / External",
+        "Multi-instance",
+        "READY 불가 조건"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Service Registry 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "System / Service",
+        "Endpoint",
+        "Version / Zone / Weight",
+        "Health / Maintenance / Draining",
+        "TTL / Stale",
+        "중복 instanceId",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Config / Policy 변경",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "현재 Effective Config",
+        "변경 가능 여부",
+        "Secret 여부",
+        "Approval",
+        "적용",
+        "Dynamic / Restart 필요",
+        "Rollback",
+        "Audit",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK",
+        "OPTION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Feature Flag 운영",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Flag 상태",
+        "Scope",
+        "변경 사유",
+        "Approval",
+        "적용",
+        "Rollback",
+        "Audit",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK",
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Dynamic Log Level 운영",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "현재 Level",
+        "변경 대상",
+        "유효 시간",
+        "민감정보 위험",
+        "적용",
+        "원복",
+        "Audit"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Cache 운영",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Provider / Instance",
+        "Health / Metrics",
+        "Invalidation",
+        "Refresh",
+        "Multi-instance 정합성",
+        "Failure / Reconnect",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Messaging 운영",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Broker / Consumer",
+        "Lag / Backlog",
+        "Retry",
+        "DLQ",
+        "Replay",
+        "Outbox / Inbox",
+        "Schema",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Notification 운영",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Provider 상태",
+        "요청 / Receipt",
+        "실패",
+        "Retry",
+        "UNKNOWN / Reconcile",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Security / Session / Permission 운영",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Authentication",
+        "Session",
+        "Permission",
+        "Role",
+        "Masking",
+        "Secret / Certificate",
+        "위험 변경",
+        "Audit",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Incident Lifecycle",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Incident 생성",
+        "영향 범위",
+        "Owner",
+        "상태 전이",
+        "Recovery Action",
+        "Evidence",
+        "종료 기준"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STATE",
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Integration Closure / Recovery",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "외부 연계 실패",
+        "Result Probe",
+        "UNKNOWN",
+        "Reconcile",
+        "Closure 상태",
+        "Audit",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK",
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Runtime Control",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "대상 Runtime",
+        "Start / Stop / Restart",
+        "Drain / Resume",
+        "사전 조건",
+        "Approval",
+        "실행",
+        "Result Tracking",
+        "Audit",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "거래 상태 판단",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "SUCCESS",
+        "BUSINESS_FAILURE",
+        "TECHNICAL_FAILURE",
+        "UNKNOWN",
+        "부분 실패",
+        "상태를 바꾸면 안 되는 경우"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STATE",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Business Failure",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "업무 오류 식별",
+        "재시도 여부",
+        "사용자/업무 조치",
+        "데이터 확인",
+        "Escalation"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Technical Failure",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "기술 오류 식별",
+        "Dependency",
+        "Retryability",
+        "Circuit / Timeout",
+        "정상화",
+        "Escalation"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "UNKNOWN",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "UNKNOWN 확인",
+        "대상 Owner",
+        "재호출 금지 여부",
+        "Probe / Reconcile",
+        "운영자 임의 확정 금지",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STATE",
+        "RUNBOOK"
+      ],
+      "figures": [
+        "STATE_TRANSITION"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Retry",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Retry 가능한 오류",
+        "Retry 불가 오류",
+        "Attempt",
+        "Backoff",
+        "Idempotency",
+        "중단 기준",
+        "결과 확인"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DECISION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Reconcile",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "대상 조회",
+        "사전 확인",
+        "실행",
+        "외부 결과 비교",
+        "상태 확정",
+        "부분 실패",
+        "Audit",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "위험 운영 조치",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "위험 조치 목록",
+        "Permission",
+        "Reason",
+        "Approval",
+        "Break-glass",
+        "Dry-run / Preview가 있는 경우",
+        "실행 후 결과"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "승인 / 사유 / Audit",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Approval 상태",
+        "Reason 작성 기준",
+        "SoD",
+        "Audit 검색",
+        "변경 전후 값",
+        "실패한 승인 / 조치"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Gateway 장애",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Gateway Health",
+        "Route",
+        "Backend",
+        "Auth",
+        "Rate Limit",
+        "Timeout",
+        "503 / 504",
+        "Direct path를 자동 Fallback으로 쓰지 않는 이유",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "HTTP_STATUS",
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Batch 장애",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Execution",
+        "Scheduler",
+        "Worker",
+        "Lease",
+        "Center-Cut",
+        "UNKNOWN",
+        "Restart / Reprocess 선택",
+        "Batch 운영 가이드로 이동"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK",
+        "RESTART_RERUN_REPROCESS_RECONCILE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "외부기관 장애",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Timeout",
+        "Connection",
+        "인증서 / Credential",
+        "부분 송수신",
+        "Retryability",
+        "UNKNOWN",
+        "Reconcile",
+        "Masking"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ERROR",
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "DB 장애",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Connection",
+        "Schema mismatch",
+        "Lock",
+        "Slow Query",
+        "Migration 상태",
+        "Failover 정책",
+        "데이터 임의 수정 금지",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "HTTP 상태별 대응",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "401",
+        "403",
+        "404",
+        "409",
+        "429",
+        "500",
+        "503"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "HTTP_STATUS"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Runtime Instance 장애",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Health / Heartbeat",
+        "중복 instanceId",
+        "Draining",
+        "Process Kill",
+        "재기동",
+        "Registry stale",
+        "정상화"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "정상화 확인",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "거래 정상화",
+        "Dependency 정상화",
+        "Backlog / UNKNOWN 잔여",
+        "Metric / Alert",
+        "Audit",
+        "사용자 영향 종료"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Escalation",
+      "model": "OPERATOR_RUNBOOK_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "개발자 Escalation",
+        "DBA / Infra",
+        "Security",
+        "외부기관",
+        "반드시 전달할 식별자와 Evidence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "운영 Runbook 모음",
+      "model": "DOCUMENT_INDEX_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "거래 실패",
+        "UNKNOWN",
+        "Gateway",
+        "Batch",
+        "DB",
+        "Security",
+        "Config 변경",
+        "Runtime 장애"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    }
+  ],
+  "specialRules": {
+    "runbookPatternLocked": true,
+    "sourceCodeExamples": "prohibited except exact command/API query snippets",
+    "menuDump": "forbidden"
+  }
+}

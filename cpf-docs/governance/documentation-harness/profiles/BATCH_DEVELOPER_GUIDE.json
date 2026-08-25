@@ -1,0 +1,678 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "documentId": "BATCH_DEVELOPER_GUIDE",
+  "title": "CPF 배치 개발자 가이드",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "structureLocked": true,
+  "h1OrderLocked": true,
+  "additionalH1": false,
+  "tocRequired": true,
+  "primaryPersona": [
+    "Batch Job 개발자",
+    "Batch Platform 개발자"
+  ],
+  "entryCondition": "Batch 유형과 실행/복구 모델을 선택해 구현해야 하는 상태",
+  "exitCondition": "복구 가능한 Job/Step/Partition을 개발하고 Scheduler/Worker/Center-Cut/Agent 경계를 이해하며 장애 Test와 운영 인계를 수행할 수 있다.",
+  "orientation": "landscape",
+  "pageCountReviewRange": {
+    "min": 75,
+    "max": 125
+  },
+  "globalRules": {
+    "allH1MustAppearExactlyOnce": true,
+    "allRequiredH2MustAppearExactlyOnce": true,
+    "renamingHeadings": "forbidden",
+    "reorderingHeadings": "forbidden",
+    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
+    "extraSections": "forbidden without user-authorized harness revision"
+  },
+  "sections": [
+    {
+      "title": "CPF Batch 개발 구조",
+      "model": "ARCHITECTURE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Batch Runtime Owner",
+        "Generated Domain batch 영역",
+        "Control Plane",
+        "Scheduler",
+        "Worker",
+        "Center-Cut",
+        "Agent",
+        "Local Batch Runtime과 운영 Topology 차이"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ROLE"
+      ],
+      "figures": [
+        "BATCH_TOPOLOGY"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Batch 기능 선택",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Tasklet / Chunk 선택",
+        "Local / Remote Partition",
+        "Remote Chunk / Remote Step",
+        "Scheduler",
+        "On-Demand",
+        "Center-Cut",
+        "Agent / Worker",
+        "외부 호출 Batch",
+        "복구 요구에 따른 선택"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "DECISION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Job 개발",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfBatchJob",
+        "Job Definition",
+        "Parameter",
+        "Execution Identity",
+        "정상 종료",
+        "실패",
+        "재시작 가능성",
+        "Test",
+        "Source / EDU"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "API",
+        "OPTION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Step 개발",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfBatchStep",
+        "Step Handler",
+        "Tasklet",
+        "Chunk",
+        "Step Transaction",
+        "Execution Context",
+        "실패",
+        "Test",
+        "Source / EDU"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "API",
+        "OPTION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Chunk 처리",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Reader / Processor / Writer",
+        "Chunk Size",
+        "Commit Boundary",
+        "Retry / Skip",
+        "Checkpoint",
+        "성능",
+        "Test",
+        "Source / EDU"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "OPTION",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Partition 처리",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Partition Key",
+        "Local Partition",
+        "Remote Partition",
+        "Worker 분배",
+        "Lease",
+        "재할당",
+        "중복 처리 방지",
+        "Test",
+        "Source / EDU"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DECISION",
+        "API"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Parameter와 Execution Context",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "JobParameter",
+        "식별 Parameter",
+        "재시작 시 유지",
+        "Execution Context",
+        "민감정보",
+        "Version Compatibility",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "OPTION"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Batch Transaction",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Chunk Transaction",
+        "REQUIRES_NEW",
+        "Step별 Transaction",
+        "Remote Side Effect",
+        "Commit 이후 실패",
+        "UNKNOWN",
+        "Compensation / Reconcile",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DECISION",
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Control Plane",
+      "model": "ARCHITECTURE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Job Definition",
+        "Execution Metadata",
+        "Policy",
+        "Runtime 제어",
+        "Reconcile",
+        "ADM 연결",
+        "하지 않는 일"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ROLE"
+      ],
+      "figures": [
+        "OWNERSHIP_BOUNDARY"
+      ],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Scheduler",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Schedule Definition",
+        "Trigger",
+        "Claim / Lease",
+        "Misfire",
+        "Business Day",
+        "Dispatch",
+        "중복 Trigger 방지",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "OPTION",
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Worker",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Worker Identity",
+        "Job / Step / Partition 실행",
+        "Heartbeat",
+        "Lease / Fencing",
+        "처리량",
+        "Stale Worker",
+        "Process Kill",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "API",
+        "STATE"
+      ],
+      "figures": [
+        "STATE_TRANSITION"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Center-Cut",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "대상 선정",
+        "Preview",
+        "Claim",
+        "분할 실행",
+        "Attempt",
+        "실패 대상",
+        "Reconcile",
+        "부분 실패",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Job Pack과 배포",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Job Pack이 필요한 경우",
+        "Job Pack Manifest / Catalog",
+        "Artifact Digest / Signature",
+        "Deployment Plan",
+        "Cell / Target",
+        "Approved Launch",
+        "배포 실패 / Recovery",
+        "Rollback",
+        "Audit",
+        "Test",
+        "Source"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "API",
+        "RUNBOOK"
+      ],
+      "figures": [
+        "LIFECYCLE"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Agent",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "설치 / Artifact",
+        "Start / Stop / Restart",
+        "Rollback",
+        "Drain / Resume",
+        "Command Ledger",
+        "승인 / Audit",
+        "실패",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Lease / Fencing / Heartbeat",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Lease 취득",
+        "Heartbeat 갱신",
+        "Fencing Token",
+        "만료",
+        "Stale Worker 차단",
+        "재할당",
+        "동시성 Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STATE",
+        "TEST_SCENARIO"
+      ],
+      "figures": [
+        "STATE_TRANSITION"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Restart / Rerun / Reprocess / Reconcile",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "네 방식 먼저 비교",
+        "Restart",
+        "Rerun",
+        "Reprocess",
+        "Reconcile",
+        "Checkpoint / 기존 Execution 관계",
+        "중복 Side Effect 위험",
+        "선택 Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RESTART_RERUN_REPROCESS_RECONCILE",
+        "DECISION"
+      ],
+      "figures": [
+        "BATCH_RECOVERY"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Idempotency",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Job 중복 실행",
+        "Step / Item 중복",
+        "On-Demand 중복 요청",
+        "External Side Effect",
+        "Key 설계",
+        "Conflict",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "FUNCTION_SELECTION",
+        "ERROR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "외부 Side Effect",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Timeout",
+        "Retryability",
+        "Commit Boundary",
+        "UNKNOWN",
+        "Idempotency",
+        "Reconcile",
+        "부분 전송",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "ERROR",
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L3",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "UNKNOWN",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "UNKNOWN 발생 조건",
+        "Owner",
+        "대상 저장",
+        "Probe",
+        "Reconcile",
+        "운영 인계",
+        "Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STATE",
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Process Kill과 장애 복구",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Kill 시점별 영향",
+        "Heartbeat / Lease",
+        "Checkpoint",
+        "재할당",
+        "Fencing",
+        "중복 방지",
+        "정상화",
+        "Fault Injection Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK",
+        "TEST_SCENARIO"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "대량 처리와 성능",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Chunk Size",
+        "Partition 수",
+        "Worker 수",
+        "Backpressure",
+        "DB Lock",
+        "Batch Claim",
+        "Progress",
+        "Capacity Baseline",
+        "성능 Test"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DECISION",
+        "TEST_SCENARIO"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Test",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Job Test",
+        "Step Test",
+        "Partition Test",
+        "Scheduler Test",
+        "Worker Kill",
+        "Lease / Fencing",
+        "External UNKNOWN",
+        "Restart / Reprocess",
+        "DB3",
+        "Runtime Evidence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "TEST_SCENARIO"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "운영 인계",
+      "model": "DEVELOPER_CAPABILITY_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Job Definition",
+        "Schedule",
+        "Parameter",
+        "Retry/Skip",
+        "Restart 정책",
+        "Reprocess 기준",
+        "Reconcile",
+        "Permission / Approval",
+        "Metric / Alert",
+        "Runbook"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "RUNBOOK"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "잘못된 구현과 금지 패턴",
+      "model": "STANDARD_RULE_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "업무 Job을 Control Plane에 구현",
+        "Scheduler가 Job 업무를 수행",
+        "Lease 없이 다중 Worker",
+        "UNKNOWN 강제 확정",
+        "Restart와 Reprocess 혼용",
+        "Process Kill 후 중복 처리 방치",
+        "무한 Retry",
+        "Audit 없는 위험 조치"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Source 길찾기",
+      "model": "DOCUMENT_INDEX_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "cpf-batch/api",
+        "runtime / runtime-support",
+        "control-plane",
+        "scheduler",
+        "worker",
+        "center-cut",
+        "agent",
+        "testkit",
+        "Generated Domain batch",
+        "EDU Batch 15"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SOURCE_NAV"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    }
+  ],
+  "specialRules": {}
+}

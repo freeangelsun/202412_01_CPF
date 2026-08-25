@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "files": [
+    {
+      "path": "cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md",
+      "sha256": "60d11a6fdd494b8fe56a39a8ff14ddc36aa6d3cf0bb7bc22b9f297c633fc8b0b",
+      "bytes": 4765
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/CHANGELOG.md",
+      "sha256": "e46ccd4ce1d562a5538e04466db8f314d0fd30dc4e759f559fe2c9f7eafd4bdd",
+      "bytes": 501
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/CPF_DOCUMENTATION_HARNESS.md",
+      "sha256": "967f5dcbaae12ce3869fd38f3ef224193789f4f13eb6dd116ad725b50a674c1b",
+      "bytes": 15270
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/DELETE_MANIFEST.json",
+      "sha256": "23e0c66827a4ab3ea3c0226595ab5012033ced59d16383bbde5b79517dc2cbd0",
+      "bytes": 2223
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/DELETE_MANIFEST.txt",
+      "sha256": "3da15faf979795865d6b276d4866a46027ca2b553e3bf7ece59f32c23061a08c",
+      "bytes": 938
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/DOCUMENT_PROFILE_CATALOG.md",
+      "sha256": "1e06830d5171caba5d8e55f7ec499ed2192ac8a464e68aac9d2843259976bbd6",
+      "bytes": 98032
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/FINAL_GATE_CHECKLIST.md",
+      "sha256": "24f847b0d4d46525fe1bdf6e66d7d97061b69ec322b7975a2cc24946dcd1812a",
+      "bytes": 1981
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/PRODUCT_COVERAGE_MATRIX.md",
+      "sha256": "7152908573bd3cb7062c76e29553a3216dfa4839ef1f94ac4e91865af9bd05bd",
+      "bytes": 9262
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/README.md",
+      "sha256": "5205264735facbd1bcd8628b57753ac91bfc55b9c6afb8d8fb054080b404474d",
+      "bytes": 763
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/REFERENCE_BASIS.md",
+      "sha256": "d15dab10a471c5c8eead41f548ba7a97ff495edea8971af356435c5ef30c0165",
+      "bytes": 2306
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/SOURCE_BASELINE.json",
+      "sha256": "17d63fd8b96679ce70d08c41ff132f367af37f62b6d614fb8cadc55169a6ab2b",
+      "bytes": 7660
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/SOURCE_CAPABILITY_INVENTORY.json",
+      "sha256": "87ac9f0701f18ab58c7362104c4ebbd14b786c5cd44b0696c2365be5e670eaac",
+      "bytes": 37704
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/content-models.json",
+      "sha256": "8049743fb7c6369532abe9437969cbda42ce51f2b91839e3aaa63867d18c3857",
+      "bytes": 7269
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/design-tokens.json",
+      "sha256": "b28579c49a13d57d218a13e39c12c7cb0f4c446acb93d6f40f4eda785031080b",
+      "bytes": 8174
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/document-shell.json",
+      "sha256": "f20b20d8fbe9641d4c1a81141a1db46df1c58917b4cc4bdb5a81739d471f36d8",
+      "bytes": 2674
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/figure-presets.json",
+      "sha256": "ef719454631b52d056d9c43d1005e26fa77fbc20e1d199b57676b7c5e2c1aa8b",
+      "bytes": 3150
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/harness.json",
+      "sha256": "96546a586684e477811f3fcd71a249f54a860cac890a75a6a964674b7d76885f",
+      "bytes": 3293
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/product-coverage.json",
+      "sha256": "29e5b36ab4cba82fd240fc59bae39f53266047c40ecab928d81f6bd06e1eaa74",
+      "bytes": 21241
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/ARCHITECTURE_DESIGN.json",
+      "sha256": "fe44f98e3cd0b331546a9e675d819f61e0ebea2476d772ac3add7bcddcc85a20",
+      "bytes": 12159
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/BATCH_DEVELOPER_GUIDE.json",
+      "sha256": "23c67c248252dcb920fc9d76a847c32951bf9d3f536535a79048658bc0a3b8b4",
+      "bytes": 17310
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/BATCH_OPERATOR_GUIDE.json",
+      "sha256": "b7920734650c55dfd7da8fd3ef9cd700a3ba81f15814e093a469954dd8a8c1b4",
+      "bytes": 14325
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/DATABASE_STANDARD.json",
+      "sha256": "ef2f69cde8224f495639b041ce858f5c28873853c986eb0b55260144c85b6f20",
+      "bytes": 15080
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/DELIVERABLE_INDEX.json",
+      "sha256": "68a38591df4664986110754dc1fd3f4cbbbdc5f615513bf7f733eeced7134531",
+      "bytes": 7365
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/FRAMEWORK_DEVELOPER_GUIDE.json",
+      "sha256": "3e0f1fc77804a5f94ae32588ac6d9255155f1c979dd15b1b4418b2d9197675ff",
+      "bytes": 24181
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/GATEWAY_GUIDE.json",
+      "sha256": "bf8b6aefbd0f1a3df336e9fa3e90b11d436a103ea975bad57eef5164b5dc168a",
+      "bytes": 12674
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/OPERATOR_MANUAL.json",
+      "sha256": "a19899f486fc72d1c9278fc1b305971f870bb0b046b9aad778295970f64b27ec",
+      "bytes": 22397
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/README.json",
+      "sha256": "4c115441cee82d3846e37c97af5c735386869bd1e7fd21730d4747f34a7fc935",
+      "bytes": 14074
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/SPECIFICATION.json",
+      "sha256": "5a143863d489dbd13b10928afe211b47cb1eb0f892e14b733f2e7b809fb109d9",
+      "bytes": 21812
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/TECHNICAL_SPECIFICATION.json",
+      "sha256": "ac3e800025f3bca156927e3d08289a92b6eb3ec8ff6524333f1b60d244bd6030",
+      "bytes": 15792
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/profiles/TECHNICAL_STANDARD.json",
+      "sha256": "07f957c34cef77522d4ec809a16cee101dd3f0994e325c74c605195a9bfecaa4",
+      "bytes": 16757
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/schemas/document-profile.schema.json",
+      "sha256": "a4ff49bbcddcaaee5089474b3e20fb695782e4ce13c615fabbe195623867c1f9",
+      "bytes": 1214
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/schemas/scope.schema.json",
+      "sha256": "243431800c288da9110c51ffdd70092cc5d158005d6f8428c203449c9e0a776f",
+      "bytes": 381
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/scope.json",
+      "sha256": "6c8c3405a5f94f48a87900495adf76546fdd4b68c1a93dac193378fe0445c560",
+      "bytes": 3964
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/table-presets.json",
+      "sha256": "023f70bf3b304ad814b383826553ba523ebaf5cc4ffae9e16a6b4157eb78b231",
+      "bytes": 7769
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/templates/SESSION_RUN_MANIFEST.template.json",
+      "sha256": "f2c924f61bfcbcb1114292d1de1c1d8b4754ea79cfb44dc2ce46e02e5fea99bc",
+      "bytes": 689
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/terminology.json",
+      "sha256": "e89b1b3783dbd0c9669759dac47eee9f7df072a8e43fe4e98167463a3b7acac8",
+      "bytes": 3908
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/validators/validate_harness.ps1",
+      "sha256": "cddb343477d36b78cd62a9b5171e95498106ea607cd59bcbc819575973cdfb16",
+      "bytes": 565
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/validators/validate_harness.py",
+      "sha256": "41e5d7025406810c503ecdcb83474aba474acfb3859f9b474d345e1cd6c254ad",
+      "bytes": 4895
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/visual-qa.json",
+      "sha256": "de2f3a1de239e762bc42d2b04a04d6e9fb878d99b36fefafa40c043763ad4e89",
+      "bytes": 2625
+    },
+    {
+      "path": "cpf-docs/governance/documentation-harness/writing-style.json",
+      "sha256": "5fcf568a6d29ee4f4780b1f4df7dbaa0ecdb2ca34e17b371076a75a39fd3fd0d",
+      "bytes": 4237
+    }
+  ]
+}

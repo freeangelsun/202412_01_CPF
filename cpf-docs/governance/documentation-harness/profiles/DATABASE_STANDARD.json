@@ -1,0 +1,603 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "documentId": "DATABASE_STANDARD",
+  "title": "CPF 데이터베이스표준서",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "structureLocked": true,
+  "h1OrderLocked": true,
+  "additionalH1": false,
+  "tocRequired": true,
+  "primaryPersona": [
+    "DB 개발자",
+    "업무 개발자",
+    "DBA",
+    "Framework Maintainer"
+  ],
+  "entryCondition": "DB 설계/변경/배포/복구를 수행해야 하는 상태",
+  "exitCondition": "Oracle/PostgreSQL/MariaDB를 동일 Lifecycle에서 설계하고 Migration/Upgrade/Rollback 또는 Recovery/Runtime Query/Generator 영향을 함께 판단할 수 있다.",
+  "orientation": "landscape",
+  "pageCountReviewRange": {
+    "min": 65,
+    "max": 100
+  },
+  "globalRules": {
+    "allH1MustAppearExactlyOnce": true,
+    "allRequiredH2MustAppearExactlyOnce": true,
+    "renamingHeadings": "forbidden",
+    "reorderingHeadings": "forbidden",
+    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
+    "extraSections": "forbidden without user-authorized harness revision"
+  },
+  "sections": [
+    {
+      "title": "CPF DB 표준",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "적용 범위",
+        "Logical / Physical 분리",
+        "Data Ownership",
+        "DB 변경 완료 단위"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Oracle / PostgreSQL / MariaDB",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "공식 Vendor",
+        "지원 원칙",
+        "금지 Evidence Vendor",
+        "Vendor 선택"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_VENDOR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Schema",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Business / Platform Schema",
+        "Owner",
+        "Privilege",
+        "Naming"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Naming",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Table",
+        "Column",
+        "PK/FK/UK/CK/Index",
+        "Sequence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Table",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Owner",
+        "Audit Column",
+        "History",
+        "삭제 정책"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Column",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Nullability",
+        "Default",
+        "Length",
+        "Sensitive data"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Datatype",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Logical Type",
+        "문자",
+        "숫자",
+        "날짜/시간",
+        "Boolean",
+        "Large Object",
+        "JSON"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_VENDOR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Primary Key",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Key 설계",
+        "Natural / Surrogate",
+        "Generator 영향"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Foreign Key",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Ownership",
+        "Cross-domain 금지",
+        "Cascade"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Unique",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Business uniqueness",
+        "Null",
+        "Concurrency"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Check Constraint",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "사용 기준",
+        "Vendor parity",
+        "Migration"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Index",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "선택 기준",
+        "Composite order",
+        "Covering",
+        "Over-indexing",
+        "Runtime Query"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Sequence / Identity",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Vendor 방식",
+        "Allocation",
+        "Batch"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Audit / History",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "변경 이력",
+        "Actor / Time",
+        "Before / After",
+        "Retention"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Lock / Concurrency",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Optimistic",
+        "Pessimistic",
+        "Distributed Lock",
+        "Timeout / Deadlock"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Batch Claim",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Claim 상태",
+        "Lease",
+        "Fencing",
+        "Index",
+        "재할당"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Fresh Initialization",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "DB/User/Schema",
+        "Initializer",
+        "Canonical DDL",
+        "Idempotency"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_LIFECYCLE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Migration",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Version",
+        "Forward migration",
+        "Failure",
+        "History"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_LIFECYCLE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Seed",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Reference seed",
+        "Idempotency",
+        "환경 차이",
+        "운영 데이터 금지"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_LIFECYCLE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Upgrade",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Supported previous version",
+        "Existing data",
+        "Mixed version",
+        "Parity"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_LIFECYCLE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Rollback / Recovery",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Rollback 가능 변경",
+        "Recovery-only 변경",
+        "데이터 보존",
+        "검증"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_LIFECYCLE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Runtime Query",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Repository / Mapper",
+        "Parameter binding",
+        "Index",
+        "Timeout"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Performance",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Explain / Plan",
+        "Index",
+        "Batch",
+        "Lock",
+        "Capacity"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Schema Mismatch",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "탐지",
+        "기동 차단",
+        "Migration 상태",
+        "복구"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "장애 복구",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Connection",
+        "Lock",
+        "Partial migration",
+        "Seed failure",
+        "Upgrade failure"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Generator / DB Binding",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Domain contract",
+        "Vendor render",
+        "Datasource",
+        "Generated Domain",
+        "Sync"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STANDARD_RULE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Vendor 차이",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Datatype",
+        "Identity",
+        "DDL",
+        "Lock",
+        "SQL 함수",
+        "Migration"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_VENDOR"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Validation / Evidence",
+      "model": "DB_STANDARD_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Fresh",
+        "Upgrade",
+        "Rollback / Recovery",
+        "Runtime transaction",
+        "Schema parity",
+        "Hash / Evidence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_LIFECYCLE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    }
+  ],
+  "specialRules": {}
+}

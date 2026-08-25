@@ -1,0 +1,853 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "documentId": "SPECIFICATION",
+  "title": "CPF Specification 기술 명세",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "structureLocked": true,
+  "h1OrderLocked": true,
+  "additionalH1": false,
+  "tocRequired": true,
+  "primaryPersona": [
+    "Framework 개발자",
+    "통합 개발자",
+    "Architect",
+    "검수자"
+  ],
+  "entryCondition": "정확한 Public Contract/상태/옵션/오류 계약을 확인해야 하는 상태",
+  "exitCondition": "특정 API/Annotation/Config/State의 Owner, 입력, 출력, 실패 계약, Consumer, Source를 정확히 찾을 수 있다.",
+  "orientation": "landscape",
+  "pageCountReviewRange": {
+    "min": 115,
+    "max": 185
+  },
+  "globalRules": {
+    "allH1MustAppearExactlyOnce": true,
+    "allRequiredH2MustAppearExactlyOnce": true,
+    "renamingHeadings": "forbidden",
+    "reorderingHeadings": "forbidden",
+    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
+    "extraSections": "forbidden without user-authorized harness revision"
+  },
+  "sections": [
+    {
+      "title": "Module / Public Boundary",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Public API",
+        "SPI",
+        "Internal",
+        "Artifact Visibility",
+        "Consumer 계약"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Base Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "CpfRequest / CpfResponse",
+        "CpfResult",
+        "Version",
+        "Base API"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Context Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "CpfContext",
+        "Context Snapshot",
+        "Propagation",
+        "Trust Boundary"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Canonical Header Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "System6",
+        "생성",
+        "검증",
+        "Hop 변경",
+        "적용/제외 경계"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SYSTEM6",
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Runtime Instance Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "instanceId 결정",
+        "금지값",
+        "중복",
+        "관측 필드"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Operation ID Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfOnlineTransaction",
+        "OpenAPI operationId",
+        "Registry",
+        "Policy",
+        "Discovery"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Result Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Success / Failure / UNKNOWN",
+        "Recovery Info",
+        "Status"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Error Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Business",
+        "System",
+        "Validation",
+        "External",
+        "Catalog / Message"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "CPF Framework Common Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Code",
+        "Parameter",
+        "Message / Error Catalog",
+        "Calendar",
+        "Template",
+        "Management / Change Propagation"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Persistence Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Repository",
+        "JDBC / MyBatis / JPA",
+        "Paging / Cursor",
+        "Lock"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Data Quality Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Rule",
+        "Decision",
+        "Correction Port",
+        "Audit / Runtime impact"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Transaction Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Local",
+        "REQUIRES_NEW",
+        "Saga",
+        "TCC",
+        "XA",
+        "Outcome / Recovery"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Domain Invocation Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "CpfDomainClient",
+        "Binding",
+        "Router",
+        "Local / Remote",
+        "Call Options"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "External Integration Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfClient",
+        "Timeout",
+        "Retry",
+        "Fixed-Length",
+        "Webhook / File",
+        "UNKNOWN"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "AI Integration Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "CpfAiOperations",
+        "Provider",
+        "Request / Response",
+        "Policy / Risk",
+        "Usage / Telemetry",
+        "UNKNOWN"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Messaging Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Producer / Consumer",
+        "Schema",
+        "Outbox / Inbox",
+        "DLQ / Replay",
+        "Reliability"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Notification Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Operations",
+        "Request",
+        "Result / Receipt",
+        "Provider",
+        "Reconciler",
+        "Runtime status"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Cache Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Cache API",
+        "Options",
+        "Invalidation",
+        "Health / Metrics",
+        "Multi-instance"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "File Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Attachment",
+        "Object Storage",
+        "Inspection",
+        "Checksum",
+        "Transfer / UNKNOWN"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Archive / Tabular Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Archive",
+        "Checksum",
+        "Extract",
+        "Tabular Read",
+        "Tabular Write",
+        "Error / Security"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Security Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Authentication",
+        "Permission",
+        "PreAuthorize",
+        "Session",
+        "Crypto / Encryption",
+        "Secret Reference"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Approval / Audit Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Approval Required",
+        "Reason",
+        "Audit Event",
+        "Break-glass"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Idempotency Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "@CpfIdempotent",
+        "Key",
+        "Conflict",
+        "Durability"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Reconcile Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "UNKNOWN owner",
+        "Probe",
+        "Reconciler",
+        "State transition"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Async / Workflow Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Async Operations",
+        "Async State",
+        "Workflow",
+        "Context propagation"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Batch Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Job / Step",
+        "Execution",
+        "Scheduler",
+        "Worker",
+        "Center-Cut",
+        "Agent",
+        "Lease / Fencing"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Gateway Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Route",
+        "Registry",
+        "Entry Policy",
+        "Rate Limit",
+        "Audit",
+        "Health"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "DB Lifecycle Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Vendor",
+        "Schema",
+        "Migration",
+        "Seed",
+        "Upgrade",
+        "Rollback / Recovery"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Platform State / Feature Flag Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "State identifiers",
+        "State transition",
+        "Feature Flag",
+        "Audit / Store",
+        "Runtime status"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT",
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Runtime / Topology Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Same JVM",
+        "Remote",
+        "Multi-instance",
+        "Registry",
+        "Health"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Operations Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "ADM",
+        "Health",
+        "Log / Trace",
+        "Runtime Control",
+        "Incident / Recovery"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "OpenAPI Contract",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "OpenAPI Snapshot",
+        "Operations",
+        "operationId",
+        "Frontend generated client",
+        "Route coverage"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Public API Reference",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "API index",
+        "Annotation index",
+        "Configuration index",
+        "Command index"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "State Transition",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "거래",
+        "Async",
+        "Batch",
+        "Gateway/Operations relevant states"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "STATE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Compatibility",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Java / Spring",
+        "Artifact",
+        "Provider",
+        "DB",
+        "Mixed Version"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    },
+    {
+      "title": "Contract Acceptance",
+      "model": "SPEC_CONTRACT_CHAPTER",
+      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "requiredH2": [
+        "Consumer",
+        "Error / Boundary",
+        "Runtime",
+        "Evidence"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "SPEC_CONTRACT"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [
+        "actual source identifier inventory required"
+      ],
+      "acceptance": []
+    }
+  ],
+  "specialRules": {
+    "sourceIdentifierExactMatch": "hard_fail",
+    "unverifiedApi": "forbidden",
+    "referenceFirst": true
+  }
+}

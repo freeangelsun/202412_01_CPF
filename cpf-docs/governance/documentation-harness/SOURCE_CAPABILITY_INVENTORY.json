@@ -1,0 +1,1581 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_104217.zip",
+  "sourceSha256": "014a313a55c1852ac6131103668b3fe53e31a390e23ae7105aed97158977bad9",
+  "apiPackageCategories": [
+    {
+      "category": "platform/operations/observability",
+      "javaFiles": 62,
+      "samples": [
+        "CpfTraceContext.java",
+        "CpfTelemetry.java",
+        "CpfLogPolicyVersionStore.java",
+        "TransactionLogRecord.java",
+        "CpfLogPolicyVersionApplier.java",
+        "CpfLogPolicyVersionAuditSink.java"
+      ]
+    },
+    {
+      "category": "data/persistence/api",
+      "javaFiles": 38,
+      "samples": [
+        "CpfCursorRepository.java",
+        "CpfPersistencePolicy.java",
+        "CpfBaseRepository.java",
+        "CpfDatabaseRole.java",
+        "CpfFilterCriterion.java",
+        "CpfRepository.java"
+      ]
+    },
+    {
+      "category": "platform/operations/api",
+      "javaFiles": 37,
+      "samples": [
+        "CpfStateIdentifiers.java",
+        "CpfOperationState.java",
+        "CpfStateTransitionResult.java",
+        "CpfStateOperations.java",
+        "CpfStateQueryResult.java",
+        "CpfStateAuditEvent.java"
+      ]
+    },
+    {
+      "category": "messaging/reliability/api",
+      "javaFiles": 27,
+      "samples": [
+        "InMemoryCpfIdempotencyRepository.java",
+        "CpfIdempotencyException.java",
+        "CpfIdempotencyCommand.java",
+        "CpfIdempotencyEngine.java",
+        "CpfIdempotencyStatus.java",
+        "CpfIdempotencyPort.java"
+      ]
+    },
+    {
+      "category": "messaging/spi/broker",
+      "javaFiles": 22,
+      "samples": [
+        "CpfBrokerHealthPort.java",
+        "CpfBrokerDlqReplayRequest.java",
+        "CpfBrokerDlqReplayResult.java",
+        "CpfBrokerIdempotencyPort.java",
+        "CpfBrokerFailureSanitizer.java",
+        "CpfBrokerStatus.java"
+      ]
+    },
+    {
+      "category": "core/api/error",
+      "javaFiles": 21,
+      "samples": [
+        "CpfMessageFormatter.java",
+        "CpfException.java",
+        "CpfMessageResolver.java",
+        "CpfErrorCatalogResolver.java",
+        "CpfResolvedErrorView.java",
+        "CpfExternalServiceException.java"
+      ]
+    },
+    {
+      "category": "integration/fixedlength/api",
+      "javaFiles": 20,
+      "samples": [
+        "CpfFixedLengthLayout.java",
+        "CpfFixedLengthDtoMapper.java",
+        "CpfFixedLengthFieldType.java",
+        "CpfFixedLengthGroupSpec.java",
+        "CpfFixedLengthWriter.java",
+        "CpfFixedLengthWriteResult.java"
+      ]
+    },
+    {
+      "category": "integration/api/servicecall",
+      "javaFiles": 19,
+      "samples": [
+        "CpfServiceCallOutcome.java",
+        "CpfServiceCallResponseMetadata.java",
+        "CpfServiceCallAttempt.java",
+        "CpfServiceCaller.java",
+        "CpfServiceRegistryCatalog.java",
+        "CpfServiceCallBusinessException.java"
+      ]
+    },
+    {
+      "category": "file/spi/filetransfer",
+      "javaFiles": 15,
+      "samples": [
+        "CpfFileChecksumValidationResult.java",
+        "CpfFileTransferPolicy.java",
+        "CpfFileTransferRequest.java",
+        "CpfFileTransferPort.java",
+        "CpfFileInspectionPort.java",
+        "CpfFileTransferHealthPort.java"
+      ]
+    },
+    {
+      "category": "core/api/transaction",
+      "javaFiles": 13,
+      "samples": [
+        "CpfTccRecoveryOperations.java",
+        "CpfXaRecoveryRecord.java",
+        "CpfXaRecoveryResourceProvider.java",
+        "CpfTccPhase.java",
+        "CpfTccParticipant.java",
+        "CpfXaResourceHandle.java"
+      ]
+    },
+    {
+      "category": "data/cache/api",
+      "javaFiles": 12,
+      "samples": [
+        "CpfCacheLoadingSupport.java",
+        "CpfCacheKey.java",
+        "CpfCache.java",
+        "CpfCacheMetricsSnapshot.java",
+        "CpfCacheHealth.java",
+        "CpfCacheInvalidationPort.java"
+      ]
+    },
+    {
+      "category": "security/api/crypto",
+      "javaFiles": 11,
+      "samples": [
+        "CpfDigitalSignature.java",
+        "CpfDigitalSignatureOperations.java",
+        "CpfRekeyResult.java",
+        "CpfKeyLifecycleProvider.java",
+        "CpfKeyProvider.java",
+        "CpfCryptoOperations.java"
+      ]
+    },
+    {
+      "category": "integration/resilience/api",
+      "javaFiles": 10,
+      "samples": [
+        "CpfResilienceRuntimeStatus.java",
+        "CpfReconciliationRuntimeStatus.java",
+        "CpfResilienceDeadline.java",
+        "CpfResiliencePolicyOperations.java",
+        "CpfResilienceRuntimePolicy.java",
+        "CpfResiliencePolicy.java"
+      ]
+    },
+    {
+      "category": "file/tabular/api",
+      "javaFiles": 10,
+      "samples": [
+        "CpfTabularWriteRequest.java",
+        "CpfTabularReadRequest.java",
+        "CpfTabularReadResult.java",
+        "CpfTabularWriter.java",
+        "CpfTabularFormat.java",
+        "CpfTabularRowConsumer.java"
+      ]
+    },
+    {
+      "category": "integration/ai/api",
+      "javaFiles": 9,
+      "samples": [
+        "CpfAiOperations.java",
+        "CpfAiResponse.java",
+        "CpfAiProvider.java",
+        "CpfAiRisk.java",
+        "CpfAiPolicy.java",
+        "CpfAiTelemetry.java"
+      ]
+    },
+    {
+      "category": "file/archive/api",
+      "javaFiles": 9,
+      "samples": [
+        "CpfArchives.java",
+        "CpfArchiveEntry.java",
+        "CpfExtractedArchiveEntry.java",
+        "CpfArchiveChecksum.java",
+        "CpfArchiveService.java",
+        "CpfArchiveResult.java"
+      ]
+    },
+    {
+      "category": "file/api/filetransfer",
+      "javaFiles": 9,
+      "samples": [
+        "CpfFileResult.java",
+        "CpfFileEndpoint.java",
+        "CpfRemoteCommandPlan.java",
+        "CpfFileExchangeHistoryRecord.java",
+        "CpfFileExchangeOperations.java",
+        "CpfFileRequest.java"
+      ]
+    },
+    {
+      "category": "core/api/async",
+      "javaFiles": 8,
+      "samples": [
+        "CpfAsyncState.java",
+        "CpfAsyncCancelledException.java",
+        "CpfAsyncOperationStatus.java",
+        "CpfAsyncHandler.java",
+        "CpfAsyncExecution.java",
+        "CpfAsyncSubmission.java"
+      ]
+    },
+    {
+      "category": "common/message/api",
+      "javaFiles": 8,
+      "samples": [
+        "CpfCommonCatalogManagementService.java",
+        "CpfErrorCatalogResolver.java",
+        "CpfMessageRecord.java",
+        "CpfMessageSource.java",
+        "CpfResponseCodeRecord.java",
+        "CpfErrorCatalogSignalSink.java"
+      ]
+    },
+    {
+      "category": "platform/operations/health",
+      "javaFiles": 8,
+      "samples": [
+        "CpfDrainControl.java",
+        "CpfRuntimeHealth.java",
+        "CpfDependencyHealth.java",
+        "CpfHealthProbe.java",
+        "CpfDrainState.java",
+        "CpfHealthSnapshotProvider.java"
+      ]
+    },
+    {
+      "category": "foundation/execution/api",
+      "javaFiles": 8,
+      "samples": [
+        "CpfOperationAccessPolicy.java",
+        "CpfStandardExecutionId.java",
+        "CpfExecutionCatalogPort.java",
+        "CpfExecutionType.java",
+        "CpfSharedApi.java",
+        "CpfExecutionDefinition.java"
+      ]
+    },
+    {
+      "category": "core/api/tracking",
+      "javaFiles": 7,
+      "samples": [
+        "CpfSubjectRole.java",
+        "CpfSubjectTrackingOperations.java",
+        "CpfSubjectSourceType.java",
+        "CpfSubjectType.java",
+        "CpfSubjectTrustLevel.java",
+        "CpfSubjectCandidate.java"
+      ]
+    },
+    {
+      "category": "core/api/domain",
+      "javaFiles": 6,
+      "samples": [
+        "CpfDomainBinding.java",
+        "CpfDomainBindingResolver.java",
+        "CpfDomainPingResponse.java",
+        "CpfDomainClient.java",
+        "CpfDomainBindingMode.java",
+        "CpfDomainPingRequest.java"
+      ]
+    },
+    {
+      "category": "common/parameter/api",
+      "javaFiles": 6,
+      "samples": [
+        "CpfParameterReferenceCatalogPort.java",
+        "CpfParameterService.java",
+        "CpfParameter.java",
+        "CpfParameterValueDecoder.java",
+        "CpfParameterValueCodec.java",
+        "CpfParameterSchema.java"
+      ]
+    },
+    {
+      "category": "integration/api/domaincall",
+      "javaFiles": 6,
+      "samples": [
+        "CpfDomainClientRouter.java",
+        "CpfDomainPayload.java",
+        "CpfDomainRemoteTransport.java",
+        "CpfDomainOperation.java",
+        "CpfDomainOperationRegistry.java",
+        "CpfDomainCallOptions.java"
+      ]
+    },
+    {
+      "category": "messaging/common/api",
+      "javaFiles": 6,
+      "samples": [
+        "CmnMessageBrokerType.java",
+        "CmnMessagePublisher.java",
+        "CmnMessageHandler.java",
+        "CmnMessagePublishResult.java",
+        "CmnMessageConsumer.java",
+        "CmnMessageEnvelope.java"
+      ]
+    },
+    {
+      "category": "platform/operations/spi",
+      "javaFiles": 6,
+      "samples": [
+        "CpfStateAuditSink.java",
+        "CpfStateStore.java",
+        "CpfFeatureFlagStateStore.java",
+        "CpfFeatureFlagProvider.java",
+        "CpfFeatureFlagAuditSink.java",
+        "CpfRetentionTargetHandler.java"
+      ]
+    },
+    {
+      "category": "foundation/api/contract",
+      "javaFiles": 6,
+      "samples": [
+        "CpfCommand.java",
+        "CpfApplicationFacade.java",
+        "CpfResponse.java",
+        "CpfQuery.java",
+        "CpfRequest.java",
+        "CpfRepositoryPort.java"
+      ]
+    },
+    {
+      "category": "foundation/api/page",
+      "javaFiles": 6,
+      "samples": [
+        "CpfPage.java",
+        "CpfPageRequest.java",
+        "CpfSlice.java",
+        "CpfSort.java",
+        "CpfSortDirection.java",
+        "CpfPages.java"
+      ]
+    },
+    {
+      "category": "security/api/audit",
+      "javaFiles": 6,
+      "samples": [
+        "CpfTamperAuditRecord.java",
+        "CpfTamperAuditHead.java",
+        "CpfAuthorizationAuditEvent.java",
+        "CpfTamperAuditOperations.java",
+        "CpfAuthorizationAuditSink.java",
+        "CpfTamperAuditStore.java"
+      ]
+    },
+    {
+      "category": "file/objectstorage/api",
+      "javaFiles": 6,
+      "samples": [
+        "CpfObjectStorageScanHook.java",
+        "CpfMultipartUpload.java",
+        "CpfObjectStorageRequest.java",
+        "CpfObjectStorageLifecycleHook.java",
+        "CpfObjectStorageMetadata.java",
+        "CpfObjectStorageOperations.java"
+      ]
+    },
+    {
+      "category": "integration/resilience/spi",
+      "javaFiles": 5,
+      "samples": [
+        "CpfResilienceFailureClassifier.java",
+        "CpfResilienceRuntimePolicyResolver.java",
+        "CpfResiliencePolicyStore.java",
+        "CpfResilienceAuditSink.java",
+        "CpfResiliencePolicyResolver.java"
+      ]
+    },
+    {
+      "category": "messaging/schema/api",
+      "javaFiles": 5,
+      "samples": [
+        "CpfEventSchemaRegistry.java",
+        "CpfEventSchemaCompatibilityResult.java",
+        "CpfEventSchemaCompatibility.java",
+        "CpfEventSchemaDescriptor.java",
+        "CpfEventSchemaFormat.java"
+      ]
+    },
+    {
+      "category": "security/api/secret",
+      "javaFiles": 5,
+      "samples": [
+        "CpfSecretProvider.java",
+        "CpfSecretMetadata.java",
+        "CpfSecretReference.java",
+        "CpfSecretValue.java",
+        "CpfRotatableSecretProvider.java"
+      ]
+    },
+    {
+      "category": "core/api/config",
+      "javaFiles": 4,
+      "samples": [
+        "CpfConfigMutability.java",
+        "CpfConfigCatalog.java",
+        "CpfConfigPolicy.java",
+        "CpfConfigDescriptor.java"
+      ]
+    },
+    {
+      "category": "core/api/security",
+      "javaFiles": 4,
+      "samples": [
+        "CpfRekeyResult.java",
+        "CpfCryptoOperations.java",
+        "CpfCryptoPolicy.java",
+        "CpfEnvelopeCiphertext.java"
+      ]
+    },
+    {
+      "category": "integration/api/annotation",
+      "javaFiles": 4,
+      "samples": [
+        "CpfTimeLimiter.java",
+        "CpfRetry.java",
+        "CpfClient.java",
+        "CpfTimeout.java"
+      ]
+    },
+    {
+      "category": "security/api/runtime",
+      "javaFiles": 4,
+      "samples": [
+        "CpfEncryptionKeyReloadPort.java",
+        "CpfJwtKeyReloadPort.java",
+        "CpfSecretReferenceReloadPort.java",
+        "CpfCertificateReloadPort.java"
+      ]
+    },
+    {
+      "category": "file/attachment/api",
+      "javaFiles": 4,
+      "samples": [
+        "CpfAttachmentStoragePort.java",
+        "CpfAttachmentContent.java",
+        "CpfAttachmentStream.java",
+        "CpfStoredAttachment.java"
+      ]
+    },
+    {
+      "category": "data/lock/api",
+      "javaFiles": 4,
+      "samples": [
+        "CpfLockManagers.java",
+        "CpfLockManager.java",
+        "CpfLockingExecutionGuard.java",
+        "CpfLockRuntimeStatus.java"
+      ]
+    },
+    {
+      "category": "batch/api/centercut",
+      "javaFiles": 4,
+      "samples": [
+        "CpfCenterCutStatus.java",
+        "CpfCenterCutResult.java",
+        "CpfCenterCutTarget.java",
+        "CpfCenterCutSummary.java"
+      ]
+    },
+    {
+      "category": "core/api/result",
+      "javaFiles": 3,
+      "samples": [
+        "CpfResult.java",
+        "CpfRecoveryInfo.java",
+        "CpfResultStatus.java"
+      ]
+    },
+    {
+      "category": "core/api/context",
+      "javaFiles": 3,
+      "samples": [
+        "CpfContexts.java",
+        "CpfContext.java",
+        "CpfContextSnapshot.java"
+      ]
+    },
+    {
+      "category": "core/api/data",
+      "javaFiles": 3,
+      "samples": [
+        "CpfEncryptedField.java",
+        "CpfFieldEncryptionOperations.java",
+        "CpfFieldClassification.java"
+      ]
+    },
+    {
+      "category": "web/api/openapi",
+      "javaFiles": 3,
+      "samples": [
+        "CpfOpenAPISnapshot.java",
+        "CpfOpenAPIOperations.java",
+        "CpfOpenAPIStatus.java"
+      ]
+    },
+    {
+      "category": "integration/api/webhook",
+      "javaFiles": 3,
+      "samples": [
+        "CpfWebhookOperations.java",
+        "CpfWebhookEndpoint.java",
+        "CpfWebhookDelivery.java"
+      ]
+    },
+    {
+      "category": "platform/operations/runtimecontrol",
+      "javaFiles": 3,
+      "samples": [
+        "CpfRuntimePayloadReader.java",
+        "CpfManagedRuntimeSnapshot.java",
+        "CpfManagedRuntimeRegistry.java"
+      ]
+    },
+    {
+      "category": "starter/api/config",
+      "javaFiles": 3,
+      "samples": [
+        "CpfConfigurationCustomizers.java",
+        "CpfConfigurationPrecedence.java",
+        "CpfConfigurationCustomizer.java"
+      ]
+    },
+    {
+      "category": "transaction/api/context",
+      "javaFiles": 3,
+      "samples": [
+        "CpfTccContext.java",
+        "CpfXaContext.java",
+        "CpfSagaContext.java"
+      ]
+    },
+    {
+      "category": "security/api/password",
+      "javaFiles": 3,
+      "samples": [
+        "CpfPasswordEncoderFactories.java",
+        "CpfPasswordVerification.java",
+        "CpfPasswordEncoder.java"
+      ]
+    },
+    {
+      "category": "security/api/annotation",
+      "javaFiles": 3,
+      "samples": [
+        "CpfApprovalRequired.java",
+        "CpfPreAuthorize.java",
+        "CpfPermission.java"
+      ]
+    },
+    {
+      "category": "file/spi/attachment",
+      "javaFiles": 3,
+      "samples": [
+        "CpfAttachmentWatermarkPort.java",
+        "CpfAttachmentInspectionPort.java",
+        "CpfAttachmentDownloadContext.java"
+      ]
+    },
+    {
+      "category": "data/api/quality",
+      "javaFiles": 3,
+      "samples": [
+        "CpfDataQualityOperations.java",
+        "CpfDataQualityRule.java",
+        "CpfDataQualityDecision.java"
+      ]
+    },
+    {
+      "category": "core/api/base",
+      "javaFiles": 2,
+      "samples": [
+        "CpfResponse.java",
+        "CpfRequest.java"
+      ]
+    },
+    {
+      "category": "common/code/api",
+      "javaFiles": 2,
+      "samples": [
+        "CpfCodeService.java",
+        "CpfCode.java"
+      ]
+    },
+    {
+      "category": "integration/api/http",
+      "javaFiles": 2,
+      "samples": [
+        "CpfServiceClient.java",
+        "CpfRestClient.java"
+      ]
+    },
+    {
+      "category": "foundation/id/spi",
+      "javaFiles": 2,
+      "samples": [
+        "CpfTransactionIdGenerator.java",
+        "CpfExecutionIdGenerator.java"
+      ]
+    },
+    {
+      "category": "security/api/approval",
+      "javaFiles": 2,
+      "samples": [
+        "CpfApprovalVerification.java",
+        "CpfApprovalVerifier.java"
+      ]
+    },
+    {
+      "category": "data/lock/spi",
+      "javaFiles": 2,
+      "samples": [
+        "CpfLockAuditSink.java",
+        "CpfLockStore.java"
+      ]
+    },
+    {
+      "category": "data/api/encryption",
+      "javaFiles": 2,
+      "samples": [
+        "CpfProtectedRecordService.java",
+        "DefaultCpfFieldEncryptionOperations.java"
+      ]
+    },
+    {
+      "category": "batch/api/error",
+      "javaFiles": 2,
+      "samples": [
+        "CpfBatchOutcome.java",
+        "CpfBatchErrorMapper.java"
+      ]
+    },
+    {
+      "category": "batch/api/annotation",
+      "javaFiles": 2,
+      "samples": [
+        "CpfBatchStep.java",
+        "CpfBatchJob.java"
+      ]
+    },
+    {
+      "category": "core/spi/context",
+      "javaFiles": 1,
+      "samples": [
+        "CpfContextRuntimeProvider.java"
+      ]
+    },
+    {
+      "category": "core/api/version",
+      "javaFiles": 1,
+      "samples": [
+        "CpfPlatformVersion.java"
+      ]
+    },
+    {
+      "category": "common/spi/CpfCommonPersistenceNames.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfCommonPersistenceNames.java"
+      ]
+    },
+    {
+      "category": "common/spi/CpfCommonCacheChangePublisher.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfCommonCacheChangePublisher.java"
+      ]
+    },
+    {
+      "category": "common/calendar/api",
+      "javaFiles": 1,
+      "samples": [
+        "CpfCalendarService.java"
+      ]
+    },
+    {
+      "category": "common/template/api",
+      "javaFiles": 1,
+      "samples": [
+        "CpfTemplateService.java"
+      ]
+    },
+    {
+      "category": "web/api/CpfHttpHeaders.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfHttpHeaders.java"
+      ]
+    },
+    {
+      "category": "web/api/CpfRestController.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfRestController.java"
+      ]
+    },
+    {
+      "category": "web/api/CpfController.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfController.java"
+      ]
+    },
+    {
+      "category": "web/api/CpfBaseController.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBaseController.java"
+      ]
+    },
+    {
+      "category": "integration/api/message",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMessageLayoutValidator.java"
+      ]
+    },
+    {
+      "category": "integration/http/api",
+      "javaFiles": 1,
+      "samples": [
+        "CpfServiceClient.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfMessageListener.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMessageListener.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerPublishResultProbe.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerPublishResultProbe.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerBridgeHandler.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerBridgeHandler.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerPublishResult.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerPublishResult.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerBridgePort.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerBridgePort.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerBridgeMessage.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerBridgeMessage.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerConsumerControlPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerConsumerControlPort.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerPublishRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerPublishRequest.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerBridgeResult.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerBridgeResult.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerConsumerControl.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerConsumerControl.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfBrokerUnknownResultPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBrokerUnknownResultPort.java"
+      ]
+    },
+    {
+      "category": "messaging/api/CpfMessagingTemplate.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMessagingTemplate.java"
+      ]
+    },
+    {
+      "category": "messaging/spi/CpfNamedBrokerClient.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNamedBrokerClient.java"
+      ]
+    },
+    {
+      "category": "notification/api/CpfNotificationReceipt.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNotificationReceipt.java"
+      ]
+    },
+    {
+      "category": "notification/api/CpfNotificationProviderStatus.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNotificationProviderStatus.java"
+      ]
+    },
+    {
+      "category": "notification/api/CpfNotificationResult.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNotificationResult.java"
+      ]
+    },
+    {
+      "category": "notification/api/CpfNotificationRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNotificationRequest.java"
+      ]
+    },
+    {
+      "category": "notification/api/CpfNotificationOperations.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNotificationOperations.java"
+      ]
+    },
+    {
+      "category": "notification/spi/CpfNotificationReconciler.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNotificationReconciler.java"
+      ]
+    },
+    {
+      "category": "notification/spi/CpfNotificationProvider.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNotificationProvider.java"
+      ]
+    },
+    {
+      "category": "platform/operations/channelregistry",
+      "javaFiles": 1,
+      "samples": [
+        "CpfChannelRegistryPort.java"
+      ]
+    },
+    {
+      "category": "foundation/api/CpfBaseService.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBaseService.java"
+      ]
+    },
+    {
+      "category": "foundation/api/CpfThreeTierStructurePolicy.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfThreeTierStructurePolicy.java"
+      ]
+    },
+    {
+      "category": "foundation/time/spi",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBusinessDateProvider.java"
+      ]
+    },
+    {
+      "category": "reliability/api/CpfIdempotencyException.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfIdempotencyException.java"
+      ]
+    },
+    {
+      "category": "reliability/api/CpfIdempotent.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfIdempotent.java"
+      ]
+    },
+    {
+      "category": "reliability/api/CpfIdempotencyStore.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfIdempotencyStore.java"
+      ]
+    },
+    {
+      "category": "reliability/api/CpfIdempotencyResultCodec.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfIdempotencyResultCodec.java"
+      ]
+    },
+    {
+      "category": "reliability/api/CpfIdempotencyFingerprintResolver.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfIdempotencyFingerprintResolver.java"
+      ]
+    },
+    {
+      "category": "reliability/api/CpfRecoveryContext.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfRecoveryContext.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSessionSnapshot.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSessionSnapshot.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicyAuditEvent.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyAuditEvent.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSensitiveDataAccessOperations.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSensitiveDataAccessOperations.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicyUpdateCommand.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyUpdateCommand.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicyRollbackCommand.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyRollbackCommand.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSessionOperations.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSessionOperations.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMasking.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMasking.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicySnapshot.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicySnapshot.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicyOperations.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyOperations.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicyApproval.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyApproval.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfCredentialRef.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfCredentialRef.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSessionMetrics.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSessionMetrics.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSensitiveDataAccessRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSensitiveDataAccessRequest.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicyResult.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyResult.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSensitiveData.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSensitiveData.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingRuntime.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingRuntime.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSessionMetricsSnapshot.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSessionMetricsSnapshot.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfPasswordRuntimePolicy.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfPasswordRuntimePolicy.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfMaskingPolicyRuntimeStatus.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyRuntimeStatus.java"
+      ]
+    },
+    {
+      "category": "security/api/CpfSensitiveDataAccessRuntimeStatus.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSensitiveDataAccessRuntimeStatus.java"
+      ]
+    },
+    {
+      "category": "security/spi/CpfMaskingPolicyAuditSink.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyAuditSink.java"
+      ]
+    },
+    {
+      "category": "security/spi/CpfSensitiveDataAccessStore.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSensitiveDataAccessStore.java"
+      ]
+    },
+    {
+      "category": "security/spi/CpfSecretProvider.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSecretProvider.java"
+      ]
+    },
+    {
+      "category": "security/spi/CpfMaskingPolicyStore.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfMaskingPolicyStore.java"
+      ]
+    },
+    {
+      "category": "security/spi/CpfSensitiveDataAccessAuditSink.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfSensitiveDataAccessAuditSink.java"
+      ]
+    },
+    {
+      "category": "security/api/util",
+      "javaFiles": 1,
+      "samples": [
+        "CpfHashes.java"
+      ]
+    },
+    {
+      "category": "security/api/network",
+      "javaFiles": 1,
+      "samples": [
+        "CpfNetworkEndpointPolicy.java"
+      ]
+    },
+    {
+      "category": "file/api/util",
+      "javaFiles": 1,
+      "samples": [
+        "CpfFiles.java"
+      ]
+    },
+    {
+      "category": "data/api/CpfDataRow.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfDataRow.java"
+      ]
+    },
+    {
+      "category": "data/api/CpfDto.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfDto.java"
+      ]
+    },
+    {
+      "category": "data/spi/quality",
+      "javaFiles": 1,
+      "samples": [
+        "CpfDataQualityCorrectionPort.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchParameterDefinition.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchParameterDefinition.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchExecutionReservation.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutionReservation.java"
+      ]
+    },
+    {
+      "category": "batch/api/DeploymentStrategy.java",
+      "javaFiles": 1,
+      "samples": [
+        "DeploymentStrategy.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchLogPaths.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchLogPaths.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchRiskCommand.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchRiskCommand.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchEventType.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchEventType.java"
+      ]
+    },
+    {
+      "category": "batch/api/RuntimeRegistration.java",
+      "javaFiles": 1,
+      "samples": [
+        "RuntimeRegistration.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchOperationsPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchOperationsPort.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchExecutionControlPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutionControlPort.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchExecutionLink.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutionLink.java"
+      ]
+    },
+    {
+      "category": "batch/api/AgentArtifactRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "AgentArtifactRequest.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchStepDefinition.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchStepDefinition.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchEventPublisher.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchEventPublisher.java"
+      ]
+    },
+    {
+      "category": "batch/api/RuntimeRole.java",
+      "javaFiles": 1,
+      "samples": [
+        "RuntimeRole.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchEvent.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchEvent.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatControlHeaders.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatControlHeaders.java"
+      ]
+    },
+    {
+      "category": "batch/api/ArtifactManifest.java",
+      "javaFiles": 1,
+      "samples": [
+        "ArtifactManifest.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchOwnerUnknownResultException.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchOwnerUnknownResultException.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchExecutionTopology.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutionTopology.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchExecutorType.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutorType.java"
+      ]
+    },
+    {
+      "category": "batch/api/RuntimeHeartbeat.java",
+      "javaFiles": 1,
+      "samples": [
+        "RuntimeHeartbeat.java"
+      ]
+    },
+    {
+      "category": "batch/api/ActualState.java",
+      "javaFiles": 1,
+      "samples": [
+        "ActualState.java"
+      ]
+    },
+    {
+      "category": "batch/api/DeploymentCellManifest.java",
+      "javaFiles": 1,
+      "samples": [
+        "DeploymentCellManifest.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchOptimisticVersion.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchOptimisticVersion.java"
+      ]
+    },
+    {
+      "category": "batch/api/DeploymentResult.java",
+      "javaFiles": 1,
+      "samples": [
+        "DeploymentResult.java"
+      ]
+    },
+    {
+      "category": "batch/api/AgentCommandResult.java",
+      "javaFiles": 1,
+      "samples": [
+        "AgentCommandResult.java"
+      ]
+    },
+    {
+      "category": "batch/api/RuntimeCommand.java",
+      "javaFiles": 1,
+      "samples": [
+        "RuntimeCommand.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfCenterCutOperationsPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfCenterCutOperationsPort.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchExecutionPlan.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutionPlan.java"
+      ]
+    },
+    {
+      "category": "batch/api/DeploymentRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "DeploymentRequest.java"
+      ]
+    },
+    {
+      "category": "batch/api/JobPackManifest.java",
+      "javaFiles": 1,
+      "samples": [
+        "JobPackManifest.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchExecutionRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchExecutionRequest.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfCenterCutOperationsExtension.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfCenterCutOperationsExtension.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchExecutionPolicy.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutionPolicy.java"
+      ]
+    },
+    {
+      "category": "batch/api/CommandState.java",
+      "javaFiles": 1,
+      "samples": [
+        "CommandState.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchOperationType.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchOperationType.java"
+      ]
+    },
+    {
+      "category": "batch/api/CenterCutExecutionState.java",
+      "javaFiles": 1,
+      "samples": [
+        "CenterCutExecutionState.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfCenterCutOperations.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfCenterCutOperations.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchCanonicalDigest.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchCanonicalDigest.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchJobDefinitionControlPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchJobDefinitionControlPort.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchExecutionResult.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchExecutionResult.java"
+      ]
+    },
+    {
+      "category": "batch/api/CenterCutExecutionRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "CenterCutExecutionRequest.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchControlState.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchControlState.java"
+      ]
+    },
+    {
+      "category": "batch/api/DesiredState.java",
+      "javaFiles": 1,
+      "samples": [
+        "DesiredState.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchJobDefinition.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchJobDefinition.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchApprovedLaunchRequest.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchApprovedLaunchRequest.java"
+      ]
+    },
+    {
+      "category": "batch/api/BatchApprovedExecutorSnapshot.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchApprovedExecutorSnapshot.java"
+      ]
+    },
+    {
+      "category": "batch/api/CpfBatchOperations.java",
+      "javaFiles": 1,
+      "samples": [
+        "CpfBatchOperations.java"
+      ]
+    },
+    {
+      "category": "batch/spi/BatchExecutionLedgerPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchExecutionLedgerPort.java"
+      ]
+    },
+    {
+      "category": "batch/spi/RuntimeHealthProbe.java",
+      "javaFiles": 1,
+      "samples": [
+        "RuntimeHealthProbe.java"
+      ]
+    },
+    {
+      "category": "batch/spi/BusinessJobProvider.java",
+      "javaFiles": 1,
+      "samples": [
+        "BusinessJobProvider.java"
+      ]
+    },
+    {
+      "category": "batch/spi/CenterCutHandler.java",
+      "javaFiles": 1,
+      "samples": [
+        "CenterCutHandler.java"
+      ]
+    },
+    {
+      "category": "batch/spi/DeploymentTargetAdapter.java",
+      "javaFiles": 1,
+      "samples": [
+        "DeploymentTargetAdapter.java"
+      ]
+    },
+    {
+      "category": "batch/spi/BatchFencingPort.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchFencingPort.java"
+      ]
+    },
+    {
+      "category": "batch/spi/CenterCutTargetProvider.java",
+      "javaFiles": 1,
+      "samples": [
+        "CenterCutTargetProvider.java"
+      ]
+    },
+    {
+      "category": "batch/spi/BatchApprovedLaunchRequestResolver.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchApprovedLaunchRequestResolver.java"
+      ]
+    },
+    {
+      "category": "batch/spi/BatchStepHandler.java",
+      "javaFiles": 1,
+      "samples": [
+        "BatchStepHandler.java"
+      ]
+    },
+    {
+      "category": "batch/spi/FileProcessHandler.java",
+      "javaFiles": 1,
+      "samples": [
+        "FileProcessHandler.java"
+      ]
+    }
+  ],
+  "use": "Harness 생성 시 Source 기능 누락 확인용. 다음 산출물 세션은 최신 Source에서 다시 생성/비교한다."
+}

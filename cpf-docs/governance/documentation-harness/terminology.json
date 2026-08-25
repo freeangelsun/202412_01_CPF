@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "1.0.0",
+  "locked": true,
+  "canonical": [
+    {
+      "term": "Core Platform Framework",
+      "short": "CPF",
+      "rule": "첫 사용에서 Core Platform Framework(CPF), 이후 CPF"
+    },
+    {
+      "term": "cpf-core",
+      "meaning": "Topology-independent 최소 Kernel 계약",
+      "aliases_forbidden": [
+        "Core Runtime",
+        "ADM Core"
+      ]
+    },
+    {
+      "term": "cpf-common",
+      "meaning": "CPF Framework 공통 기능",
+      "aliases_forbidden": [
+        "고객 업무 공통",
+        "업무 공통 선택 기능",
+        "선택 Common Module"
+      ]
+    },
+    {
+      "term": "cpf-admin",
+      "display": "CPF Admin",
+      "meaning": "플랫폼 운영·관리 Control Plane",
+      "systemCodeAsName": false
+    },
+    {
+      "term": "cpf-backoffice",
+      "display": "CPF Backoffice",
+      "meaning": "Optional Prebuilt Business Domain",
+      "systemCodeAsName": false
+    },
+    {
+      "term": "cpf-backoffice-web",
+      "meaning": "DB-less Browser Channel/BFF Reference"
+    },
+    {
+      "term": "cpf-gateway",
+      "display": "CPF Gateway",
+      "meaning": "선택형 외부 Edge/Gateway"
+    },
+    {
+      "term": "cpf-batch",
+      "meaning": "Batch Runtime Owner"
+    },
+    {
+      "term": "Generated Domain",
+      "format": "Generated Domain",
+      "forbidden": [
+        "generated-domain 혼용",
+        "생성 도메인만 반복 사용"
+      ]
+    },
+    {
+      "term": "Same JVM",
+      "format": "Same JVM"
+    },
+    {
+      "term": "Remote",
+      "format": "Remote"
+    },
+    {
+      "term": "transactionId",
+      "format": "transactionId"
+    },
+    {
+      "term": "operationId",
+      "format": "operationId"
+    },
+    {
+      "term": "instanceId",
+      "format": "instanceId"
+    },
+    {
+      "term": "UNKNOWN",
+      "format": "UNKNOWN",
+      "forbidden": [
+        "UNKNOWN_RESULT as user-facing canonical unless exact source status requires it"
+      ]
+    },
+    {
+      "term": "Reconcile",
+      "format": "Reconcile"
+    },
+    {
+      "term": "Retry",
+      "format": "Retry"
+    },
+    {
+      "term": "Restart",
+      "format": "Restart"
+    },
+    {
+      "term": "Rerun",
+      "format": "Rerun"
+    },
+    {
+      "term": "Reprocess",
+      "format": "Reprocess"
+    },
+    {
+      "term": "Control Plane",
+      "format": "Control Plane"
+    },
+    {
+      "term": "Center-Cut",
+      "format": "Center-Cut"
+    },
+    {
+      "term": "Worker",
+      "format": "Worker"
+    },
+    {
+      "term": "Scheduler",
+      "format": "Scheduler"
+    },
+    {
+      "term": "Agent",
+      "format": "Agent"
+    },
+    {
+      "term": "Starter",
+      "format": "Starter"
+    },
+    {
+      "term": "Capability",
+      "format": "Capability"
+    },
+    {
+      "term": "Provider",
+      "format": "Provider"
+    },
+    {
+      "term": "Oracle",
+      "format": "Oracle"
+    },
+    {
+      "term": "PostgreSQL",
+      "format": "PostgreSQL"
+    },
+    {
+      "term": "MariaDB",
+      "format": "MariaDB"
+    }
+  ],
+  "canonicalSystem6": [
+    "X-Transaction-Id",
+    "X-Original-System-Code",
+    "X-System-Code",
+    "X-Caller-System-Code",
+    "X-Target-System-Code",
+    "X-Target-Operation-Id"
+  ],
+  "operationIdEquality": [
+    "@CpfOnlineTransaction.operationId",
+    "OpenAPI operationId",
+    "X-Target-Operation-Id",
+    "Domain Client target operation",
+    "Operation Registry key",
+    "ADM 거래관리 key",
+    "Log/Trace operationId"
+  ],
+  "runtimeIdentityRule": "instanceId는 거래 Header에 넣지 않으며 Runtime Instance 식별자로 설명한다.",
+  "dbVendorsAllowed": [
+    "Oracle",
+    "PostgreSQL",
+    "MariaDB"
+  ],
+  "dbVendorsForbiddenAsOfficial": [
+    "MySQL",
+    "MSSQL",
+    "H2"
+  ],
+  "readmeReleaseTermsForbiddenAsPrimaryUserVocabulary": [
+    "Open Git",
+    "Public Git",
+    "오픈깃",
+    "퍼블릭깃"
+  ]
+}

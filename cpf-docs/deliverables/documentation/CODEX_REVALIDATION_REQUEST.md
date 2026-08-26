@@ -1,9 +1,17 @@
-# Codex Revalidation Request
+# Codex Documentation 독립 재검수 요청
 
-1. Harness v1.2.5를 먼저 읽고 Validator PASS를 재확인한다.
-2. README 8개 Visual의 글자 겹침/잘림/대비/균형을 실제 렌더에서 확인한다.
-3. 11 DOCX의 Heading 계층, 여백, 표/그림 경계, Accessibility를 확인한다.
-4. 11 PDF를 Windows 계열 viewer 포함 독립 renderer에서 열어 한글/Font embedding을 확인한다.
-5. 내부 Domain↔Domain 호출을 Gateway 경유로 설명한 곳이 없는지 확인한다.
-6. 개발 가이드의 거래 패턴/API/옵션/선택/오류/복구가 실무 Task-first인지 확인한다.
-7. Delete Manifest가 Documentation/Harness 가비지만 exact path로 제거하는지 확인한다.
+기준 Source: `master 054d894b47f4be8323439dc6f9e58b7d8b60fe54`
+Harness: `v2.1.0`
+
+독립 검수 시 다음을 재확인한다.
+
+- README + 11 DOCX/PDF Pair 23개 존재와 Link Target
+- 내부 Domain 호출이 Gateway를 경유한다고 표현한 곳 0
+- Batch 전용 Kafka/Broker Remote Execution을 제품 범위로 표현한 곳 0
+- 공식 DB Vendor Oracle/PostgreSQL/MariaDB 일관성
+- DOCX 108페이지의 clipping/overlap/glyph/spacing/content rail/figure-caption ownership
+- PDF Font embedding 및 PDFium/Poppler page parity
+- README dark surface 대비, Visual grammar 다양성, Figure 설명 귀속
+- 현행 Harness v2.1.0 하나만 정본으로 사용하고 과거 Harness 기준으로 판정하지 않을 것
+
+Codex는 개발 GPT의 PASS 문자열을 근거로 승계하지 말고 실제 파일을 독립 검수한다.

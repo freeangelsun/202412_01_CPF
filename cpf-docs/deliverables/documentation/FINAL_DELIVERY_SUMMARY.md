@@ -1,16 +1,12 @@
-# CPF Documentation v1.2.5 Final Delivery Summary
+# CPF Documentation Final Delivery Summary
 
-- Target master SHA: `9893c03f43dde6ff0198e5ff71fc564747e08845`
-- Harness: v1.2.5
-- README: 1
-- README Visual: 8
-- DOCX: 11
-- PDF: 11 / 131 pages
-- DOCX Accessibility: High 0 / Medium 0 / Low 0 (11/11)
-- PDF fonts not embedded: 0
-- PDF Poppler/PDFium page render parity: 11/11
-- Source-path references on supplied source snapshot: 75/75 existing
-- Generated path >150 chars (Windows user root included): 0
-- Clean directory replay: PASS
-- Commit/Push: NOT PERFORMED
-- Codex/QA final approval: separate independent step
+- Source: `master 054d894b47f4be8323439dc6f9e58b7d8b60fe54`
+- Harness: v2.1.0
+- 공식 Artifact: 23 (README 1 + DOCX 11 + PDF 11)
+- README Visual: 8 (Hero 포함)
+- DOCX: 11 / 총 108 pages / Accessibility High·Medium·Low 0
+- PDF: 11 / 총 108 pages / Preflight warning 0 / Font embedding PASS / PDFium·Poppler 108/108
+- 최신 Batch Topology: `LOCAL / PARALLEL_STEPS / LOCAL_PARTITION`
+- Batch Remote Kafka/Broker Execution: 제품 범위 아님
+- 내부 Domain 호출: Gateway 미경유
+- 상태: Documentation 자체검수 PASS, 사용자 Golden Baseline 승인 대기

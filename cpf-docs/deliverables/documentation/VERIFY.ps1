@@ -1,0 +1,14 @@
+$ErrorActionPreference='Stop'
+$root=(git rev-parse --show-toplevel 2>$null).Trim(); if($LASTEXITCODE-ne0-or[string]::IsNullOrWhiteSpace($root)){throw 'CPF GIT ROOT NOT FOUND'}
+$root=[IO.Path]::GetFullPath($root); Set-Location $root
+$expectedSource='054d894b47f4be8323439dc6f9e58b7d8b60fe54';$head=(git rev-parse HEAD).Trim();if($head-ne$expectedSource){throw "SOURCE SHA MISMATCH expected=$expectedSource actual=$head"}
+$h='cpf-docs\governance\documentation-harness'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $h 'validators\validate_harness.ps1'); if($LASTEXITCODE-ne0){throw 'HARNESS FAIL'}
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $h 'validators\validate_readme.ps1') -Readme 'README.md'; if($LASTEXITCODE-ne0){throw 'README FAIL'}
+$required=@('README.md','cpf-docs\guides\02_프레임워크_개발자_가이드.docx','cpf-docs\guides\02_프레임워크_개발자_가이드.pdf','cpf-docs\guides\03_배치_개발자_가이드.docx','cpf-docs\guides\03_배치_개발자_가이드.pdf','cpf-docs\guides\04_운영자_매뉴얼.docx','cpf-docs\guides\04_운영자_매뉴얼.pdf','cpf-docs\guides\05_배치_운영_가이드.docx','cpf-docs\guides\05_배치_운영_가이드.pdf','cpf-docs\guides\06_Gateway_개발_사용_가이드.docx','cpf-docs\guides\06_Gateway_개발_사용_가이드.pdf','cpf-docs\guides\07_Specification_기술_명세.docx','cpf-docs\guides\07_Specification_기술_명세.pdf','cpf-docs\deliverables\기술사양서.docx','cpf-docs\deliverables\기술사양서.pdf','cpf-docs\deliverables\기술표준서.docx','cpf-docs\deliverables\기술표준서.pdf','cpf-docs\deliverables\데이터베이스표준서.docx','cpf-docs\deliverables\데이터베이스표준서.pdf','cpf-docs\deliverables\산출물목록.docx','cpf-docs\deliverables\산출물목록.pdf','cpf-docs\deliverables\아키텍처설계서.docx','cpf-docs\deliverables\아키텍처설계서.pdf')
+$missing=@($required|Where-Object{-not(Test-Path -LiteralPath $_ -PathType Leaf)}); if($missing.Count){throw ('MISSING OFFICIAL ARTIFACT: '+($missing-join ', '))}
+if(Test-Path -LiteralPath 'cpf-docs\assets\product-docs\docs.png'){throw 'STALE VISUAL docs.png EXISTS'}
+$manifest='cpf-docs\deliverables\documentation\SHA256SUMS.txt'; if(-not(Test-Path $manifest)){throw 'SHA256SUMS missing'}
+$bad=@(); Get-Content -LiteralPath $manifest -Encoding UTF8|ForEach-Object{if($_ -match '^([0-9A-Fa-f]{64})  (.+)$'){$exp=$Matches[1].ToUpperInvariant();$rel=$Matches[2];if(-not(Test-Path -LiteralPath $rel -PathType Leaf)){$bad+="MISSING:$rel"}elseif((Get-FileHash -Algorithm SHA256 -LiteralPath $rel).Hash.ToUpperInvariant()-ne$exp){$bad+="HASH:$rel"}}};if($bad.Count){throw ('CHECKSUM FAIL '+($bad-join '; '))}
+$tooLong=@(); Get-Content 'cpf-docs\deliverables\documentation\CHANGE_MANIFEST.csv' -Encoding UTF8|Select-Object -Skip 1|ForEach-Object{$parts=$_ -split ',';if($parts.Count-ge1){$rel=$parts[0].Trim('"');if($rel){$abs=[IO.Path]::GetFullPath((Join-Path $root ($rel -replace '/','\')));if($abs.Length-gt150){$tooLong+=$abs}}}};if($tooLong.Count){throw ('PATH >150 '+($tooLong-join '; '))}
+Write-Host '[CPF][DOC] V2.1.0 VERIFY PASS'; Write-Host 'OFFICIAL_ARTIFACTS=23'; Write-Host 'SOURCE=054d894b47f4be8323439dc6f9e58b7d8b60fe54'

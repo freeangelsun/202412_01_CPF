@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "reason": "CPF Documentation Harness v2.0.0이 현행 단일 정본이며 과거 분산 작성지침과 stale Harness 기준을 대체한다.",
+  "reason": "CPF Documentation Harness v2.1.0이 현행 단일 정본이며 과거 분산 작성지침과 stale Harness 기준을 대체한다.",
   "applyPolicy": "exact path only; no wildcard; verify overlay first",
   "paths": [
     {
@@ -45,5 +45,5 @@
     }
   ],
   "protectedPathNote": "보호 경로 cpf-docs/guides/**는 Harness cleanup이 삭제하지 않는다. 보호 경로 삭제는 별도 사용자 명시 승인이 있을 때만 별도 Delete Manifest로 수행한다.",
-  "harnessVersion": "2.0.0"
+  "harnessVersion": "2.1.0"
 }

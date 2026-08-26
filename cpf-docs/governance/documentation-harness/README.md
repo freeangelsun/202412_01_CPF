@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.0.0
+# CPF Documentation Harness v2.1.0
 
 CPF 공식 README/DOCX/PDF를 **점진적으로 개선**하기 위한 실행형 Design/QA Harness다.
 
@@ -38,3 +38,7 @@ CPF 공식 README/DOCX/PDF를 **점진적으로 개선**하기 위한 실행형 
 10. Clean Replay 후 완료
 
 Repository에는 현행 Harness 한 세트만 유지한다. 과거 Harness 복제본·해제본·백업·stale rule은 남기지 않는다.
+
+## 최초 재구축 예외 Lifecycle
+
+기존 공식 산출물이 사용자에 의해 `BASELINE_REJECTED`로 판정된 경우에만 사용자 명시 요청으로 최초 1회 `INITIAL_FRESH_REBUILD`를 수행할 수 있다. 결과는 `GOLDEN_BASELINE_CANDIDATE`이며, `USER_APPROVED` 또는 `VISUAL_QA_APPROVED` 이후에는 `PATCH_ONLY`로 전환한다. 승인 이후 관계없는 영역의 Fresh Rewrite는 Regression FAIL이다.

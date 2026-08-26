@@ -1,8 +1,8 @@
 {
-  "harnessVersion": "2.0.0",
+  "harnessVersion": "2.1.0",
   "createdAtKst": "2026-08-25T12:20:44+0900",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_104217.zip",
-  "sha256": "014a313a55c1852ac6131103668b3fe53e31a390e23ae7105aed97158977bad9",
+  "sourceZip": null,
+  "sha256": null,
   "canonicalRequirements": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
   "starterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "publicProfiles": [
@@ -240,5 +240,10 @@
     "이 Baseline은 Harness 생성 근거다. 이후 Source가 바뀌어도 Harness는 자동 수정하지 않는다.",
     "산출물 세션은 최신 Source를 다시 Inventory하고 이 Baseline과 차이가 있으면 Source Drift를 기록한다.",
     "CLI는 실제 해당 Source에서 다시 추출한 뒤 사용자 문서에 적는다. Baseline 문자열을 무조건 재사용하지 않는다."
-  ]
+  ],
+  "verifiedAtKst": "2026-08-26T15:55:00+09:00",
+  "sourceType": "GITHUB_MASTER",
+  "repository": "https://github.com/freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "sourceCommit": "054d894b47f4be8323439dc6f9e58b7d8b60fe54"
 }

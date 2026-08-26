@@ -12,12 +12,12 @@ def load(name):
     except Exception as e: fail(f'json {name}: {e}')
 
 h=load('harness.json')
-if h.get('version')!='2.0.0': fail('version')
+if h.get('version')!='2.1.0': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='2.0.0': fail(f'version {f}')
+    if d.get('harnessVersion')!='2.1.0': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
@@ -29,14 +29,14 @@ if W['license']['exact_user_facing_sentence']!='CPF는 **Community & Evaluation 
 O=load('document-output-rules.json')
 if O['README']['licenseExactSentence']!=W['license']['exact_user_facing_sentence']: fail('license output rules')
 
-# v1.2 documentation usability gates
+# documentation usability gates
 if h.get('changePolicy',{}).get('documentationFeedbackIsHarnessChangeRequest') is not True: fail('harness-first feedback rule')
 if D.get('headingNumbering',{}).get('H2')!='1.1 / 1.2 / 2.1 ...': fail('H2 numbering')
 if D['paragraph'].get('h1_space_before_pt',0) < 28: fail('H1 spacing')
 if D['paragraph'].get('h2_space_before_pt',0) < 16: fail('H2 spacing')
 if D['figures'].get('low_contrast_label')!='hard_fail': fail('figure contrast')
 if D['fonts'].get('pdf_korean_font_embedding_required') is not True: fail('pdf korean font embedding')
-# v2.0.0 visual geometry / balance gates
+# v2.1.0 visual geometry / balance gates
 FG=D.get('figures',{})
 if FG.get('node_inner_padding_px_min',0) < 18: fail('figure inner padding')
 if FG.get('label_to_label_gap_px_min',0) < 20: fail('figure label gap')
@@ -58,8 +58,12 @@ if CG.get('nodeInnerPaddingPxMin',0) < 18 or CG.get('labelConnectorClearancePxMi
 if O['README'].get('manualNavigation','').startswith('mandatory') is not True: fail('README manual navigation')
 if O['README'].get('bootstrapRuntimeBlock','').startswith('mandatory') is not True: fail('README bootstrap/runtime')
 
-# v1.3 incremental/visual/link/content-rail gates
+# incremental/visual/link/content-rail gates
 if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('defaultMode')!='PATCH_FIRST': fail('patch first policy')
+_evo=h.get('changePolicy',{}).get('artifactEvolutionPolicy',{})
+if _evo.get('freshRebuildException',{}).get('afterApproval')!='PATCH_ONLY': fail('fresh rebuild lifecycle')
+if _evo.get('freshRebuildException',{}).get('maxConsecutiveFreshRebuilds')!=1: fail('fresh rebuild max once')
+
 if D['paragraph'].get('h2_space_after_pt',99)>6 or D['paragraph'].get('h3_space_after_pt',99)>5: fail('subheading content gap')
 if D.get('indentation',{}).get('subheading_content_indent_mm',0)<4: fail('subheading content rail')
 if D['figures'].get('canvas_safe_margin_px_min',0)<48: fail('figure canvas safe margin')

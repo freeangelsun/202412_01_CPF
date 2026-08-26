@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.0.0",
+  "harnessVersion": "2.1.0",
   "documentId": "OPERATOR_MANUAL",
   "title": "CPF 운영자 매뉴얼",
   "locked": true,

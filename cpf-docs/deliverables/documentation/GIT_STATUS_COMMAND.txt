@@ -1,1 +1,1 @@
-git status --short
+$root=(git rev-parse --show-toplevel).Trim();Set-Location $root;git status --short;git diff --stat

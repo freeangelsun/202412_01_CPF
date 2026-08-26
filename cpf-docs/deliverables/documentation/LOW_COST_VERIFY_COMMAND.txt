@@ -1,1 +1,1 @@
-python .\cpf-docs\governance\documentation-harness\validators\validate_harness.py; if($LASTEXITCODE -ne 0){throw 'HARNESS FAIL'}; python .\cpf-docs\governance\documentation-harness\validators\validate_readme.py; if($LASTEXITCODE -ne 0){throw 'README FAIL'}; python .\cpf-docs\deliverables\documentation\verify_documentation_delivery.py; if($LASTEXITCODE -ne 0){throw 'DOC FAIL'}
+$ErrorActionPreference='Stop';$root=(git rev-parse --show-toplevel).Trim();Set-Location $root;pwsh -NoProfile -ExecutionPolicy Bypass -File '.\cpf-docs\deliverables\documentation\VERIFY.ps1'

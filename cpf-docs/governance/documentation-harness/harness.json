@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "title": "CPF 공식 산출물 실행형 디자인·품질 하네스",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
@@ -39,13 +39,27 @@
       "unrelatedRewrite": "forbidden",
       "regressionComparisonRequired": true,
       "fullRegenerationAllowedOnlyWhen": [
+        "기존 공식 산출물이 BASELINE_REJECTED이고 사용자가 최신 Harness 기준 최초 1회 Fresh Rebuild를 명시적으로 요청",
         "사용자가 전체 재작성/재디자인을 명시적으로 요청",
         "파일 구조가 손상되어 부분 보정이 기술적으로 불가능",
         "Canonical Architecture 또는 Artifact Profile의 핵심 Outcome이 전체 구조를 무효화",
         "공식 생성 도구가 부분 Patch를 지원하지 않아 재생성이 불가피하며, 기존 승인 Block을 동일하게 재현하는 Regression Evidence가 있음"
       ],
       "fullRegenerationRequires": "사유+영향범위+보존대상+Before/After 회귀 계획을 Evidence에 기록",
-      "rule": "항상 먼저 보완 수정한다. 새로 만드는 것은 예외다. 한 곳을 고치다가 잘 되어 있던 다른 곳이 바뀌면 회귀로 FAIL한다."
+      "rule": "항상 먼저 보완 수정한다. 새로 만드는 것은 예외다. 한 곳을 고치다가 잘 되어 있던 다른 곳이 바뀌면 회귀로 FAIL한다.",
+      "baselineLifecycle": {
+        "BASELINE_REJECTED": "현재 산출물의 사용자/Visual 품질이 기준 미달. 보존 기준선으로 사용하지 않는다.",
+        "INITIAL_FRESH_REBUILD": "BASELINE_REJECTED 상태에서 사용자 명시 승인으로 수행하는 최초 1회 Fresh Rebuild.",
+        "GOLDEN_BASELINE_CANDIDATE": "최초 재구축 후 자동/Render/수동 시각 QA를 수행 중인 후보.",
+        "GOLDEN_BASELINE_APPROVED": "USER_APPROVED 또는 VISUAL_QA_APPROVED로 승인된 기준선.",
+        "PATCH_ONLY": "승인 기준선 이후 기본 상태. Finding 영향 범위만 PATCH_FIRST로 수정하고 승인 영역을 보존한다."
+      },
+      "freshRebuildException": {
+        "allowedWhen": "BASELINE_REJECTED 상태이며 사용자가 최초 1회 전체 재구축을 명시 요청한 경우",
+        "maxConsecutiveFreshRebuilds": 1,
+        "afterApproval": "PATCH_ONLY",
+        "rule": "낮은 품질의 기존 산출물을 보존하기 위한 PATCH_FIRST 오용을 금지한다. 최초 재구축이 승인된 뒤에는 다시 Fresh Rewrite하지 않는다."
+      }
     }
   },
   "sessionStartOrder": [

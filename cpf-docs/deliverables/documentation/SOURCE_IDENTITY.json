@@ -1,10 +1,12 @@
 {
-  "targetRepository": "https://github.com/freeangelsun/202412_01_CPF",
-  "targetBranch": "master",
-  "targetMasterSha": "9893c03f43dde6ff0198e5ff71fc564747e08845",
-  "currentMasterHarnessBeforeApply": "1.2.1",
-  "deliveryHarness": "1.2.5",
-  "sourceArchiveUsedForLocalReferenceCheck": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_175633.zip",
-  "sourceArchiveSha256": "9C716E16752972BC15EC9834071F44D721C60D893C929A55A51ED95F654EE11E",
-  "note": "Target master SHA was re-read through GitHub before packaging. Local source archive is used only for source-path and clean packaging replay; it predates target master and is not claimed as an exact current-master source snapshot."
+  "repository": "https://github.com/freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "sourceCommit": "054d894b47f4be8323439dc6f9e58b7d8b60fe54",
+  "harnessVersion": "2.1.0",
+  "officialArtifacts": 23,
+  "docx": 11,
+  "pdf": 11,
+  "readme": 1,
+  "pdfPages": 108,
+  "status": "DOCUMENTATION_QA_PASS_PENDING_USER_GOLDEN_APPROVAL"
 }

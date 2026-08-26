@@ -1,199 +1,154 @@
-<h1 align="center">CPF / Core Platform Framework</h1>
+<div align="center">
 
-![CPF - Core Platform Framework](cpf-docs/assets/product-docs/hero.png)
+<img src="cpf-docs/assets/product-docs/hero.png" alt="CPF Core Platform Framework" width="960" />
 
-CPF는 업무 시스템의 **호출 경계, 거래 상태, 공통 기능, Batch, DB, 운영 제어**를 하나의 Framework 계약으로 연결합니다. 개발자는 기반 기능을 다시 조립하기보다 Domain과 업무 규칙에 집중하고, 운영자는 같은 식별자와 복구 모델로 장애를 추적합니다.
+# Core Platform Framework
+
+**업무 호출 · 거래 상태 · Batch · DB3 · 운영을 하나의 계약으로 연결하는 Business Platform Framework**
+
+CPF는 Spring Boot 생태계를 기반으로 업무 개발자가 반복해서 조립하던 호출·Transaction·Security·Integration·Batch·운영 규칙을 Public Starter/API와 실행 계약으로 묶습니다.
+
+</div>
 
 ![CPF 전체 Architecture](cpf-docs/assets/product-docs/architecture.png)
 
-**CPF 전체 구조.** 업무 원장은 Generated Business Domain이 소유합니다. CPF Core/Common/Starter가 공통 계약을 제공하고, Gateway·Backoffice·Batch·Operations는 필요한 경계에서 역할을 나눕니다.
+> **전체 구조 한눈에 보기**  
+> • Generated/Prebuilt Domain, Public Starter, Runtime/Operations와 DB3의 Owner 경계를 한 화면에서 구분합니다.  
+> • Gateway는 외부 Entry의 선택 경계이며 **내부 Domain 간 호출 경로가 아닙니다.**  
+> • Oracle · PostgreSQL · MariaDB는 Canonical Schema → Migration → Recovery의 같은 Lifecycle 의미를 유지합니다.
 
-<br><br>
+---
 
-# 1. 호출·오케스트레이션은 배포 구조가 달라져도 같은 업무 계약을 유지합니다
+# 1. 호출·오케스트레이션은 배포 구조가 달라도 같은 업무 계약을 유지합니다
 
-## 1.1 Same JVM과 Remote를 같은 Domain Invocation 계약으로 호출
+![Same JVM과 Remote Domain Invocation 비교](cpf-docs/assets/product-docs/invoke.png)
 
-![Domain 호출 오케스트레이션](cpf-docs/assets/product-docs/invoke.png)
+> **그림 해석**  
+> • Same JVM은 in-process binding과 `CpfContext`를 사용합니다.  
+> • Remote/MSA는 Registry·Transport가 endpoint를 선택하고 System6·Timeout·Trace 계약을 경계에서 적용합니다.  
+> • **내부 Domain 간 호출은 Gateway를 경유하지 않습니다.** Gateway는 외부 진입 정책이 필요한 경우에만 선택합니다.
 
-업무 코드는 Local/Remote 분기를 직접 만들지 않습니다. CPF가 Same JVM이면 In-process binding을, Remote이면 System6·timeout·trace가 적용된 transport를 선택합니다. **내부 Domain 간 호출은 Gateway를 경유하지 않으며 self-HTTP도 사용하지 않습니다.**
+업무 코드는 배포 방식별 `if/else`를 작성하는 대신 동일한 Domain Operation을 호출합니다. 이를 통해 단일 JVM에서 시작해 MSA로 분리해도 호출 의미와 오류·추적 계약을 유지합니다.
 
-## 1.2 호출 순서와 실패 경계를 오케스트레이션 계약으로 분리
-
-- **업무 순서** - 어떤 Domain/Operation을 어떤 순서로 실행할지 명확히 합니다.
-- **실패 경계** - Local rollback과 Remote Side Effect를 같은 실패로 취급하지 않습니다.
-- **복구 경로** - Retry·Idempotency·Compensation·Reconcile을 결과 확정 가능성에 맞춰 선택합니다.
-- **관측성** - transactionId·operationId·instanceId로 전체 호출을 연결합니다.
-
-## 1.3 System6·transactionId·operationId·instanceId로 거래를 연결
-
-Canonical System6는 경계를 통과할 때 CPF가 생성·전파·검증합니다. 개발자는 Header를 직접 조립하지 않고, 운영자는 transactionId → operationId → instanceId 순서로 실제 처리 경로를 좁힙니다.
-
-<br><br>
+---
 
 # 2. 성공과 실패 사이의 불확실성까지 거래 상태로 관리합니다
 
-## 2.1 Local Transaction과 원격 Side Effect를 구분
+![Transaction UNKNOWN Reconcile 상태 모델](cpf-docs/assets/product-docs/tx.png)
 
-![거래 패턴 선택](cpf-docs/assets/product-docs/tx.png)
+> **그림 해석**  
+> • Local DB Transaction과 Remote Side Effect를 같은 원자성으로 보지 않습니다.  
+> • 응답 유실·Timeout처럼 결과를 확정할 수 없으면 `UNKNOWN`으로 보존합니다.  
+> • 재호출보다 Reconcile로 실제 결과를 확인하고 Idempotency로 중복 Side Effect를 막습니다.
 
-로컬 DB 원자성은 Transaction으로 관리하고, 원격 시스템·메시지·파일 Side Effect는 별도의 결과 확인과 복구 계약으로 다룹니다.
+Saga·TCC·XA는 참여 자원과 확정/보상 모델에 맞게 선택하며, 결과가 불명확한 상태에서는 먼저 Reconcile 가능성을 판단합니다.
 
-## 2.2 UNKNOWN을 추측하지 않고 Reconcile
-
-
-Timeout이나 응답 유실처럼 실제 결과를 확정할 수 없으면 SUCCESS/FAILURE로 추측하지 않습니다. `UNKNOWN`을 보존하고 Probe/Reconcile으로 실제 결과를 확인합니다.
-
-## 2.3 Idempotency로 중복 Side Effect를 제어
-
-동일 의미의 요청이 재전송돼도 durable idempotency 상태를 기준으로 이미 확정된 Side Effect를 무조건 다시 실행하지 않습니다.
-
-## 2.4 Saga·TCC·XA를 자원 특성에 맞게 선택
-
-- **Saga** - 장기 흐름과 명시적 보상이 필요한 경우
-- **TCC** - Try/Confirm/Cancel을 업무적으로 분리할 수 있는 경우
-- **XA** - 참여 Resource가 XA를 지원하고 동기 원자성이 필요한 경우
-
-<br><br>
+---
 
 # 3. Batch는 실행·제어·복구 역할을 나눠 운영 실수를 줄입니다
 
-## 3.1 Control Plane·Scheduler·Worker·Center-Cut·Agent 역할
+![Batch Control Plane과 Execution Lane](cpf-docs/assets/product-docs/batch.png)
 
-![Batch Runtime](cpf-docs/assets/product-docs/batch.png)
+> **그림 해석**  
+> • Control Plane은 정책·Scheduler·Deployment·Recovery를 관리합니다.  
+> • Worker/Center-Cut은 실행·분할 책임을 분리하고 DB claim·Lease·Fencing으로 소유권을 보호합니다.  
+> • Batch 실행 Topology는 `LOCAL · PARALLEL_STEPS · LOCAL_PARTITION`이며 Batch 전용 Kafka/Broker Remote Execution은 제품 범위가 아닙니다.  
+> • Heartbeat·Checkpoint를 함께 사용해 Process Kill과 stale Worker를 복구합니다.
 
-제어 명령과 실제 Job 실행을 분리하고 Lease·Fencing으로 다중 Worker의 실행 소유권을 보호합니다.
+Restart, Rerun, Reprocess, Reconcile은 서로 다른 운영 행위입니다. CPF는 실행 상태와 외부 Side Effect를 함께 보고 어떤 복구를 선택해야 하는지 구분합니다.
 
-## 3.2 Restart·Rerun·Reprocess·Reconcile 선택
-
-`Restart`는 기존 Execution을 이어가고, `Rerun`은 새 Execution, `Reprocess`는 선택 대상 재처리, `Reconcile`은 결과 미확정 상태 확인에 사용합니다. 네 동작을 같은 의미로 섞지 않습니다.
-
-## 3.3 Lease·Fencing·Heartbeat와 Process Kill 복구
-
-Heartbeat로 생존 상태를 보고하고 Lease/Fencing으로 stale worker의 재기록을 차단해 Process Kill과 재할당 후에도 실행 소유권을 명확히 합니다.
-
-<br><br>
+---
 
 # 4. Domain 생성부터 Starter와 DB까지 같은 규칙으로 맞춥니다
 
-## 4.1 Generator가 Domain 구조와 Package를 Canonical하게 생성
+> **구조 핵심**  
+> • 업무 Source는 Generated/Prebuilt Domain Owner에 둡니다.  
+> • `cpf-core`·`cpf-common`·Public Starter는 기술 계약과 Capability 진입점을 제공합니다.  
+> • 공식 DB Vendor는 **Oracle · PostgreSQL · MariaDB**이며 Canonical Source부터 Migration·Rollback까지 같은 의미를 유지합니다.
 
+Framework 내부 모듈을 직접 조합하기보다 Public Profile/Starter에서 시작합니다. 선택하지 않은 Optional Capability가 Bean·Thread·SQL·Endpoint Side Effect를 남기지 않는 것이 기본 계약입니다.
 
-Generator가 Domain IA와 Package를 Canonical 규칙으로 만들고, Public Starter·DB3·Build/Test까지 같은 Catalog에서 연결합니다.
-
-## 4.2 필요한 Starter·Provider만 조합
-
-JDBC/MyBatis/JPA, Cache, Messaging, Security, File, Integration 등은 Public Starter에서 필요한 Capability만 선택합니다. Generated Domain이 Internal Leaf를 직접 참조하지 않습니다.
-
-## 4.3 Oracle·PostgreSQL·MariaDB Lifecycle을 함께 관리
-
-공식 DB Vendor는 Oracle, PostgreSQL, MariaDB입니다. Canonical Source → Fresh Init → Migration/Seed → Upgrade → Rollback/Recovery → Runtime Query를 세 Vendor와 함께 검증합니다.
-
-<br><br>
+---
 
 # 5. 외부 연계와 Gateway·Backoffice도 업무 Owner 경계를 유지합니다
 
-## 5.1 외부 연계·Messaging·File·Notification의 실패와 재처리
+![Gateway 선택 및 미선택 Topology](cpf-docs/assets/product-docs/gateway.png)
 
-외부 연계는 Provider가 달라도 timeout·retry·idempotency·UNKNOWN·Reconcile 관점에서 같은 실패 모델을 사용합니다.
+> **그림 해석**  
+> • Gateway는 인증·Route·Rate Limit 같은 **외부 Entry Policy**가 필요할 때 선택합니다.  
+> • Gateway를 쓰지 않아도 Trusted Entry에서 Owner Domain으로 진입할 수 있습니다.  
+> • Backoffice와 외부 Channel도 Owner Domain의 API/호출 계약을 사용하며 원장을 직접 우회하지 않습니다.
 
-## 5.2 Gateway 선택 시와 미선택 시 경계를 한눈에 비교
+외부 HTTP·Messaging·File 연계는 Timeout, Retry, Idempotency, UNKNOWN/Reconcile을 동일한 실패 모델로 연결합니다.
 
-![Gateway 선택 비교](cpf-docs/assets/product-docs/gateway.png)
-
-Gateway는 **외부 진입, Routing, Trust, Rate/Admission, Resilience 정책 경계가 필요할 때만** 추가합니다. 내부 Domain 호출의 기본 Hop이 아닙니다.
-
-## 5.3 내부 Domain 간 호출은 Gateway를 경유하지 않음
-
-Domain A → Domain B 호출은 Same JVM 또는 Remote Domain Invocation으로 연결합니다. Gateway 장애 시 내부 호출을 우회하거나 fallback 경로로 만들지 않습니다.
-
-## 5.4 Backoffice는 Owner Domain을 우회하지 않음
-
-Backoffice는 Channel/BFF 역할을 하며 업무 원장 DB에 직접 접근하지 않습니다. Owner Domain의 공식 호출 계약을 통해 조회·조작합니다.
-
-<br><br>
+---
 
 # 6. 운영자는 거래와 Runtime을 같은 식별 체계로 추적합니다
 
-## 6.1 Log·Trace·Timeline·Health를 한 흐름으로 확인
+![Operations Trace Timeline](cpf-docs/assets/product-docs/ops.png)
 
-![운영 추적과 위험 조치](cpf-docs/assets/product-docs/ops.png)
+> **그림 해석**  
+> • `transactionId`는 거래 전체, `operationId`는 현재 Operation, `instanceId`는 실제 처리 Runtime을 좁혀 줍니다.  
+> • Log·Trace·Health·Recovery가 같은 Timeline으로 이어집니다.  
+> • 위험 조치는 Permission → Reason → Approval → Execution → Audit 흐름으로 추적합니다.
 
-transactionId로 거래를 찾고 operationId로 실행 단위를 좁힌 뒤 instanceId로 실제 Runtime을 확인합니다.
+민감정보는 Log·화면·Evidence에 원문으로 남기지 않고, 운영 실패·복구 결과도 동일한 식별자와 Audit 흐름에서 확인할 수 있어야 합니다.
 
-## 6.2 위험 조치는 Permission·Reason·Approval·Audit와 연결
-
-재실행·강제 상태 변경·민감정보 접근 같은 위험 조치는 권한뿐 아니라 사유, 필요한 승인, 실행 결과 Audit까지 남깁니다.
-
-## 6.3 운영 상태와 복구 결과를 같은 기준으로 확인
-
-Runtime control, Feature Flag, Dynamic Log, Incident, Batch Recovery는 요청 상태와 실제 적용 결과를 분리해 확인하고 부분 실패를 숨기지 않습니다.
-
-<br><br>
+---
 
 # 7. 반복 공통 기능을 다시 만들지 않고 필요한 Capability를 선택합니다
 
-## 7.1 Cache·Validation·Messaging·File·Notification 공통 계약
+![CPF Capability Selection](cpf-docs/assets/product-docs/capabilities.png)
 
-업무 Domain은 Provider 구현 대신 CPF Public API와 Starter를 사용해 반복 코드를 줄이고 운영 규칙을 일관되게 유지합니다.
+• Web/API · Persistence · Transaction · Security · Cache · Messaging · Integration · File · Observability · Batch를 필요한 범위만 선택합니다.  
+• Provider가 필요한 영역은 JDBC/MyBatis/JPA, Redis/Valkey/Caffeine, Kafka/RabbitMQ/JMS처럼 구현 선택과 업무 계약을 분리합니다.  
+• CPF가 표준화하지 않는 일반 Java/Spring 기능은 Native API를 사용할 수 있지만 Context·Security·Trace·Failure 경계는 우회하지 않습니다.
 
-## 7.2 Security·Masking·Audit·Approval 공통 정책
-
-인증·인가·Session·Secret/Crypto·Masking·Sensitive Data Access·Approval/Audit를 각 Runtime이 별도 규칙으로 만들지 않습니다.
-
-## 7.3 Config·Profile·Provider로 Runtime 기능 선택
-
-기본값, 환경 Profile, Provider, 호출별 옵션의 우선순위를 명확히 하고 충돌하는 Provider나 위험한 기본값은 Fail-Closed로 처리합니다.
-
-<br><br>
+---
 
 # 8. 시작·생성·Build·Test 흐름이 정해져 있어 바로 개발에 들어갑니다
 
-## 8.1 Bootstrap으로 개발 환경 준비
+**요구 환경**
 
-공개 개발 환경은 Bootstrap이 prerequisite → DB/Schema → Migration/Seed → 필요한 Middleware → Domain discovery → Build/Test → Runtime/Health 순으로 준비하는 Golden Path를 제공합니다.
+• Java 25  
+• Repository Gradle Wrapper  
+• 공식 DB: Oracle / PostgreSQL / MariaDB
 
-## 8.2 Build·Test·Runtime을 검증된 명령으로 실행
+Repository Root에서 다음 흐름으로 시작합니다.
 
 ```powershell
+pwsh .\cpf-tools\build\tools\cpf-dev.ps1 status
 pwsh .\cpf-tools\build\tools\cpf-dev.ps1 build
 pwsh .\cpf-tools\build\tools\cpf-dev.ps1 verify-full
-pwsh .\cpf-tools\build\tools\cpf-dev.ps1 run-local
 ```
 
-## 8.3 Generator CLI로 Domain 생성·검증
+Domain 생성/동기화는 `cpf-tools/runtime/cli/cpf.py`의 `domain create/setup/sync/diff/remove` 흐름을 사용합니다. 실행하지 않은 Test는 PASS로 기록하지 않습니다.
 
-```text
-cpf domain create | setup | sync | diff | remove
-cpf db render
-cpf verify generator | domain | all
-```
-
-<br><br>
+---
 
 # 9. 필요한 매뉴얼과 상세 가이드를 역할별로 바로 찾습니다
 
-![CPF 문서 길찾기](cpf-docs/assets/product-docs/docs.png)
 
-## 9.1 Framework·Batch 개발자는 개발 가이드에서 선택/API를 확인
+| 필요한 정보 | 문서 | 바로 열기 |
+|---|---|---|
+| 업무 개발 · API 선택 · 실패/복구 | 프레임워크 개발자 가이드 | [PDF](cpf-docs/guides/02_프레임워크_개발자_가이드.pdf) · [DOCX](cpf-docs/guides/02_프레임워크_개발자_가이드.docx) |
+| Batch Job · 동시성 · 복구 | 배치 개발자 가이드 | [PDF](cpf-docs/guides/03_배치_개발자_가이드.pdf) · [DOCX](cpf-docs/guides/03_배치_개발자_가이드.docx) |
+| 거래·Runtime 장애 대응 | 운영자 매뉴얼 | [PDF](cpf-docs/guides/04_운영자_매뉴얼.pdf) · [DOCX](cpf-docs/guides/04_운영자_매뉴얼.docx) |
+| Batch 실행·중단·재처리 | 배치 운영 가이드 | [PDF](cpf-docs/guides/05_배치_운영_가이드.pdf) · [DOCX](cpf-docs/guides/05_배치_운영_가이드.docx) |
+| Gateway 선택·Route·정책 | Gateway 개발/사용 가이드 | [PDF](cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf) · [DOCX](cpf-docs/guides/06_Gateway_개발_사용_가이드.docx) |
+| Public Contract · 상태 · 오류 | Specification 기술 명세 | [PDF](cpf-docs/guides/07_Specification_기술_명세.pdf) · [DOCX](cpf-docs/guides/07_Specification_기술_명세.docx) |
+| 전체 구조 · Owner · Topology | 아키텍처설계서 | [PDF](cpf-docs/deliverables/아키텍처설계서.pdf) · [DOCX](cpf-docs/deliverables/아키텍처설계서.docx) |
+| Runtime · Starter · 호환성 | 기술사양서 | [PDF](cpf-docs/deliverables/기술사양서.pdf) · [DOCX](cpf-docs/deliverables/기술사양서.docx) |
+| Naming · Ownership · 개발 표준 | 기술표준서 | [PDF](cpf-docs/deliverables/기술표준서.pdf) · [DOCX](cpf-docs/deliverables/기술표준서.docx) |
+| DB3 · Migration · Rollback | 데이터베이스표준서 | [PDF](cpf-docs/deliverables/데이터베이스표준서.pdf) · [DOCX](cpf-docs/deliverables/데이터베이스표준서.docx) |
+| 전체 공식 문서 목록 | 산출물목록 | [PDF](cpf-docs/deliverables/산출물목록.pdf) · [DOCX](cpf-docs/deliverables/산출물목록.docx) |
 
-- [프레임워크 개발자 가이드](cpf-docs/guides/02_프레임워크_개발자_가이드.docx) ([PDF](cpf-docs/guides/02_프레임워크_개발자_가이드.pdf)) - 거래 패턴, 호출 API, 옵션, 오류·복구, Starter/Generator
-- [배치 개발자 가이드](cpf-docs/guides/03_배치_개발자_가이드.docx) ([PDF](cpf-docs/guides/03_배치_개발자_가이드.pdf)) - Job/Step/Chunk/Partition, Lease/Fencing, 복구 선택
-
-## 9.2 운영자는 운영자·Batch 운영 가이드에서 판단과 조치를 확인
-
-- [운영자 매뉴얼](cpf-docs/guides/04_운영자_매뉴얼.docx) ([PDF](cpf-docs/guides/04_운영자_매뉴얼.pdf)) - 거래 추적, UNKNOWN, Incident, 위험 조치
-- [배치 운영 가이드](cpf-docs/guides/05_배치_운영_가이드.docx) ([PDF](cpf-docs/guides/05_배치_운영_가이드.pdf)) - Restart/Rerun/Reprocess/Reconcile, Worker 장애, 복구
-
-## 9.3 Gateway·Specification·Architecture·DB 표준은 상세 계약과 경계를 확인
-
-- [Gateway 개발/사용 가이드](cpf-docs/guides/06_Gateway_개발_사용_가이드.docx) ([PDF](cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf))
-- [Specification 기술 명세](cpf-docs/guides/07_Specification_기술_명세.docx) ([PDF](cpf-docs/guides/07_Specification_기술_명세.pdf))
-- [아키텍처설계서](cpf-docs/deliverables/아키텍처설계서.docx) ([PDF](cpf-docs/deliverables/아키텍처설계서.pdf))
-- [기술사양서](cpf-docs/deliverables/기술사양서.pdf) · [기술표준서](cpf-docs/deliverables/기술표준서.pdf) · [데이터베이스표준서](cpf-docs/deliverables/데이터베이스표준서.pdf)
-
-<br><br>
+---
 
 # 10. Community & Evaluation License
 
-## CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.
+CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.
+
+---
+
+<sub>Documentation baseline: Harness v2.1.0 · Source: master `054d894b47f4be8323439dc6f9e58b7d8b60fe54` · 2026-08-26</sub>

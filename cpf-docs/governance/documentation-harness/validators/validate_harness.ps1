@@ -14,13 +14,13 @@ function Load-Json([string]$Relative){
 function As-Array($Value){ return @($Value) }
 
 $h=Load-Json 'harness.json'
-if($h.version -ne '2.0.0'){ Fail 'version' }
+if($h.version -ne '2.1.0'){ Fail 'version' }
 if($h.locked -ne $true -or $h.changeAuthority -ne 'USER_EXPLICIT_REQUEST_ONLY'){ Fail 'change authority' }
 if($h.changePolicy.autoModify -ne $false){ Fail 'auto modify' }
 
 foreach($f in @('design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json')){
     $d=Load-Json $f
-    if($d.harnessVersion -ne '2.0.0'){ Fail("version " + $f) }
+    if($d.harnessVersion -ne '2.1.0'){ Fail("version " + $f) }
 }
 
 $D=Load-Json 'design-tokens.json'
@@ -121,7 +121,7 @@ foreach($a in $arts){
 }
 
 
-# v2.0.0 geometry / balance / incremental / link / content-rail gates
+# v2.1.0 geometry / balance / incremental / link / content-rail gates
 if([int]$D.figures.node_inner_padding_px_min -lt 24){ Fail 'figure inner padding' }
 if([int]$D.figures.label_to_label_gap_px_min -lt 24){ Fail 'figure label gap' }
 if([int]$D.figures.node_to_node_gap_px_min -lt 28){ Fail 'figure node gap' }
@@ -132,6 +132,9 @@ if($D.visual_quality.page_visual_balance_required -ne $true){ Fail 'page visual 
 if([double]$D.paragraph.h2_space_after_pt -gt 6 -or [double]$D.paragraph.h3_space_after_pt -gt 5){ Fail 'subheading content gap' }
 if([double]$D.indentation.subheading_content_indent_mm -lt 4){ Fail 'subheading content rail' }
 if($h.changePolicy.artifactEvolutionPolicy.defaultMode -ne 'PATCH_FIRST'){ Fail 'patch first policy' }
+if($h.changePolicy.artifactEvolutionPolicy.freshRebuildException.afterApproval -ne 'PATCH_ONLY'){ Fail 'fresh rebuild lifecycle' }
+if([int]$h.changePolicy.artifactEvolutionPolicy.freshRebuildException.maxConsecutiveFreshRebuilds -ne 1){ Fail 'fresh rebuild max once' }
+
 if($O.linkIntegrity.pdfLabelMustTargetPdf -ne $true -or $O.linkIntegrity.docxLabelMustTargetDocx -ne $true){ Fail 'format link target rule' }
 if($O.artifactEvolution.default -ne 'PATCH_FIRST'){ Fail 'incremental artifact rule' }
 if($O.windowsValidation.pythonRequired -ne $false){ Fail 'python must not be required on Windows' }

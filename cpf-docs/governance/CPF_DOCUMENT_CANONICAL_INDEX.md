@@ -4,7 +4,7 @@
 
 ## 1. 최상위 개발/QA 정본
 
-1. `CPF_FINAL_TARGET_REQUIREMENTS.md` — 최상위 제품 Target, Architecture, 205 Current Requirement
+1. `CPF_FINAL_TARGET_REQUIREMENTS.md` — 최상위 제품 Target, Architecture, Current Requirement
 2. `CPF_CANONICAL_PATH_AND_ROLE_MAP.md` — 경로/Owner Navigation 전용
 3. `../work/current/CPF_CURRENT_WORK_REQUEST.md` — 현재 개발 요청과 우선순위
 4. `../work/REQUIREMENT_STATUS.csv` — 개발 GPT 역할 상태/검증 상태 원장. QA/Codex 소유 컬럼은 각 역할 권한을 따른다.
@@ -53,7 +53,7 @@ README와 Developer/Batch/Operator/Gateway/Specification 등 공식 사용자 �
 
 CPF 공식 사용자 산출물의 생성·현행화·시각 QA·Packaging 기준은 다음 디렉터리를 단일 정본으로 사용한다.
 
-- `cpf-docs/governance/documentation-harness/` — **CPF Documentation Harness v1.2.5**
+- `cpf-docs/governance/documentation-harness/` — **CPF Documentation Harness v2.1.0**
 
 산출물 작업은 **Harness 현행화 → Harness Validator PASS → Harness 기준 산출물 생성/QA** 순서를 따른다. 사용자가 산출물 품질·구성·시각화·분량·경로·호환성 기준을 직접 지적하거나 새 기준을 요청하면 산출물만 임시 수정하지 않고 Harness에 먼저 반영한다. Repository에는 `documentation-harness/` 현행본 하나만 유지하고 과거 Harness 버전·백업·세션성 복제본은 Delete Manifest로 제거한다.
 

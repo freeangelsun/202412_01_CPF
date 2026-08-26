@@ -1,4 +1,3 @@
-# QA REWORK REQUEST
+# CPF Documentation QA Rework Request
 
-- 개발 GPT Documentation v1.2.5 재개발/자체검수 완료.
-- QA는 README/DOCX/PDF 시각 품질, PDF Windows viewer 호환, Source-backed 의미 정합성, 삭제 Manifest를 독립 재검수한다.
+개발 GPT Documentation 자체검수 기준 재개발 요청 없음. QA 최종 판정은 QA 역할에서 별도로 수행한다.

@@ -1,0 +1,4 @@
+$ErrorActionPreference='Stop'
+$root=(git rev-parse --show-toplevel 2>$null).Trim();if($LASTEXITCODE-ne0-or[string]::IsNullOrWhiteSpace($root)){throw 'CPF GIT ROOT NOT FOUND'};$root=[IO.Path]::GetFullPath($root);Set-Location $root
+$m='cpf-docs\deliverables\documentation\DELETE_MANIFEST.txt';if(-not(Test-Path -LiteralPath $m)){throw 'DELETE MANIFEST NOT FOUND'};$n=0
+Get-Content -LiteralPath $m -Encoding UTF8|ForEach-Object{$s=$_.Trim();if($s-and-not$s.StartsWith('#')){if([IO.Path]::IsPathRooted($s)-or$s.Contains('..')-or[Management.Automation.WildcardPattern]::ContainsWildcardCharacters($s)){throw "UNSAFE DELETE: $s"};$p=[IO.Path]::GetFullPath((Join-Path $root ($s -replace '/','\')));if(-not$p.StartsWith($root.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw "OUTSIDE ROOT: $s"};if(Test-Path -LiteralPath $p -PathType Leaf){Remove-Item -LiteralPath $p -Force;$n++;Write-Host "[DELETE] $s"}}};Write-Host "[CPF][DOC] DELETE PASS count=$n"

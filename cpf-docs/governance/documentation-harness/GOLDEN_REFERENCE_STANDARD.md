@@ -1,6 +1,6 @@
 # CPF Documentation Golden Reference Standard
 
-- Harness: **v2.0.0**
+- Harness: **v2.1.0**
 - 목적: 규칙 문장만으로 품질을 판단하지 않고, 승인된 화면을 실제 회귀 기준으로 사용한다.
 
 ## 1. Golden Reference 원칙
@@ -39,3 +39,7 @@ Golden Reference는 자동 Validator PASS 결과가 아니라 **사용자 승인
 - Golden Reference가 없다는 이유로 전체 문서를 Fresh redesign하지 않는다.
 - 다른 문서의 스타일을 무작정 복제하지 않는다.
 - 단순히 최신 파일이라는 이유로 Golden Reference로 등록하지 않는다.
+
+## 최초 재구축 예외 Lifecycle
+
+기존 공식 산출물이 사용자에 의해 `BASELINE_REJECTED`로 판정된 경우에만 사용자 명시 요청으로 최초 1회 `INITIAL_FRESH_REBUILD`를 수행할 수 있다. 결과는 `GOLDEN_BASELINE_CANDIDATE`이며, `USER_APPROVED` 또는 `VISUAL_QA_APPROVED` 이후에는 `PATCH_ONLY`로 전환한다. 승인 이후 관계없는 영역의 Fresh Rewrite는 Regression FAIL이다.

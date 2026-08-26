@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.0.0
+# CPF Documentation Harness v2.1.0
 
 ## 0. v2 핵심 철학 — 새로 만드는 Harness가 아니라 개선하는 Harness
 
@@ -91,7 +91,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - PDF는 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 통과해야 한다.
 
 
-## v2.0.0 시각 균형 원칙
+## v2.1.0 시각 균형 원칙
 
 - 모든 문서와 Figure는 내용의 정확성뿐 아니라 시각적 균형을 품질 Gate로 관리한다.
 - Figure 글자 겹침·잘림·깨짐·낮은 대비·Connector 충돌·Group Title/Child Label 겹침은 0건이어야 한다.
@@ -101,7 +101,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - 시각 결함을 발견하면 해당 그림 하나만 임시 수정하지 않고 공통 원인이면 Harness Token/Visual Rule을 먼저 보완하고 영향받은 Block/페이지/링크만 Patch하고 필요한 경우 해당 파일만 재export한다.
 
 
-## v2.0.0 점진 개선·링크·Visual Grammar 원칙
+## v2.1.0 점진 개선·링크·Visual Grammar 원칙
 
 - 기본 작업 방식은 `PATCH_FIRST`다. USER_APPROVED 또는 VISUAL_QA_APPROVED 영역을 기준선으로 삼고 지적받은 영역과 실제 영향 범위만 보정한다. AUTOMATED_PASS_ONLY는 품질 승인으로 승계하지 않는다.
 - 관계없는 PASS 페이지·문장·Visual은 유지한다. 전체 재작성/재디자인은 사용자의 명시 요청, 구조 손상, Canonical 전체 구조 변경 등 Harness가 허용한 경우만 수행한다.
@@ -112,3 +112,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - 내용별 Visual Grammar를 선택한다. Architecture는 Layer/Zone, 호출은 Lane/Route, UNKNOWN은 State Ring/Branch, Batch는 Control/Execution Plane, DB3는 Lifecycle Spine+Vendor Band, Capability는 Mosaic/Cluster를 우선한다. 동일 Rounded Rectangle+Arrow 반복은 금지한다.
 - `[PDF]`는 실제 `.pdf`, `[DOCX]`는 실제 `.docx`를 직접 가리켜야 한다. 표시 형식과 Target 확장자가 다르면 Link FAIL이다.
 - 회사 Windows 설치 검증은 PowerShell-only로 완료 가능해야 하며 Python은 필수 의존성이 아니다.
+
+## 최초 재구축 예외 Lifecycle
+
+기존 공식 산출물이 사용자에 의해 `BASELINE_REJECTED`로 판정된 경우에만 사용자 명시 요청으로 최초 1회 `INITIAL_FRESH_REBUILD`를 수행할 수 있다. 결과는 `GOLDEN_BASELINE_CANDIDATE`이며, `USER_APPROVED` 또는 `VISUAL_QA_APPROVED` 이후에는 `PATCH_ONLY`로 전환한다. 승인 이후 관계없는 영역의 Fresh Rewrite는 Regression FAIL이다.

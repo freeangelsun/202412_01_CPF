@@ -1,4 +1,4 @@
-# CPF Documentation Final Gate — v2.0.0
+# CPF Documentation Final Gate — v2.1.0
 
 최종 완료는 아래 Gate가 **모두** PASS해야 한다.
 
@@ -27,3 +27,7 @@
 - 생성 도구 제약상 재생성 불가피 + 승인 Block 동일 재현 Regression Plan 존재
 
 예외가 아니면 **항상 기존 산출물 보완 수정**이다.
+
+## 최초 재구축 예외 Lifecycle
+
+기존 공식 산출물이 사용자에 의해 `BASELINE_REJECTED`로 판정된 경우에만 사용자 명시 요청으로 최초 1회 `INITIAL_FRESH_REBUILD`를 수행할 수 있다. 결과는 `GOLDEN_BASELINE_CANDIDATE`이며, `USER_APPROVED` 또는 `VISUAL_QA_APPROVED` 이후에는 `PATCH_ONLY`로 전환한다. 승인 이후 관계없는 영역의 Fresh Rewrite는 Regression FAIL이다.

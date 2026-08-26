@@ -34,7 +34,7 @@ onMounted(state.load)
           @row="state.selectServer" @page="state.changeServerPage" @size="state.changeServerSize"
         />
       </div>
-      <ManagedServerForm :form="state.form" :selected="state.selected.value" :loading="state.loading.value" @save="state.saveServer" @disable="state.disableServer" />
+      <ManagedServerForm :form="state.form" :selected="state.selected.value" :loading="state.loading.value" @update:form="Object.assign(state.form, $event)" @save="state.saveServer" @disable="state.disableServer" />
     </section>
     <section class="cpf-card runtime-section">
       <div class="panel-title"><div><h3>Runtime Inventory</h3><p>Stable Managed Server와 ephemeral Runtime/Capability를 분리해 조회합니다.</p></div></div>

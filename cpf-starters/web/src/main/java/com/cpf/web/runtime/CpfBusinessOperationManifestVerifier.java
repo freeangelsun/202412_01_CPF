@@ -36,8 +36,8 @@ final class CpfBusinessOperationManifestVerifier {
     void verify(List<CpfOperationCatalogRegistry.Operation> runtimeOperations, boolean required) {
         List<CpfOperationCatalogRegistry.Operation> runtime = runtimeOperations == null
                 ? List.of()
-                : runtimeOperations.stream().sorted(Comparator.comparing(CpfOperationCatalogRegistry.Operation::operationId)).toList();
-        Set<String> runtimeIds = runtime.stream().map(CpfOperationCatalogRegistry.Operation::operationId)
+                : runtimeOperations.stream().sorted(Comparator.comparing(value -> value.operationId())).toList();
+        Set<String> runtimeIds = runtime.stream().map(value -> value.operationId())
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
 
         List<Manifest> manifests = loadManifests();
@@ -48,13 +48,13 @@ final class CpfBusinessOperationManifestVerifier {
         if (matching.isEmpty()) {
             if (required) {
                 throw new IllegalStateException("CPF_BUSINESS_OPERATION_MANIFEST_MISSING:runtime=" + runtimeIds
-                        + ":available=" + manifests.stream().map(Manifest::projectPath).toList());
+                        + ":available=" + manifests.stream().map(value -> value.projectPath()).toList());
             }
             return;
         }
         if (matching.size() != 1) {
             throw new IllegalStateException("CPF_BUSINESS_OPERATION_MANIFEST_AMBIGUOUS:runtime=" + runtimeIds
-                    + ":matches=" + matching.stream().map(Manifest::projectPath).toList());
+                    + ":matches=" + matching.stream().map(value -> value.projectPath()).toList());
         }
 
         Manifest manifest = matching.getFirst();
@@ -89,7 +89,7 @@ final class CpfBusinessOperationManifestVerifier {
                     if (manifest != null) manifests.add(manifest.normalized());
                 }
             }
-            manifests.sort(Comparator.comparing(Manifest::projectPath));
+            manifests.sort(Comparator.comparing(value -> value.projectPath()));
             return List.copyOf(manifests);
         } catch (IOException e) {
             throw new IllegalStateException("CPF_BUSINESS_OPERATION_MANIFEST_READ_FAILED", e);
@@ -112,7 +112,7 @@ final class CpfBusinessOperationManifestVerifier {
             String path = projectPath == null || projectPath.isBlank() ? "UNKNOWN" : projectPath.trim();
             List<ManifestOperation> values = operations == null ? List.of() : operations.stream()
                     .filter(Objects::nonNull)
-                    .sorted(Comparator.comparing(ManifestOperation::operationId))
+                    .sorted(Comparator.comparing(value -> value.operationId()))
                     .toList();
             LinkedHashSet<String> ids = new LinkedHashSet<>();
             for (ManifestOperation operation : values) {

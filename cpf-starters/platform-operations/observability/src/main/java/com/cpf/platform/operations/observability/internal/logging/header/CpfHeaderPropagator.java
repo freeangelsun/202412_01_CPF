@@ -58,7 +58,7 @@ public final class CpfHeaderPropagator {
         putIfHasText(response, CpfHeaderNames.TRANSACTION_SEGMENT_ID, TransactionSegmentContext.currentSegmentId());
         putIfHasText(response, CpfHeaderNames.TRACE_ID, TransactionContext.currentTraceId());
         putIfHasText(response, CpfHeaderNames.SPAN_ID, TransactionContext.currentSpanId());
-        putIfHasText(response, CpfHeaderNames.CORRELATION_ID, headerValue(transactionHeader, TransactionHeader::getCorrelationId));
+        putIfHasText(response, CpfHeaderNames.CORRELATION_ID, headerValue(transactionHeader, value -> value.getCorrelationId()));
         return new CpfHeaderSnapshot(inbound, resolved, outbound, CpfHeaderMasker.maskHeaders(response));
     }
 
@@ -70,10 +70,10 @@ public final class CpfHeaderPropagator {
         putIfHasText(headers, CpfHeaderNames.TRANSACTION_ID, transactionId);
         putIfHasText(headers, CpfHeaderNames.STANDARD_EXECUTION_ID, TransactionContext.currentStandardExecutionId());
         headers.put(CpfHeaderNames.PROTOCOL_VERSION, "1.0");
-        putIfHasText(headers, CpfHeaderNames.REQUEST_ID, headerValue(transactionHeader, TransactionHeader::getRequestId));
-        putIfHasText(headers, CpfHeaderNames.EXTERNAL_REQUEST_ID, headerValue(transactionHeader, TransactionHeader::getExternalRequestId));
-        putIfHasText(headers, CpfHeaderNames.CORRELATION_ID, headerValue(transactionHeader, TransactionHeader::getCorrelationId));
-        putIfHasText(headers, CpfHeaderNames.IDEMPOTENCY_KEY, headerValue(transactionHeader, TransactionHeader::getIdempotencyKey));
+        putIfHasText(headers, CpfHeaderNames.REQUEST_ID, headerValue(transactionHeader, value -> value.getRequestId()));
+        putIfHasText(headers, CpfHeaderNames.EXTERNAL_REQUEST_ID, headerValue(transactionHeader, value -> value.getExternalRequestId()));
+        putIfHasText(headers, CpfHeaderNames.CORRELATION_ID, headerValue(transactionHeader, value -> value.getCorrelationId()));
+        putIfHasText(headers, CpfHeaderNames.IDEMPOTENCY_KEY, headerValue(transactionHeader, value -> value.getIdempotencyKey()));
         putIfHasText(headers, CpfHeaderNames.TRACE_ID, TransactionContext.getOrCreateTraceId());
         if (outbound) {
             putIfHasText(headers, CpfHeaderNames.PARENT_SPAN_ID, TransactionContext.getOrCreateSpanId());
@@ -81,8 +81,8 @@ public final class CpfHeaderPropagator {
             putIfHasText(headers, CpfHeaderNames.SPAN_ID, TransactionContext.currentSpanId());
             putIfHasText(headers, CpfHeaderNames.PARENT_SPAN_ID, TransactionContext.currentParentSpanId());
         }
-        putIfHasText(headers, CpfHeaderNames.TRACEPARENT, headerValue(transactionHeader, TransactionHeader::getTraceparent));
-        putIfHasText(headers, CpfHeaderNames.TRACESTATE, headerValue(transactionHeader, TransactionHeader::getTracestate));
+        putIfHasText(headers, CpfHeaderNames.TRACEPARENT, headerValue(transactionHeader, value -> value.getTraceparent()));
+        putIfHasText(headers, CpfHeaderNames.TRACESTATE, headerValue(transactionHeader, value -> value.getTracestate()));
     }
 
     private static void appendSegmentHeaders(Map<String, String> headers) {
@@ -103,51 +103,51 @@ public final class CpfHeaderPropagator {
             Map<String, String> headers,
             TransactionHeader transactionHeader,
             boolean outbound) {
-        putIfHasText(headers, CpfHeaderNames.API_VERSION, headerValue(transactionHeader, TransactionHeader::getApiVersion));
-        putIfHasText(headers, CpfHeaderNames.CLIENT_ID, headerValue(transactionHeader, TransactionHeader::getClientId));
-        putIfHasText(headers, CpfHeaderNames.CLIENT_VERSION, headerValue(transactionHeader, TransactionHeader::getClientVersion));
+        putIfHasText(headers, CpfHeaderNames.API_VERSION, headerValue(transactionHeader, value -> value.getApiVersion()));
+        putIfHasText(headers, CpfHeaderNames.CLIENT_ID, headerValue(transactionHeader, value -> value.getClientId()));
+        putIfHasText(headers, CpfHeaderNames.CLIENT_VERSION, headerValue(transactionHeader, value -> value.getClientVersion()));
         putIfHasText(headers, CpfHeaderNames.ORIGINAL_SYSTEM_CODE, TransactionContext.originalSystemCode());
         putIfHasText(headers, CpfHeaderNames.SYSTEM_CODE, TransactionContext.currentSystemCode());
         putIfHasText(headers, CpfHeaderNames.CALLER_SYSTEM_CODE, TransactionContext.callerSystemCode());
         putIfHasText(headers, CpfHeaderNames.TARGET_SYSTEM_CODE, TransactionContext.targetSystemCode());
         putIfHasText(headers, CpfHeaderNames.CALLER_CHANNEL, TransactionContext.callerChannel());
-        putIfHasText(headers, CpfHeaderNames.CALLER_INSTANCE_ID, headerValue(transactionHeader, TransactionHeader::getCallerInstanceId));
+        putIfHasText(headers, CpfHeaderNames.CALLER_INSTANCE_ID, headerValue(transactionHeader, value -> value.getCallerInstanceId()));
         putIfHasText(headers, CpfHeaderNames.ORIGINAL_CHANNEL, TransactionContext.originalChannel());
         putIfHasText(headers, CpfHeaderNames.CURRENT_CHANNEL, TransactionContext.currentChannel());
         putIfHasText(headers, CpfHeaderNames.TARGET_CHANNEL, TransactionContext.targetChannel());
         putIfHasText(headers, CpfHeaderNames.TARGET_OPERATION_ID,
                 outbound ? TransactionContext.targetOperationId() : TransactionContext.observedOperationId());
-        putIfHasText(headers, CpfHeaderNames.LOCALE, headerValue(transactionHeader, TransactionHeader::getLocale));
-        putIfHasText(headers, CpfHeaderNames.TIMEZONE, headerValue(transactionHeader, TransactionHeader::getTimezone));
-        putIfHasText(headers, CpfHeaderNames.REQUEST_TYPE, headerValue(transactionHeader, TransactionHeader::getRequestType));
-        putIfHasText(headers, CpfHeaderNames.MEMBER_NO, headerValue(transactionHeader, TransactionHeader::getMemberNo));
-        putIfHasText(headers, CpfHeaderNames.CUSTOMER_NO, headerValue(transactionHeader, TransactionHeader::getCustomerNo));
-        putIfHasText(headers, CpfHeaderNames.USER_ID, headerValue(transactionHeader, TransactionHeader::getUserId));
-        putIfHasText(headers, CpfHeaderNames.OPERATOR_ID, headerValue(transactionHeader, TransactionHeader::getOperatorId));
-        putIfHasText(headers, CpfHeaderNames.TENANT_ID, headerValue(transactionHeader, TransactionHeader::getTenantId));
-        putIfHasText(headers, CpfHeaderNames.ORGANIZATION_CODE, headerValue(transactionHeader, TransactionHeader::getOrganizationCode));
-        putIfHasText(headers, CpfHeaderNames.BRANCH_CODE, headerValue(transactionHeader, TransactionHeader::getBranchCode));
-        putIfHasText(headers, CpfHeaderNames.SCREEN_ID, headerValue(transactionHeader, TransactionHeader::getScreenId));
-        putIfHasText(headers, CpfHeaderNames.DEVICE_ID, headerValue(transactionHeader, TransactionHeader::getDeviceId));
-        putIfHasText(headers, CpfHeaderNames.CLIENT_REQUEST_TIME, headerValue(transactionHeader, TransactionHeader::getClientRequestTime));
-        putIfHasText(headers, CpfHeaderNames.CLIENT_TIMEZONE, headerValue(transactionHeader, TransactionHeader::getClientTimezone));
-        putIfHasText(headers, CpfHeaderNames.REQUEST_TIMESTAMP, headerValue(transactionHeader, TransactionHeader::getRequestTimestamp));
+        putIfHasText(headers, CpfHeaderNames.LOCALE, headerValue(transactionHeader, value -> value.getLocale()));
+        putIfHasText(headers, CpfHeaderNames.TIMEZONE, headerValue(transactionHeader, value -> value.getTimezone()));
+        putIfHasText(headers, CpfHeaderNames.REQUEST_TYPE, headerValue(transactionHeader, value -> value.getRequestType()));
+        putIfHasText(headers, CpfHeaderNames.MEMBER_NO, headerValue(transactionHeader, value -> value.getMemberNo()));
+        putIfHasText(headers, CpfHeaderNames.CUSTOMER_NO, headerValue(transactionHeader, value -> value.getCustomerNo()));
+        putIfHasText(headers, CpfHeaderNames.USER_ID, headerValue(transactionHeader, value -> value.getUserId()));
+        putIfHasText(headers, CpfHeaderNames.OPERATOR_ID, headerValue(transactionHeader, value -> value.getOperatorId()));
+        putIfHasText(headers, CpfHeaderNames.TENANT_ID, headerValue(transactionHeader, value -> value.getTenantId()));
+        putIfHasText(headers, CpfHeaderNames.ORGANIZATION_CODE, headerValue(transactionHeader, value -> value.getOrganizationCode()));
+        putIfHasText(headers, CpfHeaderNames.BRANCH_CODE, headerValue(transactionHeader, value -> value.getBranchCode()));
+        putIfHasText(headers, CpfHeaderNames.SCREEN_ID, headerValue(transactionHeader, value -> value.getScreenId()));
+        putIfHasText(headers, CpfHeaderNames.DEVICE_ID, headerValue(transactionHeader, value -> value.getDeviceId()));
+        putIfHasText(headers, CpfHeaderNames.CLIENT_REQUEST_TIME, headerValue(transactionHeader, value -> value.getClientRequestTime()));
+        putIfHasText(headers, CpfHeaderNames.CLIENT_TIMEZONE, headerValue(transactionHeader, value -> value.getClientTimezone()));
+        putIfHasText(headers, CpfHeaderNames.REQUEST_TIMESTAMP, headerValue(transactionHeader, value -> value.getRequestTimestamp()));
     }
 
     private static void appendNetworkHeaders(Map<String, String> headers, TransactionHeader transactionHeader) {
-        putIfHasText(headers, CpfHeaderNames.CLIENT_IP, headerValue(transactionHeader, TransactionHeader::getClientIp));
-        putIfHasText(headers, CpfHeaderNames.REAL_IP, headerValue(transactionHeader, TransactionHeader::getRealIp));
-        putIfHasText(headers, CpfHeaderNames.FORWARDED_FOR, headerValue(transactionHeader, TransactionHeader::getForwardedFor));
-        putIfHasText(headers, CpfHeaderNames.FORWARDED, headerValue(transactionHeader, TransactionHeader::getForwarded));
-        putIfHasText(headers, CpfHeaderNames.COUNTRY_CODE, headerValue(transactionHeader, TransactionHeader::getClientCountryCode));
-        putIfHasText(headers, CpfHeaderNames.CLIENT_REGION_CODE, headerValue(transactionHeader, TransactionHeader::getClientRegionCode));
-        putIfHasText(headers, CpfHeaderNames.USER_AGENT, headerValue(transactionHeader, TransactionHeader::getUserAgent));
-        putIfHasText(headers, "CPF-Was-Id", headerValue(transactionHeader, TransactionHeader::getWasId));
-        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_1, headerValue(transactionHeader, TransactionHeader::getReservedField1));
-        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_2, headerValue(transactionHeader, TransactionHeader::getReservedField2));
-        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_3, headerValue(transactionHeader, TransactionHeader::getReservedField3));
-        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_4, headerValue(transactionHeader, TransactionHeader::getReservedField4));
-        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_5, headerValue(transactionHeader, TransactionHeader::getReservedField5));
+        putIfHasText(headers, CpfHeaderNames.CLIENT_IP, headerValue(transactionHeader, value -> value.getClientIp()));
+        putIfHasText(headers, CpfHeaderNames.REAL_IP, headerValue(transactionHeader, value -> value.getRealIp()));
+        putIfHasText(headers, CpfHeaderNames.FORWARDED_FOR, headerValue(transactionHeader, value -> value.getForwardedFor()));
+        putIfHasText(headers, CpfHeaderNames.FORWARDED, headerValue(transactionHeader, value -> value.getForwarded()));
+        putIfHasText(headers, CpfHeaderNames.COUNTRY_CODE, headerValue(transactionHeader, value -> value.getClientCountryCode()));
+        putIfHasText(headers, CpfHeaderNames.CLIENT_REGION_CODE, headerValue(transactionHeader, value -> value.getClientRegionCode()));
+        putIfHasText(headers, CpfHeaderNames.USER_AGENT, headerValue(transactionHeader, value -> value.getUserAgent()));
+        putIfHasText(headers, "CPF-Was-Id", headerValue(transactionHeader, value -> value.getWasId()));
+        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_1, headerValue(transactionHeader, value -> value.getReservedField1()));
+        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_2, headerValue(transactionHeader, value -> value.getReservedField2()));
+        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_3, headerValue(transactionHeader, value -> value.getReservedField3()));
+        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_4, headerValue(transactionHeader, value -> value.getReservedField4()));
+        putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_5, headerValue(transactionHeader, value -> value.getReservedField5()));
     }
 
     private static void appendExtensionHeaders(Map<String, String> headers, TransactionHeader transactionHeader) {

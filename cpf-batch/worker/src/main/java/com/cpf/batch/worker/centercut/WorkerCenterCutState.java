@@ -27,11 +27,11 @@ public final class WorkerCenterCutState implements CenterCutWorkObserver {
     public boolean enabled() { return enabled; }
     public int activeCount() { return active.size(); }
     public List<String> executions() {
-        return active.values().stream().map(Active::executionId).distinct().sorted().toList();
+        return active.values().stream().map(value -> value.executionId()).distinct().sorted().toList();
     }
     public List<String> leases() { return active.keySet().stream().sorted().toList(); }
     public long fencingToken() {
-        return active.values().stream().mapToLong(Active::fencingToken).max().orElse(0L);
+        return active.values().stream().mapToLong(value -> value.fencingToken()).max().orElse(0L);
     }
     public String errorCode() { return error.get(); }
     public Map<String,String> dependencyHealth() {

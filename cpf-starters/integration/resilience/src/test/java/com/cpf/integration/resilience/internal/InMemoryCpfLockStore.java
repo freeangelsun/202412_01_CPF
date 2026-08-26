@@ -75,7 +75,7 @@ public final class InMemoryCpfLockStore implements CpfLockStore {
     public List<StoredLock> list(int limit) {
         int safe = Math.max(1, Math.min(limit, 1000));
         ArrayList<StoredLock> values = new ArrayList<>(locks.values());
-        values.sort(Comparator.comparing(StoredLock::key));
+        values.sort(Comparator.comparing(value -> value.key()));
         return List.copyOf(values.subList(0, Math.min(safe, values.size())));
     }
 

@@ -1,6 +1,5 @@
 package com.cpf.data.persistence.jdbc;
 
-import com.cpf.data.persistence.jdbc.CpfDataSources;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -18,7 +18,6 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
@@ -94,8 +93,8 @@ public final class LocalCpfRemoteLogArtifactAdapter implements CpfRemoteLogArtif
                     if (matches(artifact, candidate, search)) result.add(artifact);
                 }
             }
-            result.sort(Comparator.comparing(CpfRemoteLogArtifact::modifiedAt).reversed()
-                    .thenComparing(CpfRemoteLogArtifact::relativePath));
+            result.sort(Comparator.comparing(value -> value.modifiedAt()).reversed()
+                    .thenComparing(value -> value.relativePath()));
             return List.copyOf(result);
         } catch (IOException | RuntimeException failure) {
             searchFailures.incrementAndGet();

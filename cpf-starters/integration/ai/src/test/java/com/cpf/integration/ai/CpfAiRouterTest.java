@@ -69,7 +69,7 @@ class CpfAiRouterTest {
         CpfContextExecutionFactory factory = new CpfContextExecutionFactory(txIds, execIds, dates, clock);
         CpfContext root = factory.newRoot(null, "ai.test", null, null, clock.instant().plusSeconds(5));
         CpfContextSnapshot snapshot = CpfContextSnapshot.capture(root, clock.instant());
-        try (AutoCloseable ignored = CpfContexts.bind(snapshot)) { body.accept(factory); }
+        try (AutoCloseable _ = CpfContexts.bind(snapshot)) { body.accept(factory); }
         assertThat(CpfContexts.current()).isNull();
     }
 

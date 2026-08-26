@@ -47,6 +47,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
     private final List<AdmApprovalOwnerCommandDispatcher> dispatchers;
     private final AdmApprovalDecisionEvaluator decisionEvaluator = new AdmApprovalDecisionEvaluator();
 
+    @Deprecated
     public AdmApprovalEngineService(
             @Qualifier("admJdbcTemplate") JdbcTemplate jdbc,
             ObjectMapper objectMapper,
@@ -56,6 +57,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         this.dispatchers = List.copyOf(dispatchers);
     }
 
+    @Deprecated
     public List<Map<String, Object>> policies(String actionType) {
         String select = "SELECT policy_code AS policyCode,policy_version AS policyVersion,"
                 + "policy_name AS policyName,action_type AS actionType,effective_from AS effectiveFrom,"
@@ -71,6 +73,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                 actionType.trim().toUpperCase(Locale.ROOT));
     }
 
+    @Deprecated
     public Map<String, Object> policy(String code, int version) {
         String policyCode = required(code, "policyCode");
         int policyVersion = positive(version, "policyVersion");
@@ -93,6 +96,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
     }
 
     @CpfTransactional(transactionManager="admTransactionManager")
+    @Deprecated
     public Map<String, Object> savePolicy(PolicyCommand command, String operator) {
         Objects.requireNonNull(command, "command");
         String actor = required(operator, "operatorId");
@@ -140,6 +144,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
     }
 
     @CpfTransactional(transactionManager="admTransactionManager")
+    @Deprecated
     public Map<String, Object> createRequest(RequestCommand command, String operator) {
         Objects.requireNonNull(command, "command");
         String actor = required(operator, "operatorId");
@@ -223,6 +228,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         return request(requestId);
     }
 
+    @Deprecated
     public Map<String, Object> request(long id) {
         Map<String, Object> result = new LinkedHashMap<>(jdbc.queryForMap(
                 "SELECT approval_request_id AS requestId,request_key AS requestKey,"
@@ -260,6 +266,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
     }
 
     @CpfTransactional(transactionManager="admTransactionManager")
+    @Deprecated
     public Map<String, Object> decide(long id, DecisionCommand command, String operator) {
         Objects.requireNonNull(command, "command");
         String actor = required(operator, "operatorId");
@@ -306,6 +313,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
      * 인스턴스만 실제 Owner를 호출하므로 재호출/다중 인스턴스에서도 side effect가 중복되지 않습니다.
      * Owner 호출 후 저장 결과를 확정할 수 없으면 실패로 추정하지 않고 UNKNOWN으로 보존합니다.
      */
+    @Deprecated
     public Object execute(long id, String operator) {
         String actor = required(operator, "operatorId");
         Map<String, Object> req = request(id);
@@ -724,7 +732,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
             }
         }
         List<Integer> ordered = new ArrayList<>(rules.keySet());
-        ordered.sort(Integer::compareTo);
+        ordered.sort((left, right) -> left.compareTo(right));
         for (int index = 0; index < ordered.size(); index++) {
             if (ordered.get(index) != index + 1) {
                 throw new IllegalArgumentException("approval step numbers must be contiguous from 1");
@@ -893,20 +901,24 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
 
     private record StepRule(String rule, Integer requiredCount) {}
 
+    @Deprecated
     public record StepCommand(
             int stepNo, String stepType, String targetType, String targetCode,
             String decisionRule, Integer requiredCount, String requiredYn) {}
 
+    @Deprecated
     public record PolicyCommand(
             String policyCode, int policyVersion, String policyName, String actionType,
             String effectiveFrom, String effectiveTo, String enabledYn,
             String selfApprovalAllowedYn, String breakGlassAllowedYn,
             String description, List<StepCommand> steps, String reason) {}
 
+    @Deprecated
     public record RequestCommand(
             String requestKey, String policyCode, Integer policyVersion, String actionType,
             String ownerModule, String ownerCommand, String targetType, String targetId,
             String payloadSnapshot, String expireAt, String reason) {}
 
+    @Deprecated
     public record DecisionCommand(String action, String idempotencyKey, String reason) {}
 }

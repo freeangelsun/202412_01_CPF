@@ -155,10 +155,10 @@ public class CpfServiceEndpointRegistry {
                 }
                 addresses = java.util.Arrays.stream(resolved)
                         .distinct()
-                        .sorted(Comparator.comparing(InetAddress::getHostAddress))
+                        .sorted(Comparator.comparing(value -> value.getHostAddress()))
                         .toList();
                 policy.validateResolvedAddresses(
-                        base.getHost(), addresses.stream().map(InetAddress::getHostAddress).toList());
+                        base.getHost(), addresses.stream().map(value -> value.getHostAddress()).toList());
             }
         } catch (UnknownHostException failure) {
             throw new IllegalArgumentException("Service endpoint DNS 조회 실패: " + serviceId, failure);
@@ -173,19 +173,20 @@ public class CpfServiceEndpointRegistry {
                 pinned,
                 effectivePort(base),
                 authority(base),
-                addresses.stream().map(InetAddress::getHostAddress).toList());
+                addresses.stream().map(value -> value.getHostAddress()).toList());
     }
 
     private CpfNetworkEndpointPolicy policy(Map<String, String> attributes) {
-        boolean custom = attributes != null && attributes.keySet().stream().anyMatch(key -> Set.of(
+        Map<String, String> safeAttributes = attributes == null ? Map.of() : attributes;
+        boolean custom = safeAttributes.keySet().stream().anyMatch(key -> Set.of(
                 "allowDns", "allowPrivate", "allowPublic", "requireTls", "allowedCidrs", "allowedPorts").contains(key));
         if (!custom) return endpointPolicy;
-        boolean allowDns = bool(attributes, "allowDns", false);
-        boolean allowPrivate = bool(attributes, "allowPrivate", false);
-        boolean allowPublic = bool(attributes, "allowPublic", true);
-        boolean requireTls = bool(attributes, "requireTls", true);
-        List<String> cidrs = csv(attributes.get("allowedCidrs"));
-        List<Integer> ports = csv(attributes.get("allowedPorts")).stream().map(value -> {
+        boolean allowDns = bool(safeAttributes, "allowDns", false);
+        boolean allowPrivate = bool(safeAttributes, "allowPrivate", false);
+        boolean allowPublic = bool(safeAttributes, "allowPublic", true);
+        boolean requireTls = bool(safeAttributes, "requireTls", true);
+        List<String> cidrs = csv(safeAttributes.get("allowedCidrs"));
+        List<Integer> ports = csv(safeAttributes.get("allowedPorts")).stream().map(value -> {
             try { return Integer.parseInt(value); }
             catch (NumberFormatException failure) { throw new IllegalArgumentException("allowedPorts 형식 오류: " + value, failure); }
         }).toList();
@@ -195,7 +196,7 @@ public class CpfServiceEndpointRegistry {
     private void requireConfiguredPins(Map<String, String> attributes, List<InetAddress> addresses) {
         List<String> configuredPins = csv(attributes == null ? null : attributes.get("pinnedAddresses"));
         if (configuredPins.isEmpty()) return;
-        Set<String> actual = addresses.stream().map(InetAddress::getHostAddress).map(CpfServiceEndpointRegistry::canonicalAddress)
+        Set<String> actual = addresses.stream().map(value -> value.getHostAddress()).map(CpfServiceEndpointRegistry::canonicalAddress)
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         Set<String> expected = configuredPins.stream().map(CpfServiceEndpointRegistry::canonicalAddress)
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));

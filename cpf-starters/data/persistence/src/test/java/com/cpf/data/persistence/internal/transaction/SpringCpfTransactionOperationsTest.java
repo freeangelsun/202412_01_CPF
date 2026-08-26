@@ -37,7 +37,7 @@ class SpringCpfTransactionOperationsTest {
         operations.afterRollback(10, () -> events.add("rollback"));
         operations.afterCompletion(30, status -> events.add("completion:" + status));
 
-        callbacks().forEach(TransactionSynchronization::afterCommit);
+        callbacks().forEach(value -> value.afterCommit());
         callbacks().forEach(callback -> callback.afterCompletion(TransactionSynchronization.STATUS_COMMITTED));
 
         assertEquals(List.of("commit", "completion:" + CompletionStatus.COMMITTED), events);

@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -60,7 +60,7 @@ class CpfBffCredentialResponseAdviceTest {
                 .doesNotContain("CPF_BFF_ACCESS_TOKEN", "CPF_BFF_REFRESH_TOKEN");
         assertThat(vault.find((String) handle))
                 .get()
-                .extracting(CpfBffCredential::accessToken)
+                .extracting(value -> value.accessToken())
                 .isEqualTo("access-secret");
     }
 
@@ -87,7 +87,7 @@ class CpfBffCredentialResponseAdviceTest {
         assertThat(response.get("tokenType")).isEqualTo("Bearer");
         String handle = (String) request.getSession(false)
                 .getAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE);
-        assertThat(vault.find(handle)).get().extracting(CpfBffCredential::accessToken)
+        assertThat(vault.find(handle)).get().extracting(value -> value.accessToken())
                 .isEqualTo("access-secret");
         assertThat(request.getSession(false).getAttribute(CpfBffSessionBridgeFilter.PRINCIPAL_ID))
                 .isEqualTo("BZA001");
@@ -167,7 +167,7 @@ class CpfBffCredentialResponseAdviceTest {
                 body,
                 null,
                 MediaType.APPLICATION_JSON,
-                MappingJackson2HttpMessageConverter.class,
+                JacksonJsonHttpMessageConverter.class,
                 new ServletServerHttpRequest(request),
                 new ServletServerHttpResponse(new MockHttpServletResponse()));
     }

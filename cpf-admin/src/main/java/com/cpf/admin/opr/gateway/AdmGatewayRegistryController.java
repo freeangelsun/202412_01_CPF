@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.OffsetDateTime;
@@ -44,8 +43,8 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
     public CpfDataRow capability() {
         CpfGatewayRegistryPort resolved=portProvider.getIfAvailable();
         CpfDataRow catalog=CpfDataRow.of(
-                "protocols",java.util.Arrays.stream(CpfGatewayProtocol.values()).map(Enum::name).toList(),
-                "loadBalancePolicies",java.util.Arrays.stream(CpfGatewayLoadBalancePolicy.values()).map(Enum::name).toList(),
+                "protocols",java.util.Arrays.stream(CpfGatewayProtocol.values()).map(value -> value.name()).toList(),
+                "loadBalancePolicies",java.util.Arrays.stream(CpfGatewayLoadBalancePolicy.values()).map(value -> value.name()).toList(),
                 "bindingStates",List.of("DRAFT","VALIDATED","APPROVAL_PENDING","APPROVED","ACTIVE","PARTIAL","BLOCKED","RETIRED"),
                 "connectionTestTypes",List.of("NETWORK","TCP","TLS","APPLICATION","GATEWAY_E2E"));
         if(resolved==null) return CpfDataRow.of("installed",false,"available",false,"status","NOT_INSTALLED",

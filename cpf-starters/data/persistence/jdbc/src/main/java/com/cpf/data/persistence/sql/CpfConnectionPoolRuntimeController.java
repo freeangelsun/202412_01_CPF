@@ -22,14 +22,14 @@ public final class CpfConnectionPoolRuntimeController {
         Objects.requireNonNull(policy, "policy");
         policy.validate();
         List<Target> targets = dataSources.stream().map(Target::resolve).toList();
-        List<Previous> previous = targets.stream().map(Target::snapshot).toList();
+        List<Previous> previous = targets.stream().map(value -> value.snapshot()).toList();
         int applied = 0;
         try {
             for (Target target : targets) {
                 target.apply(policy);
                 applied++;
             }
-            if (policy.softEvict()) targets.forEach(Target::softEvict);
+            if (policy.softEvict()) targets.forEach(value -> value.softEvict());
             return new Result(targets.size(), policy);
         } catch (RuntimeException ex) {
             List<RuntimeException> rollbackFailures = new ArrayList<>();

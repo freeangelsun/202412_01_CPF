@@ -49,7 +49,7 @@ public record CpfFixedLengthGroupSpec(
             throw new IllegalArgumentException("고정길이 반복부 필드 정의가 필요합니다. name=" + name);
         }
         fields = fields.stream()
-                .sorted(Comparator.comparingInt(CpfFixedLengthFieldSpec::start))
+                .sorted(Comparator.comparingInt(value -> value.start()))
                 .toList();
         validateFields(name, fields);
     }
@@ -61,7 +61,7 @@ public record CpfFixedLengthGroupSpec(
 
     public int itemLength() {
         return fields.stream()
-                .mapToInt(CpfFixedLengthFieldSpec::zeroBasedEndExclusive)
+                .mapToInt(value -> value.zeroBasedEndExclusive())
                 .max()
                 .orElse(0);
     }

@@ -37,13 +37,14 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 
+@SuppressWarnings("deprecation")
 class CpfScgPrimaryHandlerPolicyTest {
 
     @Test
     void channelPolicyDenialStopsBeforeScgTargetSelection() throws Exception {
         Fixture fixture = fixture(new PolicyPort(false, false));
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-channel-deny", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-channel-deny", "WEB")) {
             assertThatThrownBy(() -> fixture.handler().handle(request(Map.of())))
                     .isInstanceOf(SecurityException.class)
                     .hasMessageContaining("채널 정책");
@@ -57,7 +58,7 @@ class CpfScgPrimaryHandlerPolicyTest {
     void callerSignatureHeaderAloneDoesNotSatisfyVerifiedSignaturePolicy() throws Exception {
         Fixture fixture = fixture(new PolicyPort(true, true));
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-signature-deny", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-signature-deny", "WEB")) {
             assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
                     CpfHeaderNames.REQUEST_SIGNATURE, "attacker-supplied-value"))))
                     .isInstanceOf(SecurityException.class)
@@ -72,7 +73,7 @@ class CpfScgPrimaryHandlerPolicyTest {
     void spoofedInternalCpfHeaderIsRejectedBeforeScgExchange() throws Exception {
         Fixture fixture = fixture(new PolicyPort(true, false));
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-header-deny", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-header-deny", "WEB")) {
             assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
                     CpfHeaderNames.GATEWAY_ROUTE_ID, "attacker-route"))))
                     .isInstanceOf(SecurityException.class)
@@ -87,7 +88,7 @@ class CpfScgPrimaryHandlerPolicyTest {
     void rawWebHeadersCannotOverrideCanonicalMobileCallerChannel() throws Exception {
         Fixture fixture = fixture(new PolicyPort(true, false));
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-caller-channel", "MOBILE")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-caller-channel", "MOBILE")) {
             assertThatThrownBy(() -> fixture.handler().handle(request(Map.of())))
                     .isInstanceOf(SecurityException.class)
                     .hasMessageContaining("Caller Channel");
@@ -119,7 +120,6 @@ class CpfScgPrimaryHandlerPolicyTest {
                 CpfHeaderNames.API_KEY, "raw-api-key",
                 CpfHeaderNames.REQUEST_SIGNATURE, "raw-signature"));
 
-        @SuppressWarnings("unchecked")
         Map<String, String> trusted = ReflectionTestUtils.invokeMethod(
                 fixture.handler(), "trustedHeaders", request);
 
@@ -191,7 +191,7 @@ class CpfScgPrimaryHandlerPolicyTest {
     @Test
     void forwardedHeaderSpoofIsRejectedBeforeDownstreamRegeneration() throws Exception {
         Fixture fixture = fixture(new PolicyPort(true, false));
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-forwarded-deny", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-forwarded-deny", "WEB")) {
             assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
                     "X-Forwarded-For", "10.0.0.1"))))
                     .isInstanceOf(SecurityException.class)
@@ -215,7 +215,6 @@ class CpfScgPrimaryHandlerPolicyTest {
         when(captureService.resolve("OACCAC0001")).thenReturn(
                 LogPolicyDecision.cpfDefault(
                         LogPolicyTargetType.ONLINE_TRANSACTION, "OACCAC0001"));
-        @SuppressWarnings("unchecked")
         CircuitBreakerFactory<?, ?> circuitBreakers = mock(CircuitBreakerFactory.class);
 
         CpfScgPrimaryHandler handler = new CpfScgPrimaryHandler(

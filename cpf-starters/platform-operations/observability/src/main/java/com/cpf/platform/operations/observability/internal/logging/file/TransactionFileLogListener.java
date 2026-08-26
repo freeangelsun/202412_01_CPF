@@ -1,6 +1,5 @@
 package com.cpf.platform.operations.observability.internal.logging.file;
 
-import com.cpf.platform.operations.observability.spi.logging.TransactionLogRecord;
 import com.cpf.platform.operations.observability.api.CpfTelemetry;
 import com.cpf.platform.operations.observability.api.CpfTraceContext;
 import com.cpf.platform.operations.observability.internal.logging.CpfTraceSamplingPolicy;

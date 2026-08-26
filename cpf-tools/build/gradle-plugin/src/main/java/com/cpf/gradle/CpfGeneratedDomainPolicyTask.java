@@ -188,7 +188,7 @@ public abstract class CpfGeneratedDomainPolicyTask extends DefaultTask {
         scanConfiguration(root, violations);
         List<String> unapproved = violations.stream()
                 .filter(violation -> !isApproved(violation, exceptions))
-                .map(Violation::toString)
+                .map(value -> value.toString())
                 .sorted()
                 .toList();
         if (!unapproved.isEmpty()) {
@@ -269,7 +269,7 @@ public abstract class CpfGeneratedDomainPolicyTask extends DefaultTask {
         if (configured == null || configured.toString().isBlank()) {
             fail("cpfTargetEnvironment is required when approved exceptions exist");
         }
-        String targetEnvironment = configured.toString().trim();
+        String targetEnvironment = java.util.Objects.requireNonNull(configured, "cpfTargetEnvironment").toString().trim();
         if (!targetEnvironment.matches("^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")) {
             fail("cpfTargetEnvironment is invalid: " + targetEnvironment);
         }
@@ -405,11 +405,11 @@ public abstract class CpfGeneratedDomainPolicyTask extends DefaultTask {
         if (value == null || value.isBlank()) {
             fail("generated domain policy property is missing: " + key);
         }
-        return value.trim();
+        return java.util.Objects.requireNonNull(value, key).trim();
     }
 
     private static Map<?, ?> requireMap(Map<String, Object> map, String key) {
-        if (!(map.get(key) instanceof Map<?, ?> value)) {
+        if (!(map.get(key) instanceof Map<?, ?> _)) {
             fail(key + " must be an object");
         }
         return (Map<?, ?>) map.get(key);

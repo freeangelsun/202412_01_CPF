@@ -57,7 +57,7 @@ public record CpfFixedLengthLayout(
             throw new IllegalArgumentException("고정길이 전문 필드 정의가 필요합니다.");
         }
         fields = fields.stream()
-                .sorted(Comparator.comparingInt(CpfFixedLengthFieldSpec::start))
+                .sorted(Comparator.comparingInt(value -> value.start()))
                 .toList();
         groups = groups == null ? List.of() : List.copyOf(groups);
         validate(totalLength, fields, groups);

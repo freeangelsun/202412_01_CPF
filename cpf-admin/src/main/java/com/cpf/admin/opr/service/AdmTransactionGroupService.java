@@ -152,7 +152,7 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
                 .map(row -> row.get("durationMs"))
                 .filter(Number.class::isInstance)
                 .map(Number.class::cast)
-                .mapToLong(Number::longValue)
+                .mapToLong(value -> value.longValue())
                 .sum());
         segments.stream()
                 .filter(row -> "Y".equals(text(row, "failureYn")))

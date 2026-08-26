@@ -1,6 +1,5 @@
 package com.cpf.messaging.reliability.api.jdbc.internal;
 
-import com.cpf.messaging.spi.broker.*;
 import com.cpf.messaging.api.CpfBrokerBridgeHandler;
 import com.cpf.messaging.api.CpfBrokerBridgeMessage;
 import com.cpf.messaging.api.CpfBrokerBridgePort;
@@ -11,7 +10,6 @@ import com.cpf.foundation.context.header.CpfHeaderNames;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -103,7 +101,7 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
         return recentMessages.stream()
                 .filter(message -> resolvedDestination == null
                         || resolvedDestination.equals(message.destination()))
-                .sorted(Comparator.comparing(CpfBrokerBridgeMessage::createdAt).reversed())
+                .sorted(Comparator.comparing(value -> value.createdAt()).reversed())
                 .limit(resolvedLimit)
                 .toList();
     }

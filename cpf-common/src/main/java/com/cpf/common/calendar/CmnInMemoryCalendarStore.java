@@ -23,7 +23,7 @@ public final class CmnInMemoryCalendarStore implements CmnCalendarStore {
                 .filter(v -> normalize(calendarId).equals(v.calendarId()))
                 .filter(v -> from == null || !v.businessDate().isBefore(from))
                 .filter(v -> to == null || !v.businessDate().isAfter(to))
-                .sorted(Comparator.comparing(CmnCalendarDay::businessDate))
+                .sorted(Comparator.comparing(value -> value.businessDate()))
                 .limit(safeLimit)
                 .toList();
     }

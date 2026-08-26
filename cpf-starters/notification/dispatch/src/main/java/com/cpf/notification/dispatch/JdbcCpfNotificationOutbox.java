@@ -103,7 +103,7 @@ public class JdbcCpfNotificationOutbox {
                     """, workerId, Timestamp.from(now.plus(leaseDuration)), notificationId);
             if (updated == 1) claimed.add(toClaimed(row));
         }
-        return claimed.stream().map(ClaimedNotification::request).toList();
+        return claimed.stream().map(value -> value.request()).toList();
     }
 
     public List<ClaimedNotification> claimWithContext(String workerId,int limit,Instant now,Duration leaseDuration) {
@@ -154,7 +154,7 @@ public class JdbcCpfNotificationOutbox {
                     """, workerId, Timestamp.from(now.plus(leaseDuration)), notificationId);
             if (updated == 1) claimed.add(toClaimed(row));
         }
-        return claimed.stream().map(ClaimedNotification::request).toList();
+        return claimed.stream().map(value -> value.request()).toList();
     }
 
     public List<ClaimedNotification> claimUnknownWithContext(String workerId,int limit,Instant now,Duration leaseDuration) {

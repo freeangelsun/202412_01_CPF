@@ -114,10 +114,10 @@ public final class CenterCutWorkProcessor implements AutoCloseable {
             }
             CpfContextSnapshot snapshot = itemContext(work, claim);
             CpfBatchContextBundle batch = itemBatchContext(work, claim, snapshot);
-            try (AutoCloseable ignored = CpfContexts.bind(snapshot);
-                 AutoCloseable ignoredBatch = CpfBatchRuntimeContexts.bind(batch);
+            try (AutoCloseable _ = CpfContexts.bind(snapshot);
+                 AutoCloseable _ = CpfBatchRuntimeContexts.bind(batch);
                  LeaseGuard guard = new LeaseGuard(claim, lease, heartbeat);
-                 LogContext log = LogContext.open(Map.of(
+                 LogContext _ = LogContext.open(Map.of(
                          "transactionId", work.transactionId(),
                          "segmentId", work.segmentId(),
                          "executionId", work.executionId(),
@@ -229,7 +229,7 @@ public final class CenterCutWorkProcessor implements AutoCloseable {
         };
     }
 
-    private void healthy() { observers.forEach(CenterCutWorkObserver::repositoryHealthy); }
+    private void healthy() { observers.forEach(value -> value.repositoryHealthy()); }
     private void failed(RuntimeException failure) {
         observers.forEach(observer -> observer.repositoryFailure(failure));
     }

@@ -33,7 +33,7 @@ final class DiagnosticBatchStepHandler implements BatchStepHandler {
     @Override
     public BatchStepResult execute(BatchStepCommand command) throws Exception {
         long sleepMs = parseSleep(command.step().parameters().get("sleepMs"));
-        try (WorkerExecutionTracker.Scope ignored = executions.begin(
+        try (WorkerExecutionTracker.Scope _ = executions.begin(
                 command.cpfExecutionId(), command.jobExecutionId(), command.fencingToken())) {
             if (sleepMs > 0) {
                 Thread.sleep(sleepMs);

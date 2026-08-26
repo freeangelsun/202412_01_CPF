@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** cpfDB owner와 선택형 CMN sample DB 경계를 검증합니다. */
+@SuppressWarnings("deprecation")
 class CmnDataSourceConfigTest {
     @Test void legacyCommonDatasourceOwnerIsRetired() {
         assertThat(CmnDataSourceConfig.class.getDeclaredMethods()).isEmpty();

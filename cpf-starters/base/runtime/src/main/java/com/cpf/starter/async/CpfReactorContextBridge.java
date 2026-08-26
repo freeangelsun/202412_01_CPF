@@ -17,7 +17,7 @@ public final class CpfReactorContextBridge {
             sink.onCancel(() -> { var d=upstream.get(); if(d!=null) runBound(snapshot,d::dispose); });
             sink.onDispose(() -> { var d=upstream.getAndSet(null); if(d!=null&&!d.isDisposed()) runBound(snapshot,d::dispose); });
             Disposable disposable;
-            try (AutoCloseable ignored=CpfContexts.bind(snapshot)) {
+            try (AutoCloseable _=CpfContexts.bind(snapshot)) {
                 disposable=source.subscribe(v->runBound(snapshot,()->sink.success(v)),e->runBound(snapshot,()->sink.error(e)),()->runBound(snapshot,sink::success));
             } catch (Exception e) { sink.error(e); return; }
             upstream.set(disposable);

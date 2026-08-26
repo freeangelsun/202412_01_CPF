@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** Common Product Service must not recreate a separate CMN MyBatis runtime. */
+@SuppressWarnings("deprecation")
 class CmnMyBatisContextTest {
     @Test void legacyCmnMyBatisTypeIsNotAnActiveConfiguration() {
         assertThat(CmnMyBatisConfig.class.isAnnotationPresent(Configuration.class)).isFalse();

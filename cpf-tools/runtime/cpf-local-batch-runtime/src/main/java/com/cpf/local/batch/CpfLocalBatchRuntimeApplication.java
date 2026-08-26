@@ -48,7 +48,7 @@ public final class CpfLocalBatchRuntimeApplication {
         roles.put("worker", boolProperty(bootstrapEnvironment, "cpf.local.batch.modules.worker", true));
         roles.put("center-cut", boolProperty(bootstrapEnvironment, "cpf.local.batch.modules.center-cut", false));
         roles.put("agent", boolProperty(bootstrapEnvironment, "cpf.local.batch.modules.agent", false));
-        if (roles.values().stream().noneMatch(Boolean::booleanValue)) {
+        if (roles.values().stream().noneMatch(value -> value.booleanValue())) {
             throw new IllegalStateException("최소 하나의 Local Batch 역할을 활성화해야 합니다.");
         }
 

@@ -6,7 +6,6 @@ import com.cpf.integration.api.servicecall.CpfServiceRegistryQueryPort;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;

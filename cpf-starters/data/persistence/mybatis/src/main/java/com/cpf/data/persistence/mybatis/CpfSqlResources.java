@@ -27,7 +27,7 @@ public final class CpfSqlResources {
                     .filter(path -> path.getFileName().toString().endsWith(".xml"))
                     .filter(path -> path.toString().replace('\\','/').contains("/mybatis/"))
                     .filter(path -> "*".equals(domain) || belongsToDomain(runtime, path, domain))
-                    .sorted(Comparator.comparing(Path::toString))
+                    .sorted(Comparator.comparing(value -> value.toString()))
                     .forEach(files::add);
         }
         if (files.isEmpty()) throw new IOException("No MyBatis mapper resources for domain=" + domain + " under " + runtime);

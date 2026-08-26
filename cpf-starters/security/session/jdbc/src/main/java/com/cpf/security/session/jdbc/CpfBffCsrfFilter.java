@@ -1,6 +1,5 @@
 package com.cpf.security.session.jdbc;
 
-import jakarta.servlet.FilterChain;import jakarta.servlet.ServletException;import jakarta.servlet.http.Cookie;import jakarta.servlet.http.HttpServletRequest;import jakarta.servlet.http.HttpServletResponse;import jakarta.servlet.http.HttpSession;import java.io.IOException;import java.security.SecureRandom;import java.util.Base64;import org.springframework.web.filter.OncePerRequestFilter;
 /** SameSite Cookie와 Session을 결합한 Double-submit CSRF 방어입니다. */
 public final class CpfBffCsrfFilter extends OncePerRequestFilter {
  private static final String ATTR="CPF_CSRF_TOKEN";private static final SecureRandom RNG=new SecureRandom();

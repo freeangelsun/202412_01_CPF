@@ -44,7 +44,7 @@ class CpfArchiveServiceTest {
         List<CpfExtractedArchiveEntry> entries = service.extract(
                 zipPath, CpfArchiveFormat.ZIP, extractDir, policy);
 
-        assertThat(entries).extracting(CpfExtractedArchiveEntry::name)
+        assertThat(entries).extracting(value -> value.name())
                 .containsExactly("out/a.txt", "out/b.txt");
         assertThat(entries).allSatisfy(entry -> {
             assertThat(entry.path()).startsWith(extractDir);

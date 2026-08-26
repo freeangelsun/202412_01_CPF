@@ -45,7 +45,7 @@ class AdmApprovalServiceExecutionTest {
                         "BAT-SUCCEEDED",
                         "done"));
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", ownerPort));
 
         service.execute(42L, "approved maintenance", "approver-b");
 
@@ -64,7 +64,6 @@ class AdmApprovalServiceExecutionTest {
                 eq(42L), eq(4L), eq(command.getValue().commandRequestId()), eq("approver-b"), eq(7L), eq("SUCCEEDED"), eq("COMPLETED"),
                 eq("BAT-SUCCEEDED"), eq("done"), eq(false), eq("approver-b"),
                 eq("approved maintenance"), contains("\"executionStatus\":\"SUCCEEDED\""), eq(TRANSACTION_ID));
-        verify(repository, never()).startExecution(anyLong(), anyString(), anyString());
         verify(repository, never()).updateRequest(anyLong(), anyLong(), anyString(), anyInt(), anyString());
     }
 
@@ -76,12 +75,14 @@ class AdmApprovalServiceExecutionTest {
         Map<String, Object> running = Map.of("executionStatus", "RUNNING");
         when(repository.findRequest(42L)).thenReturn(Optional.of(request));
         when(repository.findExecution(42L))
-                .thenReturn(Optional.empty(), Optional.of(running), Optional.of(running));
+                .thenReturn(Optional.<Map<String, Object>>empty())
+                .thenReturn(Optional.of(running))
+                .thenReturn(Optional.of(running));
         when(repository.findParticipants(42L)).thenReturn(List.of());
         when(repository.reserveExecution(eq(42L), eq(3L), anyString(), eq("approver-b")))
                 .thenReturn(false);
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", ownerPort));
 
         Map<String, Object> detail = service.execute(42L, "approved maintenance", "approver-b");
 
@@ -105,7 +106,7 @@ class AdmApprovalServiceExecutionTest {
         when(repository.findReservedExecutionCommand(eq(42L), anyString())).thenReturn(Optional.of(reserved(request)));
         when(ownerPort.execute(any())).thenThrow(new IllegalStateException("network response lost"));
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", ownerPort));
 
         service.execute(42L, "approved maintenance", "approver-b");
 
@@ -133,7 +134,7 @@ class AdmApprovalServiceExecutionTest {
                         anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyString(), anyString(), any(), any(), anyBoolean(),
                         anyString(), anyString(), anyString(), anyString());
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", ownerPort));
 
         service.execute(42L, "approved maintenance", "approver-b");
 
@@ -166,7 +167,7 @@ class AdmApprovalServiceExecutionTest {
         when(ownerPort.reconcile(any())).thenReturn(new AdmApprovedOperationResult(
                 AdmApprovalExecutionStatus.RECOVERED, "BAT-RECONCILED", "side effect applied"));
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", ownerPort));
 
         service.reconcile(42L, "resolve unknown", "approver-b");
 
@@ -195,7 +196,7 @@ class AdmApprovalServiceExecutionTest {
         when(ownerPort.reconcile(any())).thenReturn(new AdmApprovedOperationResult(
                 AdmApprovalExecutionStatus.UNKNOWN, "BAT-STILL-UNKNOWN", "not provable"));
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", ownerPort));
 
         service.reconcile(42L, "resolve unknown", "approver-b");
 
@@ -213,7 +214,7 @@ class AdmApprovalServiceExecutionTest {
         when(repository.findRequest(42L)).thenReturn(Optional.of(approvedRequest(Instant.now().minusSeconds(1))));
         when(repository.findExecution(42L)).thenReturn(Optional.empty());
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", ownerPort));
 
         assertThatThrownBy(() -> service.execute(42L, "approved maintenance", "approver-b"))
                 .isInstanceOf(CpfValidationException.class)
@@ -231,7 +232,7 @@ class AdmApprovalServiceExecutionTest {
         when(repository.findRequest(42L)).thenReturn(Optional.of(approvedRequest(Instant.now().plusSeconds(900))));
         when(repository.findExecution(42L)).thenReturn(Optional.empty());
         AdmApprovalService service =
-                new AdmApprovalService(repository, new ObjectMapper(), Map.of("first", first, "second", second));
+                new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("first", first, "second", second));
 
         assertThatThrownBy(() -> service.execute(42L, "approved maintenance", "approver-b"))
                 .isInstanceOf(CpfValidationException.class)

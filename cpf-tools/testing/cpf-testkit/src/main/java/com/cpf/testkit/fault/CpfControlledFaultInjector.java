@@ -25,7 +25,7 @@ final class CpfControlledFaultInjector implements CpfFaultInjector {
             long delayMillis,
             boolean throwFailure) {
         this.flags = flags;
-        this.targets = Arrays.stream(targetText.split(",")).map(String::trim).filter(v -> !v.isBlank()).collect(Collectors.toUnmodifiableSet());
+        this.targets = Arrays.stream(targetText.split(",")).map(value -> value.trim()).filter(v -> !v.isBlank()).collect(Collectors.toUnmodifiableSet());
         this.delayMillis = Math.max(0, Math.min(delayMillis, Duration.ofSeconds(30).toMillis()));
         this.throwFailure = throwFailure;
     }

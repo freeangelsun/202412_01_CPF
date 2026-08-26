@@ -1,7 +1,7 @@
 package com.cpf.batch.control.compat;
 
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
-import com.cpf.common.calendar.CmnBusinessCalendar;
+import com.cpf.common.calendar.api.CpfCalendarService;
 import com.cpf.batch.api.CpfBatchOperationsPort;
 import com.cpf.batch.api.CpfBatchOperations;
 import com.cpf.batch.api.CpfBatchExecutionRequest;
@@ -40,14 +40,14 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
     private static final int GHOST_ACTION_HEARTBEAT_TIMEOUT_SECONDS = 120;
     private static final Set<String> GHOST_ACTIVE_STATUSES = Set.of("RUNNING", "CLAIMED", "CLAIMING");
     private final JdbcTemplate jdbc;
-    private final CmnBusinessCalendar calendar;
+    private final CpfCalendarService calendar;
     private final TransactionTemplate tx;
     private final CpfVendorSqlCatalog sql;
     private final CpfBatchRiskCommandCoordinator riskCommands;
 
     public BatchOperationsCompatibilityService(
             JdbcTemplate jdbc,
-            CmnBusinessCalendar calendar,
+            CpfCalendarService calendar,
             PlatformTransactionManager transactionManager,
             CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this(jdbc, calendar, transactionManager, sqlCatalogProvider, null);
@@ -56,7 +56,7 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
     @Autowired
     public BatchOperationsCompatibilityService(
             JdbcTemplate jdbc,
-            CmnBusinessCalendar calendar,
+            CpfCalendarService calendar,
             PlatformTransactionManager transactionManager,
             CpfVendorSqlCatalogProvider sqlCatalogProvider,
             CpfBatchRiskCommandCoordinator riskCommands) {

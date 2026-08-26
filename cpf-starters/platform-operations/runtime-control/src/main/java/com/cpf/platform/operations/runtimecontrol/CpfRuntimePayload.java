@@ -129,7 +129,7 @@ public final class CpfRuntimePayload {
         if (value == null || value.isNull()) return Map.of();
         if (!value.isObject()) throw invalidType(fieldName, "object map");
         Map<String, CpfRuntimePayload> values = new LinkedHashMap<>();
-        value.fields().forEachRemaining(entry -> {
+        value.properties().forEach(entry -> {
             if (!entry.getValue().isObject()) throw invalidType(fieldName, "object map");
             values.put(entry.getKey(), fromNode(entry.getValue()));
         });
@@ -195,7 +195,7 @@ public final class CpfRuntimePayload {
             return array;
         }
         TreeMap<String, JsonNode> ordered = new TreeMap<>();
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        Iterator<Map.Entry<String, JsonNode>> fields = node.properties().iterator();
         fields.forEachRemaining(entry -> ordered.put(entry.getKey(), sort(entry.getValue())));
         ObjectNode object = JsonNodeFactory.instance.objectNode();
         ordered.forEach(object::set);

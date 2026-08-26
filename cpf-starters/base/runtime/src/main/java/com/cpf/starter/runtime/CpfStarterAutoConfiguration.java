@@ -13,7 +13,6 @@ import com.cpf.foundation.id.DefaultCpfTransactionIdGenerator;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.cpf.foundation.runtime.CpfRuntimeMetadata;
-import com.cpf.starter.internal.context.CpfStarterContextRuntime;
 import com.cpf.core.api.config.CpfConfigCatalog;
 import java.time.Clock;
 import java.time.LocalDate;

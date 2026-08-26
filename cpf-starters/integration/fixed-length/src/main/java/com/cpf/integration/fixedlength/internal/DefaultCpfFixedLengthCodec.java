@@ -54,7 +54,7 @@ public final class DefaultCpfFixedLengthCodec implements CpfFixedLengthParser, C
             masked.put(spec.name(), spec.sensitive() ? mask(field.text()) : field.text());
         }
 
-        int fallbackStart = layout.fields().stream().mapToInt(CpfFixedLengthFieldSpec::zeroBasedEndExclusive).max().orElse(0);
+        int fallbackStart = layout.fields().stream().mapToInt(value -> value.zeroBasedEndExclusive()).max().orElse(0);
         for (CpfFixedLengthGroupSpec group : layout.groups()) {
             int count = parseCount(fields.get(group.countFieldName()), group, errors);
             int start = group.zeroBasedStart(fallbackStart);
@@ -116,7 +116,7 @@ public final class DefaultCpfFixedLengthCodec implements CpfFixedLengthParser, C
             masked.put(spec.name(), spec.sensitive() ? mask(text) : text);
         }
 
-        int fallbackStart = layout.fields().stream().mapToInt(CpfFixedLengthFieldSpec::zeroBasedEndExclusive).max().orElse(0);
+        int fallbackStart = layout.fields().stream().mapToInt(value -> value.zeroBasedEndExclusive()).max().orElse(0);
         for (CpfFixedLengthGroupSpec group : layout.groups()) {
             List<?> rows = asRows(normalized.get(group.name()), group.name());
             int start = group.zeroBasedStart(fallbackStart);

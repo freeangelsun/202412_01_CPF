@@ -3,7 +3,6 @@ package com.cpf.data.persistence.jdbc;
 
 import com.cpf.data.persistence.api.database.CpfDatabaseVendor;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
-import com.cpf.data.persistence.jdbc.CpfVendorSqlCatalogs;
 import java.nio.file.Path;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

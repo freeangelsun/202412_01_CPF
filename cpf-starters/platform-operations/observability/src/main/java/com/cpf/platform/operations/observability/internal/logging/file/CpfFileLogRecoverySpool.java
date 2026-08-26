@@ -188,7 +188,7 @@ final class CpfFileLogRecoverySpool implements AutoCloseable {
     private List<Path> pending() {
         try (var stream = Files.list(root)) {
             return stream.filter(p -> p.getFileName().toString().endsWith(".spool"))
-                    .sorted(Comparator.comparing(Path::toString)).toList();
+                    .sorted(Comparator.comparing(value -> value.toString())).toList();
         } catch (Exception ignored) {
             return List.of();
         }

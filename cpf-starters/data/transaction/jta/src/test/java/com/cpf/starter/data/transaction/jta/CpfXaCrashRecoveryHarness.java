@@ -39,7 +39,7 @@ public final class CpfXaCrashRecoveryHarness {
 
         try (CpfXaDataSourceRecoveryProvider p1 = new CpfXaDataSourceRecoveryProvider("db1", ds1);
              CpfXaDataSourceRecoveryProvider p2 = new CpfXaDataSourceRecoveryProvider("db2", ds2);
-             CpfNarayanaRecoveryRegistrar ignored = registrar(List.of(p1, p2))) {
+             CpfNarayanaRecoveryRegistrar _ = registrar(List.of(p1, p2))) {
             if (args[0].equals("prepare-kill")) {
                 runPrepareKill(ds1, ds2, txId, sql, marker);
             } else {

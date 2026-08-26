@@ -19,7 +19,7 @@ public final class CmnTemplateService extends CpfBaseService implements CpfTempl
     @Override
     public String render(String code, String channel, Map<String, ?> variables) {
         CmnTemplateDefinition definition = provider.findActive(code, channel)
-                .filter(CmnTemplateDefinition::active)
+                .filter(value -> value.active())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Active template not found: " + code + "/" + channel));
         return renderer.render(definition, variables);

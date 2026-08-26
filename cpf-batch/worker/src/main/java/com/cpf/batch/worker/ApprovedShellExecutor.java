@@ -348,18 +348,18 @@ public class ApprovedShellExecutor {
         List<ProcessHandle> descendants = process.descendants().toList();
         process.destroy();
         if (definition.isTerminateProcessTree()) {
-            descendants.forEach(ProcessHandle::destroy);
+            descendants.forEach(value -> value.destroy());
         }
         long grace = Math.max(1, definition.getGracefulShutdownSeconds());
         if (process.waitFor(grace, TimeUnit.SECONDS)) {
-            return descendants.stream().noneMatch(ProcessHandle::isAlive);
+            return descendants.stream().noneMatch(value -> value.isAlive());
         }
         if (definition.isTerminateProcessTree()) {
-            descendants.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
+            descendants.stream().filter(value -> value.isAlive()).forEach(value -> value.destroyForcibly());
         }
         process.destroyForcibly();
         return process.waitFor(grace, TimeUnit.SECONDS)
-                && descendants.stream().noneMatch(ProcessHandle::isAlive);
+                && descendants.stream().noneMatch(value -> value.isAlive());
     }
 
     private static void copyBounded(InputStream input, BoundedOutput output) {

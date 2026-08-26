@@ -25,7 +25,7 @@ public final class CpfFixedLengthCodec {
         this.layout = Objects.requireNonNull(layout, "layout");
         this.defaultPad = singleByte(' ', "record default pad");
         this.fieldsByName = layout.fields().stream().collect(Collectors.toUnmodifiableMap(
-                CpfFixedLengthField::name,
+                value -> value.name(),
                 field -> field));
         for (CpfFixedLengthField field : layout.fields()) {
             singleByte(field.pad(), "field pad: " + field.name());

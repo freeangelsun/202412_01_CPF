@@ -1,7 +1,7 @@
 package com.cpf.integration.http.internal.servicecall;
 
-import com.cpf.foundation.api.contract.CpfRequest;
-import com.cpf.foundation.api.contract.CpfResponse;
+import com.cpf.core.api.base.CpfRequest;
+import com.cpf.core.api.base.CpfResponse;
 import com.cpf.integration.api.http.CpfServiceClient;
 
 /**

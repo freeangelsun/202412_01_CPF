@@ -623,7 +623,7 @@ public class JdbcCpfBrokerReliabilityRepository
         }
         StringBuilder builder = new StringBuilder("v2\n");
         values.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey(java.util.Comparator.nullsFirst(String::compareTo)))
+                .sorted(Map.Entry.comparingByKey(java.util.Comparator.nullsFirst((left, right) -> left.compareTo(right))))
                 .forEach(entry -> builder
                         .append(encodeToken(entry.getKey()))
                         .append('=')

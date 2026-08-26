@@ -3,6 +3,8 @@ package com.cpf.admin.opr.service;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowMapper;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,8 +31,8 @@ class AdmAuditLogServiceFailClosedTest {
     void queryFailureIsNotReportedAsEmptyAuditResult() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         AdmAuditDeliveryService delivery = mock(AdmAuditDeliveryService.class);
-        when(jdbc.query(any(String.class), any(org.springframework.jdbc.core.PreparedStatementSetter.class),
-                any(org.springframework.jdbc.core.RowMapper.class)))
+        when(jdbc.query(any(String.class), any(PreparedStatementSetter.class),
+                org.mockito.ArgumentMatchers.<RowMapper<Object>>any()))
                 .thenThrow(new DataAccessResourceFailureException("database unavailable"));
         AdmAuditLogService service = new AdmAuditLogService(jdbc, delivery);
 

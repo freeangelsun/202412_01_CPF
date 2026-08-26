@@ -19,7 +19,7 @@ public final class CpfOidcContextFilter extends OncePerRequestFilter {
         var principal=current.currentPrincipal();
         if(parent==null||principal.isEmpty()){chain.doFilter(request,response);return;}
         var updated=bridge.apply(parent.context(),principal.get(),clock.instant());
-        try(var ignored=CpfContexts.bind(CpfContextSnapshot.capture(updated,parent.capturedAt()))){
+        try(var _=CpfContexts.bind(CpfContextSnapshot.capture(updated,parent.capturedAt()))){
             chain.doFilter(request,response);
         } catch (ServletException | IOException | RuntimeException ex) {
             throw ex;

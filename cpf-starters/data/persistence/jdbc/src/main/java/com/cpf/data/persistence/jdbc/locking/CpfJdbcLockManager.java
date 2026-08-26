@@ -145,14 +145,14 @@ public final class CpfJdbcLockManager implements CpfLockManager {
     @Override
     public Optional<LockSnapshot> find(String key) {
         if (blank(key)) return Optional.empty();
-        try { return store.find(key.trim()).map(LockRow::snapshot); }
+        try { return store.find(key.trim()).map(value -> value.snapshot()); }
         catch (RuntimeException e) { return Optional.empty(); }
     }
 
     @Override
     public List<LockSnapshot> list(int limit) {
         if (limit<1 || limit>1000) return List.of();
-        try { return store.list(limit).stream().map(LockRow::snapshot).toList(); }
+        try { return store.list(limit).stream().map(value -> value.snapshot()).toList(); }
         catch (RuntimeException e) { return List.of(); }
     }
 

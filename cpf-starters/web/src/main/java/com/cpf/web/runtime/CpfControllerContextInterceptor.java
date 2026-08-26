@@ -22,6 +22,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /** Enforces controller context and binds the resolved canonical operation before business code executes. */
+@SuppressWarnings("deprecation")
 public final class CpfControllerContextInterceptor implements HandlerInterceptor {
     private static final String OPERATION_SCOPE_ATTRIBUTE = CpfControllerContextInterceptor.class.getName() + ".operationScope";
 

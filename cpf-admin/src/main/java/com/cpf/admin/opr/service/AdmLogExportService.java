@@ -171,7 +171,8 @@ public class AdmLogExportService {
             return masked;
         }
         if (value.getClass().isArray()) {
-            return objectMapper.convertValue(value, List.class).stream().map(this::protect).toList();
+            List<?> arrayValues = objectMapper.convertValue(value, objectMapper.getTypeFactory().constructCollectionType(List.class, Object.class));
+            return arrayValues.stream().map(this::protect).toList();
         }
         if (value instanceof CharSequence text) {
             return sanitizeFreeText(CpfMasking.truncate(text.toString(), 65536));

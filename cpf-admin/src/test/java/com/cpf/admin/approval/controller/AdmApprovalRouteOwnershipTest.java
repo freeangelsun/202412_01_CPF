@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * V9 approval REST/OpenAPI surface must have exactly one Spring owner.
  */
+@SuppressWarnings("removal")
 class AdmApprovalRouteOwnershipTest {
 
     @Test

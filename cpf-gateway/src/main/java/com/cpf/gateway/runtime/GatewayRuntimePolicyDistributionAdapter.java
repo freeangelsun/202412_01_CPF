@@ -279,7 +279,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
         }
         return eventTypes.stream()
                 .filter(value -> value != null && !value.isBlank())
-                .map(String::trim)
+                .map(value -> value.trim())
                 .distinct()
                 .toList();
     }

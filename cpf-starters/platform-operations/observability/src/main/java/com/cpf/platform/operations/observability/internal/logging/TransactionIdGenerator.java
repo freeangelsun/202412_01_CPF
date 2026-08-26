@@ -12,14 +12,17 @@ import org.springframework.core.env.Environment;
 @Deprecated(forRemoval = true)
 public class TransactionIdGenerator extends DefaultCpfTransactionIdGenerator {
 
+    @Deprecated
     public TransactionIdGenerator(Environment environment) {
         super(environment, Clock.systemDefaultZone());
     }
 
+    @Deprecated
     public TransactionIdGenerator(String moduleId, String wasId, int sequenceDigits, Clock clock) {
         super(moduleId, wasId, sequenceDigits, clock);
     }
 
+    @Deprecated
     public static boolean isValid(String transactionId, int sequenceDigits) {
         return sequenceDigits == 7 && CpfTransactionIds.isCanonical(transactionId);
     }

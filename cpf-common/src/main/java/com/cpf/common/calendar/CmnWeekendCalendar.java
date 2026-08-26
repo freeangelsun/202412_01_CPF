@@ -1,11 +1,13 @@
 package com.cpf.common.calendar;
 
+import com.cpf.common.calendar.api.CpfCalendarService;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Objects;
 
 /** DB 없이 사용할 수 있는 기본 주말 Calendar. 고객사는 Bean/SPI로 교체합니다. */
-public final class CmnWeekendCalendar implements CmnBusinessCalendar {
+public final class CmnWeekendCalendar implements CpfCalendarService {
     @Override
     public boolean isBusinessDay(String calendarId, LocalDate date) {
         DayOfWeek dayOfWeek = Objects.requireNonNull(date, "date").getDayOfWeek();

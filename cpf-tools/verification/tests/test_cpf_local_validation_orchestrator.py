@@ -67,3 +67,16 @@ def test_python_bootstrap_does_not_pollute_function_return_pipeline():
     assert "return [string]$venvPython" in source
     # External bootstrap command output must be captured before being written to Host/log.
     assert "& $venvPython -m pip install --disable-pip-version-check --no-input -r $requirements\n" not in source
+
+
+def test_batch_two_worker_stage_is_kafka_free():
+    source = text()
+    start = source.index("$batchDbEnv=Import-CpfEnvFile $DockerSecretFile")
+    end = source.index("# 7. 기본 로컬 Runtime", start)
+    batch = source[start:end]
+    assert "Start-CpfDockerTarget 'mariadb'" in batch
+    assert "Start-CpfDockerTarget 'kafka'" not in batch
+    assert "Stop-CpfDockerTargetIfOwned 'kafka'" not in batch
+    assert 'batchKafkaState' not in batch
+    assert 'BATCH_TWO_WORKER_CRASH_UNKNOWN' in batch
+    assert 'GATEWAY_BATCH_RUNTIME' in batch

@@ -262,7 +262,7 @@ public class AdmRuntimePolicyDistributionAdapter implements CpfRuntimePolicyDist
         }
         return eventTypes.stream()
                 .filter(value -> value != null && !value.isBlank())
-                .map(String::trim)
+                .map(value -> value.trim())
                 .distinct()
                 .toList();
     }

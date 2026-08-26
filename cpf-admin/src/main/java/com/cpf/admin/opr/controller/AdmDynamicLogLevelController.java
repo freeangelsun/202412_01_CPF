@@ -1,12 +1,9 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRequest;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
 import com.cpf.platform.operations.observability.api.logging.CpfDynamicLogLevelOperations;
 import com.cpf.platform.operations.observability.api.logging.CpfLogLevel;
 import com.cpf.admin.opr.service.AdmDynamicLogLevelRuleStore;
-import com.cpf.admin.opr.service.AdmAuditLogService;
-import com.cpf.admin.opr.service.AdmDynamicLogLevelBroadcastService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,9 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /** Instance별 동적 로그 레벨 변경을 CAS·사유·감사와 함께 제어합니다. */
@@ -34,18 +29,12 @@ import java.util.Map;
 public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmBaseController {
     private final CpfDynamicLogLevelOperations dynamicLogLevelService;
     private final AdmDynamicLogLevelRuleStore ruleStore;
-    private final AdmAuditLogService auditLogService;
-    private final AdmDynamicLogLevelBroadcastService broadcastService;
 
     public AdmDynamicLogLevelController(
             CpfDynamicLogLevelOperations dynamicLogLevelService,
-            AdmDynamicLogLevelRuleStore ruleStore,
-            AdmAuditLogService auditLogService,
-            AdmDynamicLogLevelBroadcastService broadcastService) {
+            AdmDynamicLogLevelRuleStore ruleStore) {
         this.dynamicLogLevelService = dynamicLogLevelService;
         this.ruleStore = ruleStore;
-        this.auditLogService = auditLogService;
-        this.broadcastService = broadcastService;
     }
 
     @GetMapping("/rules")    @Operation(operationId = "admDynamicLogLevelFindRules", summary = "List dynamic log rules", description = "Returns active dynamic log-level rules for this WAS.")
@@ -85,7 +74,4 @@ public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmB
                 "동적 로그 레벨 등록/제거는 Approval Engine의 DYNAMIC_LOG_* Owner Command로 실행해야 합니다.");
     }
 
-    private String requestUser(HttpServletRequest request, String fallback) {
-        return requireOperator(request);
-    }
 }

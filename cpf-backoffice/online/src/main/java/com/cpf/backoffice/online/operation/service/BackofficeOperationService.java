@@ -102,6 +102,7 @@ public class BackofficeOperationService extends com.cpf.backoffice.online.base.B
     String login = required(r.loginId(), "loginId"), actor = required(operatorId, "operatorId");
     Map<String, Object> before = repository.findAdminUser(login).orElse(null);
     boolean create = before == null;
+    Map<String, Object> existing = create ? Map.of() : Objects.requireNonNull(before, "existing admin user");
     if (create && r.roleCode() != null && !r.roleCode().isBlank()) {
       throw new CpfValidationException(
           "신규 관리자는 Role을 자동 부여하지 않습니다. 생성 후 사용자 Role 이력에서 명시적으로 부여하십시오.");
@@ -112,10 +113,10 @@ public class BackofficeOperationService extends com.cpf.backoffice.online.base.B
         BackofficeAdminAccountStatus.parse(
                 create
                     ? "PENDING_ACTIVATION"
-                    : defaultText(r.accountStatus(), String.valueOf(before.get("accountStatus"))))
+                    : defaultText(r.accountStatus(), String.valueOf(existing.get("accountStatus"))))
             .name();
     if (!create)
-      validateStatusTransition(String.valueOf(before.get("accountStatus")), accountStatus);
+      validateStatusTransition(String.valueOf(existing.get("accountStatus")), accountStatus);
     if ("ACTIVE".equals(accountStatus) && repository.countEffectiveRoles(login) == 0)
       throw new CpfValidationException("Role이 없는 관리자는 ACTIVE로 전환할 수 없습니다.");
     Map<String, Object> v = new LinkedHashMap<>();

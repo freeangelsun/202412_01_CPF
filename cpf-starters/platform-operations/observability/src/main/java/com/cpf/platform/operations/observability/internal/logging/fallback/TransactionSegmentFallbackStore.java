@@ -149,7 +149,7 @@ public class TransactionSegmentFallbackStore {
                         .thenComparing(item -> item.envelope().firstFailedAt(), Comparator.nullsFirst(Comparator.naturalOrder()))
                         .thenComparing(item -> item.envelope().recoveryEventId()))
                 .limit(Math.max(1, limit))
-                .map(EligibleFile::path)
+                .map(value -> value.path())
                 .toList();
     }
 

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
 /** @CpfController가 3단 Base Class Golden Path를 우회하지 못하도록 시작 시 fail-fast 합니다. */
+@SuppressWarnings("deprecation")
 public final class CpfControllerPolicyBeanPostProcessor implements BeanPostProcessor {
     private final CpfControllerPolicyProperties properties;
 

@@ -15,8 +15,6 @@ import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
 import com.cpf.core.api.error.CpfNotFoundException;
 import com.cpf.core.api.error.CpfValidationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -35,7 +33,6 @@ import java.util.Map;
  */
 @CpfService
 public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseService {
-    private static final Logger log = LoggerFactory.getLogger(AdmPermissionService.class);
 
     private final JdbcTemplate admJdbcTemplate;
     private final AdmPersistencePolicy persistencePolicy;

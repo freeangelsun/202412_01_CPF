@@ -41,7 +41,7 @@ public class CpfAttachmentAutoConfiguration {
                 "cpf.framework.attachment.allowed-extensions",
                 "txt,csv,json,xml,pdf,png,jpg,jpeg,gif,zip");
         Set<String> extensions = Arrays.stream(configured.split(","))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(value -> !value.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
         policy.replaceAttachment(0L, maxBytes, extensions, Set.of(), false, 3650L, true, false);

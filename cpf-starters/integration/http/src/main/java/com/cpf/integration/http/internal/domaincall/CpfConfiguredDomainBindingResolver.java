@@ -17,7 +17,7 @@ public final class CpfConfiguredDomainBindingResolver implements CpfDomainBindin
         String normalized = systemCode.trim().toUpperCase(Locale.ROOT);
         CpfDomainCallProperties.Binding configured = properties.getBindings().entrySet().stream()
                 .filter(e -> normalized.equals(e.getKey().trim().toUpperCase(Locale.ROOT)))
-                .map(java.util.Map.Entry::getValue).findFirst().orElse(null);
+                .map(value -> java.util.Map.Entry.getValue(value)).findFirst().orElse(null);
         if (configured == null) return CpfDomainBinding.auto(null);
         return new CpfDomainBinding(configured.getMode(), configured.getServiceId());
     }

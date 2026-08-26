@@ -37,7 +37,7 @@ public class CpfPasswordAutoConfiguration {
         properties.validate();
         String secret = environment.getProperty(properties.getPepperEnvironmentVariable());
         boolean productProfile = Arrays.stream(environment.getActiveProfiles())
-                .map(String::toLowerCase)
+                .map(value -> value.toLowerCase())
                 .anyMatch(PRODUCT_PROFILES::contains);
         if ((properties.isRequirePepper() || productProfile) && (secret == null || secret.isBlank())) {
             throw new IllegalStateException("CPF password pepper secret is required for this runtime profile");

@@ -97,7 +97,6 @@ public final class AdmApprovalSnapshotIntegrity {
         return out.toString();
     }
 
-    @SuppressWarnings("unchecked")
     private void appendCanonical(StringBuilder out, Object value) {
         if (value == null) {
             out.append("null");

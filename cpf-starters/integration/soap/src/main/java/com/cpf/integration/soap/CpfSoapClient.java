@@ -2,7 +2,6 @@ package com.cpf.integration.soap;
 
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContextSnapshot;
@@ -11,7 +10,6 @@ import com.cpf.foundation.execution.CpfContextExecutionFactory;
 
 import javax.xml.transform.stream.StreamSource;
 import org.springframework.oxm.MarshallingFailureException;
-import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.client.WebServiceIOException;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.core.WebServiceTemplate;
@@ -40,7 +38,7 @@ public final class CpfSoapClient {
         CpfContextSnapshot snap=contextFactory.childSnapshot(parent,new CpfContextExecutionFactory.ChildSpec(
                 endpoint.getHost()+endpoint.getPath(),CpfContext.CpfExecutionType.INTEGRATION,1,
                 parent.context().execution().deadline(),parent.context().operation()));
-        try (var ignored = CpfContexts.bind(snap)) {
+        try (var _ = CpfContexts.bind(snap)) {
             try { return call.call(); }
             catch (RuntimeException e) { throw e; }
             catch (Exception e) { throw new IllegalStateException(e); }

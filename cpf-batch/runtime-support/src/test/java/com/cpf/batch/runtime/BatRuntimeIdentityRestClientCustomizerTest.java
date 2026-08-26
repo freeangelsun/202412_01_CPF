@@ -3,7 +3,6 @@ package com.cpf.batch.runtime;
 import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.batch.api.RuntimeRegistration;
 import com.cpf.batch.api.RuntimeRole;
-import com.cpf.web.api.CpfHttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 

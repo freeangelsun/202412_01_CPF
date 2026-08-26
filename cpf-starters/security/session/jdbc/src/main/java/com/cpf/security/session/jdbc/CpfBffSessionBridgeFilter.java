@@ -67,28 +67,29 @@ public final class CpfBffSessionBridgeFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
+        HttpSession activeSession = java.util.Objects.requireNonNull(session, "BFF session");
 
         CpfBffCredential credential = vault.find(handle).orElse(null);
         if (credential == null) {
-            session.removeAttribute(CREDENTIAL_HANDLE);
+            activeSession.removeAttribute(CREDENTIAL_HANDLE);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "BFF credential is not available");
             return;
         }
 
-        String principal = attribute(session, PRINCIPAL_ID);
+        String principal = attribute(activeSession, PRINCIPAL_ID);
         if (principal == null) {
             vault.revoke(handle);
-            session.removeAttribute(CREDENTIAL_HANDLE);
+            activeSession.removeAttribute(CREDENTIAL_HANDLE);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "BFF session principal is not available");
             return;
         }
 
         CpfContextSnapshot currentSnapshot = CpfContexts.snapshot();
-        Instant issuedAt = Instant.ofEpochMilli(session.getCreationTime());
-        Instant lastAccessed = Instant.ofEpochMilli(session.getLastAccessedTime());
-        Instant expiresAt = lastAccessed.plusSeconds(Math.max(0, session.getMaxInactiveInterval()));
+        Instant issuedAt = Instant.ofEpochMilli(activeSession.getCreationTime());
+        Instant lastAccessed = Instant.ofEpochMilli(activeSession.getLastAccessedTime());
+        Instant expiresAt = lastAccessed.plusSeconds(Math.max(0, activeSession.getMaxInactiveInterval()));
         CpfSessionContext cpfSession = new CpfSessionContext(
-                CpfHashes.sha256(session.getId()), 0L, principal, issuedAt, lastAccessed, expiresAt, null,
+                CpfHashes.sha256(activeSession.getId()), 0L, principal, issuedAt, lastAccessed, expiresAt, null,
                 currentSnapshot == null || currentSnapshot.context().identity() == null
                         ? null : currentSnapshot.context().identity().authenticationContextId(),
                 null, CpfSessionContext.State.ACTIVE);
@@ -104,7 +105,7 @@ public final class CpfBffSessionBridgeFilter extends OncePerRequestFilter {
             if (path.endsWith("/auth/refresh")) {
                 if (credential.refreshToken() == null || credential.refreshExpired(now)) {
                     vault.revoke(handle);
-                    session.removeAttribute(CREDENTIAL_HANDLE);
+                    activeSession.removeAttribute(CREDENTIAL_HANDLE);
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "BFF refresh credential expired");
                     return;
                 }

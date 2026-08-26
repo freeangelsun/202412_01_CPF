@@ -1,7 +1,6 @@
 package com.cpf.backoffice.online.approval.service;
 
 import com.cpf.core.api.error.CpfValidationException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.foundation.annotation.CpfService;
 
@@ -21,7 +20,6 @@ import java.util.regex.Pattern;
 public final class BackofficeApprovalDocumentAssembler {
     private static final Pattern SENSITIVE = Pattern.compile(
             "(?i).*(password|passwd|pwd|secret|token|credential|api.?key|private.?key|resident|ssn|mobile|phone|email).*");
-    private static final TypeReference<LinkedHashMap<String,Object>> MAP = new TypeReference<>() {};
     private final ObjectMapper mapper;
 
     public BackofficeApprovalDocumentAssembler(ObjectMapper mapper) {

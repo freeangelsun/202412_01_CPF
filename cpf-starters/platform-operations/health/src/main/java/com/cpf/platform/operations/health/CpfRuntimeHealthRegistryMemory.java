@@ -20,7 +20,7 @@ public final class CpfRuntimeHealthRegistryMemory implements CpfRuntimeHealthReg
     }
     @Override public List<CpfRuntimeHealth> list() {
         var out = new ArrayList<>(values.values());
-        out.sort(Comparator.comparing(CpfRuntimeHealth::systemId).thenComparing(CpfRuntimeHealth::instanceId));
+        out.sort(Comparator.comparing(value -> value.systemId()).thenComparing(value -> value.instanceId()));
         return List.copyOf(out);
     }
 }

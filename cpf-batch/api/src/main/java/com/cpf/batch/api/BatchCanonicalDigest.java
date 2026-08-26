@@ -131,7 +131,7 @@ public final class BatchCanonicalDigest {
                 }
                 entries.add(Map.entry(key, normalize(entry.getValue(), depth + 1, counter)));
             }
-            entries.sort(Comparator.comparing(Map.Entry::getKey));
+            entries.sort(Comparator.comparing(value -> value.getKey()));
             Map<String, Object> copy = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : entries) {
                 if (copy.put(entry.getKey(), entry.getValue()) != null) {

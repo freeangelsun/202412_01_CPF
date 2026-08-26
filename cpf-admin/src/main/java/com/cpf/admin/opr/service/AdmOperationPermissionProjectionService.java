@@ -50,7 +50,7 @@ public class AdmOperationPermissionProjectionService {
             // MEMORY는 local/test 전용입니다. ADM_ADMIN만 전체 operation hint를 받고,
             // 다른 role은 Button/Menu projection과 Backend filter의 fail-closed 정책을 사용합니다.
             if (roleIds.contains("ADM_ADMIN")) {
-                return routes.stream().map(OperationRoute::operationId).distinct().sorted().toList();
+                return routes.stream().map(value -> value.operationId()).distinct().sorted().toList();
             }
             return List.of();
         }
@@ -124,9 +124,9 @@ public class AdmOperationPermissionProjectionService {
             }
         }
         return routes.stream()
-                .sorted(Comparator.comparing(OperationRoute::operationId)
-                        .thenComparing(OperationRoute::httpMethod)
-                        .thenComparing(OperationRoute::path))
+                .sorted(Comparator.comparing(value -> value.operationId())
+                        .thenComparing(value -> value.httpMethod())
+                        .thenComparing(value -> value.path()))
                 .toList();
     }
 

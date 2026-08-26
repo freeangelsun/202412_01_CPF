@@ -34,7 +34,7 @@ final class CpfBffConcurrentSessionController {
                 .sorted(Comparator
                         .comparing((Map.Entry<String, ? extends Session> entry) ->
                                 value(entry.getValue().getLastAccessedTime()))
-                        .thenComparing(Map.Entry::getKey))
+                        .thenComparing(value -> value.getKey()))
                 .limit(deleteCount)
                 .forEach(entry -> repository.deleteById(entry.getKey()));
 

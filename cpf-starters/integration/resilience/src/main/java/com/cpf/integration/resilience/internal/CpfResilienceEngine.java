@@ -54,8 +54,6 @@ import java.util.function.Supplier;
 public final class CpfResilienceEngine implements CpfResilienceExecutor, CpfResilienceRuntimeStatus, AutoCloseable {
     private static final Duration MAX_REQUEST_CLOCK_SKEW = Duration.ofSeconds(5);
     private static final Duration MIN_DISTRIBUTED_PROBE_LEASE = Duration.ofMillis(100);
-    private static final int DEFAULT_MAXIMUM_GUARD_ENTRIES = 10_000;
-    private static final Duration DEFAULT_GUARD_IDLE_TTL = Duration.ofMinutes(30);
 
     private final CpfResiliencePolicyResolver policies;
     private final CpfResilienceFailureClassifier classifier;
@@ -584,7 +582,7 @@ public final class CpfResilienceEngine implements CpfResilienceExecutor, CpfResi
         Future<T> future;
         try {
             future = executor.submit(() -> {
-                try (AutoCloseable ignoredContext = CpfContexts.bind(snapshot)) {
+                try (AutoCloseable _ = CpfContexts.bind(snapshot)) {
                     return action.get();
                 }
             });

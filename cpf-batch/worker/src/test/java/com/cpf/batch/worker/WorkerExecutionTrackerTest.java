@@ -17,7 +17,7 @@ class WorkerExecutionTrackerTest {
         CountDownLatch secondFinished = new CountDownLatch(1);
         AtomicReference<Throwable> failure = new AtomicReference<>();
 
-        try (WorkerExecutionTracker.Scope first = tracker.begin("cpf-1", 101L)) {
+        try (WorkerExecutionTracker.Scope _ = tracker.begin("cpf-1", 101L)) {
             Thread second = Thread.ofVirtual().start(() -> {
                 try (WorkerExecutionTracker.Scope ignored = tracker.begin("cpf-2", 102L)) {
                     secondEntered.countDown();

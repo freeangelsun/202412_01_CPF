@@ -2,7 +2,6 @@ package com.cpf.security.session.jdbc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 class CpfCredentialCipherTest {

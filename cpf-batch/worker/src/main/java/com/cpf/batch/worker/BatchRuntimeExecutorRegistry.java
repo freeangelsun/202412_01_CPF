@@ -240,7 +240,6 @@ public class BatchRuntimeExecutorRegistry {
         return ExecutionResult.failed("PROTOCOL_UNKNOWN", "Protocol result is unknown", true, maxAttempts);
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, String> requestHeaders(Map<String, Object> parameters) {
         Object value = parameters.get("headers");
         if (value == null) return new LinkedHashMap<>();

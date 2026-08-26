@@ -114,15 +114,6 @@ public final class CpfHttpOutboundContextAdapter {
         return normalized;
     }
 
-    private static String requiredChannel(String value, String header) {
-        String normalized = required(value, header).toUpperCase(Locale.ROOT);
-        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,127}")) {
-            throw new CpfHeaderValidationException(
-                    com.cpf.core.api.error.CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    header, "Invalid CPF Channel identity.", 400, "CHANNEL_INVALID");
-        }
-        return normalized;
-    }
 
     private static String required(String value, String header) {
         if (value == null || value.isBlank()) {

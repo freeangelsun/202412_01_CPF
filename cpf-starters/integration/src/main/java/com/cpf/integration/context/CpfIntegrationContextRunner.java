@@ -40,8 +40,8 @@ public final class CpfIntegrationContextRunner {
         CpfIntegrationContext integration=new CpfIntegrationContext(
                 partnerSystemCode,logicalEndpointId,child.executionId(),Math.max(1,attempt),
                 idempotencyKey,unknownOutcomeId,recoveryId,now);
-        try(AutoCloseable ignoredCore=CpfContexts.bind(CpfContextSnapshot.capture(childContext));
-            AutoCloseable ignoredOwner=CpfIntegrationContextRuntime.bind(integration)){
+        try(AutoCloseable _=CpfContexts.bind(CpfContextSnapshot.capture(childContext));
+            AutoCloseable _=CpfIntegrationContextRuntime.bind(integration)){
             return work.call();
         }
     }

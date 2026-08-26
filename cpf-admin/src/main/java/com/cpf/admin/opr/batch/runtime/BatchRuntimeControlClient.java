@@ -8,7 +8,6 @@ import com.cpf.data.api.CpfDataRow;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
-import com.cpf.web.api.CpfHttpHeaders;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpMethod;

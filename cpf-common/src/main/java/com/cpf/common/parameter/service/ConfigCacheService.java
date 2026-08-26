@@ -45,12 +45,14 @@ public class ConfigCacheService extends CpfBaseService {
     @Value("${cpf.cmn.cache.fail-fast-on-startup:false}")
     private boolean failFastOnStartup;
 
+    @Deprecated
     public ConfigCacheService(ConfigMapper configMapper, CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher) {
         this(configMapper, cacheManager, cacheRefreshEventPublisher, Clock.systemUTC());
     }
 
     @org.springframework.beans.factory.annotation.Autowired
+    @Deprecated
     public ConfigCacheService(ConfigMapper configMapper, CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher, Clock clock) {
         this.configMapper = configMapper;
@@ -60,18 +62,22 @@ public class ConfigCacheService extends CpfBaseService {
     }
 
     @Cacheable(value = CACHE_NAME, key = "'ALL'")
+    @Deprecated
     public List<Map<String, Object>> getAllConfigs() {
         return configMapper.findAllConfigs();
     }
 
     @Cacheable(value = CACHE_NAME, key = "'KEY:' + #p0")
+    @Deprecated
     public Map<String, Object> getConfigByKey(String configKey) {
         return configMapper.findConfigByKey(configKey);
     }
 
+    @Deprecated
     public Map<String, Object> getConfigById(Long configId) { return configMapper.findConfigById(configId); }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> createConfig(CommonConfigRequest request) {
         configMapper.insertConfig(request);
         Map<String, Object> created = getConfigById(request.getConfigId());
@@ -81,6 +87,7 @@ public class ConfigCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> updateConfig(Long configId, CommonConfigRequest request) {
         configMapper.updateConfig(configId, request);
         Map<String, Object> updated = getConfigById(configId);
@@ -90,6 +97,7 @@ public class ConfigCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public List<Map<String, Object>> deleteConfig(Long configId) {
         Map<String, Object> beforeDelete = getConfigById(configId);
         String key = beforeDelete == null ? String.valueOf(configId) : mapValue(beforeDelete, "configKey", "config_key");
@@ -100,20 +108,24 @@ public class ConfigCacheService extends CpfBaseService {
         return latest;
     }
 
+    @Deprecated
     public List<Map<String, Object>> reloadConfigs() { return refreshConfigs(); }
 
+    @Deprecated
     public List<Map<String, Object>> refreshConfigs() {
         List<Map<String, Object>> latest = configMapper.findAllConfigs();
         replaceSnapshot(latest);
         return latest;
     }
 
+    @Deprecated
     public List<Map<String, Object>> refreshConfigsAndPublish() {
         List<Map<String, Object>> latest = refreshConfigs();
         publishRefreshEvent("MANUAL_REFRESH", "ALL", "SYSTEM");
         return latest;
     }
 
+    @Deprecated
     public Map<String, Object> cacheStatus() {
         Map<String, Object> status = new LinkedHashMap<>();
         status.put("cacheName", CACHE_NAME);
@@ -124,6 +136,7 @@ public class ConfigCacheService extends CpfBaseService {
     }
 
     @PostConstruct
+    @Deprecated
     public void loadCacheOnStartup() {
         if (!preloadEnabled) return;
         try {
@@ -137,6 +150,7 @@ public class ConfigCacheService extends CpfBaseService {
 
     @Scheduled(fixedRateString = "${cpf.cmn.cache.periodic-refresh-millis:1800000}",
             initialDelayString = "${cpf.cmn.cache.periodic-refresh-initial-delay-millis:1800000}")
+    @Deprecated
     public void scheduledReloadConfigs() {
         try {
             refreshConfigs();

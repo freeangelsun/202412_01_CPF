@@ -1,11 +1,9 @@
 package com.cpf.security.resource;
 
 import java.util.*;
-import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContexts;
 import java.util.function.Supplier;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -27,13 +25,13 @@ public final class CpfSecurityContext {
     public Optional<Object> safeClaim(String name) {
         if (name == null || name.isBlank()) return Optional.empty();
         if (!properties.getSafeClaimNames().contains(name)) return Optional.empty();
-        return currentPrincipal().map(Authentication::getPrincipal).filter(Jwt.class::isInstance).map(Jwt.class::cast)
+        return currentPrincipal().map(value -> value.getPrincipal()).filter(Jwt.class::isInstance).map(Jwt.class::cast)
                 .map(jwt -> jwt.getClaims().get(name)).filter(CpfSecurityContext::safeValue);
     }
     /** Raw bearer propagation is forbidden. Use a dedicated OAuth2 client-credentials boundary. */
     @Deprecated(forRemoval = true)
     public Optional<String> authorizationHeader() { return Optional.empty(); }
-    private boolean hasAuthority(String required) { return currentPrincipal().stream().flatMap(a -> a.getAuthorities().stream()).map(GrantedAuthority::getAuthority).anyMatch(required::equals); }
+    private boolean hasAuthority(String required) { return currentPrincipal().stream().flatMap(a -> a.getAuthorities().stream()).map(value -> value.getAuthority()).anyMatch(required::equals); }
     private static String normalize(String v) { if (v==null || v.isBlank()) throw new IllegalArgumentException("authority must not be blank"); return v.trim(); }
     private static boolean safeValue(Object value) { return value instanceof String || value instanceof Number || value instanceof Boolean || value instanceof UUID; }
 }

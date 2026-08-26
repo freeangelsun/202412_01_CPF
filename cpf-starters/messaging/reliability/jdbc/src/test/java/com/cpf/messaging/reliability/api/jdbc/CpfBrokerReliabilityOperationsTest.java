@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,8 +33,9 @@ class CpfBrokerReliabilityOperationsTest {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         Map<String, Object> before = dlq("WAITING", 0);
         Map<String, Object> after = dlq("REQUESTED", 1);
-        when(jdbc.query(any(PreparedStatementCreator.class), any(ColumnMapRowMapper.class)))
-                .thenReturn(List.of(before), List.of(after));
+        doReturn(List.of(before))
+                .doReturn(List.of(after))
+                .when(jdbc).query(any(PreparedStatementCreator.class), any(ColumnMapRowMapper.class));
         when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
         CpfBrokerReliabilityOperations operations = new CpfBrokerReliabilityOperations(port, jdbc);
 

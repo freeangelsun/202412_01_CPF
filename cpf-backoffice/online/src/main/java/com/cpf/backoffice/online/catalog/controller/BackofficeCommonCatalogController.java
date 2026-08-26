@@ -71,7 +71,7 @@ public final class BackofficeCommonCatalogController extends com.cpf.backoffice.
                                                 @Valid @RequestBody CommonResponseCodeRequest request,
                                                 @RequestAttribute("backoffice.operatorId") String operator,
                                                 @RequestHeader("X-CPF-Reason") String reason) {
-        Object before = common.getResponseCode(code);
+        Object _ = common.getResponseCode(code);
         Object after = common.updateResponseCode(code, expectedVersion, request, requiredOperator(operator), requiredReason(reason));
         return ResponseEntity.ok(after);
     }
@@ -83,7 +83,7 @@ public final class BackofficeCommonCatalogController extends com.cpf.backoffice.
                                                  @RequestParam long expectedVersion,
                                                  @RequestAttribute("backoffice.operatorId") String operator,
                                                  @RequestHeader("X-CPF-Reason") String reason) {
-        Object before = common.getResponseCode(code);
+        Object _ = common.getResponseCode(code);
         common.deleteResponseCode(code, expectedVersion, requiredOperator(operator), requiredReason(reason));
         Map<String, Object> after = Map.of("responseCode", code, "useYn", "N");
         return ResponseEntity.ok(after);
@@ -125,7 +125,7 @@ public final class BackofficeCommonCatalogController extends com.cpf.backoffice.
                                            @Valid @RequestBody CommonMessageRequest request,
                                            @RequestAttribute("backoffice.operatorId") String operator,
                                            @RequestHeader("X-CPF-Reason") String reason) {
-        Object before = common.getMessage(id);
+        Object _ = common.getMessage(id);
         Object after = common.updateMessage(id, expectedVersion, request, requiredOperator(operator), requiredReason(reason));
         return ResponseEntity.ok(after);
     }
@@ -137,7 +137,7 @@ public final class BackofficeCommonCatalogController extends com.cpf.backoffice.
                                             @RequestParam long expectedVersion,
                                             @RequestAttribute("backoffice.operatorId") String operator,
                                             @RequestHeader("X-CPF-Reason") String reason) {
-        Object before = common.getMessage(id);
+        Object _ = common.getMessage(id);
         common.deleteMessage(id, expectedVersion, requiredOperator(operator), requiredReason(reason));
         Map<String, Object> after = Map.of("messageId", id, "useYn", "N");
         return ResponseEntity.ok(after);

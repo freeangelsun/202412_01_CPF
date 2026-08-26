@@ -13,7 +13,7 @@ import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.cpf.batch.spi.BatchApprovedLaunchRequestResolver;
 import com.cpf.batch.scheduler.internal.JdbcSchedulerLeaderRepository;
-import com.cpf.common.calendar.CmnBusinessCalendar;
+import com.cpf.common.calendar.api.CpfCalendarService;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import java.sql.Time;
@@ -48,7 +48,7 @@ public class SchedulerDispatchService {
 
     private final SchedulerCoordinator coordinator;
     private final JdbcTemplate jdbc;
-    private final CmnBusinessCalendar calendar;
+    private final CpfCalendarService calendar;
     private final TransactionTemplate transaction;
     private final BatchExecutionControlPort executionControl;
     private final BatchApprovedLaunchRequestResolver launchRequestResolver;
@@ -59,7 +59,7 @@ public class SchedulerDispatchService {
     public SchedulerDispatchService(
             SchedulerCoordinator coordinator,
             JdbcTemplate jdbc,
-            CmnBusinessCalendar calendar,
+            CpfCalendarService calendar,
             PlatformTransactionManager transactionManager,
             CpfVendorSqlCatalogProvider sqlCatalogProvider,
             BatchExecutionControlPort executionControl,
@@ -72,7 +72,7 @@ public class SchedulerDispatchService {
     public SchedulerDispatchService(
             SchedulerCoordinator coordinator,
             JdbcTemplate jdbc,
-            CmnBusinessCalendar calendar,
+            CpfCalendarService calendar,
             PlatformTransactionManager transactionManager,
             CpfVendorSqlCatalogProvider sqlCatalogProvider,
             BatchExecutionControlPort executionControl,
@@ -246,7 +246,7 @@ public class SchedulerDispatchService {
                     scheduleId + ":" + scheduledAt.toInstant(), fireAt.toInstant());
             batchContext = resolvedBatchContext;
             CpfContexts.run(resolvedBatchContext.snapshot(), () -> {
-                try (AutoCloseable ignoredBatch = CpfBatchRuntimeContexts.bind(resolvedBatchContext)) {
+                try (AutoCloseable _ = CpfBatchRuntimeContexts.bind(resolvedBatchContext)) {
                     BatchExecutionLink execution = executionControl.start(launchRequestResolver.resolve(
                             new BatchApprovedLaunchRequestResolver.TriggerContext(
                                     scheduleId,

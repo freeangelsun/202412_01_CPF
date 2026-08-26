@@ -1,7 +1,6 @@
 package com.cpf.batch.control.security;
 
 import com.cpf.batch.api.BatControlHeaders;
-import com.cpf.web.api.CpfHttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletRequest;

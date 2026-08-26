@@ -62,7 +62,7 @@ public final class CpfGatewayProbeExecutor {
                                 "TLS_UNSUPPORTED", "TLS", started);
                     }
                     if (target.protocol().tls()) {
-                        SSLSocket sslSocket = (SSLSocket) socket;
+                        if (!(socket instanceof SSLSocket sslSocket)) throw new IllegalStateException("TLS socket type mismatch");
                         sslSocket.startHandshake();
                         tls = "UP";
                         var peer = sslSocket.getSession().getPeerCertificates();

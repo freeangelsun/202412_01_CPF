@@ -1,6 +1,5 @@
 package com.cpf.security.common.token;
 
-import com.cpf.foundation.api.CpfBaseService;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

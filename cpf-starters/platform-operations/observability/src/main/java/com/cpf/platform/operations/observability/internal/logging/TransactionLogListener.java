@@ -8,7 +8,6 @@ import com.cpf.platform.operations.observability.api.logging.policy.LogPolicyDec
 import com.cpf.platform.operations.observability.api.CpfTelemetry;
 import com.cpf.platform.operations.observability.api.CpfTraceContext;
 import com.cpf.platform.operations.observability.internal.logging.fallback.CpfTransactionLogFallbackPort;
-import com.cpf.platform.operations.observability.internal.logging.TransactionLogService;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

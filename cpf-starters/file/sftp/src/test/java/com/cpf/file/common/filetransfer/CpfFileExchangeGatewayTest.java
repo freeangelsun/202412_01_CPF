@@ -1,7 +1,8 @@
 package com.cpf.file.common.filetransfer;
 
-import com.cpf.file.api.filetransfer.CpfFileResult;
 import com.cpf.file.api.filetransfer.CpfRemoteCommandPlan;
+import com.cpf.foundation.api.DefaultCpfTransactionIdGenerator;
+import java.time.Clock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.env.MockEnvironment;
@@ -62,6 +63,6 @@ class CpfFileExchangeGatewayTest {
     private CpfFileExchangeGateway gateway() {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.filetransfer.base-dir", tempDir.toString());
-        return new CpfFileExchangeGateway(environment, new StaticListableBeanFactory().getBeanProvider(CpfSftpClient.class));
+        return new CpfFileExchangeGateway(environment, new StaticListableBeanFactory().getBeanProvider(CpfSftpClient.class), new DefaultCpfTransactionIdGenerator("FLE", Clock.systemUTC()));
     }
 }

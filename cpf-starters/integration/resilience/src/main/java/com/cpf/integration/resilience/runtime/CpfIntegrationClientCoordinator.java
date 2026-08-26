@@ -1,7 +1,6 @@
 package com.cpf.integration.resilience.runtime;
 
 import com.cpf.core.api.context.*;
-import com.cpf.foundation.execution.CpfContextExecutionFactory;
 import com.cpf.integration.api.annotation.*;
 import com.cpf.integration.resilience.api.*;
 import java.lang.reflect.Method;
@@ -10,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 /** {@code @CpfClient}/{@code @CpfRetry}/{@code @CpfTimeout}를 기존 Resilience Engine과 Core Context에 연결하는 순수 Runtime Coordinator입니다. */
+@SuppressWarnings("deprecation")
 public final class CpfIntegrationClientCoordinator {
     private final CpfIntegrationAnnotationProperties properties;
     private final CpfIntegrationAnnotationPolicyFactory policyFactory;

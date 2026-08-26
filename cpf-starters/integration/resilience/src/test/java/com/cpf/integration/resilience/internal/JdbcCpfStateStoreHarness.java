@@ -225,7 +225,7 @@ public final class JdbcCpfStateStoreHarness {
                         && snapshot.stateKey().compareTo(request.afterStateKey()) <= 0) continue;
                 rows.add(snapshot);
             }
-            rows.sort(Comparator.comparing(CpfStateSnapshot::stateKey));
+            rows.sort(Comparator.comparing(value -> value.stateKey()));
             return List.copyOf(rows.subList(0, Math.min(rows.size(), maximumRows)));
         }
 

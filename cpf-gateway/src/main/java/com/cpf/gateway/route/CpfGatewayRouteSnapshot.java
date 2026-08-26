@@ -91,7 +91,7 @@ public class CpfGatewayRouteSnapshot {
         String requestMethod = blankTo(method, "GET");
         String version = blankTo(apiVersion, "v1");
         return current.get().routes().values().stream()
-                .filter(CpfGatewayRoute::enabled)
+                .filter(value -> value.enabled())
                 .filter(route -> route.environmentCode().equalsIgnoreCase(environment))
                 .filter(route -> matchesHost(route.hostPattern(), requestHost))
                 .filter(route -> CpfGatewayPathRewriter.matches(route.pathPattern(), requestPath))
@@ -100,7 +100,7 @@ public class CpfGatewayRouteSnapshot {
                 .sorted(java.util.Comparator
                         .comparingInt((CpfGatewayRoute route) -> specificity(route.hostPattern(), route.pathPattern()))
                         .reversed()
-                        .thenComparing(CpfGatewayRoute::routeId))
+                        .thenComparing(value -> value.routeId()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         "승인·적용 완료된 Gateway Route가 없습니다. host=" + requestHost

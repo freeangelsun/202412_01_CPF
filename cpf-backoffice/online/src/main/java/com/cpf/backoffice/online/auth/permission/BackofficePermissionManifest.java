@@ -18,14 +18,14 @@ public class BackofficePermissionManifest {
         String path=normalizePath(relativePath);
         String menu=definition.apiResourceGroups().entrySet().stream()
                 .filter(e->path.equals(e.getKey())||path.startsWith(e.getKey()+"/"))
-                .max(Comparator.comparingInt(e->e.getKey().length())).map(Map.Entry::getValue).map(this::canonicalMenuCode).orElse(null);
+                .max(Comparator.comparingInt(e->e.getKey().length())).map(value -> value.getValue()).map(this::canonicalMenuCode).orElse(null);
         if(menu==null)return Optional.empty();
         String normalizedMethod=method==null?"":method.trim().toUpperCase(Locale.ROOT);
-        String action=definition.actionRules().stream().filter(r->r.matches(normalizedMethod,path)).map(ActionRule::actionCode).findFirst()
+        String action=definition.actionRules().stream().filter(r->r.matches(normalizedMethod,path)).map(value -> value.actionCode()).findFirst()
                 .orElseGet(()->"GET".equals(normalizedMethod)?"READ":"DELETE".equals(normalizedMethod)?"DELETE":"WRITE");
         return Optional.of(new ApiPermission(menu,action));
     }
-    public Optional<String> resolveApiMenuCode(String relativePath){return resolve("GET",relativePath).map(ApiPermission::menuCode);}
+    public Optional<String> resolveApiMenuCode(String relativePath){return resolve("GET",relativePath).map(value -> value.menuCode());}
     public String canonicalMenuCode(String value){String n=normalizeCode(value);if(n.startsWith("MBW_"))n=n.substring(4);return definition.permissionAliases().getOrDefault(n,n);}
     public List<String> menuGroups(){return definition.menuGroups();}
     public String sourceProjection(){return definition.sourceProjection();}

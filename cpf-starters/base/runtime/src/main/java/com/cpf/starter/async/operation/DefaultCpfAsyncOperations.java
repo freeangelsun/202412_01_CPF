@@ -1,7 +1,6 @@
 package com.cpf.starter.async.operation;
 
 import com.cpf.core.api.async.*;
-import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.core.api.result.CpfRecoveryInfo;
 import com.cpf.core.api.result.CpfResult;

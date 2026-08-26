@@ -45,7 +45,7 @@ public final class CpfGatewayConnectionTestWorker {
                     .filter(item -> item.bindingId().equals(bindingId))
                     .findFirst().orElseThrow(() -> new IllegalArgumentException("Binding not found"));
             List<CpfGatewayRegistryPort.GroupMember> members = registry.findMembers(binding.serverGroupId()).stream()
-                    .filter(CpfGatewayRegistryPort.GroupMember::enabled).toList();
+                    .filter(value -> value.enabled()).toList();
             if (members.isEmpty()) throw new IllegalStateException("Enabled Gateway member is empty");
             int success = 0;
             for (CpfGatewayRegistryPort.GroupMember member : members) {

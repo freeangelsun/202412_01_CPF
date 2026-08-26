@@ -16,12 +16,12 @@ public final class CpfJpaExceptionTranslator {
     public static RuntimeException translate(String operation, RuntimeException cause) {
         if (cause instanceof CpfPersistenceException) return cause;
         CpfPersistenceFailureType type = switch (cause) {
-            case EntityNotFoundException ignored -> CpfPersistenceFailureType.NOT_FOUND;
-            case OptimisticLockException ignored -> CpfPersistenceFailureType.OPTIMISTIC_LOCK;
-            case PessimisticLockException ignored -> CpfPersistenceFailureType.PESSIMISTIC_LOCK;
-            case LockTimeoutException ignored -> CpfPersistenceFailureType.TIMEOUT;
-            case QueryTimeoutException ignored -> CpfPersistenceFailureType.TIMEOUT;
-            case PersistenceException ignored -> CpfPersistenceFailureType.QUERY;
+            case EntityNotFoundException _ -> CpfPersistenceFailureType.NOT_FOUND;
+            case OptimisticLockException _ -> CpfPersistenceFailureType.OPTIMISTIC_LOCK;
+            case PessimisticLockException _ -> CpfPersistenceFailureType.PESSIMISTIC_LOCK;
+            case LockTimeoutException _ -> CpfPersistenceFailureType.TIMEOUT;
+            case QueryTimeoutException _ -> CpfPersistenceFailureType.TIMEOUT;
+            case PersistenceException _ -> CpfPersistenceFailureType.QUERY;
             default -> CpfPersistenceFailureType.UNKNOWN;
         };
         return new CpfPersistenceException(type, operation, "CPF JPA operation failed: " + operation, cause);

@@ -190,7 +190,13 @@ public class BatchRuntimeControlController extends AdmBaseController {
     ResponseEntity<Map<String, Object>> plan(
             @RequestAttribute("adm.operatorId") String operatorId,
             @RequestBody BatchRuntimeDeploymentPlanRequest body) {
-        Map<String, Object> request = body == null ? null : body.toMap();
+        Map<String, Object> request = Map.of();
+        if (body != null) {
+            Map<String, Object> mapped = body.toMap();
+            if (mapped != null) {
+                request = mapped;
+            }
+        }
         try {
             requireCommandField(request, "reason");
             Object manifest = request.get("manifest");
@@ -422,9 +428,6 @@ public class BatchRuntimeControlController extends AdmBaseController {
         return value;
     }
 
-    private static void requireExpectedVersion(Map<String, Object> request) {
-        requireVersion(request, "expectedVersion");
-    }
 
     private static long requireVersion(Map<String, Object> request, String field) {
         Object value = request.get(field);

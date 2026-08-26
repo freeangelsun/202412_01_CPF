@@ -16,7 +16,7 @@ REQUIRED = {
     LEDGER: (
         "private static final ReentrantLock[] JVM_LOCKS",
         "FileChannel.open(",
-        "FileLock ignored = channel.lock()",
+        "FileLock _ = channel.lock()",
         "channel.force(true)",
         "LinkOption.NOFOLLOW_LINKS",
         "COMMAND_EXECUTION_INTERRUPTED",
@@ -125,7 +125,7 @@ def verify(root: Path) -> dict[str, object]:
             errors.append(f"{LEDGER}: {failure}")
         try:
             lock = method_body(ledger, "private <T> T withCommandLock(")
-            require_order(lock, "FileLock ignored = channel.lock()", "return operation.run()",
+            require_order(lock, "FileLock _ = channel.lock()", "return operation.run()",
                           f"{LEDGER}: withCommandLock()", errors)
         except ValueError as failure:
             errors.append(f"{LEDGER}: {failure}")

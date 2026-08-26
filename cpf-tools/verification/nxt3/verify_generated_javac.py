@@ -96,7 +96,7 @@ def main()->int:
                 if not dsrc:
                     checks.append({'domain':domain,'status':'FAIL','rc':2,'stderr':f'Generated Java Source가 없습니다: {domain_root}','sourceCount':0})
                     continue
-                cp=subprocess.run([javac,'--release','21','-encoding','UTF-8','-d',str(classes),*sources,*dsrc],text=True,capture_output=True)
+                cp=subprocess.run([javac,'--enable-preview','--release','21','-encoding','UTF-8','-d',str(classes),*sources,*dsrc],text=True,capture_output=True)
                 checks.append({'domain':domain,'status':'PASS' if cp.returncode==0 else 'FAIL','rc':cp.returncode,'stderr':cp.stderr[-12000:],'sourceCount':len(dsrc)})
             failed=[x for x in checks if x['status']=='FAIL']; result={'gate':'NXT3_GENERATED_JAVAC','status':'PASS' if not failed else 'FAIL','javaRelease':21,'checks':checks,'failedCount':len(failed)}
     if ns.evidence:

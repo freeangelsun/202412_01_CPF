@@ -390,7 +390,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "mbw_refresh_token", S
                 password.matches(".*[a-z].*"),
                 password.matches(".*[0-9].*"),
                 password.matches(".*[^A-Za-z0-9].*"))
-                .filter(Boolean::booleanValue)
+                .filter(value -> value.booleanValue())
                 .count();
         if (password.length() < 12 || categories < 3 || password.toLowerCase(java.util.Locale.ROOT).contains(loginId.toLowerCase(java.util.Locale.ROOT))) {
             throw new ResponseStatusException(

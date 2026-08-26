@@ -188,7 +188,7 @@ public final class BatControlAuthenticationFilter extends OncePerRequestFilter {
             return Set.of();
         }
         return Arrays.stream(configured.split(","))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(value -> !value.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
     }

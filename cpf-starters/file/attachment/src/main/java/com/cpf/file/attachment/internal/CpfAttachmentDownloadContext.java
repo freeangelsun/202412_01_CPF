@@ -11,16 +11,19 @@ public final class CpfAttachmentDownloadContext {
     private CpfAttachmentDownloadContext() {
     }
 
+    @Deprecated
     public static <T> T with(Context context, Supplier<T> action) {
         return com.cpf.file.spi.attachment.CpfAttachmentDownloadContext.with(context.toApi(), action);
     }
 
+    @Deprecated
     public static Context current() {
         com.cpf.file.spi.attachment.CpfAttachmentDownloadContext.Context context =
                 com.cpf.file.spi.attachment.CpfAttachmentDownloadContext.current();
         return context == null ? null : Context.fromApi(context);
     }
 
+    @Deprecated
     public record Context(
             String operatorId,
             boolean permitted,

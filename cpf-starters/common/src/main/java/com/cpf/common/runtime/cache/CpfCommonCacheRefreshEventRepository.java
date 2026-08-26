@@ -51,7 +51,7 @@ public class CpfCommonCacheRefreshEventRepository {
     /** checkpoint 이후 event를 ID 오름차순으로 제한 조회하여 gap 없이 replay할 수 있게 합니다. */
     public List<Map<String, Object>> findAfter(long eventId, int limit) {
         int safeLimit = Math.max(1, Math.min(limit, 1000));
-        long to = eventId + safeLimit;
+        long _ = eventId + safeLimit;
         return jdbc.queryForList(
                 "SELECT event_id,cache_name,event_type,event_key,source_was_id,published_by,published_at FROM (" +
                         "SELECT e.*, ROW_NUMBER() OVER(ORDER BY event_id) cpf_rn FROM CMN_CACHE_REFRESH_EVENT e WHERE event_id>?" +

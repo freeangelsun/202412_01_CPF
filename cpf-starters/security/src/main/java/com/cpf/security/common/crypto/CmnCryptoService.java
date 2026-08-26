@@ -1,6 +1,5 @@
 package com.cpf.security.common.crypto;
 
-import com.cpf.foundation.api.CpfBaseService;
 
 import com.cpf.foundation.util.CpfStrings;
 import com.cpf.core.api.error.CpfExternalServiceException;

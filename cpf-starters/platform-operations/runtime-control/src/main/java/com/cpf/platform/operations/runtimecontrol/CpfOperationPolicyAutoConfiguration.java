@@ -68,7 +68,7 @@ public class CpfOperationPolicyAutoConfiguration {
         String raw = env.getProperty(SEED_ALLOWED_CALLERS, "");
         List<String> callers = raw.isBlank()
                 ? List.of()
-                : Arrays.stream(raw.split(",")).map(String::trim).filter(v -> !v.isBlank()).toList();
+                : Arrays.stream(raw.split(",")).map(value -> value.trim()).filter(v -> !v.isBlank()).toList();
         return new CpfJdbcOperationCatalogRegistry(
                 jdbc,
                 new TransactionTemplate(manager),

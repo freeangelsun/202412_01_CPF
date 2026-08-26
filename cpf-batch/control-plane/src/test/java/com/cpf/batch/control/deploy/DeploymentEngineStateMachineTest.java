@@ -48,7 +48,7 @@ class DeploymentEngineStateMachineTest {
                 ArgumentCaptor.forClass(DeploymentResult.InstanceResult.class);
         verify(fixture.repository, org.mockito.Mockito.times(4))
                 .instance(eq("d"), anyInt(), resultCaptor.capture());
-        assertThat(resultCaptor.getAllValues().stream().map(DeploymentResult.InstanceResult::stage).toList())
+        assertThat(resultCaptor.getAllValues().stream().map(value -> value.stage()).toList())
                 .containsExactly("DRAIN", "INSTALL", "START", "ADMISSION");
         verify(fixture.lock).release("c", "d");
     }

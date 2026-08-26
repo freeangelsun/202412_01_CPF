@@ -30,7 +30,7 @@ class CpfStarterContextProjectionRuntimeTest {
         });
 
         try (AutoCloseable root = runtime.bind(context("TX-ROOT", "EX-ROOT", "SG-ROOT"))) {
-            try (AutoCloseable child = runtime.bind(context("TX-CHILD", "EX-CHILD", "SG-CHILD"))) {
+            try (AutoCloseable _ = runtime.bind(context("TX-CHILD", "EX-CHILD", "SG-CHILD"))) {
                 assertEquals("TX-CHILD", runtime.current().transactionId());
             }
             assertEquals("TX-ROOT", runtime.current().transactionId());

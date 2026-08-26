@@ -207,7 +207,7 @@ public final class CmnJdbcTemplateStore implements CmnTemplateStore {
     static Set<String> decodeVariables(String encoded) {
         if (encoded == null || encoded.isBlank() || "-".equals(encoded)) return Set.of();
         LinkedHashSet<String> result = new LinkedHashSet<>();
-        Arrays.stream(encoded.split(",")).map(String::trim).filter(value -> !value.isEmpty()).forEach(result::add);
+        Arrays.stream(encoded.split(",")).map(value -> value.trim()).filter(value -> !value.isEmpty()).forEach(result::add);
         return Set.copyOf(result);
     }
 

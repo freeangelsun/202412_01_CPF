@@ -87,7 +87,7 @@ public final class CpfSqlResourceResolver {
         }
         readable.sort(Comparator.comparing(item -> item.path().toString()));
         return readable.stream()
-                .map(ResolvedResource::resource)
+                .map(value -> value.resource())
                 .toArray(Resource[]::new);
     }
 

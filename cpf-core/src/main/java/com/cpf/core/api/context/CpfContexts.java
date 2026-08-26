@@ -48,7 +48,7 @@ public final class CpfContexts {
     /** 지정 Snapshot 범위에서 Runnable을 실행하며 finally restore를 보장합니다. */
     public static void run(CpfContextSnapshot snapshot, Runnable runnable) {
         Objects.requireNonNull(runnable, "runnable");
-        try (AutoCloseable ignored = bind(snapshot)) { runnable.run(); }
+        try (AutoCloseable _ = bind(snapshot)) { runnable.run(); }
         catch (RuntimeException e) { throw e; }
         catch (Exception e) { throw new IllegalStateException("CPF context scope close failed", e); }
     }
@@ -56,7 +56,7 @@ public final class CpfContexts {
     /** 지정 Snapshot 범위에서 Callable을 실행하며 finally restore를 보장합니다. */
     public static <T> T call(CpfContextSnapshot snapshot, Callable<T> callable) throws Exception {
         Objects.requireNonNull(callable, "callable");
-        try (AutoCloseable ignored = bind(snapshot)) { return callable.call(); }
+        try (AutoCloseable _ = bind(snapshot)) { return callable.call(); }
     }
 
     public static String transactionId() { return requireCurrent().transactionId(); }

@@ -36,7 +36,7 @@ public final class CpfLocalDomainModuleRegistrar implements ImportBeanDefinition
         }
         String configured = environment.getProperty("cpf.local.modules.domains.base-packages", "");
         Arrays.stream(configured.split(","))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(s -> !s.isBlank())
                 .forEach(packages::add);
 

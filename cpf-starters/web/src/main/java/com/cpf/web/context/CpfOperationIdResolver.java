@@ -22,7 +22,7 @@ public final class CpfOperationIdResolver {
         if(openApiId!=null)return openApiId;
         String controller=handlerMethod.getBeanType().getSimpleName().replaceFirst("Controller$","");
         String method=capitalize(handlerMethod.getMethod().getName());
-        String parameters=Arrays.stream(handlerMethod.getMethod().getParameterTypes()).map(Class::getSimpleName).map(this::capitalize).collect(Collectors.joining("And"));
+        String parameters=Arrays.stream(handlerMethod.getMethod().getParameterTypes()).map(value -> value.getSimpleName()).map(this::capitalize).collect(Collectors.joining("And"));
         String base=lowerFirst(controller)+method; return parameters.isBlank()?base:base+"Using"+parameters;
     }
     private static String trim(String v){return v==null||v.isBlank()?null:v.trim();}

@@ -103,7 +103,7 @@ public final class CpfSftpClient implements AutoCloseable {
         String remote = paths.remote(remotePath);
         String transferId = nextTransferId();
         CpfFileScope cpfFileScope = beginFileScope("UPLOAD", transferId, remote, transactionId, 1, null);
-        try (CpfFileScope ignoredCpfFileScope = cpfFileScope) {
+        try (CpfFileScope _ = cpfFileScope) {
         String remoteWork = CpfSftpUploadOutcomePolicy.remoteWorkPath(remote, transferId, resume);
         Instant startedAt = clock.instant();
         ledger.started(record(
@@ -216,7 +216,7 @@ public final class CpfSftpClient implements AutoCloseable {
         Path target = paths.localTarget(localPath);
         String transferId = nextTransferId();
         CpfFileScope cpfFileScope = beginFileScope("DOWNLOAD", transferId, remote, transactionId, 1, null);
-        try (CpfFileScope ignoredCpfFileScope = cpfFileScope) {
+        try (CpfFileScope _ = cpfFileScope) {
         Instant startedAt = clock.instant();
         ledger.started(record(
                 transferId, "DOWNLOAD", remote, target.toString(), "STARTED",
@@ -295,7 +295,7 @@ public final class CpfSftpClient implements AutoCloseable {
 
     public List<String> list(String remoteDirectory) {
         String remote = paths.remote(remoteDirectory);
-        try (CpfFileScope ignoredCpfFileScope = beginFileScope("LIST", nextTransferId(), remote, currentTransactionId(), 1, null);
+        try (CpfFileScope _ = beginFileScope("LIST", nextTransferId(), remote, currentTransactionId(), 1, null);
                 Context context = open()) {
             List<String> result = new ArrayList<>();
             for (var entry : context.sftp().readDir(remote)) {
@@ -312,7 +312,7 @@ public final class CpfSftpClient implements AutoCloseable {
     public void move(String sourcePath, String targetPath) {
         String source = paths.remote(sourcePath);
         String target = paths.remote(targetPath);
-        try (CpfFileScope ignoredCpfFileScope = beginFileScope("MOVE", nextTransferId(), target, currentTransactionId(), 1, null);
+        try (CpfFileScope _ = beginFileScope("MOVE", nextTransferId(), target, currentTransactionId(), 1, null);
                 Context context = open()) {
             context.sftp().rename(
                     source, target,
@@ -325,7 +325,7 @@ public final class CpfSftpClient implements AutoCloseable {
 
     public void delete(String remotePath) {
         String remote = paths.remote(remotePath);
-        try (CpfFileScope ignoredCpfFileScope = beginFileScope("DELETE", nextTransferId(), remote, currentTransactionId(), 1, null);
+        try (CpfFileScope _ = beginFileScope("DELETE", nextTransferId(), remote, currentTransactionId(), 1, null);
                 Context context = open()) {
             context.sftp().remove(remote);
         } catch (Exception exception) {
@@ -409,12 +409,13 @@ public final class CpfSftpClient implements AutoCloseable {
     }
 
     private static CpfSecretReference parseSecret(String value) {
-        int separator = value == null ? -1 : value.indexOf(':');
-        if (separator <= 0 || separator == value.length() - 1) {
+        String requiredValue = Objects.requireNonNull(value, "SFTP password-secret must be provider:key");
+        int separator = requiredValue.indexOf(':');
+        if (separator <= 0 || separator == requiredValue.length() - 1) {
             throw new IllegalArgumentException("SFTP password-secret must be provider:key");
         }
         return new CpfSecretReference(
-                value.substring(0, separator), value.substring(separator + 1));
+                requiredValue.substring(0, separator), requiredValue.substring(separator + 1));
     }
 
     private void requireWithinLimit(long bytes) {

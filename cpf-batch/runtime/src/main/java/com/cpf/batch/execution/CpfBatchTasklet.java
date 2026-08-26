@@ -60,8 +60,8 @@ public final class CpfBatchTasklet implements Tasklet {
             CpfBatchContextBundle attemptContext=contextSupport.restoreStep(
                     parameters,stepExecution,attempt,fencingToken,cpfExecutionId,jobId,
                     requiredLong(parameters,"definitionVersion"));
-            try (AutoCloseable ignoredCore= CpfContexts.bind(attemptContext.snapshot());
-                 AutoCloseable ignoredBatch= CpfBatchRuntimeContexts.bind(attemptContext)) {
+            try (AutoCloseable _= CpfContexts.bind(attemptContext.snapshot());
+                 AutoCloseable _= CpfBatchRuntimeContexts.bind(attemptContext)) {
                 result = handler.execute(new BatchStepHandler.BatchStepCommand(
                         cpfExecutionId,
                         stepExecution.getJobExecutionId(),

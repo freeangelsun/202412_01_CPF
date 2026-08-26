@@ -71,7 +71,7 @@ class CpfTcpUnknownResultStoreDurabilityTest {
 
         second.record(new CpfTcpUnknownResult("CORR-2", at.plusSeconds(1), new byte[]{2}, "timeout"));
         first.refresh();
-        assertThat(first.snapshot()).extracting(CpfTcpUnknownResult::correlationId)
+        assertThat(first.snapshot()).extracting(value -> value.correlationId())
                 .containsExactly("CORR-1", "CORR-2");
 
         assertThatThrownBy(() -> second.record(

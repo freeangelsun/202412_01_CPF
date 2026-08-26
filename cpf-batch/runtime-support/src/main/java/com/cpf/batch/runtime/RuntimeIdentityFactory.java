@@ -45,7 +45,7 @@ public final class RuntimeIdentityFactory {
                 environment, "server.port", "CPF_PORT", Integer.toString(defaultPort)));
         List<String> capabilities = Arrays.stream(property(
                         environment, "cpf.batch.runtime.capabilities", "CPF_CAPABILITIES", role.name()).split(","))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(value -> !value.isEmpty())
                 .toList();
 

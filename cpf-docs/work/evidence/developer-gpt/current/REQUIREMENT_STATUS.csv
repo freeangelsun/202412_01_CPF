@@ -1,0 +1,10 @@
+﻿requirement_id,title,개발GPT_개발상태,개발GPT_검증상태,개발GPT_내용
+WP-00,Source Truth / Inventory,완료,완료,Local Working Tree ZIP canonical; Git history not used; source identity fixed
+WP-01,Evidence / Path / Hygiene,완료,완료,Windows path failures 0; hygiene/config contracts PASS
+WP-02,RT-02 Immutable Migration,완료,완료,Local Git baseline UNAVAILABLE; canonical digest fail-closed; released V/R not re-anchored
+WP-03,DB3 / Oracle / One-WAS DB source correction,완료,미검증,Static/contract tests PASS; physical Docker DB3 runtime unavailable in sandbox
+WP-04,Kafka-free Batch / Gateway / Center-Cut,완료,미검증,Kafka coupling removed and static gates PASS; process-kill/two-worker runtime requires Docker/PowerShell
+WP-05,Publication / Generator / Open Git,완료,부분 검증,Generated javac member/external PASS; full Gradle 9.1 Java25 publication unavailable
+WP-06,ADM Frontend / OpenAPI,완료,부분 검증,OpenAPI/primary/consumer contracts PASS; npm lint/typecheck/build unavailable because node_modules install blocked
+WP-07,VSCode / Java warning closure,완료,부분 검증,923 original diagnostic source conditions closed; actual JDT Fresh Sync unavailable
+WP-08,Maximum Runtime / Final Closure,완료,미검증,Static replay PASS; fresh Java25/Docker/Browser/Performance runtime not executable here

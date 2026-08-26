@@ -21,7 +21,7 @@ class CpfLocalBatchRuntimeStatusControllerTest {
 
         assertEquals(
                 List.of("control-plane", "scheduler", "worker", "center-cut", "agent"),
-                status.roles().stream().map(CpfLocalBatchRuntimeStatusController.Role::name).toList());
+                status.roles().stream().map(value -> value.name()).toList());
         assertFalse(status.roles().getFirst().enabled());
         assertEquals(19094, status.roles().getLast().port());
     }

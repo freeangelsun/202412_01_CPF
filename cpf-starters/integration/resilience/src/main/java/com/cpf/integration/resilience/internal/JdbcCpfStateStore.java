@@ -450,7 +450,7 @@ final class JdbcCpfStateStore implements CpfStateStore, CpfStateRuntimeStatus {
                 arguments.add(request.afterStateKey());
             }
             StringJoiner placeholders = new StringJoiner(",", "(", ")");
-            for (CpfOperationState ignored : request.states()) placeholders.add("?");
+            for (CpfOperationState _ : request.states()) placeholders.add("?");
             sql.append(" AND state_code IN ").append(placeholders);
             for (CpfOperationState state : request.states()) arguments.add(state.name());
             sql.append(" ORDER BY state_key ASC");

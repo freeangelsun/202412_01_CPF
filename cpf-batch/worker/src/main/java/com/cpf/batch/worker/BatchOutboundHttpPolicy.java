@@ -46,7 +46,7 @@ final class BatchOutboundHttpPolicy {
         }
         List<InetAddress> addresses = new ArrayList<>(resolver.resolve(host));
         if (addresses.isEmpty()) throw new SecurityException("BATCH_OUTBOUND_DNS_EMPTY");
-        addresses = addresses.stream().distinct().sorted(Comparator.comparing(InetAddress::getHostAddress)).toList();
+        addresses = addresses.stream().distinct().sorted(Comparator.comparing(value -> value.getHostAddress())).toList();
         Set<String> pins = normalizedPins(host);
         boolean privateSeen = false;
         boolean publicSeen = false;
@@ -80,7 +80,7 @@ final class BatchOutboundHttpPolicy {
     private Set<String> normalizedPins(String host) {
         List<String> configured = policy.getHostPins().entrySet().stream()
                 .filter(e -> canonicalHost(e.getKey()).equals(host))
-                .map(java.util.Map.Entry::getValue)
+                .map(value -> java.util.Map.Entry.getValue(value))
                 .findFirst().orElse(List.of());
         Set<String> pins = new LinkedHashSet<>();
         configured.forEach(value -> pins.add(normalize(value)));

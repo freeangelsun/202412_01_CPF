@@ -617,15 +617,11 @@ if($python){
     Invoke-CpfStage 'CODEX_NOTIFICATION_INCIDENT_LIFECYCLE' $python @('.\cpf-tools\verification\tools\verify-cpf-notification-incident-lifecycle.py','--root','.')
     Invoke-CpfStage 'CODEX_FRONTEND_CONSUMER_CLOSURE' $python @('.\cpf-tools\verification\tools\verify-cpf-frontend-consumer-closure.py','--root','.', '--json-output',(Join-Path $evidenceDir 'frontend-consumer-closure.json'))
 
-    # Exhaustive execution-scope audit는 source만으로 생성할 수 없는 QA audit/work-package 입력을 요구한다.
-    # 두 입력이 모두 주어질 때만 실제 검증하며, 하나라도 없으면 미실행을 명시해 false PASS를 막는다.
-    $executionAuditCsv=[Environment]::GetEnvironmentVariable('CPF_EXECUTION_AUDIT_CSV','Process')
-    $executionWorkPackageCsv=[Environment]::GetEnvironmentVariable('CPF_EXECUTION_WORK_PACKAGE_CSV','Process')
-    if(-not [string]::IsNullOrWhiteSpace($executionAuditCsv) -and -not [string]::IsNullOrWhiteSpace($executionWorkPackageCsv) -and (Test-Path -LiteralPath $executionAuditCsv -PathType Leaf) -and (Test-Path -LiteralPath $executionWorkPackageCsv -PathType Leaf)){
-        Invoke-CpfStage 'CODEX_EXECUTION_SCOPE_EXHAUSTIVE' $python @('.\cpf-tools\verification\tools\verify-cpf-execution-scope-exhaustive.py','--root','.', '--expected-sha',$sourceIdentity,'--source-head',$sourceIdentity,'--audit-csv',$executionAuditCsv,'--work-package-csv',$executionWorkPackageCsv,'--json-output',(Join-Path $evidenceDir 'execution-scope-exhaustive.json'))
-    }else{
-        Skip-CpfStage 'CODEX_EXECUTION_SCOPE_EXHAUSTIVE' 'CPF_EXECUTION_AUDIT_CSV / CPF_EXECUTION_WORK_PACKAGE_CSV inputs not provided'
-    }
+    # Exhaustive execution-scope audit는 Canonical split master를 입력으로 사용하고 audit/work-package CSV를
+    # 이번 실행 Evidence 디렉터리에 직접 생성한다. Git 이력이나 외부 사전생성 CSV는 요구하지 않는다.
+    $executionAuditCsv=Join-Path $evidenceDir 'execution-scope-audit.csv'
+    $executionWorkPackageCsv=Join-Path $evidenceDir 'execution-scope-work-packages.csv'
+    Invoke-CpfStage 'CODEX_EXECUTION_SCOPE_EXHAUSTIVE' $python @('.\cpf-tools\verification\tools\verify-cpf-execution-scope-exhaustive.py','--root','.', '--expected-sha',$sourceIdentity,'--source-head',$sourceIdentity,'--audit-csv',$executionAuditCsv,'--work-package-csv',$executionWorkPackageCsv,'--json-output',(Join-Path $evidenceDir 'execution-scope-exhaustive.json'))
     foreach($topology in @('single-node','split-online','split-batch','full-distributed')){
         $stage='DEPLOYMENT_TOPOLOGY_'+$topology.ToUpperInvariant().Replace('-','_')
         Invoke-CpfStage $stage $python @('.\deploy\tools\prepare-distribution.py','--root','.', '--env','local','--topology',$topology,'--output',(Join-Path $evidenceDir "deployment-plan\$topology"),'--plan-only')
@@ -760,17 +756,13 @@ if($IncludeRuntimeClosure){
 
         $batchDbEnv=Import-CpfEnvFile $DockerSecretFile
         $batchDbState=$null
-        $batchKafkaState=$null
         try{
+            # Batch 2-Worker Runtime은 DB claim/lease/fencing을 canonical coordination owner로 사용하며
+            # Kafka를 기동하거나 readiness prerequisite로 요구하지 않는다. Kafka는 위의 일반 Messaging
+            # reliability Stage에서만 독립 검증한다.
             $batchDbState=Start-CpfDockerTarget 'mariadb'
-            # Batch 2-Worker Runtime은 Kafka에도 의존한다. 이전 MESSAGING_KAFKA_RELIABILITY 단계가
-            # 자신이 기동한 Kafka를 이미 정지시켰을 수 있으므로, 이 Stage도 자신의 자원을 스스로
-            # 기동/추적하고 자신이 기동한 Container만 finally에서 정지한다(사용자 기존 Container는 보존).
-            $batchKafkaState=Start-CpfDockerTarget 'kafka'
             if(-not $batchDbState.ready){
                 Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $batchDbState.reason
-            }elseif(-not $batchKafkaState.ready){
-                Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $batchKafkaState.reason
             }else{
                 $workerJar=Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'cpf-batch\worker\build\libs') -File -Filter '*.jar' -ErrorAction SilentlyContinue | Where-Object {$_.Name -notmatch 'plain'} | Select-Object -First 1
                 $adminPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
@@ -783,7 +775,6 @@ if($IncludeRuntimeClosure){
             }
         }finally{
             Stop-CpfDockerTargetIfOwned 'mariadb' $batchDbState
-            Stop-CpfDockerTargetIfOwned 'kafka' $batchKafkaState
             Restore-CpfEnvironment $batchDbEnv
         }
     }else{Skip-CpfStage 'RUNTIME_DOCKER_CLOSURE' 'IncludeRuntimeClosure requires pwsh + ready Docker and no SkipDocker'}

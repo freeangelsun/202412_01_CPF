@@ -33,7 +33,7 @@ class CpfResilienceEngineSafetyTest {
                 Duration.ofMillis(100), Duration.ofSeconds(1), Duration.ofMillis(1),
                 Duration.ofMillis(10), 0.0d, 1, Duration.ofMinutes(1), 1, Duration.ofMillis(10));
         AtomicInteger calls = new AtomicInteger();
-        try (AutoCloseable ignored = CpfResilienceTestSupport.bindContext("tx", Clock.fixed(Instant.EPOCH, ZoneOffset.UTC));
+        try (AutoCloseable _ = CpfResilienceTestSupport.bindContext("tx", Clock.fixed(Instant.EPOCH, ZoneOffset.UTC));
              CpfResilienceEngine engine = CpfResilienceTestSupport.engine(
                 new OnePolicy(base), failure -> CpfResilienceFailureClassifier.Classification.RETRYABLE,
                 (a, b, c, d, e, f) -> {}, (policy, context) -> runtime, null,

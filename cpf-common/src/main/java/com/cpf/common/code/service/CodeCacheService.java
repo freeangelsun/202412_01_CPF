@@ -52,6 +52,7 @@ public class CodeCacheService extends CpfBaseService {
     @Value("${cpf.cmn.cache.fail-fast-on-startup:false}")
     private boolean failFastOnStartup;
 
+    @Deprecated
     public CodeCacheService(CodeMapper codeMapper,
             CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher) {
@@ -59,6 +60,7 @@ public class CodeCacheService extends CpfBaseService {
     }
 
     @org.springframework.beans.factory.annotation.Autowired
+    @Deprecated
     public CodeCacheService(CodeMapper codeMapper,
             CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher, Clock clock) {
@@ -69,26 +71,31 @@ public class CodeCacheService extends CpfBaseService {
     }
 
     @Cacheable(value = CACHE_NAME, key = "'" + ALL_KEY + "'")
+    @Deprecated
     public List<Map<String, Object>> getAllCodes() {
         logger.info("Cache Miss: Fetching all codes from database");
         return codeMapper.findAllCodes();
     }
 
     @Cacheable(value = CACHE_NAME, key = "'" + CODE_PREFIX + "' + #p0")
+    @Deprecated
     public Map<String, Object> getCodeByKey(String codeKey) {
         logger.debug("Cache Miss: Fetching code for key: {}", codeKey);
         return codeMapper.findCodeByKey(codeKey);
     }
 
+    @Deprecated
     public List<Map<String, Object>> getCodesByKey(String codeKey) {
         return codeMapper.findCodesByKey(codeKey);
     }
 
+    @Deprecated
     public Map<String, Object> getCodeById(Long codeId) {
         return codeMapper.findCodeById(codeId);
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> createCode(CommonCodeRequest request) {
         codeMapper.insertCode(request);
         scheduleReloadAfterCommit();
@@ -97,6 +104,7 @@ public class CodeCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> updateCode(Long codeId, CommonCodeRequest request) {
         codeMapper.updateCode(codeId, request);
         scheduleReloadAfterCommit();
@@ -105,6 +113,7 @@ public class CodeCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public List<Map<String, Object>> deleteCode(Long codeId) {
         Map<String, Object> beforeDelete = getCodeById(codeId);
         String eventKey = beforeDelete == null ? String.valueOf(codeId) : mapValue(beforeDelete, "codeKey", "code_key");
@@ -115,14 +124,17 @@ public class CodeCacheService extends CpfBaseService {
     }
 
     /** 운영 수동 Refresh. 실제 Cache 적재가 완료된 Snapshot을 반환합니다. */
+    @Deprecated
     public List<Map<String, Object>> reloadCodes() {
         return reloadSnapshot();
     }
 
+    @Deprecated
     public List<Map<String, Object>> refreshCodes() {
         return reloadSnapshot();
     }
 
+    @Deprecated
     public List<Map<String, Object>> refreshCodesAndPublish() {
         List<Map<String, Object>> latestCodes = reloadSnapshot();
         publishRefreshEvent("MANUAL_REFRESH", "ALL", "SYSTEM");
@@ -130,6 +142,7 @@ public class CodeCacheService extends CpfBaseService {
     }
 
     /** 운영자가 Cache Version과 마지막 동기화/실패를 구분할 수 있는 상태입니다. */
+    @Deprecated
     public Map<String, Object> cacheStatus() {
         Map<String, Object> status = new LinkedHashMap<>();
         status.put("cacheName", CACHE_NAME);
@@ -140,6 +153,7 @@ public class CodeCacheService extends CpfBaseService {
     }
 
     @PostConstruct
+    @Deprecated
     public void loadCacheOnStartup() {
         if (!preloadEnabled) {
             logger.info("Code cache preload skipped");
@@ -158,6 +172,7 @@ public class CodeCacheService extends CpfBaseService {
     @Scheduled(
             fixedRateString = "${cpf.cmn.cache.periodic-refresh-millis:1800000}",
             initialDelayString = "${cpf.cmn.cache.periodic-refresh-initial-delay-millis:1800000}")
+    @Deprecated
     public void scheduledReloadCodes() {
         logger.info("Scheduled cache reload triggered");
         try {

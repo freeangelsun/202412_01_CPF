@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -252,7 +253,7 @@ public final class JdbcCpfLogPolicyVersionStoreHarness {
                 LogPolicyTargetType type, String targetHash, String targetId, int limit) {
             read();
             return versions.getOrDefault(key(type, targetHash), new TreeMap<>()).values().stream()
-                    .sorted(Comparator.comparingLong(CpfLogPolicyVersionSnapshot::version).reversed())
+                    .sorted(Comparator.comparingLong(value -> value.version()).reversed())
                     .limit(limit).toList();
         }
 
@@ -264,7 +265,7 @@ public final class JdbcCpfLogPolicyVersionStoreHarness {
         }
 
         @Override public long countTargets() { read(); return heads.size(); }
-        @Override public long countVersions() { read(); return versions.values().stream().mapToLong(Map::size).sum(); }
+        @Override public long countVersions() { read(); return versions.values().stream().mapToLong(value -> value.size()).sum(); }
         @Override public long countTargetVersions(LogPolicyTargetType type, String targetHash) {
             read(); return versions.getOrDefault(key(type, targetHash), new TreeMap<>()).size();
         }
@@ -323,9 +324,11 @@ public final class JdbcCpfLogPolicyVersionStoreHarness {
                 CpfLogPolicyVersionSnapshot changed, Instant updatedAt) {
             write();
             TreeMap<Long, CpfLogPolicyVersionSnapshot> values = versions.get(key(type, targetHash));
-            CpfLogPolicyVersionSnapshot current = values == null ? null : values.get(version);
+            if (values == null) return 0;
+            TreeMap<Long, CpfLogPolicyVersionSnapshot> requiredValues = Objects.requireNonNull(values);
+            CpfLogPolicyVersionSnapshot current = requiredValues.get(version);
             if (current == null || current.status() != expectedStatus) return 0;
-            values.put(version, changed);
+            requiredValues.put(version, changed);
             return 1;
         }
 

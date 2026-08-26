@@ -2,7 +2,6 @@ package com.cpf.starter.data.transaction.jta;
 
 import com.cpf.core.api.transaction.*;
 import jakarta.transaction.*;
-import javax.transaction.xa.XAResource;
 import java.time.Instant;
 import java.util.*;
 

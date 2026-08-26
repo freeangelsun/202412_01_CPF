@@ -8,7 +8,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,12 +22,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.SerializationException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 
@@ -44,13 +42,17 @@ class KafkaCpfMessagingTemplateTest {
 
 
     @Test void returnsPublishedOnlyAfterBrokerAckAndPropagatesCompleteCpfMetadata(){
-        KafkaTemplate<String,byte[]> template=template();SendResult<String,byte[]> sendResult=mock(SendResult.class);RecordMetadata metadata=mock(RecordMetadata.class);
+        KafkaTemplate<String,byte[]> template=template();@SuppressWarnings("unchecked") SendResult<String,byte[]> sendResult=mock(SendResult.class);RecordMetadata metadata=mock(RecordMetadata.class);
         when(metadata.partition()).thenReturn(2);when(metadata.offset()).thenReturn(9L);when(sendResult.getRecordMetadata()).thenReturn(metadata);
-        when(template.send(any(ProducerRecord.class))).thenReturn(CompletableFuture.completedFuture(sendResult));
+        AtomicReference<ProducerRecord<String,byte[]>> captured = new AtomicReference<>();
+        when(template.send(any())).thenAnswer(invocation -> {
+            captured.set(invocation.getArgument(0));
+            return CompletableFuture.completedFuture(sendResult);
+        });
         var result=client(template,Duration.ofMillis(50)).send(request(Map.of("X-A","v")));
         assertThat(result.status()).isEqualTo("PUBLISHED");
-        ArgumentCaptor<ProducerRecord<String,byte[]>> captor=ArgumentCaptor.forClass(ProducerRecord.class);verify(template).send(captor.capture());
-        ProducerRecord<String,byte[]> sent=captor.getValue();
+        verify(template).send(any());
+        ProducerRecord<String,byte[]> sent=java.util.Objects.requireNonNull(captured.get());
         assertThat(value(sent,"cpf-message-id")).isEqualTo("message-1");
         assertThat(value(sent,"cpf-transaction-id")).isEqualTo("transaction-1");
         assertThat(value(sent,"cpf-idempotency-key")).isEqualTo("idempotency-1");
@@ -77,7 +79,7 @@ class KafkaCpfMessagingTemplateTest {
 
     @Test void synchronousProviderFailureAfterInvocationIsUnknown(){
         KafkaTemplate<String,byte[]> template=template();
-        when(template.send(any(ProducerRecord.class)))
+        when(template.send(any()))
                 .thenThrow(new IllegalStateException("producer state unavailable"));
 
         assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(request(Map.of())))
@@ -88,7 +90,7 @@ class KafkaCpfMessagingTemplateTest {
 
     @Test void serializationFailureIsDefiniteBeforeWrite(){
         KafkaTemplate<String,byte[]> template=template();
-        when(template.send(any(ProducerRecord.class)))
+        when(template.send(any()))
                 .thenThrow(new SerializationException("serializer rejected payload"));
 
         assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(request(Map.of())))
@@ -98,8 +100,8 @@ class KafkaCpfMessagingTemplateTest {
                 .hasMessageNotContaining("UNKNOWN");
     }
 
-    @Test void timeoutIsUnknownWithoutPollutingInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());assertThatThrownBy(()->client(t,Duration.ofMillis(1)).send(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isFalse();}
-    @Test void interruptedWaitRestoresInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());Thread.currentThread().interrupt();assertThatThrownBy(()->client(t,Duration.ofSeconds(1)).send(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isTrue();}
+    @Test void timeoutIsUnknownWithoutPollutingInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any())).thenReturn(new CompletableFuture<>());assertThatThrownBy(()->client(t,Duration.ofMillis(1)).send(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isFalse();}
+    @Test void interruptedWaitRestoresInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any())).thenReturn(new CompletableFuture<>());Thread.currentThread().interrupt();assertThatThrownBy(()->client(t,Duration.ofSeconds(1)).send(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isTrue();}
 
     @SuppressWarnings("unchecked") private static KafkaTemplate<String,byte[]> template(){return mock(KafkaTemplate.class);}
     private static KafkaCpfMessagingTemplate client(KafkaTemplate<String,byte[]> t,Duration d){return new KafkaCpfMessagingTemplate(t,new CpfKafkaProperties(d,1024,true));}

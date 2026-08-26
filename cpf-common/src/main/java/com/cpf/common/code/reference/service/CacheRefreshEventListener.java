@@ -46,6 +46,7 @@ public class CacheRefreshEventListener {
     @Value("${cpf.framework.was-id:local}")
     private String wasId;
 
+    @Deprecated
     public CacheRefreshEventListener(
             CacheRefreshEventMapper mapper, CodeCacheService code, MessageCacheService message,
             ResponseCodeCacheService response, ConfigCacheService config) {
@@ -53,6 +54,7 @@ public class CacheRefreshEventListener {
     }
 
     @org.springframework.beans.factory.annotation.Autowired
+    @Deprecated
     public CacheRefreshEventListener(
             CacheRefreshEventMapper mapper, CodeCacheService code, MessageCacheService message,
             ResponseCodeCacheService response, ConfigCacheService config, Clock clock) {
@@ -61,6 +63,7 @@ public class CacheRefreshEventListener {
     }
 
     @PostConstruct
+    @Deprecated
     public void initialize() {
         if (!enabled) {
             return;
@@ -90,6 +93,7 @@ public class CacheRefreshEventListener {
     @Scheduled(
             fixedDelayString = "${cpf.cmn.cache.refresh-poll-millis:5000}",
             initialDelayString = "${cpf.cmn.cache.refresh-initial-delay-millis:5000}")
+    @Deprecated
     public void pollRefreshEvents() {
         if (!enabled) {
             return;
@@ -123,6 +127,7 @@ public class CacheRefreshEventListener {
         }
     }
 
+    @Deprecated
     public Map<String, Object> status() {
         Map<String, Object> status = new LinkedHashMap<>();
         status.put("enabled", enabled);

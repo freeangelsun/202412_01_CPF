@@ -1,6 +1,5 @@
 package com.cpf.data.persistence.api;
 
-import java.util.Objects;
 
 /** transaction/tenant/actor lineage를 Repository 경계에 전달하는 불변 context입니다. */
 public record CpfPersistenceContext(String transactionId, String tenantId, String actorId) {

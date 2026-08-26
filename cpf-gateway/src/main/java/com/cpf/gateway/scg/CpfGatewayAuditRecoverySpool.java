@@ -82,7 +82,7 @@ public final class CpfGatewayAuditRecoverySpool {
         }
         try (var files = Files.list(directory)) {
             files.filter(path -> path.getFileName().toString().endsWith(".json"))
-                    .sorted(Comparator.comparing(Path::toString))
+                    .sorted(Comparator.comparing(value -> value.toString()))
                     .limit(100)
                     .forEach(this::replayOne);
         } catch (IOException failure) {

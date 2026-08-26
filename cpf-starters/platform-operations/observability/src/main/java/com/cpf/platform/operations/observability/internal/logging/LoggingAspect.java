@@ -8,10 +8,8 @@ import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegme
 import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegmentPort.SegmentScope;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
 import com.cpf.foundation.context.system.CpfSystemCodes;
-import com.cpf.core.api.error.DefaultCpfMessageResolver;
 import com.cpf.core.api.error.DefaultCpfResponseCodeResolver;
 import com.cpf.core.api.error.CpfException;
-import com.cpf.core.api.error.CpfMessageResolver;
 import com.cpf.core.api.error.CpfResolvedResponse;
 import com.cpf.core.api.error.CpfResponseCodeResolver;
 import com.cpf.core.api.transaction.CpfTransactionIds;
@@ -78,7 +76,6 @@ public class LoggingAspect {
     private final Environment environment;
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
     private final CpfTraceSamplingPolicy traceSamplingPolicy;
-    private final CpfMessageResolver messageResolver;
     private final CpfResponseCodeResolver responseCodeResolver;
     private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
     private final CpfTransactionSegmentPort transactionSegments;
@@ -89,7 +86,6 @@ public class LoggingAspect {
             Environment environment,
             DynamicTransactionLogLevelService dynamicLogLevelService,
             ObjectProvider<CpfTraceSamplingPolicy> traceSamplingPolicyProvider,
-            ObjectProvider<CpfMessageResolver> messageResolverProvider,
             ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
             ObjectProvider<LogPolicyResolver> logPolicyResolverProvider,
             CpfTransactionSegmentPort transactionSegments,
@@ -98,7 +94,6 @@ public class LoggingAspect {
         this.environment = environment;
         this.dynamicLogLevelService = dynamicLogLevelService;
         this.traceSamplingPolicy = traceSamplingPolicyProvider.getIfAvailable(CpfTraceSamplingPolicy::new);
-        this.messageResolver = messageResolverProvider.getIfAvailable(DefaultCpfMessageResolver::new);
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
         this.logPolicyResolverProvider = logPolicyResolverProvider;
         this.transactionSegments = Objects.requireNonNull(transactionSegments, "transactionSegments");
@@ -130,7 +125,7 @@ public class LoggingAspect {
         String requestBody = serializeArgs(joinPoint.getArgs());
         String execUser = resolveExecUser(request);
         String clientIp = firstText(
-                headerValue(transactionHeader, TransactionHeader::getClientIp),
+                headerValue(transactionHeader, value -> value.getClientIp()),
                 request != null ? clientIp(request) : null,
                 "N/A");
         String userAgent = request != null ? request.getHeader("User-Agent") : null;
@@ -412,9 +407,9 @@ public class LoggingAspect {
                 .businessTransactionId(businessTransactionId)
                 .businessTransactionName(businessTransactionName)
                 .logType(logType)
-                .apiVersion(headerValue(transactionHeader, TransactionHeader::getApiVersion))
-                .clientId(headerValue(transactionHeader, TransactionHeader::getClientId))
-                .clientVersion(headerValue(transactionHeader, TransactionHeader::getClientVersion))
+                .apiVersion(headerValue(transactionHeader, value -> value.getApiVersion()))
+                .clientId(headerValue(transactionHeader, value -> value.getClientId()))
+                .clientVersion(headerValue(transactionHeader, value -> value.getClientVersion()))
                 .callerSystemCode(TransactionContext.callerSystemCode())
                 .targetSystemCode(TransactionContext.targetSystemCode())
                 .originalSystemCode(TransactionContext.originalSystemCode())
@@ -422,30 +417,30 @@ public class LoggingAspect {
                 .callerChannel(TransactionContext.callerChannel())
                 .targetChannel(TransactionContext.targetChannel())
                 .targetOperationId(TransactionContext.observedOperationId())
-                .callerInstanceId(headerValue(transactionHeader, TransactionHeader::getCallerInstanceId))
-                .correlationId(headerValue(transactionHeader, TransactionHeader::getCorrelationId))
-                .idempotencyKey(headerValue(transactionHeader, TransactionHeader::getIdempotencyKey))
-                .locale(headerValue(transactionHeader, TransactionHeader::getLocale))
-                .timezone(headerValue(transactionHeader, TransactionHeader::getTimezone))
-                .requestType(headerValue(transactionHeader, TransactionHeader::getRequestType))
+                .callerInstanceId(headerValue(transactionHeader, value -> value.getCallerInstanceId()))
+                .correlationId(headerValue(transactionHeader, value -> value.getCorrelationId()))
+                .idempotencyKey(headerValue(transactionHeader, value -> value.getIdempotencyKey()))
+                .locale(headerValue(transactionHeader, value -> value.getLocale()))
+                .timezone(headerValue(transactionHeader, value -> value.getTimezone()))
+                .requestType(headerValue(transactionHeader, value -> value.getRequestType()))
                 .originalChannel(TransactionContext.originalChannel())
                 .currentChannel(TransactionContext.currentChannel())
-                .memberNo(headerValue(transactionHeader, TransactionHeader::getMemberNo))
-                .customerNo(headerValue(transactionHeader, TransactionHeader::getCustomerNo))
-                .screenId(headerValue(transactionHeader, TransactionHeader::getScreenId))
-                .deviceId(headerValue(transactionHeader, TransactionHeader::getDeviceId))
-                .clientRequestTime(headerValue(transactionHeader, TransactionHeader::getClientRequestTime))
-                .wasId(headerValue(transactionHeader, TransactionHeader::getWasId))
+                .memberNo(headerValue(transactionHeader, value -> value.getMemberNo()))
+                .customerNo(headerValue(transactionHeader, value -> value.getCustomerNo()))
+                .screenId(headerValue(transactionHeader, value -> value.getScreenId()))
+                .deviceId(headerValue(transactionHeader, value -> value.getDeviceId()))
+                .clientRequestTime(headerValue(transactionHeader, value -> value.getClientRequestTime()))
+                .wasId(headerValue(transactionHeader, value -> value.getWasId()))
                 .instanceId(runtimeIdentity.instanceId())
                 .hostName(runtimeIdentity.hostName())
                 .hostIp(runtimeIdentity.hostIp())
                 .processId(runtimeIdentity.processId())
                 .threadName(runtimeIdentity.threadName())
-                .reservedField1(headerValue(transactionHeader, TransactionHeader::getReservedField1))
-                .reservedField2(headerValue(transactionHeader, TransactionHeader::getReservedField2))
-                .reservedField3(headerValue(transactionHeader, TransactionHeader::getReservedField3))
-                .reservedField4(headerValue(transactionHeader, TransactionHeader::getReservedField4))
-                .reservedField5(headerValue(transactionHeader, TransactionHeader::getReservedField5))
+                .reservedField1(headerValue(transactionHeader, value -> value.getReservedField1()))
+                .reservedField2(headerValue(transactionHeader, value -> value.getReservedField2()))
+                .reservedField3(headerValue(transactionHeader, value -> value.getReservedField3()))
+                .reservedField4(headerValue(transactionHeader, value -> value.getReservedField4()))
+                .reservedField5(headerValue(transactionHeader, value -> value.getReservedField5()))
                 .httpMethod(httpMethod)
                 .uri(uri)
                 .controller(controller)
@@ -1115,8 +1110,10 @@ public class LoggingAspect {
     }
 
     private String packageName(String className) {
-        int lastDot = className != null ? className.lastIndexOf('.') : -1;
-        return lastDot > 0 ? className.substring(0, lastDot) : "N/A";
+        if (className == null) return "N/A";
+        String requiredClassName = Objects.requireNonNull(className);
+        int lastDot = requiredClassName.lastIndexOf('.');
+        return lastDot > 0 ? requiredClassName.substring(0, lastDot) : "N/A";
     }
 
     private String controllerSignature(ProceedingJoinPoint joinPoint) {

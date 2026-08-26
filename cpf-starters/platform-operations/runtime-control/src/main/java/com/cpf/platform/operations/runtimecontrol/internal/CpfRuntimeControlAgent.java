@@ -112,7 +112,7 @@ public class CpfRuntimeControlAgent {
         List<CpfRuntimeActualState> states = inbox.latestAppliedStates();
         if (!states.isEmpty()) {
             controlPlane.reconcileActualState(registration.instanceId(), lease.fencingToken(), states);
-            states.stream().max(java.util.Comparator.comparingLong(CpfRuntimeActualState::actualVersion)).ifPresent(latest -> {
+            states.stream().max(java.util.Comparator.comparingLong(value -> value.actualVersion())).ifPresent(latest -> {
                 actualVersion = latest.actualVersion();
                 actualHash = latest.actualHash();
             });

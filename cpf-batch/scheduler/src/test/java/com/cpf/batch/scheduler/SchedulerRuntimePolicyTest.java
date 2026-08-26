@@ -3,7 +3,7 @@ package com.cpf.batch.scheduler;
 import com.cpf.batch.api.BatchExecutionControlPort;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.spi.BatchApprovedLaunchRequestResolver;
-import com.cpf.common.calendar.CmnBusinessCalendar;
+import com.cpf.common.calendar.api.CpfCalendarService;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class SchedulerRuntimePolicyTest {
         SchedulerDispatchService service = new SchedulerDispatchService(
                 coordinator,
                 jdbc,
-                mock(CmnBusinessCalendar.class),
+                mock(CpfCalendarService.class),
                 mock(PlatformTransactionManager.class),
                 provider,
                 executionControl,

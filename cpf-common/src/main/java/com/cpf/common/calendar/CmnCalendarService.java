@@ -1,5 +1,7 @@
 package com.cpf.common.calendar;
 
+import com.cpf.common.calendar.api.CpfCalendarService;
+
 import com.cpf.foundation.api.CpfBaseService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,7 @@ import java.util.logging.Logger;
 
 /** CPF 고객 업무공통 영업일 Service입니다. */
 @Service
-public class CmnCalendarService extends CpfBaseService implements CmnBusinessCalendar {
+public class CmnCalendarService extends CpfBaseService implements CpfCalendarService {
     private static final int MAX_SHIFT_DAYS=3660;
     private static final Logger LOGGER=Logger.getLogger(CmnCalendarService.class.getName());
     private final CmnCalendarStore store;
@@ -38,7 +40,7 @@ public class CmnCalendarService extends CpfBaseService implements CmnBusinessCal
     CmnCalendarService(CmnCalendarStore store){this(store,CmnCalendarChangePublisher.noop(),false,Clock.systemUTC());}
     CmnCalendarService(CmnCalendarStore store,CmnCalendarChangePublisher changePublisher,boolean productMode){this(store,changePublisher,productMode,Clock.systemUTC());}
     CmnCalendarService(CmnCalendarStore store,CmnCalendarChangePublisher changePublisher,boolean productMode,Clock clock){this.store=Objects.requireNonNull(store);this.changePublisher=Objects.requireNonNull(changePublisher);this.productMode=productMode;this.clock=Objects.requireNonNull(clock);}
-    @Override public boolean isBusinessDay(String calendarId,LocalDate date){Objects.requireNonNull(date);return store.find(normalize(calendarId),date).map(CmnCalendarDay::businessDay).orElseGet(()->date.getDayOfWeek()!=DayOfWeek.SATURDAY&&date.getDayOfWeek()!=DayOfWeek.SUNDAY);}
+    @Override public boolean isBusinessDay(String calendarId,LocalDate date){Objects.requireNonNull(date);return store.find(normalize(calendarId),date).map(value -> value.businessDay()).orElseGet(()->date.getDayOfWeek()!=DayOfWeek.SATURDAY&&date.getDayOfWeek()!=DayOfWeek.SUNDAY);}
     @Override public LocalDate shiftBusinessDay(String calendarId,LocalDate from,int offset){Objects.requireNonNull(from);if(offset==0)return from;int direction=offset>0?1:-1,remaining=Math.abs(offset),guard=0;LocalDate cursor=from;while(remaining>0){cursor=cursor.plusDays(direction);if(isBusinessDay(calendarId,cursor))remaining--;if(++guard>MAX_SHIFT_DAYS)throw new IllegalStateException("영업일 계산 한도를 초과했습니다.");}return cursor;}
     public java.util.Optional<CmnCalendarDay> findDay(String calendarId,LocalDate date){Objects.requireNonNull(date);return store.find(normalize(calendarId),date);}
     public List<CmnCalendarDay> findRange(String calendarId,LocalDate from,LocalDate to,int limit){return store.findRange(normalize(calendarId),from,to,limit);}

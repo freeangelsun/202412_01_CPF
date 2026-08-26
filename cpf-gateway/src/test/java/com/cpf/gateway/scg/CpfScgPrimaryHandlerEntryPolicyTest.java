@@ -30,6 +30,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+@SuppressWarnings("deprecation")
 class CpfScgPrimaryHandlerEntryPolicyTest {
     @Test
     void maintenanceIsDeniedAndAuditedBeforeRouteLookupOrBodyProcessing() throws Exception {
@@ -42,7 +43,6 @@ class CpfScgPrimaryHandlerEntryPolicyTest {
         CpfGatewayAuditRecoverySpool auditRecovery = mock(CpfGatewayAuditRecoverySpool.class);
         CpfGatewayLedgerRecoverySpool ledgerRecovery = mock(CpfGatewayLedgerRecoverySpool.class);
         CpfGatewayCaptureService captureService = mock(CpfGatewayCaptureService.class);
-        @SuppressWarnings("unchecked")
         CircuitBreakerFactory<?, ?> circuitBreakers = mock(CircuitBreakerFactory.class);
         CpfGatewaySafetyProperties safety = new CpfGatewaySafetyProperties();
         CpfGatewaySafetyEnforcer safetyEnforcer = mock(CpfGatewaySafetyEnforcer.class);

@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.time.Clock;
-import java.time.Instant;
 import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
@@ -73,7 +72,7 @@ public final class CpfTcpClient implements AutoCloseable {
             var snap=contextFactory.childSnapshot(parent,new CpfContextExecutionFactory.ChildSpec(
                     "tcp:"+properties.getHost()+":"+properties.getPort(),CpfContext.CpfExecutionType.INTEGRATION,1,
                     parent.context().execution().deadline(),parent.context().operation()));
-            try (var ignored = CpfContexts.bind(snap)) {
+            try (var _ = CpfContexts.bind(snap)) {
                 return requestTransport(correlationId, payload);
             } catch (RuntimeException e) {
                 throw e;

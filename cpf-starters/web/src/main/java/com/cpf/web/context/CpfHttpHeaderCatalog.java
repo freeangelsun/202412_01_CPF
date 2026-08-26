@@ -50,8 +50,8 @@ public final class CpfHttpHeaderCatalog {
 
         ensureCaseInsensitiveUnique(specs);
         SPECS = Map.copyOf(specs);
-        REQUIRED_INTERNAL = SPECS.values().stream().filter(CpfHttpHeaderSpec::requiredInternal)
-                .map(CpfHttpHeaderSpec::name).collect(Collectors.toUnmodifiableSet());
+        REQUIRED_INTERNAL = SPECS.values().stream().filter(value -> value.requiredInternal())
+                .map(value -> value.name()).collect(Collectors.toUnmodifiableSet());
         CANONICAL_TRANSACTION = Set.of(
                 CpfHttpHeaderNames.TRANSACTION_ID,
                 CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE,
@@ -64,7 +64,7 @@ public final class CpfHttpHeaderCatalog {
                         || spec.mutation() == CpfHeaderMutationPolicy.CANONICALIZE
                         || spec.mutation() == CpfHeaderMutationPolicy.REGENERATE
                         || spec.mutation() == CpfHeaderMutationPolicy.DROP)
-                .map(CpfHttpHeaderSpec::name).collect(Collectors.toUnmodifiableSet());
+                .map(value -> value.name()).collect(Collectors.toUnmodifiableSet());
     }
 
     public static boolean isProtected(String name) {

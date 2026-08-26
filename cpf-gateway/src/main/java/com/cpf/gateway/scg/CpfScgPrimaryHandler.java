@@ -14,8 +14,6 @@ import com.cpf.gateway.api.CpfGatewayLedgerPort;
 import com.cpf.gateway.api.CpfGatewayPrincipal;
 import com.cpf.gateway.api.CpfGatewayRateLimitPort;
 import com.cpf.gateway.api.CpfGatewayRoute;
-import com.cpf.core.api.context.CpfContext;
-import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.core.api.transaction.CpfTransactionIds;
 import com.cpf.foundation.id.DefaultCpfTransactionIdGenerator;
@@ -350,7 +348,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     principal.attributes().get("actorId"), principal.attributes().get("authenticationContextId"),
                     contextTenantId.isBlank() ? null : contextTenantId, route.standardExecutionId(), route.routeId(), route.routeVersion(),
                     route.serverGroupId(), com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId(), CpfContexts.requireCurrent().execution().deadline());
-            try (AutoCloseable ignoredGatewayContext = CpfContexts.bind(gatewayContext.snapshot())) {
+            try (AutoCloseable _ = CpfContexts.bind(gatewayContext.snapshot())) {
 
             trusted.put("cpf.principal.id", principal.principalId());
             trusted.put("cpf.principal.authorities", String.join(",", principal.authorities()));
@@ -439,7 +437,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                         route, targetPath, request.uri().getRawQuery());
                 request.servletRequest().setAttribute(TARGET_ATTR, target.instanceId());
                 URI uri = target.uri();
-                try (AutoCloseable ignoredAttemptContext = gatewayContexts.bindUpstreamAttempt(
+                try (AutoCloseable _ = gatewayContexts.bindUpstreamAttempt(
                         route.standardExecutionId(), attemptNo, route.serverGroupId(), target.instanceId(),
                         CpfContexts.requireCurrent().execution().deadline())) {
                     ServerRequest upstreamRequest = upstreamRequest(
@@ -664,7 +662,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
         if (values.isEmpty()) return List.of();
         return values.stream()
                 .flatMap(value -> java.util.Arrays.stream(value.split(",")))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(value -> !value.isEmpty())
                 .distinct()
                 .toList();

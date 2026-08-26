@@ -152,7 +152,7 @@ final class PinnedArtifactHttpTransport {
             boolean allowLoopback) throws Exception {
         List<InetAddress> resolved = new ArrayList<>(resolver.resolve(host));
         if (resolved.isEmpty()) throw new SecurityException(prefix + "_DNS_EMPTY");
-        resolved = resolved.stream().distinct().sorted(Comparator.comparing(InetAddress::getHostAddress)).toList();
+        resolved = resolved.stream().distinct().sorted(Comparator.comparing(value -> value.getHostAddress())).toList();
         Set<String> pins = new LinkedHashSet<>();
         configuredPins.forEach(value -> pins.add(normalizeAddress(value)));
         boolean privateSeen = false;

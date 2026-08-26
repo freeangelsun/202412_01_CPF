@@ -66,12 +66,12 @@ public final class CpfScgTargetResolver {
         }
 
         int bestPriority = candidates.stream()
-                .mapToInt(CpfServiceRegistryView.Instance::priority)
+                .mapToInt(value -> value.priority())
                 .min()
                 .orElseThrow();
         candidates = candidates.stream()
                 .filter(instance -> instance.priority() == bestPriority)
-                .sorted(Comparator.comparing(CpfServiceRegistryView.Instance::instanceId))
+                .sorted(Comparator.comparing(value -> value.instanceId()))
                 .toList();
 
         CpfServiceRegistryView.Instance selected = weighted(route.serverGroupId(), candidates);
@@ -173,14 +173,14 @@ public final class CpfScgTargetResolver {
             }
             List<InetAddress> addresses = Arrays.stream(resolved)
                     .distinct()
-                    .sorted(Comparator.comparing(InetAddress::getHostAddress))
+                    .sorted(Comparator.comparing(value -> value.getHostAddress()))
                     .toList();
             endpointPolicy.validateResolvedAddresses(
-                    base.getHost(), addresses.stream().map(InetAddress::getHostAddress).toList());
-            boolean privateSeen = addresses.stream().map(InetAddress::getHostAddress)
+                    base.getHost(), addresses.stream().map(value -> value.getHostAddress()).toList());
+            boolean privateSeen = addresses.stream().map(value -> value.getHostAddress())
                     .map(CpfNetworkEndpointPolicy.Address::parse)
-                    .anyMatch(CpfNetworkEndpointPolicy.Address::privateAddress);
-            boolean publicSeen = addresses.stream().map(InetAddress::getHostAddress)
+                    .anyMatch(value -> value.privateAddress());
+            boolean publicSeen = addresses.stream().map(value -> value.getHostAddress())
                     .map(CpfNetworkEndpointPolicy.Address::parse)
                     .anyMatch(address -> !address.privateAddress());
             if (privateSeen && publicSeen) {

@@ -98,7 +98,6 @@ public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.bas
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void handleMessage(CmnMessageEnvelope envelope) {
         if (!(envelope.payload() instanceof Map<?, ?> payload)) {
             return;

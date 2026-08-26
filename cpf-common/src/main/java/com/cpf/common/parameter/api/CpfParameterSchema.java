@@ -137,7 +137,7 @@ public record CpfParameterSchema(
             type = Objects.requireNonNull(type, "type");
             label = requiredText(label, "label");
             description = clean(description);
-            allowedValues = allowedValues == null ? List.of() : allowedValues.stream().filter(Objects::nonNull).map(String::trim).filter(v -> !v.isEmpty()).distinct().toList();
+            allowedValues = allowedValues == null ? List.of() : allowedValues.stream().filter(Objects::nonNull).map(value -> value.trim()).filter(v -> !v.isEmpty()).distinct().toList();
             validationPattern = clean(validationPattern);
             referenceCatalog = clean(referenceCatalog);
             placeholder = clean(placeholder);

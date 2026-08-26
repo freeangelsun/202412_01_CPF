@@ -1,7 +1,7 @@
 package com.cpf.batch.control.compat;
 
 import com.cpf.batch.api.CpfBatchRiskCommand;
-import com.cpf.common.calendar.CmnBusinessCalendar;
+import com.cpf.common.calendar.api.CpfCalendarService;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 class BatchOperationsCompatibilityServiceGhostSqlTest {
     private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
-    private final CmnBusinessCalendar calendar = mock(CmnBusinessCalendar.class);
+    private final CpfCalendarService calendar = mock(CpfCalendarService.class);
     private final PlatformTransactionManager transactionManager = mock(PlatformTransactionManager.class);
     private final CpfVendorSqlCatalogProvider provider = mock(CpfVendorSqlCatalogProvider.class);
     private final CpfVendorSqlCatalog catalog = mock(CpfVendorSqlCatalog.class);

@@ -172,7 +172,7 @@ public final class CpfXlsxTabularAdapter implements CpfTabularReader, CpfTabular
                 if (rowNumber != 1) throw new IllegalArgumentException("XLSX Header는 첫 번째 행이어야 합니다.");
                 List<String> actual = new ArrayList<>();
                 for (int i=0;i<request.schema().columns().size();i++) actual.add(row.getOrDefault(i,""));
-                List<String> expected = request.schema().columns().stream().map(CpfTabularColumn::label).toList();
+                List<String> expected = request.schema().columns().stream().map(value -> value.label()).toList();
                 if (!actual.equals(expected)) throw new IllegalArgumentException("XLSX Header가 Template version과 일치하지 않습니다.");
                 return;
             }

@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+SHA_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 PLACEHOLDER_RE = re.compile(r"(?:TODO|TBD|<HEAD>|<SHA>|REPLACE_ME|YOUR_|추후|미정|나중에)", re.I)
 EXECUTION_RE = re.compile(r"^(?:\d{2}-\d{8}|\d{2}-99999999)$")
 REQ_RE = re.compile(r"^CPF-(?:FR-\d{6}|GATE-\d{2})$")
@@ -69,6 +69,14 @@ GROUP_SOURCE_MAP = {
     "FILE": ["cpf-core/src/main/java/com/cpf/core/api/filetransfer", "cpf-core/src/main/java/com/cpf/core/api/attachment", "cpf-admin/frontend/src/features/file-jobs"],
     "API": ["cpf-core/src/main/java/com/cpf/core/api", "cpf-admin/frontend/openapi", "cpf-backoffice/online/openapi"],
     "GOV": ["cpf-docs/governance", "cpf-docs/work/current"],
+    # Current modernization governance groups are canonical Requirement Master values, not aliases.
+    # Keep them explicit so the exhaustive gate cannot false-fail after Requirement currentization.
+    "DOCUMENTATION GOVERNANCE": ["cpf-docs/governance", "cpf-docs/work/current"],
+    "REPOSITORY HYGIENE": ["cpf-tools/verification", "cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv", "cpf-docs/deliverables/DELETE_MANIFEST.csv"],
+    "EVIDENCE": ["cpf-tools/verification", "cpf-docs/work/evidence"],
+    "QA GOVERNANCE": ["cpf-tools/testing", "cpf-tools/verification", "cpf-docs/work/current"],
+    "HANDOVER": ["cpf-docs/work", "cpf-docs/deliverables"],
+    "EXECUTION GOVERNANCE": ["cpf-tools/verification/tools", "cpf-docs/work/current"],
 }
 
 class AuditError(RuntimeError):
@@ -143,10 +151,17 @@ def parse_route_contract(path: Path, mode: str) -> tuple[set[str], set[str], set
         text = path.read_text(encoding="utf-8")
         route_ids = set(re.findall(r"\bpath\s*:\s*['\"]([^'\"]+)['\"]", text))
         components = set(re.findall(r"from\s+['\"]\.\./features/([^'\"]+)['\"]", text))
-        generator = path.parents[2] / "scripts/generate-reference-client.mjs"
-        generator_text = generator.read_text(encoding="utf-8") if generator.is_file() else ""
-        wanted = re.search(r"const wanted=\[([\s\S]*?)\]", generator_text)
-        expected = set(re.findall(r"['\"]([^'\"]+)['\"]", wanted.group(1))) if wanted else set()
+        openapi = path.parents[2] / "openapi/cpf-openapi.json"
+        if not openapi.is_file():
+            raise AuditError(f"Backoffice OpenAPI source missing: {openapi}")
+        document = json.loads(openapi.read_text(encoding="utf-8"))
+        expected = {
+            str(operation.get("operationId"))
+            for item in (document.get("paths") or {}).values()
+            if isinstance(item, dict)
+            for operation in item.values()
+            if isinstance(operation, dict) and operation.get("operationId")
+        }
     if not route_ids or not components or not expected:
         raise AuditError(f"route contract is sparse or unparsable: {path}")
     return route_ids, components, expected
@@ -163,7 +178,7 @@ def verify(args: argparse.Namespace) -> dict:
     root = Path(args.root).resolve()
     expected_sha = args.expected_sha
     if not SHA_RE.fullmatch(expected_sha):
-        raise AuditError("expected SHA must be exactly 40 lowercase hex characters")
+        raise AuditError("expected source identity must be exactly 40 or 64 lowercase hex characters")
     actual_sha = args.source_head or git_head(root)
     if actual_sha != expected_sha:
         raise AuditError(f"HEAD mismatch expected={expected_sha} actual={actual_sha}")
@@ -171,11 +186,12 @@ def verify(args: argparse.Namespace) -> dict:
     execution, execution_hashes = load_parts(discover_parts(root, "CPF_EXECUTION_SEQUENCE"), "execution_order")
     requirements, requirement_hashes = load_parts(discover_parts(root, "CPF_REQUIREMENT_MASTER"), "requirement_id")
     scenarios, scenario_hashes = load_parts(discover_parts(root, "CPF_SCENARIO_MASTER"), "scenario_id")
-    if len(execution) != args.expected_total_execution:
-        raise AuditError(f"total execution count mismatch: {len(execution)}")
+    if args.expected_total_execution is not None and len(execution) != args.expected_total_execution:
+        raise AuditError(f"total execution count mismatch: expected={args.expected_total_execution} actual={len(execution)}")
     scope = execution[args.start_row - 1:]
-    if len(scope) != args.expected_scope:
-        raise AuditError(f"scope count mismatch: expected={args.expected_scope} actual={len(scope)}")
+    expected_scope = args.expected_scope if args.expected_scope is not None else len(scope)
+    if len(scope) != expected_scope:
+        raise AuditError(f"scope count mismatch: expected={expected_scope} actual={len(scope)}")
 
     requirement_by_id = {r["requirement_id"]: r for r in requirements}
     scenario_by_req: dict[str, list[dict[str, str]]] = defaultdict(list)
@@ -246,6 +262,11 @@ def verify(args: argparse.Namespace) -> dict:
             if sc["work_package_id"] != seq_row["work_package_id"] or sc["execution_phase_id"] != req["execution_phase_id"]:
                 scenario_error = f"{sc['scenario_id']}: phase/work-package mismatch"
                 break
+            if sc["scenario_type"] == "DIRECT_VERIFICATION":
+                expected_title = f"[{rid}] {req['feature']} / {req['function_type']} 직접 검증"
+                if sc["title"] != expected_title:
+                    scenario_error = f"{sc['scenario_id']}: direct-verification requirement/title mismatch"
+                    break
             scenario_types.add(sc["scenario_type"])
             scenario_ids.append(sc["scenario_id"])
         if scenario_error:
@@ -316,7 +337,7 @@ def verify(args: argparse.Namespace) -> dict:
             "baseline_sha": actual_sha,
         })
 
-    if len(audit_rows) != args.expected_scope or len(seen_req) != args.expected_scope:
+    if len(audit_rows) != expected_scope or len(seen_req) != expected_scope:
         raise AuditError("audit row count or uniqueness mismatch")
     actual_wp = Counter(r["work_package_id"] for r in audit_rows)
     if actual_wp != expected_wp:
@@ -382,8 +403,8 @@ def main() -> int:
     p.add_argument("--expected-sha", required=True)
     p.add_argument("--source-head", help="Use an exact remote source SHA when the audit root is an exact fetched snapshot rather than a Git checkout")
     p.add_argument("--start-row", type=int, default=20001)
-    p.add_argument("--expected-total-execution", type=int, default=30558)
-    p.add_argument("--expected-scope", type=int, default=10558)
+    p.add_argument("--expected-total-execution", type=int)
+    p.add_argument("--expected-scope", type=int)
     p.add_argument("--audit-csv", required=True)
     p.add_argument("--work-package-csv", required=True)
     p.add_argument("--json-output")

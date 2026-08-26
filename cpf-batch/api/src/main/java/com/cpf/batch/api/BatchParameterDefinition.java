@@ -54,7 +54,7 @@ public record BatchParameterDefinition(
         description = Objects.requireNonNullElse(description, "").trim();
         allowedValues = allowedValues == null ? List.of() : allowedValues.stream()
                 .filter(Objects::nonNull)
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(value -> !value.isEmpty())
                 .distinct()
                 .toList();

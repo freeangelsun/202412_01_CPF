@@ -28,7 +28,7 @@ class CpfBrokerWorkerTest {
         assertThat(result.claimedCount()).isEqualTo(2);
         assertThat(result.successCount()).isEqualTo(1);
         assertThat(result.failureCount()).isEqualTo(1);
-        assertThat(outbox.savedResults).extracting(CpfBrokerResult::status)
+        assertThat(outbox.savedResults).extracting(value -> value.status())
                 .containsExactly("PUBLISHED", "FAILED");
     }
 

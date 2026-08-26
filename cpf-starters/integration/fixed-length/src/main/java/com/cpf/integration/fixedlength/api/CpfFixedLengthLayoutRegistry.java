@@ -113,8 +113,8 @@ public final class CpfFixedLengthLayoutRegistry implements CpfMessageLayoutValid
     private static Map<LayoutKey, CpfFixedLengthLayout> normalize(Collection<CpfFixedLengthLayout> layouts) {
         if (layouts == null) throw new IllegalArgumentException("layout snapshot은 필수입니다.");
         List<CpfFixedLengthLayout> sorted = new ArrayList<>(layouts);
-        sorted.sort(Comparator.comparing(CpfFixedLengthLayout::layoutId)
-                .thenComparing(CpfFixedLengthLayout::version));
+        sorted.sort(Comparator.comparing(value -> value.layoutId())
+                .thenComparing(value -> value.version()));
         Map<LayoutKey, CpfFixedLengthLayout> result = new LinkedHashMap<>();
         for (CpfFixedLengthLayout layout : sorted) {
             if (layout == null) throw new IllegalArgumentException("null layout은 허용되지 않습니다.");

@@ -344,11 +344,6 @@ public record CpfContext(
         return normalized;
     }
 
-    private static String requiredChannel(String name, String value) {
-        String normalized = optionalChannel(name, value);
-        if (normalized == null) throw new IllegalArgumentException(name);
-        return normalized;
-    }
 
     private static String optionalChannel(String name, String value) {
         String normalized = optional(value, 16);

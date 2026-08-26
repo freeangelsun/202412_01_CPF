@@ -121,7 +121,7 @@ public final class AgentCommandLedger {
 
     public Optional<AgentCommandResult> find(String commandId) {
         validateId(commandId);
-        return loadEntry(commandId).map(Entry::result);
+        return loadEntry(commandId).map(value -> value.result());
     }
 
     public int purgeExpired() {
@@ -234,7 +234,7 @@ public final class AgentCommandLedger {
                             StandardOpenOption.CREATE,
                             StandardOpenOption.WRITE,
                             LinkOption.NOFOLLOW_LINKS);
-                    FileLock ignored = channel.lock()) {
+                    FileLock _ = channel.lock()) {
                 return operation.run();
             } catch (IOException failure) {
                 throw new IllegalStateException("Agent command ledger lock failed: " + commandId, failure);

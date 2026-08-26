@@ -74,8 +74,8 @@ public final class CpfRabbitMqBrokerClient implements CpfMessagingTemplate {
                     properties.getExchange(), properties.getRoutingKey(), message, correlation);
             CorrelationData.Confirm confirm = correlation.getFuture().get(
                     properties.getConfirmTimeout().toMillis(), TimeUnit.MILLISECONDS);
-            if (!confirm.isAck()) {
-                return result(request, "FAILED", "broker-nack:" + safe(confirm.getReason()));
+            if (!confirm.ack()) {
+                return result(request, "FAILED", "broker-nack:" + safe(confirm.reason()));
             }
             if (correlation.getReturned() != null) {
                 return result(

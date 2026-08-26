@@ -19,14 +19,14 @@ final class CpfTargetSystemResolver {
 
     static String resolve(HttpHeaders headers, URI uri) {
         String explicitServiceId = headers == null ? null : headers.getFirst(CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
-        if (hasText(explicitServiceId)) {
-            return explicitServiceId.trim().toUpperCase(Locale.ROOT);
+        if (explicitServiceId != null) {
+            String normalizedServiceId = explicitServiceId.trim();
+            if (!normalizedServiceId.isEmpty()) {
+                return normalizedServiceId.toUpperCase(Locale.ROOT);
+            }
         }
         String host = uri == null ? null : uri.getHost();
-        return hasText(host) ? host.trim().toUpperCase(Locale.ROOT) : "UNKNOWN";
+        return host != null && !host.isBlank() ? host.trim().toUpperCase(Locale.ROOT) : "UNKNOWN";
     }
 
-    private static boolean hasText(String value) {
-        return value != null && !value.isBlank();
-    }
 }

@@ -114,7 +114,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             useMemoryFallbackOrThrow(ex);
             return operators.values().stream()
                     .map(this::toResponse)
-                    .sorted(Comparator.comparing(AdmOperator::operatorId))
+                    .sorted(Comparator.comparing(value -> value.operatorId()))
                     .toList();
         }
     }
@@ -627,7 +627,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                     rs.getString("MENU_PATH"), rs.getInt("SORT_ORDER"), true, true, true));
         } catch (DataAccessException ex) {
             useMemoryFallbackOrThrow(ex);
-            return fallbackMenus.stream().sorted(Comparator.comparingInt(AdmMenu::sortOrder)).toList();
+            return fallbackMenus.stream().sorted(Comparator.comparingInt(value -> value.sortOrder())).toList();
         }
     }
 
@@ -910,16 +910,10 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
 
     }
 
-    private List<String> parseRoleIds(String roleIds) {
-        if (roleIds == null || roleIds.isBlank()) {
-            return List.of();
-        }
-        return java.util.Arrays.stream(roleIds.split(",")).map(String::trim).filter(role -> !role.isBlank()).toList();
-    }
 
     private List<AdmMenu> fallbackMenusForRoles(List<String> roleIds) {
         if (roleIds.contains("ADM_ADMIN")) {
-            return fallbackMenus.stream().sorted(Comparator.comparingInt(AdmMenu::sortOrder)).toList();
+            return fallbackMenus.stream().sorted(Comparator.comparingInt(value -> value.sortOrder())).toList();
         }
         if (roleIds.contains("ADM_OPERATOR") || roleIds.contains("ADM_DEV_OPERATOR")) {
             return fallbackMenus.stream()
@@ -934,7 +928,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                         default -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                                 menu.path(), menu.sortOrder(), true, false, false);
                     })
-                    .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
+                    .sorted(Comparator.comparingInt(value -> value.sortOrder()))
                     .toList();
         }
         if (roleIds.contains("ADM_BIZ_OPERATOR")) {
@@ -942,20 +936,17 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                     .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "BATCH", "CACHE", "MESSAGE", "CODE").contains(menu.menuId()))
                     .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                             menu.path(), menu.sortOrder(), true, List.of("BATCH", "CACHE").contains(menu.menuId()), false))
-                    .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
+                    .sorted(Comparator.comparingInt(value -> value.sortOrder()))
                     .toList();
         }
         return fallbackMenus.stream()
                 .filter(menu -> List.of("DASHBOARD", "CAPABILITY_FLEET", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
                 .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                         menu.path(), menu.sortOrder(), true, false, false))
-                .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
+                .sorted(Comparator.comparingInt(value -> value.sortOrder()))
                 .toList();
     }
 
-    private String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
-    }
 
     private LocalDateTime toLocalDateTime(Timestamp timestamp) {
         return timestamp == null ? null : timestamp.toLocalDateTime();
@@ -1040,9 +1031,5 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             this.updatedAt = updatedAt;
         }
 
-        private OperatorState withFailedLoginCount(int failedLoginCount) {
-            this.failedLoginCount = failedLoginCount;
-            return this;
-        }
     }
 }

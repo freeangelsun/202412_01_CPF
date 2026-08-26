@@ -43,7 +43,7 @@ class CpfHttpDomainRemoteTransportPayloadTest {
         var transport = new CpfHttpDomainRemoteTransport(webClient, new ObjectMapper(), outbound);
 
         CpfDomainPayload response;
-        try (AutoCloseable ignored = CpfContexts.bind(rootContext())) {
+        try (AutoCloseable _ = CpfContexts.bind(rootContext())) {
             response = transport.invoke("MBR", "MBR_SAMPLE_TX_CREATE",
                     new CpfDomainBinding(CpfDomainBindingMode.REMOTE, "MBR-SERVICE"),
                     new CpfDomainPayload(Map.of("sampleKey", "member-1")),

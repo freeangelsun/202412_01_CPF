@@ -10,9 +10,11 @@ import java.time.LocalDate;
  */
 @Deprecated(forRemoval = false)
 public interface CmnBusinessCalendar extends CpfCalendarService {
+    @Deprecated
     boolean isBusinessDay(String calendarId, LocalDate date);
 
     /** offset=1은 다음 영업일, offset=-1은 이전 영업일입니다. */
+    @Deprecated
     LocalDate shiftBusinessDay(String calendarId, LocalDate from, int offset);
 
 }

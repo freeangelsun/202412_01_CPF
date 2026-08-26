@@ -14,7 +14,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.time.Duration;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
@@ -52,7 +51,7 @@ public final class ArtifactInstaller {
         Path part = null;
         try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
-                FileLock ignored = exclusiveLock(channel)) {
+                FileLock _ = exclusiveLock(channel)) {
             Path currentStatePath = root.resolve("artifact-state.properties");
             Path previousStatePath = root.resolve("artifact-previous.properties");
             Path configPath = root.resolve("deployment-config.ref");
@@ -127,7 +126,7 @@ public final class ArtifactInstaller {
         Path root = secureRoot(service.getInstallRoot());
         try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
-                FileLock ignored = exclusiveLock(channel)) {
+                FileLock _ = exclusiveLock(channel)) {
             Path currentStatePath = root.resolve("artifact-state.properties");
             Path previousStatePath = root.resolve("artifact-previous.properties");
             Path configPath = root.resolve("deployment-config.ref");

@@ -182,14 +182,14 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
 
     @CpfTransactional(transactionManager="MBW_TRANSACTION_MANAGER")
     public Map<String,Object> submit(SubmitRequest request, String operatorId) {
-        try (var ignored = approvalContexts.bind(request.requestIdempotencyKey(), request.policyCode(), operatorId, null, "SUBMIT", "IN_REVIEW", "MBW_APPROVAL")) {
+        try (var _ = approvalContexts.bind(request.requestIdempotencyKey(), request.policyCode(), operatorId, null, "SUBMIT", "IN_REVIEW", "MBW_APPROVAL")) {
             return submitInternal(request, operatorId, null);
         }
     }
 
     @CpfTransactional(transactionManager="MBW_TRANSACTION_MANAGER")
     public Map<String,Object> resubmit(long previousApprovalId, SubmitRequest request, String operatorId) {
-        try (var ignored = approvalContexts.bind(Long.toString(previousApprovalId), request.policyCode(), operatorId, null, "RESUBMIT", "IN_REVIEW", "MBW_APPROVAL")) {
+        try (var _ = approvalContexts.bind(Long.toString(previousApprovalId), request.policyCode(), operatorId, null, "RESUBMIT", "IN_REVIEW", "MBW_APPROVAL")) {
 
             Map<String,Object> previous = repository.findDocument(previousApprovalId)
                     .orElseThrow(() -> new CpfValidationException("재상신 원본 결재 문서를 찾을 수 없습니다."));
@@ -319,7 +319,7 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
 
     @CpfTransactional(transactionManager="MBW_TRANSACTION_MANAGER")
     public Map<String,Object> decide(long approvalId, DecisionRequest request, String operatorId) {
-        try (var ignored = approvalContexts.bind(Long.toString(approvalId), null, null, operatorId, request.action(), "IN_REVIEW", "MBW_APPROVAL")) {
+        try (var _ = approvalContexts.bind(Long.toString(approvalId), null, null, operatorId, request.action(), "IN_REVIEW", "MBW_APPROVAL")) {
 
             String idem = required(request.idempotencyKey(), "idempotencyKey");
             String normalizedOperator = required(operatorId, "operatorId");
@@ -409,14 +409,14 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
 
     @CpfTransactional(transactionManager="MBW_TRANSACTION_MANAGER")
     public Map<String,Object> withdraw(long approvalId, LifecycleRequest request, String operatorId) {
-        try (var ignored = approvalContexts.bind(Long.toString(approvalId), null, operatorId, null, "WITHDRAW", "WITHDRAWN", "MBW_APPROVAL")) {
+        try (var _ = approvalContexts.bind(Long.toString(approvalId), null, operatorId, null, "WITHDRAW", "WITHDRAWN", "MBW_APPROVAL")) {
             return requesterLifecycle(approvalId, request, operatorId, "WITHDRAW", "WITHDRAWN");
         }
     }
 
     @CpfTransactional(transactionManager="MBW_TRANSACTION_MANAGER")
     public Map<String,Object> cancel(long approvalId, LifecycleRequest request, String operatorId) {
-        try (var ignored = approvalContexts.bind(Long.toString(approvalId), null, operatorId, null, "CANCEL", "CANCELED", "MBW_APPROVAL")) {
+        try (var _ = approvalContexts.bind(Long.toString(approvalId), null, operatorId, null, "CANCEL", "CANCELED", "MBW_APPROVAL")) {
             return requesterLifecycle(approvalId, request, operatorId, "CANCEL", "CANCELED");
         }
     }

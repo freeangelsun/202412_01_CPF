@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 import com.cpf.batch.api.BatchExecutionControlPort;
 import com.cpf.batch.scheduler.internal.JdbcSchedulerLeaderRepository;
 import com.cpf.batch.spi.BatchApprovedLaunchRequestResolver;
-import com.cpf.common.calendar.CmnBusinessCalendar;
+import com.cpf.common.calendar.api.CpfCalendarService;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import java.sql.Timestamp;
@@ -35,7 +35,7 @@ class SchedulerDispatchServiceUnknownPersistenceTest {
     void setUp() {
         SchedulerCoordinator coordinator = mock(SchedulerCoordinator.class);
         jdbc = mock(JdbcTemplate.class);
-        CmnBusinessCalendar calendar = mock(CmnBusinessCalendar.class);
+        CpfCalendarService calendar = mock(CpfCalendarService.class);
         transactionManager = mock(PlatformTransactionManager.class);
         transactionStatus = mock(TransactionStatus.class);
         catalog = mock(CpfVendorSqlCatalog.class);

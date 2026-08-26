@@ -11,7 +11,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -38,12 +37,12 @@ public class CpfDomainCallSecurityAutoConfiguration {
                         new AuthorizationDecision(ingressTrustResolver.resolve(context.getRequest()).trust()
                                 == CpfHttpIngressTrust.TRUSTED_INTERNAL)))
                 // This is a stateless machine endpoint; browser CSRF credentials are neither accepted nor required.
-                .csrf(AbstractHttpConfigurer::disable)
-                .requestCache(AbstractHttpConfigurer::disable)
+                .csrf(value -> value.disable())
+                .requestCache(value -> value.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
+                .httpBasic(value -> value.disable())
+                .formLogin(value -> value.disable())
+                .logout(value -> value.disable())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.FORBIDDEN))
                         .accessDeniedHandler((request, response, failure) ->

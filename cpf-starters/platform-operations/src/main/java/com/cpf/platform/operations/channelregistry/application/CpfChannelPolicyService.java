@@ -137,7 +137,7 @@ public class CpfChannelPolicyService {
     private void validateReferences(CpfChannelPolicyPackage policyPackage) {
         Set<String> channelCodes = java.util.stream.Stream.concat(
                         snapshotReference.get().channels().keySet().stream(),
-                        policyPackage.channels().stream().map(CpfChannelDefinition::channelCode))
+                        policyPackage.channels().stream().map(value -> value.channelCode()))
                 .collect(Collectors.toUnmodifiableSet());
         for (CpfChannelExecutionPolicy policy : policyPackage.policies()) {
             if (!"*".equals(policy.callerChannel()) && !channelCodes.contains(policy.callerChannel())) {

@@ -1,7 +1,6 @@
 package com.cpf.batch.api.error;
 
 import com.cpf.core.api.error.CpfErrorDefinition;
-import com.cpf.core.api.error.CpfErrorDefinition.RetryDisposition;
 
 /** Core 오류 의미를 Batch Outcome으로 변환합니다. */
 public final class CpfBatchErrorMapper {

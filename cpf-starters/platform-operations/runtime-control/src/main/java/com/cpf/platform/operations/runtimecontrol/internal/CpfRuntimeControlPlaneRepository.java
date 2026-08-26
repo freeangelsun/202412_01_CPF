@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -990,7 +989,7 @@ public class CpfRuntimeControlPlaneRepository {
 
     private void reconcileChangeState(String changeId) {
         Map<String,Number> counts = deliveryCounts(changeId);
-        int total = counts.values().stream().mapToInt(Number::intValue).sum();
+        int total = counts.values().stream().mapToInt(value -> value.intValue()).sum();
         int ack = counts.getOrDefault("ACKED", 0).intValue();
         int failed = counts.getOrDefault("FAILED", 0).intValue();
         int poison = counts.getOrDefault("POISONED", 0).intValue();
@@ -1398,7 +1397,6 @@ public class CpfRuntimeControlPlaneRepository {
     private Map<String,Object> readMap(String json){try{return objectMapper.readValue(json,new TypeReference<>(){});}catch(Exception ex){throw new IllegalStateException("Runtime payload JSON 역직렬화 실패",ex);}}
     private Map<String,Object> readMapOrEmpty(String json){if(json==null||json.isBlank())return Map.of();Map<String,Object> value=readMap(json);return value==null?Map.of():value;}
     public String json(Object value){return write(value);}
-    private Map<String,Object> jsonMap(String value){return readMap(value);}
     private Timestamp ts(Instant value){return value==null?null:Timestamp.from(value);}
     private static Instant toInstant(Object value){if(value==null)return null;if(value instanceof Timestamp t)return t.toInstant();if(value instanceof java.util.Date d)return d.toInstant();try{return Instant
             .parse(String.valueOf(value));}catch(Exception ignored){return null;}}

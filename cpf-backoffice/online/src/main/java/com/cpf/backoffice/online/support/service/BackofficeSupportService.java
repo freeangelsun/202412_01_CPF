@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.backoffice.online.support.repository.BackofficeSupportRepository;
 import com.cpf.backoffice.online.audit.service.BackofficeBusinessAuditService;
 import com.cpf.foundation.util.CpfStrings;
-import com.cpf.file.attachment.api.CpfAttachmentContent;
 import com.cpf.file.attachment.api.CpfAttachmentStoragePort;
 import com.cpf.file.attachment.api.CpfStoredAttachment;
 import com.cpf.core.api.error.CpfNotFoundException;

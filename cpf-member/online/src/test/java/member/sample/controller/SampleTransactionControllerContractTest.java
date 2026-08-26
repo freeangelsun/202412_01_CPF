@@ -2,7 +2,6 @@ package member.sample.controller;
 
 import member.base.MemberBaseController;
 import com.cpf.web.api.CpfController;
-import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 

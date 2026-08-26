@@ -91,7 +91,7 @@ public final class CpfTcpServer implements AutoCloseable {
                             null,
                             null));
                     CpfContextSnapshot snapshot = CpfContextSnapshot.capture(root);
-                    try (AutoCloseable ignored = CpfContexts.bind(snapshot)) {
+                    try (AutoCloseable _ = CpfContexts.bind(snapshot)) {
                         response = handler.apply(request);
                     }
                 } else {

@@ -168,8 +168,8 @@ public final class CpfTcpUnknownResultStore {
     public List<CpfTcpUnknownResult> snapshot() {
         synchronized (values) {
             return values.values().stream()
-                    .map(StoredUnknown::value)
-                    .sorted(Comparator.comparing(CpfTcpUnknownResult::writtenAt))
+                    .map(value -> value.value())
+                    .sorted(Comparator.comparing(value -> value.writtenAt()))
                     .toList();
         }
     }
@@ -333,7 +333,7 @@ public final class CpfTcpUnknownResultStore {
         CpfTcpUnknownResult value = new CpfTcpUnknownResult(
                 correlation, writtenAt, new byte[0], detail + " [requestSha256=" + requestHash + ']');
         values.put(correlation, new StoredUnknown(value, requestHash, detail, version));
-        lastVersions.merge(correlation, version, Math::max);
+        lastVersions.merge(correlation, version, (left, right) -> Math.max(left, right));
     }
 
     private void applyAudit(String[] fields) {
@@ -353,9 +353,9 @@ public final class CpfTcpUnknownResultStore {
                 throw new IllegalStateException("audit version conflict");
             }
             values.remove(correlation);
-            lastVersions.merge(correlation, resultingVersion, Math::max);
+            lastVersions.merge(correlation, resultingVersion, (left, right) -> Math.max(left, right));
         } else {
-            lastVersions.merge(correlation, resultingVersion, Math::max);
+            lastVersions.merge(correlation, resultingVersion, (left, right) -> Math.max(left, right));
         }
         audits.add(new ReconciliationAudit(
                 correlation, operator, reason, reconciled, resultingVersion, at));

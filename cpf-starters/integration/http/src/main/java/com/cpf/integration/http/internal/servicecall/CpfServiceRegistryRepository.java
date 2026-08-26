@@ -622,19 +622,6 @@ public class CpfServiceRegistryRepository {
         return hasText(first) ? first.trim() : fallback;
     }
 
-    private int intValue(Object value) {
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-        if (value == null) {
-            return 0;
-        }
-        try {
-            return Integer.parseInt(String.valueOf(value));
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
-    }
 
     private String truncate(String value, int maxLength) {
         if (value == null || value.length() <= maxLength) {

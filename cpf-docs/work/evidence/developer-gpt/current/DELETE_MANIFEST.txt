@@ -1,0 +1,2 @@
+# Root-relative delete manifest
+# Product source deletion: none

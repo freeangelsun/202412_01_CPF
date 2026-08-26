@@ -15,7 +15,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /** WAS READY 직전에 실제 Handler를 스캔하여 Operation Catalog를 자동 현행화합니다. */
@@ -72,7 +71,7 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
             Operation open=AnnotatedElementUtils.findMergedAnnotation(method,Operation.class);
             if(open!=null && open.operationId()!=null && !open.operationId().isBlank() && !operationId.equals(open.operationId().trim()))
                 throw new IllegalStateException("CPF_OPERATION_ID_OPENAPI_MISMATCH:"+operationId+":"+open.operationId().trim());
-            String httpMethod=entry.getKey().getMethodsCondition().getMethods().stream().map(Enum::name).sorted().findFirst().orElse("ANY");
+            String httpMethod=entry.getKey().getMethodsCondition().getMethods().stream().map(value -> value.name()).sorted().findFirst().orElse("ANY");
             String path=entry.getKey().getPatternValues().stream().sorted().findFirst().orElse("/");
             String domain=first("cpf.domain","cpf.generated-domain.domain","cpf.framework.domain"); if(domain==null) domain=runtime.systemCode();
             String name=required(tx.name(),"name");
@@ -81,7 +80,7 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
             out.add(new CpfOperationCatalogRegistry.Operation(operationId,name,description,
                     runtime.systemCode(),domain,runtime.application(),httpMethod,path,handler.getBeanType().getName(),method.getName(),fp));
         }
-        out.sort(Comparator.comparing(CpfOperationCatalogRegistry.Operation::operationId));
+        out.sort(Comparator.comparing(value -> value.operationId()));
         for(int i=1;i<out.size();i++) if(out.get(i-1).operationId().equals(out.get(i).operationId()))
             throw new IllegalStateException("CPF_DUPLICATE_OPERATION_ID:"+out.get(i).operationId());
         return List.copyOf(out);

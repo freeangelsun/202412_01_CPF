@@ -22,7 +22,7 @@ class CpfGatewayResilientInvokerTest {
         CpfGatewayResilientInvoker invoker = new CpfGatewayResilientInvoker(
                 executor, Clock.fixed(NOW, ZoneOffset.UTC));
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-1", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-1", "WEB")) {
             invoker.invoke("member", "tx-1", null, () -> "ok");
         }
 
@@ -43,14 +43,14 @@ class CpfGatewayResilientInvokerTest {
         CpfGatewayResilientInvoker invoker = new CpfGatewayResilientInvoker(
                 executor, Clock.fixed(NOW, ZoneOffset.UTC));
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-read", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-read", "WEB")) {
             invoker.invokeRead("catalog", "tx-read", () -> "read");
         }
         assertThat(executor.context.operationKind())
                 .isEqualTo(CpfResilienceCallContext.OperationKind.READ);
         assertThat(executor.context.timeoutRetryAllowed()).isTrue();
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-write", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-write", "WEB")) {
             invoker.invokeWrite("payment", "tx-write", "idem-1", false, () -> "write");
         }
         GatewayContextTestSupport.assertClear();
@@ -78,7 +78,7 @@ class CpfGatewayResilientInvokerTest {
         CpfGatewayResilientInvoker invoker = new CpfGatewayResilientInvoker(
                 executor, Clock.fixed(NOW, ZoneOffset.UTC));
 
-        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-current", "WEB")) {
+        try (AutoCloseable _ = GatewayContextTestSupport.bind("tx-current", "WEB")) {
             assertThatThrownBy(() -> invoker.invokeRead(
                     "catalog", "tx-spoofed", () -> "read"))
                     .isInstanceOf(SecurityException.class)

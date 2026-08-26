@@ -30,11 +30,11 @@ public class CenterCutExecutionController {
                 request.centerCutJobId(),request.idempotencyKey(),request.parameters(),
                 request.parameterSchemaVersion(),request.tpsLimit(),request.concurrencyLimit(),
                 actor,request.reason(),request.transactionId(),request.parentSegmentId());
-        return ResponseEntity.status(201).body(service.create(verified));
+        return ResponseEntity.status(201).body(service.launch(verified));
     }
 
     @GetMapping("/{id}")
-    public Map<String, Object> detail(@PathVariable String id) { return service.detail(id); }
+    public Map<String, Object> detail(@PathVariable String id) { return service.status(id); }
 
     @PostMapping("/{id}/{action}")
     public ResponseEntity<Map<String, Object>> action(@PathVariable String id, @PathVariable String action,

@@ -14,7 +14,6 @@ import java.util.Locale;
 import org.springframework.core.env.Environment;
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.foundation.runtime.CpfRuntimeMetadata;
-import com.cpf.foundation.runtime.CpfRuntimeSystemCode;
 
 /**
  * CPF 34자리 transactionId의 Foundation 기본 발급 구현입니다.

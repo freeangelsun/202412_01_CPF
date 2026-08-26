@@ -2,7 +2,6 @@ package com.cpf.web.context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.cpf.core.api.context.CpfContext;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;

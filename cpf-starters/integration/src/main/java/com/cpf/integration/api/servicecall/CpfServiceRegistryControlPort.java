@@ -162,7 +162,4 @@ public interface CpfServiceRegistryControlPort {
         }
         return resolved;
     }
-    private static String code(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value.trim().toUpperCase(Locale.ROOT);
-    }
 }

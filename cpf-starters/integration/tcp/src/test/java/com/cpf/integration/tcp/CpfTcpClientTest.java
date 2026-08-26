@@ -180,13 +180,13 @@ class CpfTcpClientTest {
         properties.setFrame(CpfTcpProperties.Frame.FIXED);
         properties.setFixedLength(8);
         CpfTcpUnknownResultStore store = new CpfTcpUnknownResultStore(10);
-        CpfTcpClient client = new CpfTcpClient(properties, store, null);
-
-        IllegalArgumentException invalid = assertThrows(
-                IllegalArgumentException.class,
-                () -> client.request("corr-invalid", new byte[] {1, 2, 3}));
-        assertTrue(invalid.getMessage().contains("before write"));
-        assertTrue(store.find("corr-invalid").isEmpty());
+        try (CpfTcpClient client = new CpfTcpClient(properties, store, null)) {
+            IllegalArgumentException invalid = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> client.request("corr-invalid", new byte[] {1, 2, 3}));
+            assertTrue(invalid.getMessage().contains("before write"));
+            assertTrue(store.find("corr-invalid").isEmpty());
+        }
     }
 
     @Test

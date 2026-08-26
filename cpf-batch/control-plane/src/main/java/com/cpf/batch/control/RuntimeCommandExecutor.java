@@ -240,7 +240,7 @@ public class RuntimeCommandExecutor {
                 || command.targetIds().stream().anyMatch(id -> id == null || id.isBlank())) {
             return "VALIDATION:At least one non-blank target is required";
         }
-        long distinctTargets = command.targetIds().stream().map(String::trim).distinct().count();
+        long distinctTargets = command.targetIds().stream().map(value -> value.trim()).distinct().count();
         if (distinctTargets != command.targetIds().size()) {
             return "VALIDATION:Duplicate target IDs are not allowed";
         }

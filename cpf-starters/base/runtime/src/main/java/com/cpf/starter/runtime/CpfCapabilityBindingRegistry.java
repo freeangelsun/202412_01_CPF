@@ -60,7 +60,7 @@ public final class CpfCapabilityBindingRegistry {
                 || policy == CpfCapabilityBindingCardinality.INTERNAL_NO_PUBLIC_BINDING) {
             throw new IllegalStateException("CPF capability does not expose a default binding: " + capability + " (cardinality=" + policy + ")");
         }
-        List<CpfCapabilityBinding> defaults = list(capability).stream().filter(CpfCapabilityBinding::defaultBinding).toList();
+        List<CpfCapabilityBinding> defaults = list(capability).stream().filter(value -> value.defaultBinding()).toList();
         if (defaults.size() != 1) {
             throw new IllegalStateException("CPF capability default binding is not uniquely available: " + capability + " (found=" + defaults.size() + ", cardinality=" + policy + ")");
         }
@@ -75,7 +75,7 @@ public final class CpfCapabilityBindingRegistry {
     public List<CpfCapabilityBinding> list(String capability) {
         var capabilityBindings = bindings.get(capability);
         if (capabilityBindings == null) return List.of();
-        return capabilityBindings.values().stream().sorted(Comparator.comparing(CpfCapabilityBinding::name)).toList();
+        return capabilityBindings.values().stream().sorted(Comparator.comparing(value -> value.name())).toList();
     }
 
     public Map<String, List<CpfCapabilityBinding>> snapshot() {
@@ -91,7 +91,7 @@ public final class CpfCapabilityBindingRegistry {
 
     private static void validate(String capability, Map<String, CpfCapabilityBinding> capabilityBindings,
             CpfCapabilityBindingCardinality policy, boolean startup) {
-        long defaultCount = capabilityBindings.values().stream().filter(CpfCapabilityBinding::defaultBinding).count();
+        long defaultCount = capabilityBindings.values().stream().filter(value -> value.defaultBinding()).count();
         if (defaultCount > 1) throw new IllegalStateException("Multiple default CPF bindings: " + capability);
         switch (policy) {
             case SINGLE_DEFAULT_REQUIRED -> {

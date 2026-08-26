@@ -59,7 +59,7 @@ class CmnTemplateManagementServiceTest {
         public Optional<CmnTemplateDefinition> findActive(String templateCode, String channel) {
             return values.values().stream().filter(v -> v.definition().templateCode().equals(templateCode))
                     .filter(v -> v.definition().channel().equals(channel))
-                    .filter(v -> v.definition().active()).map(CmnTemplateVersion::definition).findFirst();
+                    .filter(v -> v.definition().active()).map(value -> value.definition()).findFirst();
         }
 
         @Override

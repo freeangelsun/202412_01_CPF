@@ -50,7 +50,7 @@ public final class JdbcCpfParameterService implements CpfParameterService {
     }
 
     @Override public String requiredValue(String key) {
-        return find(key).map(CpfParameter::value).orElseThrow(() -> new NoSuchElementException("CPF Common parameter not found"));
+        return find(key).map(value -> value.value()).orElseThrow(() -> new NoSuchElementException("CPF Common parameter not found"));
     }
     @Override public void refresh() { requireCache().clear(); }
 

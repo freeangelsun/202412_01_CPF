@@ -42,7 +42,7 @@ public class CpfRuntimeControlReconciler {
         this.leaseSeconds = Math.max(10, Math.min(300, leaseSeconds));
         this.ackTimeoutSeconds = Math.max(10, ackTimeoutSeconds);
         this.selfHealingAllowlist = Arrays.stream(selfHealingAllowedChangeTypes == null ? new String[0] : selfHealingAllowedChangeTypes.split(","))
-                .map(String::trim).filter(v -> !v.isBlank()).map(v -> v.toUpperCase(Locale.ROOT))
+                .map(value -> value.trim()).filter(v -> !v.isBlank()).map(v -> v.toUpperCase(Locale.ROOT))
                 .collect(Collectors.toUnmodifiableSet());
         this.selfHealingRateLimitPerMinute = Math.max(1, Math.min(60, selfHealingRateLimitPerMinute));
         this.selfHealingCircuitFailureThreshold = Math.max(1, Math.min(20, selfHealingCircuitFailureThreshold));
@@ -65,7 +65,7 @@ public class CpfRuntimeControlReconciler {
             String changeId = String.valueOf(candidate.get("change_id"));
             String changeType = String.valueOf(candidate.get("change_type")).trim().toUpperCase(Locale.ROOT);
             String capability = CpfRuntimeCapabilityCatalog.resolve(changeType)
-                    .map(CpfRuntimeCapabilityCatalog.Capability::code).orElse(changeType);
+                    .map(value -> value.code()).orElse(changeType);
             if (!selfHealingAllowlist.contains(capability) && !selfHealingAllowlist.contains(changeType)) continue;
             String commandId = "AUTO_ROLLBACK:" + changeId;
             if (repository.findCommand(commandId).isPresent()) continue; // change당 최대 1회 시도

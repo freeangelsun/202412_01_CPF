@@ -56,7 +56,7 @@ public record CpfServerSessionProperties(
         cookiePath = blank(cookiePath) ? "/" : cookiePath.trim();
         allowedOrigins = allowedOrigins == null
                 ? List.of()
-                : allowedOrigins.stream().filter(value -> !blank(value)).map(String::trim).distinct().toList();
+                : allowedOrigins.stream().filter(value -> !blank(value)).map(value -> value.trim()).distinct().toList();
         credentialKeyId = blank(credentialKeyId) ? "cpf-bff-v1" : credentialKeyId.trim();
         accessTokenTtl = accessTokenTtl == null ? Duration.ofMinutes(5) : accessTokenTtl;
         refreshTokenTtl = refreshTokenTtl == null ? Duration.ofMinutes(30) : refreshTokenTtl;

@@ -253,7 +253,7 @@ public final class CpfTypedHttpClient {
 
     private static Map<String, List<String>> immutableHeaders(Map<String, List<String>> headers) {
         return headers.entrySet().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
-                Map.Entry::getKey,
+                value -> value.getKey(),
                 entry -> List.copyOf(entry.getValue())));
     }
 

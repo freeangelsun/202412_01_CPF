@@ -4,9 +4,6 @@ import com.cpf.messaging.api.CpfBrokerBridgeHandler;
 import com.cpf.messaging.api.CpfBrokerBridgeMessage;
 import com.cpf.messaging.api.CpfBrokerBridgePort;
 import com.cpf.messaging.api.CpfBrokerBridgeResult;
-import com.cpf.core.api.context.CpfContext;
-import com.cpf.core.api.context.CpfContextSnapshot;
-import com.cpf.core.api.context.CpfContexts;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 
 import com.cpf.messaging.context.*;
@@ -19,10 +16,8 @@ import java.time.Clock;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -215,7 +210,7 @@ public final class JmsCpfBrokerBridgeAdapter implements CpfBrokerBridgePort, Aut
         int bounded = Math.max(1, Math.min(limit <= 0 ? 50 : limit, RECENT_LIMIT));
         return recent.stream()
                 .filter(message -> selected == null || selected.equals(message.destination()))
-                .sorted(Comparator.comparing(CpfBrokerBridgeMessage::createdAt).reversed())
+                .sorted(Comparator.comparing(value -> value.createdAt()).reversed())
                 .limit(bounded)
                 .toList();
     }

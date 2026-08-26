@@ -8,7 +8,6 @@ import com.cpf.integration.resilience.api.CpfResilienceExecutor;
 import com.cpf.integration.resilience.api.CpfResilienceOutcome;
 import com.cpf.platform.operations.api.state.CpfOperationState;
 import com.cpf.platform.operations.api.state.CpfStateOperations;
-import com.cpf.platform.operations.api.state.CpfStateSnapshot;
 import com.cpf.platform.operations.api.state.CpfStateTransitionRequest;
 import com.cpf.platform.operations.api.state.CpfStateTransitionResult;
 import com.cpf.security.api.CpfMaskingRuntime;

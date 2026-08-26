@@ -2,7 +2,6 @@ package com.cpf.backoffice.online.approval.service;
 
 import com.cpf.backoffice.online.management.service.BackofficeManagementService;
 import com.cpf.core.api.error.CpfValidationException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.foundation.annotation.CpfService;
 
@@ -11,7 +10,6 @@ import java.util.*;
 /** 승인 commit 이후 실제 Backoffice Owner 업무를 실행하고 UNKNOWN은 비파괴 조회로만 대사합니다. */
 @CpfService
 public class BackofficeApprovalExecutionRunner {
-    private static final TypeReference<LinkedHashMap<String,Object>> MAP = new TypeReference<>() {};
     private final BackofficeApprovalExecutionStateService state;
     private final BackofficeManagementService management;
     private final ObjectMapper mapper;

@@ -173,10 +173,10 @@ public final class TransactionLogFallbackStore implements CpfTransactionLogFallb
         }
         return eligible.stream()
                 .sorted(Comparator
-                        .comparing(EligibleFile::firstFailedAt, Comparator.nullsFirst(Comparator.naturalOrder()))
-                        .thenComparing(EligibleFile::recoveryEventId, Comparator.nullsFirst(String::compareTo)))
+                        .comparing(value -> value.firstFailedAt(), Comparator.nullsFirst(Comparator.naturalOrder()))
+                        .thenComparing(value -> value.recoveryEventId(), Comparator.nullsFirst((left, right) -> left.compareTo(right))))
                 .limit(Math.max(1, limit))
-                .map(EligibleFile::path)
+                .map(value -> value.path())
                 .toList();
     }
 
@@ -356,7 +356,7 @@ public final class TransactionLogFallbackStore implements CpfTransactionLogFallb
             return result;
         }
         source.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey(Comparator.nullsFirst(String::compareTo)))
+                .sorted(Map.Entry.comparingByKey(Comparator.nullsFirst((left, right) -> left.compareTo(right))))
                 .forEach(entry -> {
                     String key = entry.getKey() == null ? "N/A" : CpfMaskingRuntime.truncate(entry.getKey(), 100);
                     String value = SENSITIVE_KEY.matcher(key).matches()
@@ -448,18 +448,6 @@ public final class TransactionLogFallbackStore implements CpfTransactionLogFallb
         }
     }
 
-    private void restoreClaimAfterReadFailure(Path processing) {
-        Path pending = pendingDirectory.resolve(processing.getFileName());
-        try {
-            if (Files.exists(pending)) {
-                Files.deleteIfExists(processing);
-            } else {
-                moveAtomically(processing, pending, false);
-            }
-        } catch (IOException restoreFailure) {
-            enqueueFailureCount.incrementAndGet();
-        }
-    }
 
     private void moveMalformedToPoison(Path source) {
         try {
@@ -627,9 +615,6 @@ public final class TransactionLogFallbackStore implements CpfTransactionLogFallb
         return separator > 0 ? value.substring(0, separator + 1) + "***" : "***";
     }
 
-    private String text(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value.trim().toUpperCase(Locale.ROOT);
-    }
 
     public enum PoisonRetryStoreResult {
         RETRIED,

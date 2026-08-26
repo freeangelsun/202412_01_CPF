@@ -7,8 +7,10 @@ import org.aspectj.lang.ProceedingJoinPoint;
 @Deprecated(forRemoval = true)
 public final class CpfPerformanceAspect {
     private final CpfTimedAspect delegate;
+    @Deprecated
     public CpfPerformanceAspect(CpfStarterProperties properties, MeterRegistry meterRegistry) {
         this.delegate = new CpfTimedAspect(properties, meterRegistry);
     }
+    @Deprecated
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable { return delegate.around(joinPoint); }
 }

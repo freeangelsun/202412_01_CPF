@@ -31,8 +31,6 @@ public class MessageCacheService extends CpfBaseService {
     private static final Logger logger = LoggerFactory.getLogger(MessageCacheService.class);
     private static final String CACHE_NAME = "messageCache";
     private static final String ALL_KEY = "ALL";
-    private static final String KEY_PREFIX = "KEY:";
-    private static final String KLT_PREFIX = "KLT:";
 
     private final MessageMapper messageMapper;
     private final CacheManager cacheManager;
@@ -47,12 +45,14 @@ public class MessageCacheService extends CpfBaseService {
     @Value("${cpf.cmn.cache.fail-fast-on-startup:false}")
     private boolean failFastOnStartup;
 
+    @Deprecated
     public MessageCacheService(MessageMapper messageMapper, CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher) {
         this(messageMapper, cacheManager, cacheRefreshEventPublisher, Clock.systemUTC());
     }
 
     @org.springframework.beans.factory.annotation.Autowired
+    @Deprecated
     public MessageCacheService(MessageMapper messageMapper, CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher, Clock clock) {
         this.messageMapper = messageMapper;
@@ -62,30 +62,36 @@ public class MessageCacheService extends CpfBaseService {
     }
 
     @Cacheable(value = CACHE_NAME, key = "'ALL'")
+    @Deprecated
     public List<Map<String, Object>> getAllMessages() {
         logger.info("Cache Miss: Fetching all messages from database");
         return messageMapper.findAllMessages();
     }
 
     @Cacheable(value = CACHE_NAME, key = "'KEY:' + #p0")
+    @Deprecated
     public Map<String, Object> getMessageByKey(String messageKey) {
         return messageMapper.findMessageByKey(messageKey);
     }
 
+    @Deprecated
     public Map<String, Object> getMessageByKeyAndLocale(String messageKey, String locale) {
         return messageMapper.findMessageByKeyAndLocale(messageKey, locale);
     }
 
     @Cacheable(value = CACHE_NAME, key = "'KLT:' + #p0 + ':' + #p1 + ':' + #p2")
+    @Deprecated
     public Map<String, Object> getMessageByKeyLocaleType(String messageKey, String locale, String messageType) {
         return messageMapper.findMessageByKeyLocaleType(messageKey, locale, messageType);
     }
 
+    @Deprecated
     public Map<String, Object> getMessageById(Long messageId) {
         return messageMapper.findMessageById(messageId);
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> createMessage(CommonMessageRequest request) {
         messageMapper.insertMessage(request);
         Map<String, Object> created = getMessageById(request.getMessageId());
@@ -95,6 +101,7 @@ public class MessageCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> updateMessage(Long messageId, CommonMessageRequest request) {
         messageMapper.updateMessage(messageId, request);
         Map<String, Object> updated = getMessageById(messageId);
@@ -104,6 +111,7 @@ public class MessageCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public List<Map<String, Object>> deleteMessage(Long messageId) {
         Map<String, Object> beforeDelete = getMessageById(messageId);
         String key = beforeDelete == null ? String.valueOf(messageId)
@@ -115,22 +123,26 @@ public class MessageCacheService extends CpfBaseService {
         return latest;
     }
 
+    @Deprecated
     public List<Map<String, Object>> reloadMessages() {
         return refreshMessages();
     }
 
+    @Deprecated
     public List<Map<String, Object>> refreshMessages() {
         List<Map<String, Object>> latest = messageMapper.findAllMessages();
         replaceSnapshot(latest);
         return latest;
     }
 
+    @Deprecated
     public List<Map<String, Object>> refreshMessagesAndPublish() {
         List<Map<String, Object>> latest = refreshMessages();
         publishRefreshEvent("MANUAL_REFRESH", "ALL", "SYSTEM");
         return latest;
     }
 
+    @Deprecated
     public Map<String, Object> cacheStatus() {
         Map<String, Object> status = new LinkedHashMap<>();
         status.put("cacheName", CACHE_NAME);
@@ -141,6 +153,7 @@ public class MessageCacheService extends CpfBaseService {
     }
 
     @PostConstruct
+    @Deprecated
     public void loadCacheOnStartup() {
         if (!preloadEnabled) return;
         try {
@@ -154,6 +167,7 @@ public class MessageCacheService extends CpfBaseService {
 
     @Scheduled(fixedRateString = "${cpf.cmn.cache.periodic-refresh-millis:1800000}",
             initialDelayString = "${cpf.cmn.cache.periodic-refresh-initial-delay-millis:1800000}")
+    @Deprecated
     public void scheduledReloadMessages() {
         try {
             refreshMessages();

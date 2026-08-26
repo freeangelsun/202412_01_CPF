@@ -204,11 +204,6 @@ public final class CpfHttpInboundContextAdapter {
         return normalized;
     }
 
-    private static void rejectUntrustedProtocolAssertion(Map<String,String> values, String header) {
-        if (safe(values.get(lower(header)), 256) != null) {
-            throw trustViolation(header, "External ingress cannot assert CPF protected routing headers.");
-        }
-    }
 
     private static CpfHeaderValidationException protocolMismatch(String header, String message, String category) {
         return new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,

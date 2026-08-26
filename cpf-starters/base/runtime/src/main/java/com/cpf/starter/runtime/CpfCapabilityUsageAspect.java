@@ -54,7 +54,7 @@ public final class CpfCapabilityUsageAspect extends StaticMethodMatcherPointcutA
                 : AopUtils.getTargetClass(invocation.getThis());
         CpfRuntimeCapabilityDescriptor descriptor = inventory.resolveByClassName(targetType.getName());
         if (descriptor == null || !descriptor.operatorVisible()) return invocation.proceed();
-        try (AutoCloseable ignored = CpfCapabilityUsageContext.bind(descriptor, invocation.getMethod().getName())) {
+        try (AutoCloseable _ = CpfCapabilityUsageContext.bind(descriptor, invocation.getMethod().getName())) {
             return invocation.proceed();
         }
     }

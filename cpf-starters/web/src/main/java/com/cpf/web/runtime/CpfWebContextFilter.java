@@ -153,9 +153,9 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
             var resolved = inbound.resolve(firstValues, decision.trust(), null, null, edge,
                     request.getMethod() + " " + request.getRequestURI(), businessDates.currentBusinessDate(), null, runtime);
             collectSubjects(received, resolved.snapshot().context());
-            try (AutoCloseable ignored = CpfContexts.bind(resolved.snapshot());
-                 AutoCloseable ignoredWeb = CpfWebContexts.bind(resolved.interaction());
-                 AutoCloseable ignoredHeaders = CpfHttpHeadersContext.bind(received)) {
+            try (AutoCloseable _ = CpfContexts.bind(resolved.snapshot());
+                 AutoCloseable _ = CpfWebContexts.bind(resolved.interaction());
+                 AutoCloseable _ = CpfHttpHeadersContext.bind(received)) {
                 chain.doFilter(request, response);
             } catch (ServletException | IOException | RuntimeException e) {
                 throw e;

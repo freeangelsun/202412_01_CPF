@@ -8,7 +8,6 @@ import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryStatusResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
-import com.cpf.admin.opr.dto.NotificationSendResult;
 import com.cpf.foundation.util.CpfStrings;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.context.CpfContexts;
@@ -23,9 +22,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 

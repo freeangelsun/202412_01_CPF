@@ -10,6 +10,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 
 /** Developer Integration Annotation의 실제 AOP Consumer입니다. */
 @Aspect
+@SuppressWarnings("deprecation")
 public final class CpfIntegrationClientAspect {
     private final CpfIntegrationClientCoordinator coordinator;
     public CpfIntegrationClientAspect(CpfIntegrationClientCoordinator coordinator){this.coordinator=coordinator;}

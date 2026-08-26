@@ -37,7 +37,7 @@ class CenterCutExecutionServiceContextTest {
     @Test
     void derivesLaunchLineageFromCurrentCpfContextWithoutDeveloperAssembly() throws Exception {
         CenterCutExecutionService service = service();
-        try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(currentContext()))) {
+        try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(currentContext()))) {
             CenterCutExecutionService.LaunchContext resolved = service.resolveLaunchContext(request(null, null));
             assertThat(resolved.transactionId()).isEqualTo(CURRENT_TX);
             assertThat(resolved.parentSegmentId()).isEqualTo("parent-segment-current");
@@ -56,7 +56,7 @@ class CenterCutExecutionServiceContextTest {
         CenterCutExecutionService service = service();
         assertThatThrownBy(() -> service.resolveLaunchContext(request("BATCH", null)))
                 .isInstanceOf(IllegalArgumentException.class);
-        try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(currentContext()))) {
+        try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(currentContext()))) {
             assertThatThrownBy(() -> service.resolveLaunchContext(request(GENERATED_TX, null)))
                     .isInstanceOf(SecurityException.class)
                     .hasMessage("CENTER_CUT_TRANSACTION_CONTEXT_MISMATCH");

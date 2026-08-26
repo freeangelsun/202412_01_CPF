@@ -213,7 +213,4 @@ public class CpfWebClientConfig {
         return (System.nanoTime() - started) / 1_000_000;
     }
 
-    private boolean hasText(String value) {
-        return value != null && !value.isBlank();
-    }
 }

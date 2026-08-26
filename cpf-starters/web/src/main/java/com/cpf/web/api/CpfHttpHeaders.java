@@ -307,7 +307,7 @@ public final class CpfHttpHeaders {
                 if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) throw new IllegalArgumentException();
                 converted = Boolean.valueOf(value);
             } else if (Enum.class.isAssignableFrom(type)) {
-                converted = Enum.valueOf((Class<? extends Enum>) type.asSubclass(Enum.class), value);
+                converted = enumValue(type, value);
             } else throw new IllegalArgumentException("지원하지 않는 Header 변환 타입입니다: " + type.getName());
             return (T) converted;
         // typed Header 변환 실패는 원문 값을 묵살하지 않고 표준 Header 검증 오류로 변환합니다.

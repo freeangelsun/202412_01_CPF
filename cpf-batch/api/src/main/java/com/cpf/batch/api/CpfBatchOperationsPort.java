@@ -213,7 +213,7 @@ public interface CpfBatchOperationsPort {
                     row -> String.valueOf(row.getOrDefault(sortKey, "")),
                     java.util.Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
             if ("desc".equalsIgnoreCase(direction)) comparator = comparator.reversed();
-            filtered.sort(comparator.thenComparing(CpfDataRow::toString));
+            filtered.sort(comparator.thenComparing(value -> value.toString()));
         }
         int from = Math.min(filtered.size(), safePage * safeSize);
         int to = Math.min(filtered.size(), from + safeSize);

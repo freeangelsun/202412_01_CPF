@@ -338,9 +338,6 @@ public final class JdbcCpfLogPolicyVersionStore implements CpfLogPolicyVersionSt
     private static Instant safePlus(Instant instant, Duration duration) {
         try { return instant.plus(duration); } catch (RuntimeException overflow) { return Instant.MAX; }
     }
-    private static Instant safeMinus(Instant instant, Duration duration) {
-        try { return instant.minus(duration); } catch (RuntimeException overflow) { return Instant.MIN; }
-    }
     private static String identifier(String value, String field) {
         if (value == null || !IDENTIFIER.matcher(value.trim()).matches()
                 || value.chars().anyMatch(Character::isISOControl)) {

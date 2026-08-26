@@ -217,7 +217,7 @@ public class CpfOpenApiAutoConfiguration {
         String controller = handlerMethod.getBeanType().getSimpleName().replaceFirst("Controller$", "");
         String method = capitalize(handlerMethod.getMethod().getName());
         String parameters = Arrays.stream(handlerMethod.getMethod().getParameterTypes())
-                .map(Class::getSimpleName)
+                .map(value -> value.getSimpleName())
                 .map(this::capitalize)
                 .collect(Collectors.joining("And"));
         String base = lowerFirst(controller) + method;

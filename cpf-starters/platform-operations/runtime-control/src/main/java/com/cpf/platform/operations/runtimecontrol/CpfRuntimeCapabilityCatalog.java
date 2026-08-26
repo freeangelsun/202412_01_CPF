@@ -60,12 +60,12 @@ public final class CpfRuntimeCapabilityCatalog {
                 .flatMap(capability -> capability.aliases().stream()
                         .filter(normalized::contains)
                         .map(alias -> new Match(capability, alias.length())))
-                .max(java.util.Comparator.comparingInt(Match::aliasLength))
-                .map(Match::capability);
+                .max(java.util.Comparator.comparingInt(value -> value.aliasLength()))
+                .map(value -> value.capability());
     }
 
     public static boolean requiresApproval(String changeType) {
-        return resolve(changeType).map(Capability::approvalRequired).orElse(true);
+        return resolve(changeType).map(value -> value.approvalRequired()).orElse(true);
     }
 
     public static Map<String, Object> describe(String changeType) {

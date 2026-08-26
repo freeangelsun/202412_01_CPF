@@ -2,7 +2,6 @@ package com.cpf.platform.operations.observability.internal.logging;
 
 import com.cpf.platform.operations.observability.api.logging.policy.LogCaptureMode;
 import com.cpf.platform.operations.observability.api.logging.policy.LogPolicyDecision;
-import com.cpf.platform.operations.observability.internal.logging.CpfTransactionLogIdentity;
 import com.cpf.security.api.CpfMaskingRuntime;
 import com.cpf.platform.operations.observability.spi.logging.TransactionLogRecord;
 import com.cpf.platform.operations.observability.spi.logging.CpfTransactionLogPersistencePort;

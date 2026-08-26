@@ -39,7 +39,7 @@ public final class CpfContextAwareInputStream extends FilterInputStream {
     }
 
     private <T> T withContext(IoSupplier<T> operation) throws IOException {
-        try (AutoCloseable ignored = CpfContexts.bind(snapshot)) {
+        try (AutoCloseable _ = CpfContexts.bind(snapshot)) {
             return operation.get();
         } catch (IOException failure) {
             throw failure;

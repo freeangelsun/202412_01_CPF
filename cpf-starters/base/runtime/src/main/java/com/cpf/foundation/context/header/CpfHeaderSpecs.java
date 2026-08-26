@@ -128,7 +128,7 @@ public final class CpfHeaderSpecs {
         if (CpfExtensionHeaderPolicy.isAllowedExtensionHeader(name)) {
             return true;
         }
-        return find(name).map(CpfHeaderSpec::propagation).orElse(false);
+        return find(name).map(value -> value.propagation()).orElse(false);
     }
 
     public static boolean shouldMask(String name) {
@@ -145,7 +145,7 @@ public final class CpfHeaderSpecs {
         if (CpfExtensionHeaderPolicy.isBlockedSecurityAlias(name)) {
             return false;
         }
-        return find(name).map(CpfHeaderSpec::loggable).orElse(true);
+        return find(name).map(value -> value.loggable()).orElse(true);
     }
 
     public static boolean isAllowedExtensionHeader(String name) {

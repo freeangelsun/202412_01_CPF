@@ -117,14 +117,14 @@ public class WorkerOperationalProperties {
 
         private static Set<String> normalizeLower(Set<String> values) {
             LinkedHashSet<String> normalized = new LinkedHashSet<>();
-            if (values != null) values.stream().filter(Objects::nonNull).map(String::trim).filter(v -> !v.isEmpty())
+            if (values != null) values.stream().filter(Objects::nonNull).map(value -> value.trim()).filter(v -> !v.isEmpty())
                     .map(v -> v.toLowerCase(Locale.ROOT)).forEach(normalized::add);
             return normalized;
         }
 
         private static Set<String> normalizeUpper(Set<String> values) {
             LinkedHashSet<String> normalized = new LinkedHashSet<>();
-            if (values != null) values.stream().filter(Objects::nonNull).map(String::trim).filter(v -> !v.isEmpty())
+            if (values != null) values.stream().filter(Objects::nonNull).map(value -> value.trim()).filter(v -> !v.isEmpty())
                     .map(v -> v.toUpperCase(Locale.ROOT)).forEach(normalized::add);
             return normalized;
         }

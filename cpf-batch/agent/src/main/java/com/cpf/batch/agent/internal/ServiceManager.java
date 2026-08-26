@@ -148,17 +148,17 @@ public final class ServiceManager {
     private static boolean terminateTree(Process process) {
         List<ProcessHandle> handles = new ArrayList<>(process.descendants().toList());
         handles.add(process.toHandle());
-        handles.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroy);
+        handles.stream().filter(value -> value.isAlive()).forEach(value -> value.destroy());
         if (awaitStopped(handles, TERMINATION_GRACE_MILLIS / 2L)) {
             return true;
         }
-        handles.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
+        handles.stream().filter(value -> value.isAlive()).forEach(value -> value.destroyForcibly());
         return awaitStopped(handles, TERMINATION_GRACE_MILLIS / 2L);
     }
 
     private static boolean awaitStopped(List<ProcessHandle> handles, long timeoutMillis) {
         long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
-        while (handles.stream().anyMatch(ProcessHandle::isAlive)) {
+        while (handles.stream().anyMatch(value -> value.isAlive())) {
             if (System.nanoTime() >= deadline) {
                 return false;
             }

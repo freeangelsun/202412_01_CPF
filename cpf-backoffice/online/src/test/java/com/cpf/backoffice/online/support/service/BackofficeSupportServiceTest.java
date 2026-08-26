@@ -150,7 +150,7 @@ class BackofficeSupportServiceTest {
                 .thenReturn(new CpfAttachmentStream(
                         new ByteArrayInputStream(new byte[]{1}), 1, "b".repeat(64)));
 
-        try (AutoCloseable ignored = contexts.bindRoot("correlation-a", null, "operator01")) {
+        try (AutoCloseable _ = contexts.bindRoot("correlation-a", null, "operator01")) {
             assertThatThrownBy(() -> service.downloadAttachment(1L, "감사 증적 확인", "operator01"))
                     .isInstanceOf(CpfValidationException.class)
                     .hasMessageContaining("checksum");

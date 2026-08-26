@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.DataAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +27,6 @@ import java.util.*;
 @Repository
 @ConditionalOnBean(DataSource.class)
 public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
-    private static final Logger log = LoggerFactory.getLogger(JdbcCpfGatewayRegistryAdapter.class);
     private final JdbcTemplate jdbc;
     private final CpfRuntimePolicyDistributionPort distribution;
 
@@ -172,7 +169,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
             requireUpdated(updated,"Server Group version conflict"); next=current+1;
         }
         Map<String, GroupMember> existingMembers = findMembers(c.serverGroupId()).stream()
-                .collect(java.util.stream.Collectors.toMap(GroupMember::instanceId, member -> member));
+                .collect(java.util.stream.Collectors.toMap(value -> value.instanceId(), member -> member));
         Set<String> seen=new HashSet<>();
         List<MemberCommand> members = c.members() == null ? List.of() : c.members();
         for(MemberCommand member:members) {
@@ -689,7 +686,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         long success=samples.stream().filter(v->"SUCCESS".equalsIgnoreCase(v.status())).count();
         long unknown=samples.stream().filter(v->"UNKNOWN_RESULT".equalsIgnoreCase(v.status())||"UNKNOWN".equalsIgnoreCase(v.status())).count();
         long failed=Math.max(0,total-success-unknown);
-        List<Long> durations=samples.stream().map(TrafficSample::durationMs).sorted().toList();
+        List<Long> durations=samples.stream().map(value -> value.durationMs()).sorted().toList();
         long openCircuit=countSafe("SELECT COUNT(*) FROM OPS_SERVICE_CIRCUIT_STATE WHERE circuit_state='OPEN'",List.of(),warnings,"CIRCUIT_READ_FAILED");
         long expiring=countSafe("SELECT COUNT(*) FROM GW_CERTIFICATE_INVENTORY WHERE certificate_status='ACTIVE' AND not_after<=?",
                 List.of(Timestamp.from(now.plusDays(30).toInstant())),warnings,"CERTIFICATE_READ_FAILED");

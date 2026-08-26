@@ -63,7 +63,7 @@ class InMemoryCpfGatewayRateLimitCounterAdapterTest {
         assertFalse(duplicate.accepted());
         assertEquals(1, duplicate.limitingIndex());
         assertTrue(duplicate.results().stream().allMatch(
-                CpfGatewayRateLimitCounterPort.CounterResult::duplicate));
+                value -> value.duplicate()));
     }
 
     @Test

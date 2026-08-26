@@ -217,8 +217,8 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         CpfRuntimeTargetPreview targetPreview=repository.previewTargets(
                 command.changeType(),command.payloadSchemaVersion(),command.target());
         List<CpfRuntimeTargetPreviewItem> targets=targetPreview.targets();
-        List<String> eligible=targets.stream().filter(CpfRuntimeTargetPreviewItem::eligible)
-                .map(CpfRuntimeTargetPreviewItem::instanceId).toList();
+        List<String> eligible=targets.stream().filter(value -> value.eligible())
+                .map(value -> value.instanceId()).toList();
         CpfRuntimePayload payload=CpfRuntimePayloadJson.without(command.payload(),"_rollback");
         String payloadHash=CpfRuntimeCanonicalHash.sha256(payload);
         List<CpfRuntimeFeatureStatus> current=repository.featureStates(eligible,command.changeType());
@@ -233,7 +233,7 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
             String capability=target.capability()==null?"":target.capability();
             String[] parts=capability.split("\\|");
             String impact=parts.length>1?parts[1]:"HOT_APPLY";
-            restartImpact.merge(impact,1,Integer::sum);
+            restartImpact.merge(impact,1,(left, right) -> Integer.sum(left, right));
             diff.add(new CpfRuntimeInstanceDiff(instanceId,state.desiredVersion(),state.actualVersion(),
                     state.desiredHash(),state.actualHash(),state.driftState(),payloadHash,
                     !payloadHash.equals(state.desiredHash()),impact));
@@ -241,8 +241,8 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         List<CpfRuntimeImpactCount> impactSummary=restartImpact.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry->new CpfRuntimeImpactCount(entry.getKey(),entry.getValue())).toList();
-        List<String> affectedServices=targets.stream().filter(CpfRuntimeTargetPreviewItem::eligible)
-                .map(CpfRuntimeTargetPreviewItem::serviceId).filter(java.util.Objects::nonNull)
+        List<String> affectedServices=targets.stream().filter(value -> value.eligible())
+                .map(value -> value.serviceId()).filter(java.util.Objects::nonNull)
                 .distinct().sorted().toList();
         return new CpfRuntimeChangePreview(targetPreview,payloadHash,impactSummary,diff,affectedServices);
     }
@@ -302,7 +302,7 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
 
     private CpfRuntimeChangeResult toResult(Map<String,Object> row){
         String id=String.valueOf(row.get("change_id")); Map<String,Number> counts=repository.deliveryCounts(id);
-        int total=counts.values().stream().mapToInt(Number::intValue).sum();
+        int total=counts.values().stream().mapToInt(value -> value.intValue()).sum();
         int ack=counts.getOrDefault("ACKED",0).intValue();
         int failed=counts.getOrDefault("FAILED",0).intValue()
                 + counts.getOrDefault("POISONED",0).intValue()
@@ -323,5 +323,4 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
     private long number(Object v){return v==null?0L:((Number)v).longValue();}
     private Instant instant(Object v){if(v==null)return null;if(v instanceof java.sql.Timestamp t)return t.toInstant();if(v instanceof java.util.Date d)return d.toInstant();try{return Instant
             .parse(String.valueOf(v));}catch(Exception ignored){return null;}}
-    private List<?> readList(String json){try{return new com.fasterxml.jackson.databind.ObjectMapper().readValue(json,List.class);}catch(Exception ex){throw new IllegalStateException("target snapshot 파싱 실패",ex);}}
 }

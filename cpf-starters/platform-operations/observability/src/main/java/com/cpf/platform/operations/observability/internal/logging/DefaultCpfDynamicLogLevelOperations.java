@@ -49,9 +49,9 @@ public final class DefaultCpfDynamicLogLevelOperations implements
     private static final Comparator<DynamicLogLevelRule> RESOLUTION_ORDER = Comparator
             .comparingInt(DefaultCpfDynamicLogLevelOperations::specificity)
             .reversed()
-            .thenComparing(DynamicLogLevelRule::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
-            .thenComparing(DynamicLogLevelRule::expiresAt, Comparator.nullsLast(Comparator.reverseOrder()))
-            .thenComparing(DynamicLogLevelRule::ruleId);
+            .thenComparing(value -> value.createdAt(), Comparator.nullsLast(Comparator.reverseOrder()))
+            .thenComparing(value -> value.expiresAt(), Comparator.nullsLast(Comparator.reverseOrder()))
+            .thenComparing(value -> value.ruleId());
 
     private final Clock clock;
     private final Duration maxTtl;
@@ -323,7 +323,7 @@ public final class DefaultCpfDynamicLogLevelOperations implements
             RegistryState current = state.get();
             List<DynamicLogLevelRule> expired = current.rules().values().stream()
                     .filter(rule -> rule.expired(now))
-                    .sorted(Comparator.comparing(DynamicLogLevelRule::ruleId))
+                    .sorted(Comparator.comparing(value -> value.ruleId()))
                     .toList();
             if (expired.isEmpty()) return current;
             LinkedHashMap<String, DynamicLogLevelRule> nextRules = new LinkedHashMap<>(current.rules());

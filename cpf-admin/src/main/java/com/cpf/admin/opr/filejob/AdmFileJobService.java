@@ -74,7 +74,7 @@ public class AdmFileJobService {
         }catch(RuntimeException error){artifacts.delete(stored.path());throw error;}
     }
 
-    public List<AdmFileJobResponse> list(int limit){return repository.list(limit).stream().map(AdmFileJobRepository.Job::response).toList();}
+    public List<AdmFileJobResponse> list(int limit){return repository.list(limit).stream().map(value -> value.response()).toList();}
     public AdmFileJobResponse get(String jobId){return repository.get(jobId).response();}
     public List<AdmFileJobRowResponse> rows(String jobId){
         repository.get(jobId);

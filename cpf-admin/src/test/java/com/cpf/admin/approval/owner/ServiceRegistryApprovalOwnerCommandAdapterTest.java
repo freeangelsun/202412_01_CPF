@@ -13,6 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -83,7 +84,7 @@ class ServiceRegistryApprovalOwnerCommandAdapterTest {
     void deleteReconcileDoesNotReplayMutationAndConvergesFromOwnerState() {
         var command = command(
                 "SERVICE_REGISTRY_SERVICE_DELETE", "SERVICE_REGISTRY_SERVICE", "MBR@3", "requester", "approver");
-        when(queryPort.services("MBR", null, 10)).thenReturn(List.of(), List.of(service("MBR", 3L)));
+        doReturn(List.<CpfServiceRegistryView.Service>of()).doReturn(List.of(service("MBR", 3L))).when(queryPort).services("MBR", null, 10);
 
         var absent = adapter.reconcile(command);
         var stillPresent = adapter.reconcile(command);

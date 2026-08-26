@@ -1,13 +1,6 @@
 package com.cpf.foundation.service.security;
 
 import com.cpf.security.api.CpfSensitiveDataAccessOperations;
-import com.cpf.security.api.CpfSensitiveDataAccessOperations.AccessApprovalCommand;
-import com.cpf.security.api.CpfSensitiveDataAccessOperations.AccessConsumeCommand;
-import com.cpf.security.api.CpfSensitiveDataAccessOperations.AccessGrant;
-import com.cpf.security.api.CpfSensitiveDataAccessOperations.AccessRejectionCommand;
-import com.cpf.security.api.CpfSensitiveDataAccessOperations.AccessRequestCommand;
-import com.cpf.security.api.CpfSensitiveDataAccessOperations.AccessResult;
-import com.cpf.security.api.CpfSensitiveDataAccessOperations.AccessStatus;
 import com.cpf.security.spi.CpfSensitiveDataAccessAuditSink;
 import com.cpf.security.spi.CpfSensitiveDataAccessStore;
 

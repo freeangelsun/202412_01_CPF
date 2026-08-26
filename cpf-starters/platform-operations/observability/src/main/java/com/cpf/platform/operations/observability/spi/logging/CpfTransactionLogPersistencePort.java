@@ -1,5 +1,4 @@
 package com.cpf.platform.operations.observability.spi.logging;
-import com.cpf.platform.operations.observability.spi.logging.TransactionLogRecord;
 /** CPF 거래 로그 projection의 topology-independent 영속 SPI. 구현체는 secret/raw payload를 저장하지 않고 재시도/복구 멱등성을 보장해야 한다. */
 public interface CpfTransactionLogPersistencePort {
  /** 복구 이벤트 존재 여부를 조회한다. @param recoveryEventId 비-null 복구 이벤트 ID @return 존재하면 true @throws RuntimeException 저장소 조회 실패 시. 읽기 전용이며 side effect가 없어야 한다. */ boolean existsRecoveryEvent(String recoveryEventId);

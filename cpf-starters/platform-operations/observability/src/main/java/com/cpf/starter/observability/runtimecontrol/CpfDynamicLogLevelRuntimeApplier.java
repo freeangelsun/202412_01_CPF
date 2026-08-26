@@ -100,7 +100,7 @@ public final class CpfDynamicLogLevelRuntimeApplier implements CpfRuntimeChangeA
 
     private Map<String, DynamicLogLevelRule> byId(List<DynamicLogLevelRule> values) {
         return values.stream().collect(Collectors.toUnmodifiableMap(
-                DynamicLogLevelRule::ruleId, Function.identity(), (left, right) -> right));
+                value -> value.ruleId(), Function.identity(), (left, right) -> right));
     }
 
     private String required(JsonNode source, String key) {

@@ -254,7 +254,7 @@ public class SpringDataRedisCpfCache implements CpfCache, CpfDistributedLockPort
         List<String> keys = new ArrayList<>();
         try (RedisConnection connection = Objects.requireNonNull(redis.getConnectionFactory(), "connectionFactory")
                 .getConnection();
-             Cursor<byte[]> cursor = connection.scan(
+             Cursor<byte[]> cursor = connection.keyCommands().scan(
                      ScanOptions.scanOptions().match(pattern).count(properties.getScanCount()).build())) {
             while (cursor.hasNext()) {
                 keys.add(new String(cursor.next(), StandardCharsets.UTF_8));

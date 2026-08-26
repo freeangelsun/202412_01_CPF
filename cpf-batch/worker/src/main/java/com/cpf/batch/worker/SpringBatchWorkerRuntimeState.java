@@ -260,7 +260,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
 
     private static List<String> capabilities(String text) {
         List<String> values = Arrays.stream(text == null ? new String[0] : text.split(","))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(value -> !value.isEmpty())
                 .distinct()
                 .sorted()

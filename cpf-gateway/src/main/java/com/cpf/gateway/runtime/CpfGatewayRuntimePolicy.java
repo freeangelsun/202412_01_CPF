@@ -262,9 +262,9 @@ public final class CpfGatewayRuntimePolicy implements CpfGatewayRateLimitPort {
             return "INCOMPLETE_RESULT";
         }
         boolean anyDuplicate = batch.results().stream().anyMatch(
-                CpfGatewayRateLimitCounterPort.CounterResult::duplicate);
+                value -> value.duplicate());
         boolean allDuplicate = batch.results().stream().allMatch(
-                CpfGatewayRateLimitCounterPort.CounterResult::duplicate);
+                value -> value.duplicate());
         if (anyDuplicate != allDuplicate) {
             return "MIXED_DUPLICATE_STATE";
         }

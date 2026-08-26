@@ -126,7 +126,7 @@ class BackofficeAuthServiceTest {
                 .thenReturn(RAW_REFRESH_TOKEN);
 
         BackofficeAuthService.LoginResult result;
-        try (AutoCloseable ignored = contexts.bindRoot("correlation-login-success", null, "biz-admin")) {
+        try (AutoCloseable _ = contexts.bindRoot("correlation-login-success", null, "biz-admin")) {
             result = service.login(
                     new BackofficeAuthService.LoginRequest("biz-admin", "password", "login-op-1"),
                     "127.0.0.1",
@@ -146,7 +146,7 @@ class BackofficeAuthServiceTest {
         when(passwordHashingPort.matches(any(char[].class), org.mockito.ArgumentMatchers.eq("password-hash")))
                 .thenReturn(false);
 
-        try (AutoCloseable ignored = contexts.bindRoot("correlation-login-failure", null, "biz-admin")) {
+        try (AutoCloseable _ = contexts.bindRoot("correlation-login-failure", null, "biz-admin")) {
             assertThatThrownBy(() -> service.login(
                     new BackofficeAuthService.LoginRequest("biz-admin", "wrong", "login-op-2"),
                     "127.0.0.1",

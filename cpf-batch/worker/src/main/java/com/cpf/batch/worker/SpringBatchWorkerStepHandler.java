@@ -81,7 +81,7 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
 
     @Override
     public BatchStepResult execute(BatchStepCommand command) throws Exception {
-        try (WorkerExecutionTracker.Scope ignored =
+        try (WorkerExecutionTracker.Scope _ =
                      executions.begin(
                              command.cpfExecutionId(),
                              command.jobExecutionId(),

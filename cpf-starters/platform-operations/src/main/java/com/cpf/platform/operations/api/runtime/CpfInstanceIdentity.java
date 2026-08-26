@@ -8,6 +8,7 @@ package com.cpf.platform.operations.api.runtime;
 public final class CpfInstanceIdentity {
     private CpfInstanceIdentity() {}
 
+    @Deprecated
     public static Identity current() {
         com.cpf.foundation.runtime.CpfInstanceIdentity.Identity value =
                 com.cpf.foundation.runtime.CpfInstanceIdentity.current();
@@ -15,10 +16,13 @@ public final class CpfInstanceIdentity {
     }
 
     /** instanceId 동작은 Foundation Runtime의 canonical instance identity를 기존 플랫폼 Consumer에 위임하는 호환 경계에서 필요한 공개 동작을 수행합니다. */
+    @Deprecated
     public static String instanceId() { return com.cpf.foundation.runtime.CpfInstanceIdentity.instanceId(); }
     /** hostName 동작은 Foundation Runtime의 canonical instance identity를 기존 플랫폼 Consumer에 위임하는 호환 경계에서 필요한 공개 동작을 수행합니다. */
+    @Deprecated
     public static String hostName() { return com.cpf.foundation.runtime.CpfInstanceIdentity.hostName(); }
 
     /** Identity는 Foundation Runtime의 canonical instance identity를 기존 플랫폼 Consumer에 위임하는 호환 경계입니다. */
+    @Deprecated
     public record Identity(String instanceId, String hostName, String processId, String threadName) {}
 }

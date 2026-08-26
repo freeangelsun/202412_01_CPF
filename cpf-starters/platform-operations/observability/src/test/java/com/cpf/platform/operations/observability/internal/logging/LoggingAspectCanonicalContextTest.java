@@ -48,7 +48,7 @@ class LoggingAspectCanonicalContextTest {
         LoggingAspect aspect = aspect(segments, event);
         ProceedingJoinPoint joinPoint = joinPoint(false);
 
-        try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(context()))) {
+        try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(context()))) {
             assertEquals("tx-canonical-001", TransactionContext.currentTransactionId());
             assertEquals("trace-canonical-001", TransactionContext.currentTraceId());
             assertEquals("SG-CANONICAL-001", TransactionContext.currentSpanId());
@@ -87,7 +87,7 @@ class LoggingAspectCanonicalContextTest {
         LoggingAspect aspect = aspect(segments, event);
         ProceedingJoinPoint joinPoint = joinPoint(true);
 
-        try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(context()))) {
+        try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(context()))) {
             IllegalStateException failure = assertThrows(IllegalStateException.class,
                     () -> aspect.logTransaction(joinPoint));
             assertEquals("business-failed", failure.getMessage());

@@ -105,7 +105,7 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
                         "endpointCode", request.getURI().getHost() + ":" + request.getURI().getPort(),
                         "timeoutYn", "N",
                         "retryCount", 0,
-                        "requestHeadersMasked", request.getHeaders().toString()));
+                        "requestHeadersMasked", headerSanitizer.sanitize(request.getHeaders())));
     }
 
 }

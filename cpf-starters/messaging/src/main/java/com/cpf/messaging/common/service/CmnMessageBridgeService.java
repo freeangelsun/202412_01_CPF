@@ -1,6 +1,5 @@
 package com.cpf.messaging.common.service;
 
-import com.cpf.foundation.api.CpfBaseService;
 
 import com.cpf.messaging.common.config.CmnMessagingProperties;
 import com.cpf.messaging.common.api.CmnMessageConsumer;

@@ -1,8 +1,6 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.common.spi.CpfCommonCacheChangePublisher;
-import com.cpf.messaging.common.api.CmnMessageConsumer;
-import com.cpf.messaging.common.api.CmnMessagePublisher;
 import com.cpf.platform.operations.observability.api.logging.CpfDynamicLogLevelOperations;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;

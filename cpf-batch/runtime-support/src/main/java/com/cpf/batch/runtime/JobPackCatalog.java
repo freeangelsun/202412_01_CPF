@@ -15,7 +15,7 @@ public final class JobPackCatalog {
                 if(old!=null&&old!=provider) throw new IllegalStateException("Duplicate CPF Batch jobId: "+job.jobId());
             }
         }
-        providers=Map.copyOf(map); manifests=all.stream().map(BusinessJobProvider::manifest).distinct().toList();
+        providers=Map.copyOf(map); manifests=all.stream().map(value -> value.manifest()).distinct().toList();
     }
     public List<com.cpf.batch.api.JobPackManifest> manifests(){return manifests;}
     public BusinessJobProvider providerFor(String jobId) {

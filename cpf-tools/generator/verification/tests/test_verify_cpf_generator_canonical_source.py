@@ -49,6 +49,9 @@ class CanonicalGeneratorVerifierTest(unittest.TestCase):
         detail = gate.verify_unsupported_sample_preflight(self.root, engine)
         self.assertIn("persistence=mybatis", detail)
 
+    def test_nxt3_java21_substitute_enables_unnamed_variable_preview(self) -> None:
+        self.assertIn("'--enable-preview','--release','21'", self.generated_javac)
+
     def test_nxt3_stubs_cover_current_canonical_engine_api(self) -> None:
         for token in (
             "transactionSequence()",

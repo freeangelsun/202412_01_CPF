@@ -1,6 +1,5 @@
 package com.cpf.data.persistence.api;
 
-import com.cpf.data.persistence.api.CpfRepositoryPort;
 import java.util.Optional;
 
 /** 실제 invariant 보호가 필요한 Domain Repository가 선택하는 잠금 계약입니다. */

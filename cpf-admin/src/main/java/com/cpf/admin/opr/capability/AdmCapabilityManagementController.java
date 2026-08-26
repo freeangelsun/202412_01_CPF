@@ -67,7 +67,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
                 .filter(v->matches(v.instanceId(),instanceId))
                 .filter(v->matches(v.version(),version))
                 .filter(v->v.capabilities().stream().anyMatch(c->matchesCapability(c,starterId,capabilityId,provider)))
-                .sorted(Comparator.comparing(InstanceView::systemId).thenComparing(InstanceView::instanceId)).toList();
+                .sorted(Comparator.comparing(value -> value.systemId()).thenComparing(value -> value.instanceId())).toList();
         long total=filtered.size();
         List<InstanceView> items=filtered.stream().skip((long)safePage*safeSize).limit(safeSize).toList();
         long issueCount=filtered.stream().mapToLong(v->v.issues().size()).sum();
@@ -92,7 +92,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
             out.addAll(v.issues());
             if(entry.stale()) out.add(new IssueView(v.systemId(),v.domainCode(),v.instanceId(),"runtime-report","UNKNOWN","STALE_RUNTIME_REPORT",0,entry.reportedAt()));
         }
-        out.sort(Comparator.comparing(IssueView::systemId).thenComparing(IssueView::instanceId).thenComparing(IssueView::dependency));
+        out.sort(Comparator.comparing(value -> value.systemId()).thenComparing(value -> value.instanceId()).thenComparing(value -> value.dependency()));
         return ResponseEntity.ok(List.copyOf(out));
     }
 
@@ -120,7 +120,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
                     bool(details,p+"dedicatedWorkflow"),operatorVisible,bool(details,p+"automaticRegistration"),
                     value(details,p+"managementScope"),csv(details,p+"commonAreas"),support(details,p+"supports")));
         }
-        return out.stream().sorted(Comparator.comparing(CapabilityView::starterArtifactId).thenComparing(CapabilityView::id)).toList();
+        return out.stream().sorted(Comparator.comparing(value -> value.starterArtifactId()).thenComparing(value -> value.id())).toList();
     }
     private static SupportView support(Map<String,String> details,String key){
         Map<String,String> values=new LinkedHashMap<>();
@@ -136,7 +136,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
     private static String value(Map<String,String> map,String key){String v=map.get(key);return v==null?"":v;}
     private static boolean bool(Map<String,String> map,String key){return Boolean.parseBoolean(value(map,key));}
     private static boolean flag(Map<String,String> map,String key){return Boolean.parseBoolean(map.getOrDefault(key,"false"));}
-    private static List<String> csv(Map<String,String> map,String key){String value=value(map,key);if(value.isBlank())return List.of();return java.util.Arrays.stream(value.split(",")).map(String::trim).filter(v->!v.isEmpty()).toList();}
+    private static List<String> csv(Map<String,String> map,String key){String value=value(map,key);if(value.isBlank())return List.of();return java.util.Arrays.stream(value.split(",")).map(value -> value.trim()).filter(v->!v.isEmpty()).toList();}
     private static String firstText(String... values){for(String v:values)if(v!=null&&!v.isBlank())return v.trim();return "";}
     private static boolean matches(String value,String filter){return filter==null||filter.isBlank()||(value!=null&&value.toLowerCase(Locale.ROOT).contains(filter.trim().toLowerCase(Locale.ROOT)));}
 

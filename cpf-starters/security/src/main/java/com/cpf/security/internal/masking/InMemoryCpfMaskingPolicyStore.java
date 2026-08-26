@@ -7,11 +7,9 @@ import com.cpf.security.spi.CpfMaskingPolicyStore;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -71,7 +69,7 @@ public final class InMemoryCpfMaskingPolicyStore implements CpfMaskingPolicyStor
     @Override public synchronized List<CpfMaskingPolicySnapshot> history(int limit) {
         int bounded = Math.max(1, Math.min(limit, maximumHistory));
         return versions.values().stream()
-                .sorted(Comparator.comparingLong(CpfMaskingPolicySnapshot::version).reversed())
+                .sorted(Comparator.comparingLong(value -> value.version()).reversed())
                 .limit(bounded)
                 .toList();
     }

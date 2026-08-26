@@ -28,7 +28,7 @@ class DefaultCpfAsyncOperationsTest {
         DefaultCpfAsyncOperations operations = new DefaultCpfAsyncOperations(
                 store, List.of(new ExportHandler()), json, new CpfAsyncPayloadCodec(encryption, json), ids(), Clock.fixed(NOW, ZoneOffset.UTC));
 
-        try (AutoCloseable ignored = CpfContexts.bind(root())) {
+        try (AutoCloseable _ = CpfContexts.bind(root())) {
             CpfAsyncSubmission first = operations.submit(new ExportCommand("member-123"), "idem-1", Duration.ofMinutes(3));
             CpfAsyncSubmission duplicate = operations.submit(new ExportCommand("member-123"), "idem-1", Duration.ofMinutes(3));
 
@@ -51,7 +51,7 @@ class DefaultCpfAsyncOperationsTest {
         DefaultCpfAsyncOperations operations = new DefaultCpfAsyncOperations(
                 store, List.of(new ExportHandler()), json, new CpfAsyncPayloadCodec(encryption(), json), ids(), Clock.fixed(NOW, ZoneOffset.UTC));
         String executionId;
-        try (AutoCloseable ignored = CpfContexts.bind(root())) {
+        try (AutoCloseable _ = CpfContexts.bind(root())) {
             executionId = operations.submit(new ExportCommand("m1"), "idem-2", null).executionId();
         }
         CpfAsyncOperationStatus cancelled = operations.cancel(executionId, "operator request");

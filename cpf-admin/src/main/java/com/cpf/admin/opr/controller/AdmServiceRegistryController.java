@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 
 /** Service/Endpoint/Instance를 Typed API로 운영하는 ADM Controller입니다. */
 @RestController
@@ -42,7 +41,7 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
                 "serviceTypes",CpfServiceRegistryCatalog.SERVICE_TYPES,
                 "endpointTypes",CpfServiceRegistryCatalog.ENDPOINT_TYPES,
                 "instanceStatuses",CpfServiceRegistryCatalog.INSTANCE_STATUSES,
-                "instanceCommands",java.util.Arrays.stream(CpfServiceRegistryControlPort.InstanceCommand.values()).map(Enum::name).toList(),
+                "instanceCommands",java.util.Arrays.stream(CpfServiceRegistryControlPort.InstanceCommand.values()).map(value -> value.name()).toList(),
                 "environments",CpfServiceRegistryCatalog.ENVIRONMENTS);
     }
 
@@ -154,9 +153,6 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
         Object value=request.getAttribute("adm.operatorId");
         if(value instanceof String s&&!s.isBlank()) return s;
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"검증된 ADM operator session이 필요합니다.");
-    }
-    private void requireReason(String reason) {
-        if(reason==null||reason.trim().length()<5) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"운영 조치 사유는 5자 이상이어야 합니다.");
     }
     private void audit(HttpServletRequest req,String user,String action,String id,String reason,Object after) {
         auditLogService.record(CpfContexts.transactionId(),user,action,"cpf_service_registry",id,reason,"",String.valueOf(after),"Service Registry",req.getRemoteAddr());

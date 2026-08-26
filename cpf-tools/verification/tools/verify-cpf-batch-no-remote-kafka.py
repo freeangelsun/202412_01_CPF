@@ -113,6 +113,36 @@ def verify(root:Path)->dict:
     for vendor,rels in history.items():
         for rel in rels:
             if not (root/f'cpf-tools/db/vendor/{vendor}'/rel).is_file(): errors.append(f'{vendor}:{rel}:missing')
+    # Operational orchestration must also keep Batch Kafka-free. Generic Messaging Kafka
+    # reliability is allowed only as its own independent stage/target.
+    env_script = root/'cpf-tools/environment/docker-development-test/cpf-env.ps1'
+    if env_script.is_file():
+        env_text = env_script.read_text(encoding='utf-8-sig')
+        for target in ('batch-mariadb', 'batch-postgresql', 'batch-oracle'):
+            match = re.search(r'\"' + re.escape(target) + r'\"\s*=\s*@\(([^)]*)\)', env_text)
+            if not match:
+                errors.append(f'{env_script.relative_to(root).as_posix()}:missing-batch-target:{target}')
+            elif re.search(r'kafka', match.group(1), re.I):
+                errors.append(f'{env_script.relative_to(root).as_posix()}:batch-target-kafka-coupling:{target}')
+    else:
+        errors.append('cpf-tools/environment/docker-development-test/cpf-env.ps1:missing')
+
+    full_runtime = root/'cpf-tools/verification/tools/run-cpf-local-full-validation.ps1'
+    if full_runtime.is_file():
+        runtime_text = full_runtime.read_text(encoding='utf-8-sig')
+        if 'MESSAGING_KAFKA_RELIABILITY' not in runtime_text:
+            errors.append(f'{full_runtime.relative_to(root).as_posix()}:independent-messaging-kafka-stage-missing')
+        batch_start = runtime_text.find('$batchDbEnv=')
+        batch_end = runtime_text.find("}else{Skip-CpfStage 'RUNTIME_DOCKER_CLOSURE'", batch_start)
+        if batch_start < 0 or batch_end < 0:
+            errors.append(f'{full_runtime.relative_to(root).as_posix()}:batch-two-worker-stage-missing')
+        else:
+            window = runtime_text[batch_start:batch_end]
+            if re.search(r'Start-CpfDockerTarget\s+[\'"]kafka[\'"]|batchKafkaState|DOCKER_kafka_(?:START|READINESS)', window, re.I):
+                errors.append(f'{full_runtime.relative_to(root).as_posix()}:batch-stage-kafka-coupling')
+    else:
+        errors.append('cpf-tools/verification/tools/run-cpf-local-full-validation.ps1:missing')
+
     # Common messaging Kafka provider may remain, but Batch must not own or depend on it.
     common_kafka=root/'cpf-starters/messaging/kafka'
     if not common_kafka.is_dir(): errors.append('cpf-starters/messaging/kafka:independent-common-provider-missing')

@@ -29,7 +29,7 @@ public final class CpfConfigurationCustomizers {
         for (CpfConfigurationCustomizer<T> customizer : customizers) {
             ordered.add(Objects.requireNonNull(customizer, "customizer"));
         }
-        ordered.sort(Comparator.comparingInt(CpfConfigurationCustomizer::order));
+        ordered.sort(Comparator.comparingInt(value -> value.order()));
         ordered.forEach(customizer -> customizer.customize(configuration));
         return configuration;
     }

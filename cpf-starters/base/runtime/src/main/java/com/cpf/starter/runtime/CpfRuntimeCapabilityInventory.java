@@ -3,7 +3,6 @@ package com.cpf.starter.runtime;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -33,10 +32,10 @@ public final class CpfRuntimeCapabilityInventory {
     }
 
     public List<CpfRuntimeCapabilityDescriptor> all() {
-        return descriptors.values().stream().sorted(java.util.Comparator.comparing(CpfRuntimeCapabilityDescriptor::id)).toList();
+        return descriptors.values().stream().sorted(java.util.Comparator.comparing(value -> value.id())).toList();
     }
 
-    public List<String> capabilityIds() { return all().stream().map(CpfRuntimeCapabilityDescriptor::id).toList(); }
+    public List<String> capabilityIds() { return all().stream().map(value -> value.id()).toList(); }
 
     /** 실행 클래스의 packageBase를 가장 길게 일치시키며 실제 사용 Capability를 자동 식별합니다. */
     public CpfRuntimeCapabilityDescriptor resolveByClassName(String className) {
@@ -44,7 +43,7 @@ public final class CpfRuntimeCapabilityInventory {
         CpfRuntimeCapabilityDescriptor cached = resolveCache.get(className);
         if (cached != null) return cached;
         CpfRuntimeCapabilityDescriptor found = all().stream()
-                .filter(CpfRuntimeCapabilityDescriptor::operatorVisible)
+                .filter(value -> value.operatorVisible())
                 .filter(d -> { String p=d.metadata().get("packageBase"); return p!=null&&!p.isBlank()&&(className.equals(p)||className.startsWith(p+".")); })
                 .max(java.util.Comparator.comparingInt(d -> d.metadata().get("packageBase").length()))
                 .orElse(null);
@@ -79,7 +78,7 @@ public final class CpfRuntimeCapabilityInventory {
         try {
             Enumeration<URL> resources = loader.getResources(RESOURCE);
             List<URL> urls = Collections.list(resources);
-            urls.sort(java.util.Comparator.comparing(URL::toString));
+            urls.sort(java.util.Comparator.comparing(value -> value.toString()));
             for (URL url : urls) load(url);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to discover CPF runtime capability metadata", e);
@@ -104,7 +103,7 @@ public final class CpfRuntimeCapabilityInventory {
                         flag(p,"runtimeControl"),flag(p,"recovery")), metadata));
     }
     private static boolean flag(Properties p, String name) { return Boolean.parseBoolean(p.getProperty("supports." + name, "false")); }
-    private static List<String> splitCsv(String value) { return Arrays.stream(value.split(",")).map(String::trim).filter(v -> !v.isEmpty()).toList(); }
+    private static List<String> splitCsv(String value) { return Arrays.stream(value.split(",")).map(value -> value.trim()).filter(v -> !v.isEmpty()).toList(); }
     private static String supportText(CpfRuntimeCapabilityDescriptor.Support s) {
         return String.join(",",
                 "health=" + s.health(), "metrics=" + s.metrics(), "logs=" + s.logs(), "trace=" + s.trace(),

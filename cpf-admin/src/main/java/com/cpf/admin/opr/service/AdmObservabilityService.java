@@ -238,7 +238,6 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         return keys;
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> counts(Map<String, Object> response) {
         Map<String, Object> counts = new LinkedHashMap<>();
         for (String key : List.of("transactionLogs", "failureLogs", "auditLogs", "policyAuditLogs", "relatedBatchExecutions")) {

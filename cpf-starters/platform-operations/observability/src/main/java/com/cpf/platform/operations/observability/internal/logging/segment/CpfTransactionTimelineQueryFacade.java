@@ -755,7 +755,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         }
         return row.entrySet().stream()
                 .filter(entry -> entry.getKey().equalsIgnoreCase(key))
-                .map(Map.Entry::getValue)
+                .map(value -> value.getValue())
                 .findFirst()
                 .orElse(null);
     }

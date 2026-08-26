@@ -81,12 +81,12 @@ public final class WorkerExecutionTracker {
             pending.keySet().forEach(key -> executionIds.add(key.cpfExecutionId()));
             active.keySet().forEach(key -> executionIds.add(key.cpfExecutionId()));
             Long currentJobExecutionId = allKeys().stream()
-                    .map(ExecutionKey::jobExecutionId)
+                    .map(value -> value.jobExecutionId())
                     .filter(id -> id > 0)
-                    .min(Long::compareTo)
+                    .min((left, right) -> left.compareTo(right))
                     .orElse(null);
             long fencingToken = allKeys().stream()
-                    .mapToLong(ExecutionKey::fencingToken)
+                    .mapToLong(value -> value.fencingToken())
                     .max()
                     .orElse(0L);
             return new Snapshot(
@@ -119,7 +119,7 @@ public final class WorkerExecutionTracker {
     }
 
     private static void increment(Map<ExecutionKey, Integer> values, ExecutionKey key) {
-        values.merge(key, 1, Integer::sum);
+        values.merge(key, 1, (left, right) -> Integer.sum(left, right));
     }
 
     private static void remove(Map<ExecutionKey, Integer> values, ExecutionKey key) {

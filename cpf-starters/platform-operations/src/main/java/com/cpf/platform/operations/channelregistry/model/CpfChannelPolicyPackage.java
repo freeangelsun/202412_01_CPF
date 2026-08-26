@@ -25,10 +25,10 @@ public record CpfChannelPolicyPackage(
 
     public static CpfChannelPolicyPackage from(CpfChannelPolicySnapshot snapshot) {
         List<CpfChannelDefinition> channels = snapshot.channels().values().stream()
-                .sorted(java.util.Comparator.comparing(CpfChannelDefinition::channelCode))
+                .sorted(java.util.Comparator.comparing(value -> value.channelCode()))
                 .toList();
         List<CpfChannelExecutionPolicy> policies = snapshot.policies().stream()
-                .sorted(java.util.Comparator.comparing(CpfChannelExecutionPolicy::policyKey))
+                .sorted(java.util.Comparator.comparing(value -> value.policyKey()))
                 .toList();
         String checksum = checksum("1", channels, policies);
         return new CpfChannelPolicyPackage("1", Instant.now(), channels, policies, checksum);
@@ -43,9 +43,9 @@ public record CpfChannelPolicyPackage(
             List<CpfChannelDefinition> channels,
             List<CpfChannelExecutionPolicy> policies) {
         StringBuilder canonical = new StringBuilder(schemaVersion).append('\n');
-        channels.stream().sorted(java.util.Comparator.comparing(CpfChannelDefinition::channelCode))
+        channels.stream().sorted(java.util.Comparator.comparing(value -> value.channelCode()))
                 .forEach(item -> canonical.append(item).append('\n'));
-        policies.stream().sorted(java.util.Comparator.comparing(CpfChannelExecutionPolicy::policyKey))
+        policies.stream().sorted(java.util.Comparator.comparing(value -> value.policyKey()))
                 .forEach(item -> canonical.append(item).append('\n'));
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")

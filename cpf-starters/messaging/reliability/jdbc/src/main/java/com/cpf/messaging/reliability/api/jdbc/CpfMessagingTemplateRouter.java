@@ -27,7 +27,7 @@ public final class CpfMessagingTemplateRouter implements CpfMessagingTemplate {
             }
         }
         List<CpfNamedBrokerClient> defaults = clients.stream()
-                .filter(CpfNamedBrokerClient::defaultBinding)
+                .filter(value -> value.defaultBinding())
                 .toList();
         if (defaults.size() != 1) {
             throw new IllegalStateException(

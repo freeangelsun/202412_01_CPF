@@ -6,7 +6,6 @@ import com.cpf.integration.resilience.api.CpfResilienceCallContext;
 import com.cpf.integration.resilience.api.CpfResilienceOutcome;
 import com.cpf.integration.resilience.api.CpfResiliencePolicy;
 import com.cpf.integration.resilience.api.CpfResilienceRuntimePolicy;
-import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
 import com.cpf.data.lock.api.CpfLockManagers;
 import com.cpf.data.lock.spi.CpfLockAuditSink;
 import com.cpf.data.lock.spi.CpfLockStore;

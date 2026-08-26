@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 /** Fixed table/column allowlist 기반 Common 관리 JDBC 구현입니다. */
 @Service
 public class JdbcCpfCommonManagementService implements CpfCommonManagementApi {
-    private static final Set<String> AUDIT_COLUMNS = Set.of("created_by","created_at","updated_by","updated_at");
     private final JdbcTemplate jdbc;
     private final CpfCommonCacheChangePublisher invalidation;
     private final CpfCommonManagementAuditSink audit;

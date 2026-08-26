@@ -36,7 +36,7 @@ class CpfGatewayProbeExecutorTest {
     void requestedTcpTestDoesNotClaimApplicationUp() throws Exception {
         try (java.net.ServerSocket server = new java.net.ServerSocket(0)) {
             Thread accept = Thread.ofVirtual().start(() -> {
-                try (java.net.Socket ignored = server.accept()) { }
+                try (java.net.Socket _ = server.accept()) { }
                 catch (Exception ignored) { }
             });
             CpfGatewayProbeExecutor.ProbeResult result = new CpfGatewayProbeExecutor().execute(

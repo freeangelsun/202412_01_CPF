@@ -193,21 +193,7 @@ public class BackofficeManagementService extends com.cpf.backoffice.online.base.
         auditService.record(actor, action, targetType, targetId, reason, before, after);
     }
 
-    private String string(Map<String, Object> row, String key) {
-        Object value = row.get(key);
-        if (value == null) {
-            value = row.get(key.toUpperCase(Locale.ROOT));
-        }
-        return value == null ? null : String.valueOf(value);
-    }
 
-    private Number number(Map<String, Object> row, String key) {
-        Object value = row.get(key);
-        if (value == null) {
-            value = row.get(key.toUpperCase(Locale.ROOT));
-        }
-        return value instanceof Number number ? number : Long.parseLong(String.valueOf(value));
-    }
 
     private Object value(Map<String,Object> row, String key) {
         if (row.containsKey(key)) return row.get(key);

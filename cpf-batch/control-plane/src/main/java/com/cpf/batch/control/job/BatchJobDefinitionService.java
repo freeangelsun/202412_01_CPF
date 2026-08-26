@@ -382,7 +382,7 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
             }
         }
         graph.put(candidate.jobId(), candidate.dependencies().stream()
-                .map(BatchJobDefinition.Dependency::relatedJobId)
+                .map(value -> value.relatedJobId())
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new)));
         Set<String> visiting = new HashSet<>();
         Set<String> visited = new HashSet<>();
@@ -407,7 +407,7 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
     private Object rowValue(Map<String,Object> row,String lower,String upper) {
         if (row.containsKey(lower)) return row.get(lower);
         if (row.containsKey(upper)) return row.get(upper);
-        return row.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase(lower)).map(Map.Entry::getValue).findFirst().orElse(null);
+        return row.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase(lower)).map(value -> value.getValue()).findFirst().orElse(null);
     }
 
     private BatchJobDefinition withServerChecksum(BatchJobDefinition d) {

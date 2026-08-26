@@ -51,7 +51,7 @@ public final class CpfDomainClientRouter {
                         "Same-JVM Domain invocation requires the canonical CPF context.");
             }
             var localHop = current.localDomainHop(systemCode, operationId);
-            try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(localHop))) {
+            try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(localHop))) {
                 return localOperations.invoke(
                         CpfDomainOperationRegistry.InvocationMetadata.trustedInternal(current.currentSystemCode()),
                         systemCode, operationId, request, responseType);
@@ -71,7 +71,7 @@ public final class CpfDomainClientRouter {
             return remoteTransport.invoke(systemCode, operationId, binding, request, responseType, effectiveOptions);
         }
         var outbound = current.withTargetOperation(operationId);
-        try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(outbound))) {
+        try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(outbound))) {
             return remoteTransport.invoke(systemCode, operationId, binding, request, responseType, effectiveOptions);
         // 실패·동시성·복구 경계에서도 원래 의미를 잃지 않도록 현재 Operation과 Target Operation을 분리하고 CPF Domain Client를 사용하는 내부 Domain 호출 Golden Path의 정책을 유지합니다.
         } catch (RuntimeException e) {

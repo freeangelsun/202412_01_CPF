@@ -128,7 +128,7 @@ public class CenterCutExecutionService implements CpfCenterCutOperations {
                                           String approvedBy, String reason) {
         approve(requestedBy, approvedBy, reason);
         String normalized = action.toUpperCase(Locale.ROOT);
-        Map<String, Object> before = detail(id);
+        Map<String, Object> before = status(id);
         String current = String.valueOf(before.get("execution_state"));
         String next = nextState(normalized, current, "Y".equals(before.get("target_complete_yn")));
 
@@ -140,7 +140,7 @@ public class CenterCutExecutionService implements CpfCenterCutOperations {
                 before.get("center_cut_job_id"), "CENTER_CUT_" + normalized, requestedBy,
                 SensitiveTextSanitizer.sanitize(reason), SensitiveTextSanitizer.sanitize(String.valueOf(before)),
                 "state=" + next + ",approvedBy=" + approvedBy, requestedBy, requestedBy);
-        return detail(id);
+        return status(id);
     }
 
     static String nextState(String action, String current, boolean targetComplete) {

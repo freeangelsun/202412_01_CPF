@@ -1,7 +1,5 @@
 package com.cpf.file.tabular;
 
-import com.cpf.file.tabular.api.CpfTabularReader;
-import com.cpf.file.tabular.api.CpfTabularWriter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 

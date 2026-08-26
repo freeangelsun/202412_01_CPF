@@ -17,6 +17,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 
 /** {@code @CpfTimed}를 Micrometer Timer semantics로 계측하고 CPF context correlation을 추가합니다. */
 @Aspect
+@SuppressWarnings("deprecation")
 public final class CpfTimedAspect {
     private static final Logger log = LoggerFactory.getLogger(CpfTimedAspect.class);
     private final CpfStarterProperties properties;
@@ -40,7 +41,25 @@ public final class CpfTimedAspect {
         }
         if (performance == null && legacy == null) return joinPoint.proceed();
 
-        String configuredValue = performance != null ? performance.value() : legacy.value();
+        String configuredValue;
+        String description;
+        double[] percentiles;
+        boolean histogram;
+        String[] tags;
+        if (performance != null) {
+            configuredValue = performance.value();
+            description = performance.description();
+            percentiles = performance.percentiles();
+            histogram = performance.histogram();
+            tags = performance.extraTags();
+        } else {
+            CpfTimed timed = java.util.Objects.requireNonNull(legacy, "legacy CpfTimed annotation");
+            configuredValue = timed.value();
+            description = timed.description();
+            percentiles = timed.percentiles();
+            histogram = timed.histogram();
+            tags = timed.extraTags();
+        }
         String operation = configuredValue.isBlank()
                 ? method.getDeclaringClass().getSimpleName() + "." + method.getName()
                 : configuredValue;
@@ -56,10 +75,6 @@ public final class CpfTimedAspect {
             Timer.Builder builder = Timer.builder("cpf.method.duration")
                     .tag("operation", operation)
                     .tag("outcome", outcome);
-            String description = performance != null ? performance.description() : legacy.description();
-            double[] percentiles = performance != null ? performance.percentiles() : legacy.percentiles();
-            boolean histogram = performance != null ? performance.histogram() : legacy.histogram();
-            String[] tags = performance != null ? performance.extraTags() : legacy.extraTags();
             if (!description.isBlank()) builder.description(description);
             if (percentiles.length > 0) builder.publishPercentiles(percentiles);
             if (histogram) builder.publishPercentileHistogram();

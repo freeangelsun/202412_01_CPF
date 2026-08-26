@@ -79,7 +79,7 @@ public final class CpfCsvTabularAdapter implements CpfTabularReader, CpfTabularW
                  BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(digestOut, StandardCharsets.UTF_8));
                  var rows = request.rows()) {
                 writer.write("\uFEFF");
-                writeRecord(writer, request.schema().columns().stream().map(CpfTabularColumn::label).toList());
+                writeRecord(writer, request.schema().columns().stream().map(value -> value.label()).toList());
                 Set<String> allowed = new HashSet<>();
                 request.schema().columns().forEach(column -> allowed.add(column.name()));
                 AtomicLong count = new AtomicLong();
@@ -116,7 +116,7 @@ public final class CpfCsvTabularAdapter implements CpfTabularReader, CpfTabularW
     private void validateHeader(List<String> actual, CpfTabularSchema schema) {
         if (actual == null) throw new IllegalArgumentException("CSV Header가 없습니다.");
         if (!actual.isEmpty()) actual.set(0, stripBom(actual.getFirst()));
-        List<String> expected = schema.columns().stream().map(CpfTabularColumn::label).toList();
+        List<String> expected = schema.columns().stream().map(value -> value.label()).toList();
         if (!expected.equals(actual)) throw new IllegalArgumentException("CSV Header가 Template version과 일치하지 않습니다.");
     }
 

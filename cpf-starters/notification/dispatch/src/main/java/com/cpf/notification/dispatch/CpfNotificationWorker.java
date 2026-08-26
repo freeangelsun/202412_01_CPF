@@ -69,7 +69,7 @@ public final class CpfNotificationWorker {
                 retried++;
                 continue;
             }
-            try (AutoCloseable ignoredContext=contextCodec.bind(
+            try (AutoCloseable _=contextCodec.bind(
                     claimed.contextLineage(),request,claimed.attemptCount()+1,false,provider.channel())) {
                 CpfNotificationResult result = provider.send(request);
                 if (result == null) {
@@ -117,7 +117,7 @@ public final class CpfNotificationWorker {
                 unknown++;
                 continue;
             }
-            try (AutoCloseable ignoredContext=contextCodec.bind(
+            try (AutoCloseable _=contextCodec.bind(
                     claimed.contextLineage(),request,claimed.attemptCount()+1,true,provider.channel())) {
                 CpfNotificationResult previous = outbox.currentResult(request.notificationId());
                 CpfNotificationResult result = reconciler.reconcile(request, previous);

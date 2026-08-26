@@ -15,22 +15,31 @@ import java.util.Map;
  * preventing duplicate {@code /adm/api/approvals/**} mappings and duplicate OpenAPI operationIds.
  */
 @Deprecated(forRemoval = true, since = "V9")
+@SuppressWarnings("removal")
 public class AdmApprovalController {
     private final AdmApprovalEngineService approvals; private final AdmAuthenticatedOperatorContext operators;
+    @Deprecated
     public AdmApprovalController(AdmApprovalEngineService approvals,AdmAuthenticatedOperatorContext operators){this.approvals=approvals;this.operators=operators;}
 
     @GetMapping("/policies")@Operation(operationId="admLegacyApprovalPolicies",summary="승인 정책 목록")
+    @Deprecated
     public ResponseEntity<List<Map<String,Object>>> policies(@RequestParam(required=false)String actionType){return ResponseEntity.ok(approvals.policies(actionType));}
     @GetMapping("/policies/{policyCode}/versions/{version}")@Operation(operationId="admLegacyApprovalPolicyDetail",summary="승인 정책 상세")
+    @Deprecated
     public ResponseEntity<Map<String,Object>> policy(@PathVariable String policyCode,@PathVariable int version){return ResponseEntity.ok(approvals.policy(policyCode,version));}
     @PostMapping("/policies")@Operation(operationId="admLegacyApprovalPolicySave",summary="승인 정책 Version 저장")
+    @Deprecated
     public ResponseEntity<Map<String,Object>> save(@RequestBody AdmApprovalEngineService.PolicyCommand body){return ResponseEntity.ok(approvals.savePolicy(body,operators.currentOperatorId()));}
     @PostMapping("/requests")@Operation(operationId="admLegacyApprovalRequest",summary="승인 요청 생성")
+    @Deprecated
     public ResponseEntity<Map<String,Object>> request(@RequestBody AdmApprovalEngineService.RequestCommand body){return ResponseEntity.ok(approvals.createRequest(body,operators.currentOperatorId()));}
     @GetMapping("/requests/{id}")@Operation(operationId="admLegacyApprovalRequestDetail",summary="승인 요청 상세")
+    @Deprecated
     public ResponseEntity<Map<String,Object>> request(@PathVariable long id){return ResponseEntity.ok(approvals.request(id));}
     @PostMapping("/requests/{id}/decisions")@Operation(operationId="admLegacyApprovalDecision",summary="승인/반려 결정")
+    @Deprecated
     public ResponseEntity<Map<String,Object>> decide(@PathVariable long id,@RequestBody AdmApprovalEngineService.DecisionCommand body){return ResponseEntity.ok(approvals.decide(id,body,operators.currentOperatorId()));}
     @PostMapping("/requests/{id}/execute")@Operation(operationId="admLegacyApprovalExecute",summary="승인 Owner Command 실행")
+    @Deprecated
     public ResponseEntity<?> execute(@PathVariable long id){return ResponseEntity.ok(approvals.execute(id,operators.currentOperatorId()));}
 }

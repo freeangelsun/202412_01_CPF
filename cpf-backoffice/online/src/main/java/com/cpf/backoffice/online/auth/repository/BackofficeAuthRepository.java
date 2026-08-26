@@ -310,7 +310,7 @@ public class BackofficeAuthRepository {
     public void revokeRefreshTokensByRoleCode(String roleCode) {
         List<Long> userIds = jdbc().queryForList(sql.required("auth-find-user-ids-by-role-code"),
                 new MapSqlParameterSource("roleCode", requireText(roleCode, "roleCode")), Long.class);
-        userIds.stream().distinct().forEach(this::revokeAllRefreshTokens);
+        userIds.stream().distinct().forEach(value -> this.revokeAllRefreshTokens(value));
     }
 
     /**

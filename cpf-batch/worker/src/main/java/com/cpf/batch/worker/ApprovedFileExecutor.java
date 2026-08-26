@@ -22,7 +22,6 @@ import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -261,8 +260,9 @@ public class ApprovedFileExecutor {
             }
             return localPath;
         }
+        FileFingerprint uploadFingerprint = java.util.Objects.requireNonNull(localFingerprint, "local upload fingerprint");
         if (result.checksum() != null && !result.checksum().isBlank()
-                && !result.checksum().equalsIgnoreCase(localFingerprint.sha256())) {
+                && !result.checksum().equalsIgnoreCase(uploadFingerprint.sha256())) {
             throw new IOException("Remote upload checksum mismatch");
         }
         return localPath;
@@ -565,7 +565,7 @@ public class ApprovedFileExecutor {
             Files.createDirectories(normalized.getParent());
             try (FileChannel channel = FileChannel.open(normalized,
                     StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
-                 FileLock ignored = channel.lock()) {
+                 FileLock _ = channel.lock()) {
                 return operation.run(channel);
             }
         } finally {

@@ -16,7 +16,6 @@ import com.cpf.core.api.context.CpfContextSnapshot;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -153,10 +152,10 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         BatchExecutionReservation reservation = requiredReservation(cpfExecutionId);
         Optional<BatchExecutionLink> linked = ledger.findByCpfExecutionId(cpfExecutionId).stream()
                 .filter(link -> link.stepExecutionId() == null && link.jobExecutionId() != null)
-                .max(Comparator.comparing(BatchExecutionLink::observedAt));
+                .max(Comparator.comparing(value -> value.observedAt()));
         Optional<JobExecution> linkedExecution = linked
-                .map(BatchExecutionLink::jobExecutionId)
-                .map(repository::getJobExecution)
+                .map(value -> value.jobExecutionId())
+                .map(value -> repository.getJobExecution(value))
                 .filter(execution -> cpfExecutionId.equals(
                         execution.getJobParameters().getString("cpfExecutionId")));
         if (linkedExecution.isPresent()) {
@@ -195,7 +194,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
                     .flatMap(instance -> repository.getJobExecutions(instance).stream())
                     .filter(execution -> cpfExecutionId.equals(
                             execution.getJobParameters().getString("cpfExecutionId")))
-                    .max(Comparator.comparing(JobExecution::getId));
+                    .max(Comparator.comparing(value -> value.getId()));
             if (recovered.isPresent() || instances.size() < RECONCILE_PAGE_SIZE) {
                 return recovered;
             }
@@ -264,8 +263,8 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
     private JobExecution withLaunchContext(
             CpfBatchContextBundle launchContext,
             CheckedJobExecution operation) throws JobExecutionException {
-        try (AutoCloseable ignoredCore = CpfContexts.bind(launchContext.snapshot());
-             AutoCloseable ignoredBatch = CpfBatchRuntimeContexts.bind(launchContext)) {
+        try (AutoCloseable _ = CpfContexts.bind(launchContext.snapshot());
+             AutoCloseable _ = CpfBatchRuntimeContexts.bind(launchContext)) {
             return operation.execute();
         } catch (JobExecutionException | RuntimeException failure) {
             throw failure;

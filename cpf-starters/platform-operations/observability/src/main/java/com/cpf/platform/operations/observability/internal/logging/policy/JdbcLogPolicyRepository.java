@@ -155,22 +155,11 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
                 stringValue(row.get("masking_policy_key")), stringValue(row.get("policy_checksum")), source);
     }
 
-    private Long longRequired(Map<String,Object> row, String key) {
-        Long value = longValue(row.get(key));
-        if (value == null) throw contract(key, row.get(key));
-        return value;
-    }
     private Integer intValue(Object value) {
         if (value instanceof Number n) return n.intValue();
         if (value == null) return null;
         try { return Integer.parseInt(String.valueOf(value)); }
         catch (NumberFormatException ex) { throw contract("integer", value); }
-    }
-    private Integer intRequired(Map<String,Object> row, String key) {
-        Object value=row.get(key);
-        if (value instanceof Number n) return n.intValue();
-        if (value != null) try { return Integer.parseInt(String.valueOf(value)); } catch (NumberFormatException ignored) {}
-        throw contract(key,value);
     }
     private String stringRequired(Map<String,Object> row, String key) {
         String value=stringValue(row.get(key));

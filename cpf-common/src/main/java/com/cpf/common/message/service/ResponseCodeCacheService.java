@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Deprecated(forRemoval = false)
 public class ResponseCodeCacheService extends CpfBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ResponseCodeCacheService.class);
+    @Deprecated
     public static final String CACHE_NAME = "responseCodeCache";
     private static final String ALL_KEY = "ALL";
     private static final String CODE_PREFIX = "CODE:";
@@ -55,6 +56,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
     @Value("${cpf.cmn.cache.fail-fast-on-startup:false}")
     private boolean failFastOnStartup;
 
+    @Deprecated
     public ResponseCodeCacheService(ResponseCodeMapper responseCodeMapper,
             CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher) {
@@ -62,6 +64,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
     }
 
     @org.springframework.beans.factory.annotation.Autowired
+    @Deprecated
     public ResponseCodeCacheService(ResponseCodeMapper responseCodeMapper,
             CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher, Clock clock) {
@@ -72,12 +75,14 @@ public class ResponseCodeCacheService extends CpfBaseService {
     }
 
     @Cacheable(value = CACHE_NAME, key = "'ALL'")
+    @Deprecated
     public List<Map<String, Object>> getAllResponseCodes() {
         logger.info("Cache Miss: Fetching all response codes from database");
         return responseCodeMapper.findAllResponseCodes();
     }
 
     @Cacheable(value = CACHE_NAME, key = "'CODE:' + #p0")
+    @Deprecated
     public Map<String, Object> getResponseCode(String responseCode) {
         String normalized = CpfStrings.normalizeCode(responseCode);
         logger.debug("Cache Miss: Fetching response code: {}", normalized);
@@ -85,6 +90,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> createResponseCode(CommonResponseCodeRequest request) {
         normalize(request);
         responseCodeMapper.insertResponseCode(request);
@@ -95,6 +101,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public Map<String, Object> updateResponseCode(String responseCode, CommonResponseCodeRequest request) {
         normalize(request);
         responseCodeMapper.updateResponseCode(CpfStrings.normalizeCode(responseCode), request);
@@ -105,6 +112,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
     }
 
     @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN)
+    @Deprecated
     public List<Map<String, Object>> deleteResponseCode(String responseCode) {
         String normalized = CpfStrings.normalizeCode(responseCode);
         responseCodeMapper.deleteResponseCode(normalized);
@@ -114,23 +122,27 @@ public class ResponseCodeCacheService extends CpfBaseService {
         return latest;
     }
 
+    @Deprecated
     public List<Map<String, Object>> reloadResponseCodes() {
         return refreshResponseCodes();
     }
 
     /** DB 조회가 성공한 뒤에만 기존 cache를 교체합니다. */
+    @Deprecated
     public List<Map<String, Object>> refreshResponseCodes() {
         List<Map<String, Object>> latest = responseCodeMapper.findAllResponseCodes();
         replaceSnapshot(latest);
         return latest;
     }
 
+    @Deprecated
     public List<Map<String, Object>> refreshResponseCodesAndPublish() {
         List<Map<String, Object>> latest = refreshResponseCodes();
         publishRefreshEvent("MANUAL_REFRESH", "ALL", "SYSTEM");
         return latest;
     }
 
+    @Deprecated
     public Map<String, Object> cacheStatus() {
         Map<String, Object> status = new LinkedHashMap<>();
         status.put("cacheName", CACHE_NAME);
@@ -141,6 +153,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
     }
 
     @PostConstruct
+    @Deprecated
     public void loadCacheOnStartup() {
         if (!preloadEnabled) {
             logger.info("Response code cache preload skipped");
@@ -160,6 +173,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
     @Scheduled(
             fixedRateString = "${cpf.cmn.cache.periodic-refresh-millis:1800000}",
             initialDelayString = "${cpf.cmn.cache.periodic-refresh-initial-delay-millis:1800000}")
+    @Deprecated
     public void scheduledReloadResponseCodes() {
         try {
             refreshResponseCodes();

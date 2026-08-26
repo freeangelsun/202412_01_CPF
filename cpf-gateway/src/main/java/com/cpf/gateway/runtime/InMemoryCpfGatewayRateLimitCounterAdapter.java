@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,7 +87,7 @@ public final class InMemoryCpfGatewayRateLimitCounterAdapter implements CpfGatew
         }
 
         synchronized (mutationLock) {
-            long now = immutable.stream().mapToLong(CounterCommand::nowEpochMillis).max().orElse(0L);
+            long now = immutable.stream().mapToLong(value -> value.nowEpochMillis()).max().orElse(0L);
             cleanup(now);
             String batchKey = batchKey(immutable);
             String payloadHash = payloadHash(immutable);

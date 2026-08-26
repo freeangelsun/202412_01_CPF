@@ -55,7 +55,7 @@ class CpfDomainInvocationCenterCutHandlerTest {
         var handler = new CpfDomainInvocationCenterCutHandler(router, new ObjectMapper());
 
         CenterCutHandler.Result result;
-        try (AutoCloseable ignored = contexts.bindRoot("center-cut-domain", null, null)) {
+        try (AutoCloseable _ = contexts.bindRoot("center-cut-domain", null, null)) {
             result = handler.handle(context("""
                     {"systemCode":"MBR","operationId":"MBR_SAMPLE_TX_CREATE","request":{
                       "sampleKey":"mbr-cc-1","itemName":"Center Cut","idempotencyKey":"idem-cc-1"}}
@@ -71,12 +71,12 @@ class CpfDomainInvocationCenterCutHandlerTest {
     void keepsTechnicalAndUnknownResultsDistinctForRecovery() {
         assertThat(handler(CpfResult.technicalFailure("DOWNSTREAM_UNAVAILABLE", "down"))
                 .handle(context(validPayload())))
-                .extracting(CenterCutHandler.Result::status, CenterCutHandler.Result::retryable)
+                .extracting(value -> value.status(), value -> value.retryable())
                 .containsExactly("RETRY", true);
         assertThat(handler(CpfResult.unknown("DOMAIN_TIMEOUT", "timeout",
                 new CpfRecoveryInfo("recovery-1", "PROBE")))
                 .handle(context(validPayload())))
-                .extracting(CenterCutHandler.Result::status, CenterCutHandler.Result::compensationRequired)
+                .extracting(value -> value.status(), value -> value.compensationRequired())
                 .containsExactly("UNKNOWN_RESULT", true);
     }
 

@@ -20,6 +20,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ class AdmApprovalServiceIdempotencyTest {
     @Test
     void decisionKeyReplaysOnlyForSameRequestActorActionAndReason() {
         AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
-        AdmApprovalService service = new AdmApprovalService(repository, new ObjectMapper(), Map.of());
+        AdmApprovalService service = new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of());
         Map<String,Object> decision = Map.of(
                 "approvalRequestId", 42L,
                 "operatorId", "approver-b",
@@ -97,7 +98,7 @@ class AdmApprovalServiceIdempotencyTest {
     @Test
     void decisionKeyRejectsCrossRequestReuse() {
         AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
-        AdmApprovalService service = new AdmApprovalService(repository, new ObjectMapper(), Map.of());
+        AdmApprovalService service = new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of());
         when(repository.findDecisionByKey("DEC-0001")).thenReturn(Optional.of(Map.of(
                 "approvalRequestId", 41L,
                 "operatorId", "approver-b",
@@ -148,7 +149,11 @@ class AdmApprovalServiceIdempotencyTest {
                 "decisionRule", "ALL", "requiredYn", "Y")));
         when(repository.resolve(eq(AdmApprovalTargetType.ROLE), eq("CPF_ADMIN_APPROVER"), any(Instant.class)))
                 .thenReturn(List.of(new AdmApprovalDirectoryEntry("approver-b", null, null, null)));
-        when(repository.insertRequest(anyMap())).thenReturn(42L);
+        AtomicReference<Map<String,Object>> insertedRequest = new AtomicReference<>();
+        doAnswer(invocation -> {
+            insertedRequest.set(invocation.getArgument(0));
+            return 42L;
+        }).when(repository).insertRequest(anyMap());
         when(repository.updateCommandSnapshot(eq(42L), eq(0L), anyString(), anyString(), eq("requester-a")))
                 .thenReturn(1);
         when(repository.findRequest(42L)).thenReturn(Optional.of(storedRequest(
@@ -156,16 +161,15 @@ class AdmApprovalServiceIdempotencyTest {
         when(repository.findParticipants(42L)).thenReturn(List.of());
         when(repository.findExecution(42L)).thenReturn(Optional.empty());
 
-        try (AutoCloseable ignored = bindContext()) {
+        try (AutoCloseable _ = bindContext()) {
             service.requestApproval(request, "requester-a");
         }
 
-        org.mockito.ArgumentCaptor<Map<String,Object>> inserted = org.mockito.ArgumentCaptor.forClass(Map.class);
         org.mockito.ArgumentCaptor<String> hash = org.mockito.ArgumentCaptor.forClass(String.class);
         org.mockito.ArgumentCaptor<String> snapshot = org.mockito.ArgumentCaptor.forClass(String.class);
-        verify(repository).insertRequest(inserted.capture());
+        verify(repository).insertRequest(anyMap());
         verify(repository).updateCommandSnapshot(eq(42L), eq(0L), hash.capture(), snapshot.capture(), eq("requester-a"));
-        Map<String,Object> expectedEnvelope = new LinkedHashMap<>(inserted.getValue());
+        Map<String,Object> expectedEnvelope = new LinkedHashMap<>(java.util.Objects.requireNonNull(insertedRequest.get()));
         expectedEnvelope.put("payloadSnapshot", snapshot.getValue());
         assertThat(hash.getValue()).isEqualTo(new AdmApprovalSnapshotIntegrity(new ObjectMapper()).hash(expectedEnvelope));
         assertThat(snapshot.getValue()).contains("\"operation\":\"reprocessCenterCutFailed\"")
@@ -226,7 +230,7 @@ class AdmApprovalServiceIdempotencyTest {
                 "BAT", "reprocessCenterCutFailed",
                 "CENTER_CUT_REPROCESS_FAILED", "center_cut_execution"))
                 .thenReturn(true);
-        return new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", owner));
+        return new AdmApprovalService(repository, new ObjectMapper(), new AdmApprovalSnapshotIntegrity(new ObjectMapper()), Map.of("batOwner", owner));
     }
 
     private static AutoCloseable bindContext() {

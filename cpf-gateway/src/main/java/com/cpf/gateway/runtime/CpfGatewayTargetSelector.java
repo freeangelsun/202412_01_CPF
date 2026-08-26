@@ -1,13 +1,11 @@
 package com.cpf.gateway.runtime;
 
-import com.cpf.gateway.api.CpfGatewayLoadBalancePolicy;
 import com.cpf.gateway.api.CpfGatewayTargetSelectionPort;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +55,7 @@ public final class CpfGatewayTargetSelector implements CpfGatewayTargetSelection
     }
 
     private TargetCandidate priority(String groupId, List<TargetCandidate> candidates) {
-        int bestPriority = candidates.stream().mapToInt(TargetCandidate::priority).min().orElse(0);
+        int bestPriority = candidates.stream().mapToInt(value -> value.priority()).min().orElse(0);
         List<TargetCandidate> tier = candidates.stream().filter(candidate -> candidate.priority() == bestPriority).toList();
         return weighted(key(groupId, "priority-" + bestPriority), tier);
     }
@@ -65,7 +63,7 @@ public final class CpfGatewayTargetSelector implements CpfGatewayTargetSelection
     private TargetCandidate leastLoad(List<TargetCandidate> candidates) {
         return candidates.stream().min(Comparator
                 .comparingDouble((TargetCandidate candidate) -> loadScore(candidate))
-                .thenComparing(TargetCandidate::instanceId)).orElseThrow();
+                .thenComparing(value -> value.instanceId())).orElseThrow();
     }
 
     private double loadScore(TargetCandidate candidate) {
@@ -105,18 +103,18 @@ public final class CpfGatewayTargetSelector implements CpfGatewayTargetSelection
     private List<TargetCandidate> selectCanaryPool(
             String groupId, String requestKey, List<TargetCandidate> candidates) {
         List<TargetCandidate> configured = candidates.stream()
-                .sorted(Comparator.comparing(TargetCandidate::instanceId))
+                .sorted(Comparator.comparing(value -> value.instanceId()))
                 .toList();
         List<TargetCandidate> stable = configured.stream()
                 .filter(candidate -> candidate.canaryPercent() == 0)
-                .filter(TargetCandidate::routable)
+                .filter(value -> value.routable())
                 .toList();
         List<TargetCandidate> canaries = configured.stream()
                 .filter(candidate -> candidate.canaryPercent() > 0)
                 .toList();
         if (canaries.isEmpty()) return stable;
 
-        int totalPercent = canaries.stream().mapToInt(TargetCandidate::canaryPercent).sum();
+        int totalPercent = canaries.stream().mapToInt(value -> value.canaryPercent()).sum();
         if (totalPercent > 100) {
             throw new IllegalArgumentException("Canary traffic percent sum must not exceed 100: " + totalPercent);
         }
@@ -130,7 +128,7 @@ public final class CpfGatewayTargetSelector implements CpfGatewayTargetSelection
             }
         }
         if (!stable.isEmpty()) return stable;
-        return canaries.stream().filter(TargetCandidate::routable).toList();
+        return canaries.stream().filter(value -> value.routable()).toList();
     }
 
     private static boolean requiresDeterministicKey(List<TargetCandidate> candidates) {

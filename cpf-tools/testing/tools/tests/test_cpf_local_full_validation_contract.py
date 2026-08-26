@@ -84,8 +84,10 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
             "CODEX_FRONTEND_CONSUMER_CLOSURE", "CODEX_EXECUTION_SCOPE_EXHAUSTIVE",
         ):
             self.assertIn(stage, self.text)
-        self.assertIn("CPF_EXECUTION_AUDIT_CSV", self.text)
-        self.assertIn("CPF_EXECUTION_WORK_PACKAGE_CSV", self.text)
+        self.assertIn("execution-scope-audit.csv", self.text)
+        self.assertIn("execution-scope-work-packages.csv", self.text)
+        self.assertNotIn("CPF_EXECUTION_AUDIT_CSV", self.text)
+        self.assertNotIn("CPF_EXECUTION_WORK_PACKAGE_CSV", self.text)
 
         for stage in (
             "TRANSACTION_HEADER_STANDARD", "FIXED_LENGTH_CLOSURE", "EVENT_DLQ_APPROVAL_OWNER",
@@ -110,6 +112,15 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertIn("'-VerifierOwnedIsolation'", self.text)
         self.assertIn("FullLocal 1-WAS requires verifier-owned MariaDB", self.text)
         self.assertIn("cleanup-cpf-local-runtime-db.ps1", self.text)
+
+    def test_batch_two_worker_full_local_stage_is_kafka_free(self):
+        start = self.text.index("$batchDbEnv=Import-CpfEnvFile $DockerSecretFile")
+        end = self.text.index("# 7. 기본 로컬 Runtime", start)
+        batch = self.text[start:end]
+        self.assertIn("Start-CpfDockerTarget 'mariadb'", batch)
+        self.assertNotIn("Start-CpfDockerTarget 'kafka'", batch)
+        self.assertNotIn("Stop-CpfDockerTargetIfOwned 'kafka'", batch)
+        self.assertNotIn('batchKafkaState', batch)
 
 
 if __name__ == "__main__":

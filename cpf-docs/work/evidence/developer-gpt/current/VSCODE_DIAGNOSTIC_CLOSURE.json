@@ -1,0 +1,11 @@
+{
+  "inputDiagnosticCount": 923,
+  "inputDiagnosticFiles": 371,
+  "sourceConditionResidual": 0,
+  "actualJdtFreshSync": "NOT_EXECUTED_ENVIRONMENT",
+  "policy": "No IDE warning suppression; source/API/null/resource fixes only",
+  "notes": [
+    "4 heuristic residuals were false positives after current API/chained Mockito conversion; actual original diagnostic conditions removed",
+    "Final JDT 0/0 must be measured on user Java25 VSCode environment"
+  ]
+}

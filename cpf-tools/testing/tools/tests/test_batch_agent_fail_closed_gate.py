@@ -30,11 +30,11 @@ def test_current_host_agent_contract_passes(tmp_path: Path) -> None:
 def test_os_file_lock_removal_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     path = root / MODULE.LEDGER
-    path.write_text(path.read_text(encoding="utf-8").replace("FileLock ignored = channel.lock()", "FileLock ignored = null", 1), encoding="utf-8")
+    path.write_text(path.read_text(encoding="utf-8").replace("FileLock _ = channel.lock()", "FileLock _ = null", 1), encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:
-        assert "FileLock ignored = channel.lock()" in str(exc)
+        assert "FileLock _ = channel.lock()" in str(exc)
     else:
         raise AssertionError("ledger without OS lock passed")
 

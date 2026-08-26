@@ -24,7 +24,7 @@ final class CpfDomainMapperResources {
 
         Arrays.stream(configured == null ? new String[0] : configured)
                 .flatMap(value -> Arrays.stream(value == null ? new String[0] : value.split(",")))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(value -> !value.isEmpty())
                 .forEach(pattern -> addResources(resolver, resolved, pattern));
 
@@ -34,7 +34,7 @@ final class CpfDomainMapperResources {
         }
         return resolved.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
-                .map(Map.Entry::getValue)
+                .map(value -> value.getValue())
                 .toArray(Resource[]::new);
     }
 

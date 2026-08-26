@@ -75,13 +75,13 @@ class CpfCacheInvalidationCoordinatorTest {
             return events.stream().filter(e -> e.eventId() > checkpoint).limit(limit).toList();
         }
         @Override public long checkpoint(String consumerId) { return checkpoints.getOrDefault(consumerId, 0L); }
-        @Override public void checkpoint(String consumerId, long eventId) { checkpoints.merge(consumerId, eventId, Math::max); }
+        @Override public void checkpoint(String consumerId, long eventId) { checkpoints.merge(consumerId, eventId, (left, right) -> Math.max(left, right)); }
         @Override public long backlog(String consumerId) { return Math.max(0, events.size() - checkpoint(consumerId)); }
         @Override public long version(String consumerId, String tenantId, String namespace, String cacheKey) {
             return versions.getOrDefault(subject(consumerId, tenantId, namespace, cacheKey), 0L);
         }
         @Override public void advanceVersion(String consumerId, String tenantId, String namespace, String cacheKey, long version) {
-            versions.merge(subject(consumerId, tenantId, namespace, cacheKey), version, Math::max);
+            versions.merge(subject(consumerId, tenantId, namespace, cacheKey), version, (left, right) -> Math.max(left, right));
         }
         private String subject(String c, String t, String n, String k) { return c + "|" + t + "|" + n + "|" + k; }
     }

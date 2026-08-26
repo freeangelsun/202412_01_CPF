@@ -25,7 +25,6 @@ final class AdmLogSanitizer {
     private static final Pattern PHONE = Pattern.compile("(?<!\\d)(\\d{3})-?(\\d{3,4})-?(\\d{4})(?!\\d)");
     private static final Pattern EMAIL = Pattern.compile(
             "([A-Za-z0-9._%+-]{2})[A-Za-z0-9._%+-]*(@[A-Za-z0-9.-]+)");
-    private static final Pattern ACCOUNTISH = Pattern.compile("(?<!\\d)(\\d{6,})(?!\\d)");
 
     private AdmLogSanitizer() {
     }

@@ -16,7 +16,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
-import java.lang.management.ManagementFactory;
 import java.util.*;
 
 /** ADM 위험조치 승인 정본 Repository 및 기본 DB Directory Adapter. */

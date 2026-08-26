@@ -238,7 +238,7 @@ public final class JdbcCpfStateConcurrencyHarness {
                     .filter(snapshot -> request.states().contains(snapshot.state()))
                     .filter(snapshot -> request.afterStateKey() == null
                             || snapshot.stateKey().compareTo(request.afterStateKey()) > 0)
-                    .sorted(Comparator.comparing(CpfStateSnapshot::stateKey))
+                    .sorted(Comparator.comparing(value -> value.stateKey()))
                     .limit(maximumRows)
                     .toList();
             return List.copyOf(rows);

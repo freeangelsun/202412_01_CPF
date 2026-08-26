@@ -11,13 +11,13 @@ class BackofficePermissionManifestTest {
     @Test
     void resolvesGenericAndDangerousActionsFromOneManifest() {
         assertThat(manifest.resolve("GET", "backoffice/organizations")).get()
-                .extracting(BackofficePermissionManifest.ApiPermission::actionCode).isEqualTo("READ");
+                .extracting(value -> value.actionCode()).isEqualTo("READ");
         assertThat(manifest.resolve("POST", "backoffice/organizations")).get()
-                .extracting(BackofficePermissionManifest.ApiPermission::actionCode).isEqualTo("WRITE");
+                .extracting(value -> value.actionCode()).isEqualTo("WRITE");
         assertThat(manifest.resolve("DELETE", "backoffice/organizations/ORG001")).get()
-                .extracting(BackofficePermissionManifest.ApiPermission::actionCode).isEqualTo("DELETE");
+                .extracting(value -> value.actionCode()).isEqualTo("DELETE");
         assertThat(manifest.resolve("POST", "permissions/simulate")).get()
-                .extracting(BackofficePermissionManifest.ApiPermission::actionCode).isEqualTo("SIMULATE");
+                .extracting(value -> value.actionCode()).isEqualTo("SIMULATE");
         assertThat(manifest.resolve("GET", "attachments/7/download")).get()
                 .isEqualTo(new BackofficePermissionManifest.ApiPermission("ATTACHMENT", "DOWNLOAD"));
         assertThat(manifest.resolve("GET", "approvals/inbox")).get()

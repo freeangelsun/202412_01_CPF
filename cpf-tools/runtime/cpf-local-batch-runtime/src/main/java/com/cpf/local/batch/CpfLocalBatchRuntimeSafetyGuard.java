@@ -28,7 +28,7 @@ public final class CpfLocalBatchRuntimeSafetyGuard
         String[] activeProfiles = java.util.stream.Stream.concat(
                         Arrays.stream(environment.getActiveProfiles()),
                         Arrays.stream(configuredProfiles.split(",")))
-                .map(String::trim)
+                .map(value -> value.trim())
                 .filter(profile -> !profile.isBlank())
                 .distinct()
                 .toArray(String[]::new);

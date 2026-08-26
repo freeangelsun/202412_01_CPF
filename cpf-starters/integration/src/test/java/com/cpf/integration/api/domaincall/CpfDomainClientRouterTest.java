@@ -23,7 +23,7 @@ class CpfDomainClientRouterTest {
                 remoteSuccess());
 
         CpfResult<CpfDomainPingResponse> result;
-        try (AutoCloseable ignored = CpfContexts.bind(rootContext())) {
+        try (AutoCloseable _ = CpfContexts.bind(rootContext())) {
             result = router.invoke("EXS", "ping", new CpfDomainPingRequest("R1"), CpfDomainPingResponse.class);
         }
 
@@ -107,7 +107,7 @@ class CpfDomainClientRouterTest {
     private static CpfDomainOperationRegistry registry(boolean available, String responseSystemCode) {
         return new CpfDomainOperationRegistry() {
             @Override public boolean has(String systemCode, String operationId) { return available; }
-            @Override @SuppressWarnings("unchecked")
+            @Override 
             public <I extends com.cpf.core.api.base.CpfRequest, O extends com.cpf.core.api.base.CpfResponse> CpfResult<O> invoke(
                     CpfDomainOperationRegistry.InvocationMetadata metadata,
                     String systemCode, String operationId, I request, Class<O> responseType) {

@@ -378,10 +378,4 @@ public final class BackofficeBootstrapRunner implements ApplicationRunner {
         return false;
     }
 
-    private static String firstNonBlank(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) return value.trim();
-        }
-        return null;
-    }
 }

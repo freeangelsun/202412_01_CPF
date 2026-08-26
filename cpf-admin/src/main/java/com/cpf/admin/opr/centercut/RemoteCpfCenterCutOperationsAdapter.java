@@ -7,7 +7,6 @@ import com.cpf.batch.api.CpfCenterCutOperationsPort;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
-import com.cpf.web.api.CpfHttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.LinkedHashMap;

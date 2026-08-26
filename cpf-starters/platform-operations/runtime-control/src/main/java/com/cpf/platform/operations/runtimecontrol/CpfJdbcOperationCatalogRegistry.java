@@ -187,7 +187,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
         for (String operationId : scopedOperationIds(systemCode, application)) {
             Map<String,Boolean> reports = discoveryReports(operationId, active);
             if (reports.size() < active.size()) continue; // 아직 scan을 보고하지 않은 active instance가 있음.
-            boolean present = reports.values().stream().anyMatch(Boolean::booleanValue);
+            boolean present = reports.values().stream().anyMatch(value -> value.booleanValue());
             String target = present ? "ACTIVE" : "NOT_DISCOVERED";
             changed += jdbc.update(
                     sql.required("operation-catalog-update-discovery-status"),

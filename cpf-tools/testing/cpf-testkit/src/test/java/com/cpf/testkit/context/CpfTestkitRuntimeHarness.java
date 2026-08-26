@@ -9,9 +9,9 @@ public final class CpfTestkitRuntimeHarness {
         CpfContext child=context("TX-1","EX-2","SEG-2");
         CpfTestContextRuntime runtime=CpfTestContextRuntime.install();
         if(runtime.current()!=null) fail("initial context leak");
-        try(AutoCloseable a=runtime.bind(root)) {
+        try(AutoCloseable _=runtime.bind(root)) {
             if(runtime.current()!=root) fail("root bind failed");
-            try(AutoCloseable b=runtime.bind(child)) { if(runtime.current()!=child) fail("nested bind failed"); }
+            try(AutoCloseable _=runtime.bind(child)) { if(runtime.current()!=child) fail("nested bind failed"); }
             if(runtime.current()!=root) fail("nested restore failed");
         }
         if(runtime.current()!=null) fail("final context leak");

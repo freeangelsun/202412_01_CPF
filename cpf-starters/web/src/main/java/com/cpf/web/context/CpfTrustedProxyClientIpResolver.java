@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
-import java.util.Locale;
 
 /** Resolves client IP only through explicitly trusted proxy peers; forwarded values from other peers are ignored. */
 public final class CpfTrustedProxyClientIpResolver {
@@ -95,7 +94,7 @@ public final class CpfTrustedProxyClientIpResolver {
 
     private boolean trustedPeer(String remoteAddress) {
         if (remoteAddress == null || remoteAddress.isBlank()) return false;
-        return Arrays.stream(configuredPeers.split(",")).map(String::trim).filter(v -> !v.isBlank())
+        return Arrays.stream(configuredPeers.split(",")).map(value -> value.trim()).filter(v -> !v.isBlank())
                 .anyMatch(rule -> matchesIpv4(remoteAddress, rule));
     }
 

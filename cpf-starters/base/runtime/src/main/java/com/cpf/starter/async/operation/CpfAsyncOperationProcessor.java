@@ -4,7 +4,6 @@ import com.cpf.core.api.async.*;
 import com.cpf.core.api.context.*;
 import com.cpf.core.api.result.CpfResult;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.*; import java.util.*; import java.util.concurrent.*;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -12,10 +11,10 @@ import org.springframework.core.task.AsyncTaskExecutor;
 /** claim/lease/heartbeat/fencing으로 Async handler를 실행하는 Runtime worker입니다. */
 public final class CpfAsyncOperationProcessor {
  private static final Logger log=LoggerFactory.getLogger(CpfAsyncOperationProcessor.class);
- private final CpfAsyncOperationStore store; private final DefaultCpfAsyncOperations operations; private final ObjectMapper json; private final CpfAsyncPayloadCodec payloads;
+ private final CpfAsyncOperationStore store; private final DefaultCpfAsyncOperations operations; private final CpfAsyncPayloadCodec payloads;
  private final CpfExecutionIdGenerator ids; private final AsyncTaskExecutor executor; private final String owner; private final Clock clock;
  private final Duration lease; private final List<CpfAsyncCompletionListener> listeners; private final ConcurrentMap<String,Active> active=new ConcurrentHashMap<>();
- public CpfAsyncOperationProcessor(CpfAsyncOperationStore store,DefaultCpfAsyncOperations operations,AsyncTaskExecutor executor,String owner,Clock clock,Duration lease,List<CpfAsyncCompletionListener> listeners){this.store=store;this.operations=operations;this.json=operations.objectMapper();this.payloads=operations.payloadCodec();this.ids=operations.executionIds();this.executor=executor;this.owner=owner;this.clock=clock;this.lease=lease;this.listeners=listeners==null?List.of():List.copyOf(listeners);}
+ public CpfAsyncOperationProcessor(CpfAsyncOperationStore store,DefaultCpfAsyncOperations operations,AsyncTaskExecutor executor,String owner,Clock clock,Duration lease,List<CpfAsyncCompletionListener> listeners){this.store=store;this.operations=operations;this.payloads=operations.payloadCodec();this.ids=operations.executionIds();this.executor=executor;this.owner=owner;this.clock=clock;this.lease=lease;this.listeners=listeners==null?List.of():List.copyOf(listeners);}
  public void poll(){Instant now=clock.instant();store.expireDue(now);if(active.size()>=32)return;store.claimNext(owner,now,now.plus(lease)).ifPresent(op->{Future<?> f=executor.submit(()->execute(op));active.put(op.executionId(),new Active(op.version(),f));});}
  public void heartbeat(){Instant now=clock.instant();for(var e:active.entrySet()){if(e.getValue().future().isDone()){active.remove(e.getKey(),e.getValue());continue;}if(!store.heartbeat(e.getKey(),owner,e.getValue().version(),now,now.plus(lease))) log.warn("CPF_ASYNC_HEARTBEAT_FENCE executionId={} owner={}",e.getKey(),owner);}}
  @SuppressWarnings({"unchecked","rawtypes"}) private void execute(CpfAsyncStoredOperation op){

@@ -3,7 +3,6 @@ package com.cpf.starter.platform.operations.observability;
 import com.cpf.core.api.error.CpfMessageResolver;
 import com.cpf.core.api.error.CpfResponseCodeResolver;
 import com.cpf.platform.operations.api.state.CpfStateOperations;
-import com.cpf.platform.operations.observability.api.CpfTelemetry;
 import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegmentPort;
 import com.cpf.platform.operations.observability.internal.logging.CpfBoundaryFailureEvidenceListener;
 import com.cpf.platform.operations.observability.internal.logging.CpfTraceSamplingPolicy;

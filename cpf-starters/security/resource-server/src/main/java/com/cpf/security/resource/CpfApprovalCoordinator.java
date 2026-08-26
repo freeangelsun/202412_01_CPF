@@ -15,8 +15,9 @@ public final class CpfApprovalCoordinator {
   Object[] values=args==null?new Object[0]:args; Long approvalId=number(value(method,values,rule.approvalIdParameterIndex(),rule.approvalIdParameter()));
   String reason=text(value(method,values,rule.reasonParameterIndex(),rule.reasonParameter()));
   if(approvalId==null||approvalId<=0)deny(ctx,rule.action(),"APPROVAL_ID_MISSING");
+  long verifiedApprovalId=Objects.requireNonNull(approvalId,"approvalId").longValue();
   if(rule.reasonRequired()&&(reason==null||reason.isBlank()))deny(ctx,rule.action(),"APPROVAL_REASON_MISSING");
-  try{verifier.verify(new CpfApprovalVerification(approvalId,rule.action(),rule.approvals(),ctx.actorId(),reason,ctx.transactionId()));}
+  try{verifier.verify(new CpfApprovalVerification(verifiedApprovalId,rule.action(),rule.approvals(),ctx.actorId(),reason,ctx.transactionId()));}
   catch(RuntimeException e){audit.record(event(ctx,rule.action(),false,"APPROVAL_REJECTED"));throw e;}
   audit.record(event(ctx,rule.action(),true,"APPROVED"));
  }

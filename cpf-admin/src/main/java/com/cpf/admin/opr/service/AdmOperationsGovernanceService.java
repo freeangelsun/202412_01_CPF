@@ -111,7 +111,7 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
         result.put("enabled", !allowlist.isBlank());
         result.put("killSwitch", allowlist.isBlank() ? "STOPPED" : "ACTIVE");
         result.put("allowlist", allowlist.isBlank() ? List.of() : java.util.Arrays.stream(allowlist.split(","))
-                .map(String::trim).filter(v -> !v.isBlank()).map(String::toUpperCase).distinct().sorted().toList());
+                .map(value -> value.trim()).filter(v -> !v.isBlank()).map(value -> value.toUpperCase()).distinct().sorted().toList());
         result.put("rateLimitPerMinute", rateLimit);
         result.put("maxAttemptsPerChange", 1);
         result.put("circuitFailureThreshold", circuitThreshold);

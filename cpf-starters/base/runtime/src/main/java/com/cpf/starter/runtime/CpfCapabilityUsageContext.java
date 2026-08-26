@@ -63,9 +63,9 @@ public final class CpfCapabilityUsageContext {
     /** 현재 거래에서 실제 사용된 Capability 목록입니다. 호출 순서를 유지하고 중복 호출은 압축합니다. */
     public static List<Usage> used() { return List.copyOf(stateForCurrentTransaction().history.values()); }
 
-    public static String starterIdsCsv() { return join(Usage::starterId); }
-    public static String capabilityIdsCsv() { return join(Usage::capabilityId); }
-    public static String providersCsv() { return join(Usage::provider); }
+    public static String starterIdsCsv() { return join(value -> value.starterId()); }
+    public static String capabilityIdsCsv() { return join(value -> value.capabilityId()); }
+    public static String providersCsv() { return join(value -> value.provider()); }
     public static String operationsCsv() { return join(u -> u.capabilityId() + ":" + u.operation()); }
 
     private static State stateForCurrentTransaction() {
@@ -88,9 +88,9 @@ public final class CpfCapabilityUsageContext {
     }
 
     private static void publish(State state) {
-        putOrRemove(MDC_STARTERS, joinState(state, Usage::starterId));
-        putOrRemove(MDC_CAPABILITIES, joinState(state, Usage::capabilityId));
-        putOrRemove(MDC_PROVIDERS, joinState(state, Usage::provider));
+        putOrRemove(MDC_STARTERS, joinState(state, value -> value.starterId()));
+        putOrRemove(MDC_CAPABILITIES, joinState(state, value -> value.capabilityId()));
+        putOrRemove(MDC_PROVIDERS, joinState(state, value -> value.provider()));
         putOrRemove(MDC_OPERATIONS, joinState(state, u -> u.capabilityId() + ":" + u.operation()));
     }
 

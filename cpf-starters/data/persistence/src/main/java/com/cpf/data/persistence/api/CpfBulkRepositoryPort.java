@@ -1,6 +1,5 @@
 package com.cpf.data.persistence.api;
 
-import com.cpf.data.persistence.api.CpfRepositoryPort;
 import java.util.Collection;
 
 /** 대량 변경이 필요한 Domain이 명시적으로 선택하는 bounded bulk 계약입니다. */

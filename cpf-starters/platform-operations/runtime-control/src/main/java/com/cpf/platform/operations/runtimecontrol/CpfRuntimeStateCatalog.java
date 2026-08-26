@@ -23,6 +23,6 @@ public final class CpfRuntimeStateCatalog {
     }
 
     private static Set<String> names(Enum<?>[] values) {
-        return Arrays.stream(values).map(Enum::name).collect(Collectors.toUnmodifiableSet());
+        return Arrays.stream(values).map(value -> value.name()).collect(Collectors.toUnmodifiableSet());
     }
 }

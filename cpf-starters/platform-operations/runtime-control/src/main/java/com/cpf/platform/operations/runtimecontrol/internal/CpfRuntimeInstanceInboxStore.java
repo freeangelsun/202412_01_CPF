@@ -113,7 +113,7 @@ public final class CpfRuntimeInstanceInboxStore {
             throw new IllegalStateException("Runtime Inbox 목록 조회 실패", ex);
         }
         ArrayList<CpfRuntimeActualState> states = new ArrayList<>();
-        latest.values().stream().sorted(Comparator.comparing(Entry::changeType)).forEach(e -> states.add(e.toActualState()));
+        latest.values().stream().sorted(Comparator.comparing(value -> value.changeType())).forEach(e -> states.add(e.toActualState()));
         return List.copyOf(states);
     }
 

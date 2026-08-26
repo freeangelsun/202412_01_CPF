@@ -1,6 +1,5 @@
 package com.cpf.platform.operations.health;
 import java.time.Duration;
-import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.foundation.runtime.CpfRuntimeMetadata;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.env.Environment;
@@ -33,7 +32,6 @@ public class CpfHealthProperties {
     public void applyRuntimeIdentity(Environment environment){
         if(environment!=null) applyRuntimeIdentity(CpfRuntimeMetadata.from(environment));
     }
-    private static String first(String... values){for(String v:values)if(v!=null&&!v.isBlank())return v.trim();return null;}
     /** ADM Health 보고에 필요한 URL과 Token이 모두 설정되었는지 반환합니다. */
     public boolean reportingEnabled(){return reportUrl!=null && reportToken!=null;}
     CpfHealthConfig toConfig(){return new CpfHealthConfig(dependencyTimeout,cacheTtl,maxConcurrentChecks,systemId,instanceId,version,buildSha,maintenance);}

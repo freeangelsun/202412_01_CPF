@@ -32,11 +32,10 @@ class JdbcCpfLockStoreContractTest {
         TransactionTemplate transactions = mock(TransactionTemplate.class);
         TransactionStatus transactionStatus = mock(TransactionStatus.class);
         when(transactions.execute(any())).thenAnswer(invocation -> {
-            @SuppressWarnings("unchecked")
             TransactionCallback<Object> callback = invocation.getArgument(0);
             return callback.doInTransaction(transactionStatus);
         });
-        when(jdbc.query(startsWith("SELECT shard_id"), any(ResultSetExtractor.class), anyInt()))
+        when(jdbc.query(startsWith("SELECT shard_id"), org.mockito.ArgumentMatchers.<ResultSetExtractor<Object>>any(), anyInt()))
                 .thenReturn(null);
         JdbcCpfLockStore store = new JdbcCpfLockStore(jdbc, transactions);
 

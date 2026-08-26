@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.time.Duration;
 
 /** Annotation을 Provider-neutral immutable resilience policy로 변환합니다. */
+@SuppressWarnings("deprecation")
 public final class CpfIntegrationAnnotationPolicyFactory {
     private final CpfIntegrationAnnotationProperties properties;
     public CpfIntegrationAnnotationPolicyFactory(CpfIntegrationAnnotationProperties properties){this.properties=properties;}

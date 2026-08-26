@@ -117,7 +117,7 @@ public final class CpfRealtimeBroker implements AutoCloseable {
         if (!accepting.compareAndSet(true, false)) return;
         long deadline = System.nanoTime() + properties.getDrainTimeout().toNanos();
         while (System.nanoTime() < deadline) {
-            boolean pending = subscriptions.values().stream().anyMatch(Subscription::hasPending);
+            boolean pending = subscriptions.values().stream().anyMatch(value -> value.hasPending());
             if (!pending) break;
             try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
         }

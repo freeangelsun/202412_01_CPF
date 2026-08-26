@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "artifact": "",
   "baselineState": "",
   "baselineRef": "",
@@ -28,5 +28,17 @@
     "regressions": [],
     "status": "NOT_EXECUTED"
   },
-  "approvalState": "DRAFT"
+  "approvalState": "DRAFT",
+  "layoutChecks": {
+    "majorHeadingSingleLine": null,
+    "majorHeadingOrphanWrapCount": 0,
+    "tableHeaderWrapCount": 0,
+    "nonTabularTableCount": 0,
+    "unjustifiedEqualWidthTableCount": 0,
+    "unjustifiedFixed5050Count": 0,
+    "repeatedValueOnlyColumnCount": 0,
+    "sectionTransitionCrowdingCount": 0,
+    "embeddedFigureBoundaryIntrusionCount": 0,
+    "semanticallyIncompleteVisualCount": 0
+  }
 }

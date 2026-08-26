@@ -6,7 +6,7 @@ M=ROOT/'cpf-docs/assets/product-docs/visual-geometry.json'
 def fail(m): print('VISUAL_GEOMETRY=FAIL '+m); raise SystemExit(1)
 if not M.is_file(): fail('manifest missing')
 d=json.loads(M.read_text(encoding='utf-8'))
-if d.get('harnessVersion')!='2.2.0': fail('manifest harnessVersion')
+if d.get('harnessVersion')!='2.3.0': fail('manifest harnessVersion')
 for a in d.get('assets',[]):
     cw=float(a['canvas']['width']); ch=float(a['canvas']['height']); safe=float(a['canvas']['safeMargin'])
     if cw<=0 or ch<=0 or safe<64: fail('canvas '+a.get('asset',''))

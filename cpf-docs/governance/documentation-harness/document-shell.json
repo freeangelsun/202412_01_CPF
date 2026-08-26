@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "docxShell": {
@@ -20,7 +20,9 @@
       "titleMaxLines": 2,
       "purposeMaxLines": 2,
       "noDecorativeGrayBoxes": true,
-      "noLongLegalText": true
+      "noLongLegalText": true,
+      "titleSingleLinePreferred": true,
+      "titleOrphanWrap": "hard_fail"
     },
     "toc": {
       "required": true,
@@ -34,7 +36,10 @@
       "pageNumbers": true,
       "hyperlinks": true,
       "manualTypedToc": "forbidden",
-      "updateFieldsBeforeFinalPdf": true
+      "updateFieldsBeforeFinalPdf": true,
+      "presentation": "numbered list with page numbers",
+      "table": "forbidden",
+      "repeatedCategoryColumn": "forbidden"
     },
     "numbering": {
       "H1": "1.",
@@ -59,8 +64,9 @@
     "sectionStart": {
       "pageBreakEveryH1": false,
       "remainingSpaceRuleMm": 55,
-      "h1SpaceBeforePt": 24,
-      "h1AfterTableOrFigureMinPt": 18
+      "h1SpaceBeforePt": 40,
+      "h1AfterTableOrFigureMinPt": 18,
+      "majorSectionExtraBreathing": "about one body line compared with ordinary block transition"
     },
     "lastPage": {
       "mustContainMeaningfulContent": true,

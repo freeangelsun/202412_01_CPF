@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "documentId": "OPERATOR_MANUAL",
   "title": "CPF 운영자 매뉴얼",
   "locked": true,
@@ -199,5 +199,19 @@
     "sectionMenuRule": "기능/파일 분류보다 독자의 작업·질문·판단 순서를 우선한다.",
     "nonActionableContent": "remove_or_move_to_specification"
   },
-  "orientationPolicy": "reader_first; switch to landscape when comparison/API/option tables lose scanability in portrait"
+  "orientationPolicy": "reader_first; switch to landscape when comparison/API/option tables lose scanability in portrait",
+  "presentationPolicy": {
+    "contentChoosesComponent": true,
+    "tableOnlyForTabularData": true,
+    "tocAndNavigationAsTable": false,
+    "tableHeaderSingleLine": true,
+    "columnWidth": "content-aware; symmetric equal width allowed when justified",
+    "majorHeadingSingleLinePreferred": true,
+    "majorSectionExtraBreathing": true,
+    "fixed5050": "forbidden unless symmetric comparison"
+  },
+  "tablePolicy": {
+    "listedPresets": "allowed_when_semantically_needed",
+    "mandatoryOnlyWhenAcceptanceExplicitlyRequires": true
+  }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "models": {
     "BROCHURE_PANEL": {
@@ -47,7 +47,12 @@
         "api_matrix": "Public Source에서 확인한 실제 API/Annotation만 사용한다. API명·옵션·기본값 추정 금지.",
         "option_matrix": "Annotation attribute/메서드 option이 있으면 필수/기본값/언제 변경/주의를 표로 제공한다.",
         "failure_recovery": "Retry 가능/금지, UNKNOWN, Idempotency, Reconcile/Compensation 중 해당되는 실제 계약을 명시한다.",
-        "orientation": "세로형에서 API/옵션/경로가 과도하게 개행되면 해당 문서는 Landscape를 사용한다."
+        "orientation": "세로형에서 API/옵션/경로가 과도하게 개행되면 해당 문서는 Landscape를 사용한다.",
+        "reader_task_presentation": "표가 아닌 1~2문장 lead 또는 compact callout",
+        "table_semantic_gate": "API/옵션/선택처럼 실제 교차 데이터일 때만 표. 장 목적/Golden Path/절차는 별도 컴포넌트 사용.",
+        "table_width": "실제 내용 비율 기반. 대칭 비교만 균등폭 허용.",
+        "heading_line": "대제목/H1 한 줄 우선, 고립된 자동 wrap 금지",
+        "vertical_rhythm": "대메뉴 전 한 줄 안팎의 추가 breathing room; 제목 아래 첫 내용은 compact"
       },
       "componentBindings": [
         "H1_SECTION",
@@ -192,12 +197,15 @@
         "next_document_if_needed"
       ],
       "rules": {
-        "goal": "30초 안에 열 문서를 판단. 단순 파일 목록 금지."
+        "goal": "30초 안에 열 문서를 판단. 단순 파일 목록 금지.",
+        "navigation": "목차/찾아보기는 번호형 목록이 기본. 문서별 역할·대상·형식 등 실제 metadata 비교가 필요할 때만 DOCUMENT_INDEX 표 사용.",
+        "table_for_toc": "forbidden"
       },
       "componentBindings": [
         "H1_SECTION",
         "H2_SUBSECTION",
-        "BODY_BLOCK"
+        "BODY_BLOCK",
+        "TOC_NAVIGATION"
       ],
       "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     }
@@ -206,5 +214,16 @@
     "default": "PATCH_EXISTING_BLOCKS",
     "componentSystemRef": "component-system.json",
     "newBlockAllowedWhen": "기존 Block으로 사용자의 질문/품질 요구를 충족할 수 없을 때만"
+  },
+  "componentSelectionPolicy": {
+    "principle": "정보의 의미 구조에 맞는 표현을 선택한다. 모든 것을 표/2열/Callout으로 통일하지 않는다.",
+    "table": "비교/선택/행-열 관계 데이터",
+    "list": "목차/병렬 핵심/단순 navigation",
+    "numberedSteps": "순서가 있는 절차",
+    "leadParagraph": "장 목적/독자가 얻는 답",
+    "callout": "주의/금지/Golden Path/한 메시지 강조",
+    "figure": "구조/흐름/상태/경계를 텍스트보다 빠르게 이해시킬 때",
+    "codeBlock": "실행 명령/최소 코드",
+    "antiPattern": "모든 의미 단위를 표 또는 고정 50:50 Panel로 표현"
   }
 }

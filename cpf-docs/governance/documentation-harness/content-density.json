@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "global": {
@@ -23,12 +23,16 @@
     "subheading_content_indent": "README 포함 모든 문서에서 부제목 하위 내용은 공통 Content Rail을 사용한다.",
     "marker_policy": "짧은 핵심/선택/주의/복구는 필요할 때 marker로 분해하되 장식용 bullet 남발 금지.",
     "incremental_improvement": "USER_APPROVED/VISUAL_QA_APPROVED 영역을 보존하고 Finding 영향 범위만 Patch한다. AUTOMATED_PASS_ONLY는 보존 승인 상태가 아니며 Fresh rewrite는 기본 금지.",
-    "profile_layout_policy": "필수 질문/Outcome Coverage가 정본이며 정확한 H1/H2 수 채우기는 목적이 아니다. 중복되거나 시각적으로 답답하면 인접 내용을 병합한다."
+    "profile_layout_policy": "필수 질문/Outcome Coverage가 정본이며 정확한 H1/H2 수 채우기는 목적이 아니다. 중복되거나 시각적으로 답답하면 인접 내용을 병합한다.",
+    "semantic_component_selection": "표/목록/본문/Callout/Figure는 의미 구조에 맞게 선택. 모든 블록을 표로 통일하지 않는다.",
+    "major_section_breathing": "H1/대메뉴 시작 전에는 일반 단락 전환보다 한 줄 안팎의 추가 시각 여백을 둔다.",
+    "table_header_single_line": "required",
+    "major_heading_single_line": "preferred; 1~2 word orphan wrap hard fail"
   },
   "microBlocks": {
     "developer": [
       "하려는 일/언제 사용: 1문장",
-      "선택표: 기능/API·핵심 옵션·선택 기준을 Compact table로 우선 제시",
+      "선택/비교 데이터가 실제 행·열 관계를 가질 때만 기능/API·핵심 옵션·선택 기준을 Compact table로 제시한다. 장 목적·Golden Path·절차는 표로 만들지 않는다.",
       "거래/호출 패턴이면 Same JVM/Remote/Async/Gateway 여부와 Transaction 경계를 명확히 구분",
       "예: 3~8줄 코드가 실제 선택/사용을 빠르게 할 때만",
       "오류/실패: Business/Technical/Validation/Timeout/UNKNOWN 중 실제 관련 항목만 최대 3개",

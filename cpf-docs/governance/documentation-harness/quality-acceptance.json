@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -36,6 +36,24 @@
       "automated": false,
       "required": true,
       "meaning": "Persona가 실제 질문/작업/판단을 문서에서 완료할 수 있음"
+    },
+    {
+      "id": "TABLE_SEMANTIC_FIT_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "표 사용 자체와 Column 폭/균등 여부가 실제 데이터 구조에 적합하며 Header Wrap 0"
+    },
+    {
+      "id": "HEADING_AND_VERTICAL_RHYTHM_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "대제목/H1 한 줄 우선, 고립 Wrap 0, 대메뉴와 의미 단위 전환의 breathing room 충족"
+    },
+    {
+      "id": "EMBEDDED_FIGURE_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "원본 Figure뿐 아니라 README/DOCX/PDF 삽입 후 경계·Crop·의미 완결성 PASS"
     },
     {
       "id": "RENDER_TECHNICAL_PASS",
@@ -90,7 +108,10 @@
       "content_density_and_breathing_room",
       "first_scan_comprehension",
       "consistency",
-      "professional_polish"
+      "professional_polish",
+      "component_choice_fit",
+      "table_column_proportion",
+      "heading_line_integrity"
     ],
     "criticalZeroRequired": [
       "text_overlap",
@@ -108,7 +129,16 @@
       "annotation_clearance_violation",
       "generic_figure_explanation_label",
       "docx_link_in_user_navigation",
-      "developer_api_option_summary_missing"
+      "developer_api_option_summary_missing",
+      "table_header_wrap",
+      "non_tabular_content_in_table",
+      "unjustified_equal_width",
+      "unjustified_fixed_50_50",
+      "meaningless_repeated_column",
+      "major_heading_orphan_wrap",
+      "section_transition_crowding",
+      "embedded_figure_boundary_intrusion",
+      "semantically_incomplete_visual"
     ],
     "rule": "평균이 높아도 Critical 결함 1건이면 FAIL. 모든 Dimension 4 이상이어야 한다."
   },

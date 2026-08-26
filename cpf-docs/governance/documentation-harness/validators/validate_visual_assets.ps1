@@ -7,7 +7,7 @@ function Fail([string]$m){ Write-Host ('VISUAL_GEOMETRY=FAIL '+$m); exit 1 }
 $path=Join-Path $RepositoryRoot ($Manifest -replace '/','\')
 if(-not(Test-Path -LiteralPath $path -PathType Leaf)){ Fail('manifest missing '+$Manifest) }
 try{$doc=Get-Content -LiteralPath $path -Raw -Encoding UTF8|ConvertFrom-Json}catch{Fail('manifest json '+$_.Exception.Message)}
-if([string]$doc.harnessVersion -ne '2.2.0'){Fail('manifest harnessVersion')}
+if([string]$doc.harnessVersion -ne '2.3.0'){Fail('manifest harnessVersion')}
 $issues=0
 foreach($a in @($doc.assets)){
   $cw=[double]$a.canvas.width; $ch=[double]$a.canvas.height; $safe=[double]$a.canvas.safeMargin

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "page": {
     "paper": "A4",
@@ -57,11 +57,11 @@
     "first_line_indent_mm": 0,
     "body_line_spacing_multiple": 1.17,
     "body_space_after_pt": 5.0,
-    "h1_space_before_pt": 32,
-    "h1_space_after_pt": 12,
-    "h2_space_before_pt": 16,
+    "h1_space_before_pt": 40,
+    "h1_space_after_pt": 10,
+    "h2_space_before_pt": 18,
     "h2_space_after_pt": 3.5,
-    "h3_space_before_pt": 10,
+    "h3_space_before_pt": 12,
     "h3_space_after_pt": 3.0,
     "h1_after_table_or_figure_min_pt": 24,
     "keep_with_next": [
@@ -74,13 +74,17 @@
     ],
     "widow_orphan_control": true,
     "rhythm": "문서 전체 Grid는 일관되게 유지하되 H1/H2/H3/본문/표/그림 사이 간격은 계층과 역할에 따라 차등 적용한다. 모든 블록을 같은 간격으로 붙이는 기계적 리듬은 금지한다.",
-    "section_block_gap_pt": 10,
-    "major_section_visual_gap_pt": 18,
-    "headingSpacingPrinciple": "H1 > H2 > H3 > 본문 순으로 전후 여백 차이를 명확히 둔다. 대메뉴 시작 전에는 앞 내용과 한 줄 이상 분리되어 보이는 시각적 공간을 확보한다. 빈 문단으로 만들지 않고 Style spacing으로 구현한다.",
+    "section_block_gap_pt": 12,
+    "major_section_visual_gap_pt": 24,
+    "headingSpacingPrinciple": "H1 > H2 > H3 > 본문 순으로 전후 여백 차이를 명확히 둔다. 대메뉴/H1 시작 전에는 이전 Block과 한 줄 안팎의 추가 호흡 공간을 확보한다. 제목 아래 첫 내용은 이보다 가깝게 묶고 빈 문단이 아니라 Style spacing으로 구현한다.",
     "denseUniformRhythm": "forbidden",
     "subheading_first_content_gap_pt_max": 4.0,
     "next_subheading_space_before_pt_min": 12,
-    "subheadingPairingRule": "H2/H3와 첫 본문/첫 리스트는 한 시각 블록으로 보이게 붙인다. 제목 아래 간격은 다음 부제목 시작 전 간격보다 작아야 한다."
+    "subheadingPairingRule": "H2/H3와 첫 본문/첫 리스트는 한 시각 블록으로 보이게 붙인다. 제목 아래 간격은 다음 부제목 시작 전 간격보다 작아야 한다.",
+    "majorSectionExtraBreathingPt": 8,
+    "semanticTransitionGapPtMin": 10,
+    "majorHeadingSingleLinePreferred": true,
+    "majorHeadingOrphanWrap": "hard_fail"
   },
   "indentation": {
     "body_left_mm": 0,
@@ -190,8 +194,8 @@
     "grid_line_pt": 0.45,
     "outer_border_pt": 0.55,
     "header_bottom_border_pt": 0.8,
-    "equal_width_default": "forbidden",
-    "width_mode": "content-aware proportional width; table fits page content width without horizontal overflow",
+    "equal_width_default": "conditional",
+    "width_mode": "semantic-and-content-aware proportional width; symmetric equal width only when justified; table fits content width without horizontal overflow",
     "tblGrid_must_match_ratio": true,
     "merge_cells": "forbidden_for_data_tables",
     "split_cells": "forbidden",
@@ -229,7 +233,32 @@
       "표 Font는 9pt 미만 금지"
     ],
     "visual_separation": "표와 다음 표 사이 최소 12pt. 연속 표는 각 표 제목+목적문을 반드시 둔다. 표 제목 없이 표가 연속되면 FAIL.",
-    "orientation_switch_rule": "API/옵션/선택표에서 핵심 token이 2줄 이상으로 반복 개행되거나 4열 이상 비교가 핵심이면 Landscape를 우선한다."
+    "orientation_switch_rule": "API/옵션/선택표에서 핵심 token이 2줄 이상으로 반복 개행되거나 4열 이상 비교가 핵심이면 Landscape를 우선한다.",
+    "equal_width_rule": "대칭 비교/동일 역할/유사 길이 Column처럼 균등폭이 의미를 명확히 할 때만 허용한다. 그 외에는 헤더·셀 내용량과 Column 역할을 기준으로 비례 배분한다.",
+    "equal_width_allowed_when": [
+      "대칭 비교 축",
+      "동일 타입 Vendor/Topology 병렬 비교",
+      "Column 중요도와 예상 내용량이 유사하고 균등폭이 스캔을 개선"
+    ],
+    "equal_width_forbidden_when": [
+      "한 Column은 짧은 식별자/상태이고 다른 Column은 설명/실패·복구처럼 길이가 뚜렷이 다름",
+      "고정 50:50 때문에 한쪽은 대공백이고 다른 쪽은 과도한 Wrap",
+      "같은 값만 반복되는 의미 없는 Column을 유지하기 위해 폭을 소비"
+    ],
+    "header_single_line_required": true,
+    "header_max_visual_lines": 1,
+    "header_wrap": "hard_fail",
+    "headerOverflowResolutionOrder": [
+      "헤더 문구를 의미 유지 범위에서 축약",
+      "짧은 데이터 Column 폭을 줄이고 해당 Column 폭 확대",
+      "표 전체 폭/여백 조정",
+      "Landscape 전환",
+      "마지막 수단으로 가독성을 해치지 않는 범위의 미세 Font 조정"
+    ],
+    "fixed_50_50_default": "forbidden_unless_semantically_symmetric",
+    "tabular_data_gate": "행과 Column의 교차점이 독립적인 의미를 가져야 한다. 단순 설명/목차/순서/한 메시지 Callout은 표를 사용하지 않는다.",
+    "repeated_value_column": "동일 값이 대부분 행에서 반복되고 탐색/비교 의미가 없으면 Column 제거 또는 다른 표현으로 전환",
+    "columnWidthReview": "실제 최종 데이터로 Column별 longest meaningful token, median text length, role importance를 함께 보고 폭을 결정한다. 단순 문자 수 자동비례만으로 확정하지 않는다."
   },
   "figures": {
     "use_gate": "그림이 같은 내용을 텍스트/표보다 빠르게 이해시키고 실제 구조·흐름·상태·선택을 보여줄 때만 사용. 장식용 그림 금지.",
@@ -298,7 +327,13 @@
     "text_outside_canvas": 0,
     "text_outside_node": 0,
     "label_overlap": 0,
-    "caption_overlap": 0
+    "caption_overlap": 0,
+    "embedded_render_boundary_collision": 0,
+    "embedded_render_crop": 0,
+    "title_to_canvas_safe_clearance_px_min": 24,
+    "side_node_to_canvas_safe_clearance_px_min": 48,
+    "semantic_completeness_required": true,
+    "central_junction_rule": "Connector가 중앙 Hub/Junction을 암시하면 의미 Node/Label 또는 완결된 연결 구조를 제공한다. 비어 있는 중심 때문에 누락/깨짐처럼 보이면 FAIL."
   },
   "callouts": {
     "allowed": [
@@ -328,7 +363,10 @@
     ],
     "h3_in_toc": false,
     "readme_toc": "forbidden",
-    "toc_page_must_not_be_sparse": "목차가 비면 강제 Page Break/Field 갱신 오류로 간주. 실제 페이지 번호와 일치해야 한다."
+    "toc_page_must_not_be_sparse": "목차가 비면 강제 Page Break/Field 갱신 오류로 간주. 실제 페이지 번호와 일치해야 한다.",
+    "presentation": "numbered_navigation_list_with_page_number_or_click_target",
+    "table_toc": "forbidden_unless_toc_contains_true_tabular_metadata_beyond_navigation",
+    "meaningless_category_column": "forbidden"
   },
   "visual_quality": {
     "blank_pages_allowed": 0,

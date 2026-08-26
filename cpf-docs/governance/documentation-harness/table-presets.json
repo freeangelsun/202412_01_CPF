@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "commonRulesRef": "design-tokens.json#/tables",
   "presets": {
@@ -22,7 +22,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "OPTION": {
       "columns": [
@@ -42,7 +45,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "API": {
       "columns": [
@@ -62,7 +68,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "ROLE": {
       "columns": [
@@ -82,7 +91,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "DECISION": {
       "columns": [
@@ -102,7 +114,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "ERROR": {
       "columns": [
@@ -122,7 +137,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "RUNBOOK": {
       "columns": [
@@ -142,7 +160,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "STATE": {
       "columns": [
@@ -162,7 +183,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "RESTART_RERUN_REPROCESS_RECONCILE": {
       "columns": [
@@ -185,7 +209,11 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "SYMMETRIC_COMPARISON",
+      "equalWidthJustification": "병렬 선택지가 동일 역할이며 비교축이 대칭적임",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "HTTP_STATUS": {
       "columns": [
@@ -205,7 +233,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "OWNER_BOUNDARY": {
       "columns": [
@@ -225,7 +256,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "TOPOLOGY_COMPARE": {
       "columns": [
@@ -245,7 +279,16 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED_WITH_SYMMETRIC_GROUPS",
+      "symmetricColumnGroupsZeroBased": [
+        [
+          1,
+          2
+        ]
+      ],
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "SYSTEM6": {
       "columns": [
@@ -265,7 +308,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "DB_VENDOR": {
       "columns": [
@@ -285,7 +331,17 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED_WITH_SYMMETRIC_GROUPS",
+      "symmetricColumnGroupsZeroBased": [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "DB_LIFECYCLE": {
       "columns": [
@@ -305,7 +361,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "STARTER_SELECTION": {
       "columns": [
@@ -325,7 +384,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "TEST_SCENARIO": {
       "columns": [
@@ -345,7 +407,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "SOURCE_NAV": {
       "columns": [
@@ -362,27 +427,34 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "DOCUMENT_INDEX": {
       "columns": [
         "이럴 때",
         "먼저 볼 문서",
         "이 문서에서 얻는 답",
-        "바로 열기"
+        "PDF"
       ],
       "widthPct": [
-        25,
-        25,
-        35,
-        15
+        22,
+        24,
+        42,
+        12
       ],
       "align": [
         "left",
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "usageConstraint": "공식 문서 목록처럼 실제 4개 속성이 필요한 경우만 사용. 목차/찾아보기에는 사용 금지."
     },
     "RULE_SUMMARY": {
       "columns": [
@@ -402,7 +474,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "COMPATIBILITY": {
       "columns": [
@@ -422,7 +497,10 @@
         "left",
         "left",
         "left"
-      ]
+      ],
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "API_QUICK_REFERENCE": {
       "columns": [
@@ -433,11 +511,11 @@
         "실패·복구"
       ],
       "widthPct": [
-        17,
+        13,
+        21,
         25,
         20,
-        20,
-        18
+        21
       ],
       "align": [
         "left",
@@ -446,7 +524,10 @@
         "left",
         "left"
       ],
-      "landscapeRequired": true
+      "landscapeRequired": true,
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     },
     "API_OPTION_MATRIX": {
       "columns": [
@@ -457,11 +538,11 @@
         "주의"
       ],
       "widthPct": [
-        23,
-        18,
         20,
-        21,
-        18
+        18,
+        14,
+        24,
+        24
       ],
       "align": [
         "left",
@@ -470,7 +551,37 @@
         "left",
         "left"
       ],
-      "landscapeRequired": true
+      "landscapeRequired": true,
+      "headerSingleLine": true,
+      "widthPolicy": "CONTENT_WEIGHTED",
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
     }
+  },
+  "selectionPolicy": {
+    "principle": "표로 표현해야 하는 데이터를 표로 표현한다. 행·열 관계가 독자의 비교/선택/확인을 빠르게 할 때만 표를 선택한다.",
+    "tableUseWhen": [
+      "같은 속성으로 여러 대상을 비교",
+      "API/옵션/기본값/선택조건처럼 row-column 교차 데이터가 존재",
+      "상태/오류/조치/완료 기준을 병렬 비교",
+      "Vendor/Topology/Capability처럼 같은 축을 따라 비교"
+    ],
+    "doNotUseTableWhen": [
+      "목차/찾아보기/단순 메뉴",
+      "순차 절차",
+      "한 문장 설명/장을 보는 이유",
+      "Golden Path 같은 단일 강조 메시지",
+      "단순 Bullet 목록",
+      "같은 값만 반복되는 의미 없는 구분 Column"
+    ],
+    "representationFallback": [
+      "navigation list",
+      "numbered steps",
+      "lead paragraph",
+      "callout",
+      "bullet group",
+      "flow/state/figure"
+    ],
+    "fixed5050": "대칭 비교가 아니면 금지",
+    "equalWidth": "대칭성과 실제 데이터 길이가 유사하면 허용; 그렇지 않으면 content-aware proportional width"
   }
 }

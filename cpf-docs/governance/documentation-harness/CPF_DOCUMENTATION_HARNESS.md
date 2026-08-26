@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.2.0
+# CPF Documentation Harness v2.3.0
 
 ## 0. v2 핵심 철학 — 새로 만드는 Harness가 아니라 개선하는 Harness
 
@@ -44,7 +44,7 @@ README 포함 모든 문서에서 H2/H3 아래 본문·불릿·Callout·Figure �
 - 일반 4열 이하, Landscape 5열 이하
 - 한 Cell 한 문장, 권장 45자 이하, 70자/4줄 초과 시 본문 또는 불릿으로 이동
 - Header만 중앙정렬. 설명·역할·사용법·경로·명령·원인·조치는 좌측정렬
-- 균등폭 금지. 의미와 예상 길이에 따라 Column 비율 지정
+- 균등폭을 기본값으로 강제하지 않는다. 대칭 비교처럼 균등폭이 의미에 맞으면 허용하고, 그 외에는 실제 내용과 역할에 따라 Column 비율을 지정
 - API/Class/Code가 열 폭 때문에 2줄 이상 깨지면 FAIL
 - 연속 표는 12pt 이상 간격 + 각 표 제목/목적 필수
 
@@ -91,7 +91,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - PDF는 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 통과해야 한다.
 
 
-## v2.2.0 시각 균형 원칙
+## v2.3.0 시각 균형 원칙
 
 - 모든 문서와 Figure는 내용의 정확성뿐 아니라 시각적 균형을 품질 Gate로 관리한다.
 - Figure 글자 겹침·잘림·깨짐·낮은 대비·Connector 충돌·Group Title/Child Label 겹침은 0건이어야 한다.
@@ -101,7 +101,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - 시각 결함을 발견하면 해당 그림 하나만 임시 수정하지 않고 공통 원인이면 Harness Token/Visual Rule을 먼저 보완하고 영향받은 Block/페이지/링크만 Patch하고 필요한 경우 해당 파일만 재export한다.
 
 
-## v2.2.0 점진 개선·링크·Visual Grammar 원칙
+## v2.3.0 점진 개선·링크·Visual Grammar 원칙
 
 - 기본 작업 방식은 `PATCH_FIRST`다. USER_APPROVED 또는 VISUAL_QA_APPROVED 영역을 기준선으로 삼고 지적받은 영역과 실제 영향 범위만 보정한다. AUTOMATED_PASS_ONLY는 품질 승인으로 승계하지 않는다.
 - 관계없는 PASS 페이지·문장·Visual은 유지한다. 전체 재작성/재디자인은 사용자의 명시 요청, 구조 손상, Canonical 전체 구조 변경 등 Harness가 허용한 경우만 수행한다.
@@ -118,7 +118,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 기존 공식 산출물이 사용자에 의해 `BASELINE_REJECTED`로 판정된 경우에만 사용자 명시 요청으로 최초 1회 `INITIAL_FRESH_REBUILD`를 수행할 수 있다. 결과는 `GOLDEN_BASELINE_CANDIDATE`이며, `USER_APPROVED` 또는 `VISUAL_QA_APPROVED` 이후에는 `PATCH_ONLY`로 전환한다. 승인 이후 관계없는 영역의 Fresh Rewrite는 Regression FAIL이다.
 
 
-## v2.2.0 독자 니즈·실행형 매뉴얼 강제 규칙
+## v2.3.0 독자 니즈·실행형 매뉴얼 강제 규칙
 
 - 모든 산출물은 `누가 → 왜 연다 → 무엇을 결정/개발/운영한다 → 완료 기준`을 먼저 정의한다. 파일/기능 분류를 위한 메뉴는 금지한다.
 - Framework/Batch Developer Guide의 주요 기능 장은 `Task Summary → Public API → Option/기본값 → 선택 기준 → 실패·복구 → 최소 예 → 검증 → Source`를 첫 스캔에서 찾을 수 있어야 한다. 설명문만 있는 장은 FAIL이다.
@@ -127,3 +127,8 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - Figure 설명 앞에 `그림 해석`, `그림 설명` 같은 중간 라벨을 두지 않는다. Figure 바로 아래 1~2문장으로 의미를 자연스럽게 고정한다.
 - 모든 Product Figure는 geometry manifest를 가진다. 실제 canvas/frame/node/text/annotation bounding box가 safe area를 침범하거나 서로 겹치면 자동 Gate에서 FAIL해야 한다.
 - Markdown Viewer의 Host Background는 README가 제어할 수 없다. 대신 CPF가 소유하는 Hero/주요 Content Surface는 Dark Brochure로 분명히 만들고 그 위 주요 Visual은 light/neutral canvas로 분리한다.
+
+
+## v2.3.0 사용자 중심 표현 선택 원칙
+
+문서의 목적은 Component를 채우는 것이 아니라 독자가 필요한 판단·개발·운영을 더 빨리 끝내게 하는 것이다. 작성자는 먼저 정보 구조를 판단한 뒤 표/목록/본문/Callout/Flow/Figure를 선택한다. 표는 실제 tabular data에만 사용하고, Column 폭은 실제 데이터와 비교 대칭성에 맞춘다. 대제목과 표 Header의 불필요한 자동 개행, 대메뉴/단락 사이의 답답한 밀착, 원본은 정상이나 삽입 후 경계를 침범하는 Figure를 최종 품질 실패로 처리한다.

@@ -1,10 +1,10 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "2.2.0",
-  "currentOnly": true,
-  "paths": [
-    "cpf-docs/governance/documentation-harness/CHANGELOG.md",
-    "cpf-docs/deliverables/documentation/APPLY_V125.ps1",
-    "cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1"
-  ]
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.3.0",
+  "rootRelative": true,
+  "wildcardsAllowed": false,
+  "deleteFiles": [
+    "cpf-docs/governance/documentation-harness/CHANGELOG.md"
+  ],
+  "reason": "현행 Harness 한 세트만 유지하고 과거 변경이력 파일을 Working Tree에 남기지 않는다."
 }

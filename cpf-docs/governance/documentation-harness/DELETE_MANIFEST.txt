@@ -1,4 +1,2 @@
-# CPF Documentation v2.2.0 current-only exact delete manifest
+# CPF Documentation Harness v2.3.0 exact stale delete manifest
 cpf-docs/governance/documentation-harness/CHANGELOG.md
-cpf-docs/deliverables/documentation/APPLY_V125.ps1
-cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1

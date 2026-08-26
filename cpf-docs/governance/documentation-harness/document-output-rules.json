@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "README": {
     "toc": "forbidden",
@@ -124,5 +124,16 @@
   "qualityAcceptanceRef": "quality-acceptance.json",
   "componentSystemRef": "component-system.json",
   "goldenReferenceRef": "golden-reference.json",
-  "finalQualityRule": "자동 Validator PASS만으로 완료 금지. HUMAN_VISUAL_PASS + REGRESSION_PASS + CLICK_THROUGH_PASS 필수."
+  "finalQualityRule": "자동 Validator PASS만으로 완료 금지. HUMAN_VISUAL_PASS + REGRESSION_PASS + CLICK_THROUGH_PASS 필수.",
+  "layoutQuality": {
+    "majorHeadingSingleLinePreferred": true,
+    "tableHeaderSingleLineRequired": true,
+    "tocPresentation": "numbered navigation list, not table",
+    "tableUse": "true tabular data only",
+    "columnWidth": "content/role aware; equal only when symmetric",
+    "fixed5050": "forbidden unless symmetric compare",
+    "majorSectionBreathing": "about one extra line before H1/major menu",
+    "semanticTransitionSpacing": "required between distinct blocks",
+    "blankParagraphSpacing": "forbidden"
+  }
 }

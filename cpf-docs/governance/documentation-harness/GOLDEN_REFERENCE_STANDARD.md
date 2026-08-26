@@ -1,6 +1,6 @@
 # CPF Documentation Golden Reference Standard
 
-- Harness: **v2.2.0**
+- Harness: **v2.3.0**
 - 목적: 규칙 문장만으로 품질을 판단하지 않고, 승인된 화면을 실제 회귀 기준으로 사용한다.
 
 ## 1. Golden Reference 원칙

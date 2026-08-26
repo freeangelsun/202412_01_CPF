@@ -17,16 +17,16 @@ for p in ROOT.rglob('*'):
     n=p.name.lower()
     if re.search(r'(^|[_\.-])(backup|old|history)([_\.-]|$)',n) or n.startswith('v1.') or n.startswith('v2.0') or n.startswith('v2.1'):
         fail('stale harness artifact '+str(p.relative_to(ROOT)))
-if h.get('version')!='2.2.0': fail('version')
+if h.get('version')!='2.3.0': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='2.2.0': fail(f'version {f}')
+    if d.get('harnessVersion')!='2.3.0': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
-if D['tables']['equal_width_default']!='forbidden': fail('equal width')
+if D['tables'].get('equal_width_default')!='conditional': fail('equal width policy')
 if D['tables']['max_columns_portrait']!=4 or D['tables']['max_columns_landscape']!=5: fail('table columns')
 if D['tables']['max_cell_korean_chars_review']>70: fail('cell prose limit')
 W=load('writing-style.json')
@@ -63,6 +63,28 @@ if CG.get('nodeInnerPaddingPxMin',0) < 18 or CG.get('labelConnectorClearancePxMi
 if O['README'].get('manualNavigation','').startswith('mandatory') is not True: fail('README manual navigation')
 if O['README'].get('bootstrapRuntimeBlock','').startswith('mandatory') is not True: fail('README bootstrap/runtime')
 
+
+# v2.3.0 semantic layout gates
+if D['tables'].get('header_single_line_required') is not True or D['tables'].get('header_max_visual_lines') != 1: fail('table header single line')
+if D['tables'].get('fixed_50_50_default')!='forbidden_unless_semantically_symmetric': fail('fixed 50/50 policy')
+if D['paragraph'].get('h1_space_before_pt',0) < 38: fail('major section breathing')
+if D['paragraph'].get('majorHeadingSingleLinePreferred') is not True: fail('major heading single line')
+if D['figures'].get('embedded_render_boundary_collision') != 0 or D['figures'].get('embedded_render_crop') != 0: fail('embedded figure boundary')
+if D['figures'].get('semantic_completeness_required') is not True: fail('figure semantic completeness')
+TP=load('table-presets.json')
+if TP.get('selectionPolicy',{}).get('principle','').find('표로 표현해야 하는 데이터를 표로 표현')<0: fail('table semantic policy')
+for _n,_t in TP.get('presets',{}).items():
+    if _t.get('headerSingleLine') is not True: fail('table header preset '+_n)
+    if _t.get('widthPolicy') not in ['CONTENT_WEIGHTED','CONTENT_WEIGHTED_WITH_SYMMETRIC_GROUPS','SYMMETRIC_COMPARISON']: fail('width policy '+_n)
+CQ=load('component-system.json')
+_cs=CQ.get('components',CQ)
+if _cs.get('READER_NEED_BLOCK',{}).get('tableEncoding')!='forbidden': fail('reader need table misuse')
+if _cs.get('TOC_NAVIGATION',{}).get('table')!='forbidden': fail('toc table misuse')
+if _cs.get('DECISION_TABLE',{}).get('headerSingleLine') is not True: fail('decision table header')
+VQ=load('visual-qa.json')
+for _k in ['tableHeaderWrap','nonTabularContentEncodedAsTable','unjustifiedEqualColumnWidth','unjustifiedFixed5050','repeatedValueOnlyColumn','majorHeadingOrphanWrap','sectionTransitionCrowding','figureEmbeddedBoundaryIntrusion','figureEmbeddedCrop','semanticallyIncompleteVisual']:
+    if VQ.get('hardFail',{}).get(_k) != 0: fail('v2.3 hard fail '+_k)
+
 # incremental/visual/link/content-rail gates
 if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('defaultMode')!='PATCH_FIRST': fail('patch first policy')
 _evo=h.get('changePolicy',{}).get('artifactEvolutionPolicy',{})
@@ -90,7 +112,7 @@ for name,t in T.items():
     if sum(widths)!=100: fail(f'width sum {name}')
     if len(t.get('columns',[]))!=len(widths): fail(f'columns {name}')
     if len(widths)>5: fail(f'too many cols {name}')
-    if len(widths)>2 and len(set(widths))==1: fail(f'equal widths {name}')
+    if len(widths)>2 and len(set(widths))==1 and t.get('widthPolicy')!='SYMMETRIC_COMPARISON': fail(f'unjustified equal widths {name}')
 F=load('figure-presets.json')['presets']
 if 'README_ARCHITECTURE_MAP' not in F: fail('architecture visual')
 scope=load('scope.json'); arts=scope.get('officialArtifacts',[])
@@ -155,6 +177,11 @@ for req in ["component-system.json","quality-acceptance.json","golden-reference.
     if not (ROOT/req).exists(): fail("missing v2 file "+req)
 qam=load("quality-acceptance.json")
 if qam.get("automatedPassIsQualityPass") is not False: fail("automated pass quality separation")
+
+for _gid in ['TABLE_SEMANTIC_FIT_PASS','HEADING_AND_VERTICAL_RHYTHM_PASS','EMBEDDED_FIGURE_PASS']:
+    if _gid not in h.get('completionGate',{}).get('required',[]): fail('completion gate '+_gid)
+    if _gid not in {x.get('id') for x in qam.get('stages',[])}: fail('quality stage '+_gid)
+
 if set(qam.get("baselineEligibility",[])) != {"USER_APPROVED","VISUAL_QA_APPROVED"}: fail("baseline approval states")
 cs=load("component-system.json")
 for cid in ["H1_SECTION","H2_SUBSECTION","BODY_BLOCK","BULLET_GROUP","FIGURE_BLOCK","FIGURE_EXPLANATION","DECISION_TABLE","DOCUMENT_LINK_ROW"]:

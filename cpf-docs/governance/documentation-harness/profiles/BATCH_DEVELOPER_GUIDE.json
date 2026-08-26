@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "documentId": "BATCH_DEVELOPER_GUIDE",
   "title": "CPF 배치 개발자 가이드",
   "locked": true,
@@ -267,5 +267,19 @@
     "sourceVerifiedApiOnly": true,
     "sourceVerifiedDefaultsOnly": true,
     "landscapeForFiveColumnReference": true
+  },
+  "presentationPolicy": {
+    "contentChoosesComponent": true,
+    "tableOnlyForTabularData": true,
+    "tocAndNavigationAsTable": false,
+    "tableHeaderSingleLine": true,
+    "columnWidth": "content-aware; symmetric equal width allowed when justified",
+    "majorHeadingSingleLinePreferred": true,
+    "majorSectionExtraBreathing": true,
+    "fixed5050": "forbidden unless symmetric comparison"
+  },
+  "tablePolicy": {
+    "listedPresets": "allowed_when_semantically_needed",
+    "mandatoryOnlyWhenAcceptanceExplicitlyRequires": true
   }
 }

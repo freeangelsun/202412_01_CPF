@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "states": [
     "USER_APPROVED",
@@ -17,6 +17,11 @@
     "approvedBy",
     "reason",
     "renderRefOrHash",
-    "qualityScores"
+    "qualityScores",
+    "componentChoice",
+    "tableColumnWidth",
+    "headingWrap",
+    "verticalRhythm",
+    "embeddedFigureSafety"
   ]
 }

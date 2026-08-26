@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -93,7 +93,17 @@
     "genericFigureExplanationLabel": 0,
     "docxLinkExposedInUserNavigation": 0,
     "readerNeedNotAnswered": 0,
-    "developerApiOptionSummaryMissing": 0
+    "developerApiOptionSummaryMissing": 0,
+    "tableHeaderWrap": 0,
+    "nonTabularContentEncodedAsTable": 0,
+    "unjustifiedEqualColumnWidth": 0,
+    "unjustifiedFixed5050": 0,
+    "repeatedValueOnlyColumn": 0,
+    "majorHeadingOrphanWrap": 0,
+    "sectionTransitionCrowding": 0,
+    "figureEmbeddedBoundaryIntrusion": 0,
+    "figureEmbeddedCrop": 0,
+    "semanticallyIncompleteVisual": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -161,7 +171,9 @@
       "visual grammar matches concept; do not default to rounded rectangles + arrows",
       "README dark surface uses light/neutral/tinted figure canvas or bright focal panel",
       "canvas edge safe margin >=48px; no label/stroke intrusion",
-      "figure explanation is visually attached to this figure and separated from next section"
+      "figure explanation is visually attached to this figure and separated from next section",
+      "inspect embedded README/DOCX/PDF placement, not only source PNG, for title/node/stroke boundary intrusion",
+      "central junction/hub implied by connectors is semantically complete; empty center must be intentional and visually complete"
     ],
     "tableInspection": [
       "actual Word tblGrid",
@@ -176,7 +188,13 @@
       "table number/title/purpose",
       "cell prose length",
       "column count",
-      "body left grid alignment"
+      "body left grid alignment",
+      "table is semantically justified: row-column intersections carry real data",
+      "header visual line count = 1 for every column",
+      "column widths match actual content/role; equal width only with explicit symmetric reason",
+      "no fixed 50:50 panel used for one short label plus long explanation",
+      "no repeated-value-only column that adds no comparison value",
+      "TOC/navigation is list-based unless true tabular metadata is present"
     ],
     "pdfCompatibility": [
       "inspect embedded font list",
@@ -191,7 +209,10 @@
       "hierarchical numbering is visible",
       "no dense uniform repeated spacing",
       "H2/H3 first content gap is compact and smaller than next subsection separation",
-      "H2/H3 content/body/list/explanation uses common indented Content Rail; heading itself remains on title grid"
+      "H2/H3 content/body/list/explanation uses common indented Content Rail; heading itself remains on title grid",
+      "major H1/title stays one line when reasonably possible; no 1-2 word orphan wrap",
+      "major section starts with about one extra line of breathing room relative to normal paragraph transitions",
+      "table/code/callout/figure/section transitions are visually separated without blank paragraphs"
     ],
     "pageBalanceInspection": [
       "inspect every page for left/right and top/bottom density balance",
@@ -240,5 +261,11 @@
   "linkIntegrity": [
     "user navigation DOCX link count = 0",
     "DOCX files remain packaged as editable artifacts"
-  ]
+  ],
+  "tableSemanticReview": {
+    "question1": "행과 열의 교차점에 독립적인 의미가 있는가?",
+    "question2": "표가 목록/본문/Callout보다 비교·선택을 더 빠르게 하는가?",
+    "question3": "Column 폭이 실제 내용 비율과 역할에 맞는가?",
+    "failIfAny": "표가 장식/레이아웃 목적이거나 Header Wrap/공백 낭비/과도한 Wrap을 만들면 재구성"
+  }
 }

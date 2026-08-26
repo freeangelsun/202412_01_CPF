@@ -17,13 +17,13 @@ $h=Load-Json 'harness.json'
 if(Test-Path -LiteralPath (Join-Path $Root 'CHANGELOG.md')){ Fail 'history file must not remain in current-only harness' }
 $stale=@(Get-ChildItem -LiteralPath $Root -Recurse -Force | Where-Object { $_.Name -match '(?i)(^|[_.-])(backup|old|history)([_.-]|$)|^v1\.|^v2\.0|^v2\.1' })
 if($stale.Count -gt 0){ Fail('stale harness artifact '+$stale[0].FullName) }
-if($h.version -ne '2.2.0'){ Fail 'version' }
+if($h.version -ne '2.3.0'){ Fail 'version' }
 if($h.locked -ne $true -or $h.changeAuthority -ne 'USER_EXPLICIT_REQUEST_ONLY'){ Fail 'change authority' }
 if($h.changePolicy.autoModify -ne $false){ Fail 'auto modify' }
 
 foreach($f in @('design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json')){
     $d=Load-Json $f
-    if($d.harnessVersion -ne '2.2.0'){ Fail("version " + $f) }
+    if($d.harnessVersion -ne '2.3.0'){ Fail("version " + $f) }
 }
 
 $D=Load-Json 'design-tokens.json'
@@ -33,7 +33,7 @@ if($D.figures.low_contrast_label -ne 'hard_fail'){ Fail 'figure contrast' }
 if($D.fonts.pdf_korean_font_embedding_required -ne $true){ Fail 'pdf korean font embedding' }
 if($D.toc.readme_toc -ne 'forbidden'){ Fail 'README TOC must be forbidden' }
 if($D.tables.body_default_alignment -ne 'left'){ Fail 'table body left' }
-if($D.tables.equal_width_default -ne 'forbidden'){ Fail 'equal width' }
+if($D.tables.equal_width_default -ne 'conditional'){ Fail 'equal width policy' }
 if([int]$D.tables.max_columns_portrait -ne 4 -or [int]$D.tables.max_columns_landscape -ne 5){ Fail 'table columns' }
 if([int]$D.tables.max_cell_korean_chars_review -gt 70){ Fail 'cell prose limit' }
 
@@ -67,7 +67,7 @@ foreach($prop in $TObj.PSObject.Properties){
     if($widths.Count -gt 5){ Fail("too many cols " + $name) }
     if($widths.Count -gt 2){
         $unique=@($widths | Select-Object -Unique)
-        if($unique.Count -eq 1){ Fail("equal widths " + $name) }
+        if($unique.Count -eq 1 -and $t.widthPolicy -ne 'SYMMETRIC_COMPARISON'){ Fail("unjustified equal widths " + $name) }
     }
 }
 
@@ -124,7 +124,7 @@ foreach($a in $arts){
 }
 
 
-# v2.2.0 geometry / reader-first / link / content-rail gates
+# v2.3.0 geometry / reader-first / link / content-rail gates
 if([int]$D.figures.node_inner_padding_px_min -lt 24){ Fail 'figure inner padding' }
 if([int]$D.figures.label_to_label_gap_px_min -lt 24){ Fail 'figure label gap' }
 if([int]$D.figures.node_to_node_gap_px_min -lt 28){ Fail 'figure node gap' }
@@ -169,6 +169,30 @@ if($FP.orientation -ne 'landscape'){Fail 'framework guide landscape'}
 if($null -eq $FP.developerChapterContract){Fail 'framework developer chapter contract'}
 $BP=Load-Json 'profiles/BATCH_DEVELOPER_GUIDE.json'
 if($BP.orientation -ne 'landscape'){Fail 'batch guide landscape'}
+
+# v2.3.0 semantic layout gates
+if($D.tables.header_single_line_required -ne $true){ Fail 'table header single line' }
+if([int]$D.tables.header_max_visual_lines -ne 1){ Fail 'table header max lines' }
+if($D.tables.fixed_50_50_default -ne 'forbidden_unless_semantically_symmetric'){ Fail 'fixed 50/50 policy' }
+if([double]$D.paragraph.h1_space_before_pt -lt 38){ Fail 'major section breathing' }
+if($D.paragraph.majorHeadingSingleLinePreferred -ne $true){ Fail 'major heading single line' }
+if([int]$D.figures.embedded_render_boundary_collision -ne 0 -or [int]$D.figures.embedded_render_crop -ne 0){ Fail 'embedded figure boundary' }
+if($D.figures.semantic_completeness_required -ne $true){ Fail 'figure semantic completeness' }
+$TP=Load-Json 'table-presets.json'
+if(-not ([string]$TP.selectionPolicy.principle).Contains('표로 표현해야 하는 데이터를 표로 표현')){ Fail 'table semantic policy' }
+foreach($prop in $TP.presets.PSObject.Properties){
+    $preset=$prop.Value
+    if($preset.headerSingleLine -ne $true){ Fail('table header preset '+$prop.Name) }
+    if(@('CONTENT_WEIGHTED','CONTENT_WEIGHTED_WITH_SYMMETRIC_GROUPS','SYMMETRIC_COMPARISON') -notcontains [string]$preset.widthPolicy){ Fail('width policy '+$prop.Name) }
+}
+if($CS.components.READER_NEED_BLOCK.tableEncoding -ne 'forbidden'){ Fail 'reader need table misuse' }
+if($CS.components.TOC_NAVIGATION.table -ne 'forbidden'){ Fail 'toc table misuse' }
+if($CS.components.DECISION_TABLE.headerSingleLine -ne $true){ Fail 'decision table header' }
+foreach($k in @('tableHeaderWrap','nonTabularContentEncodedAsTable','unjustifiedEqualColumnWidth','unjustifiedFixed5050','repeatedValueOnlyColumn','majorHeadingOrphanWrap','sectionTransitionCrowding','figureEmbeddedBoundaryIntrusion','figureEmbeddedCrop','semanticallyIncompleteVisual')){
+    $prop=$Q.hardFail.PSObject.Properties[$k]
+    if($null -eq $prop -or [int]$prop.Value -ne 0){ Fail('v2.3 hard fail '+$k) }
+}
+
 $C=Load-Json 'product-coverage.json'; $items=@($C.items)
 if($items.Count -lt 55){ Fail 'coverage' }
 
@@ -194,6 +218,12 @@ foreach($f in @('component-system.json','quality-acceptance.json','golden-refere
 }
 $QA=Load-Json 'quality-acceptance.json'
 if($QA.automatedPassIsQualityPass -ne $false){ Fail 'automated pass quality separation' }
+
+foreach($gid in @('TABLE_SEMANTIC_FIT_PASS','HEADING_AND_VERTICAL_RHYTHM_PASS','EMBEDDED_FIGURE_PASS')){
+  if(@($h.completionGate.required) -notcontains $gid){ Fail('completion gate '+$gid) }
+  if(@($QA.stages | ForEach-Object { $_.id }) -notcontains $gid){ Fail('quality stage '+$gid) }
+}
+
 $be=@($QA.baselineEligibility)
 if($be.Count -ne 2 -or $be -notcontains 'USER_APPROVED' -or $be -notcontains 'VISUAL_QA_APPROVED'){ Fail 'baseline approval states' }
 if([int]$QA.manualVisualScore.minimumEach -lt 4 -or [double]$QA.manualVisualScore.minimumAverage -lt 4.4){ Fail 'manual visual score threshold' }

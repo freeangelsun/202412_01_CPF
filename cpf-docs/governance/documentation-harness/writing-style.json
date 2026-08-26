@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "language": {
     "primary": "ko-KR",
@@ -69,38 +69,10 @@
     "marker_overuse": "forbidden; 하나의 설명 문단을 억지로 여러 bullet로 쪼개지 않는다."
   },
   "headings": {
-    "descriptive": true,
-    "empty_heading": "forbidden",
-    "skip_level": "forbidden",
-    "generic_titles_forbidden": [
-      "개요",
-      "기타",
-      "참고",
-      "추가 정보",
-      "상세 내용",
-      "핵심 해석",
-      "이 구조의 장점",
-      "왜 좋은가",
-      "기반 기술",
-      "개발자에게 좋은 점",
-      "AI를 위한 설명",
-      "그림 없이 읽는 설명",
-      "Public Consumer Acceptance",
-      "그림 해석",
-      "그림 설명",
-      "Figure 해석",
-      "Figure 설명"
-    ],
-    "benefit_heading_in_readme": "동작 또는 구조를 말하면서 사용자가 얻는 편의가 자연스럽게 드러나는 문장형 제목을 사용한다.",
-    "numbered_h1_all_documents": true,
-    "readme_h1_prefix": "1. / 2. / 3. ... exact locked order",
-    "readme_toc": "forbidden",
-    "h2_numbering_all_documents": "required hierarchical numbering (1.1, 1.2, 2.1...)",
-    "h3_numbering_when_used": "required local numbering (1), 2), 3)...)",
-    "spacing_hierarchy_required": true,
-    "major_section_must_be_visually_separated": true,
-    "subheading_content_grouping": "H2/H3 아래 내용은 공통 Content Rail로 들여쓰고 제목과 첫 내용 사이를 가깝게, 다음 부제목 전 여백을 더 크게 둔다.",
-    "readerQuestionFirst": "각 H1/H2는 독자가 이 절을 왜 보는지 드러내는 작업/판단 중심 명칭을 우선한다. 내부 모듈명·문서명만으로 제목을 만들지 않는다."
+    "majorHeadingSingleLinePreferred": true,
+    "rule": "대제목/H1은 의미를 유지하면서 가능한 한 한 줄에 들어오게 쓴다. 자동 Wrap 시 제목 축약/폭 조정을 먼저 한다.",
+    "orphanWrap": "마지막 1~2단어만 다음 줄로 떨어지는 제목은 FAIL",
+    "tableHeader": "표 Header는 짧고 명확한 명사구로 한 줄 유지"
   },
   "benefit_expression": {
     "explicit_marketing_section": "forbidden",
@@ -186,5 +158,11 @@
   "links": {
     "docx_user_navigation": "forbidden",
     "pdf_user_navigation": "required where direct-open document navigation is offered"
+  },
+  "readerFirstPresentation": {
+    "chapterReason": "“이 장을 보는 이유” 같은 내용은 표가 아니라 짧은 lead 문장으로 표현",
+    "goldenPath": "한 메시지 강조는 compact callout/lead 사용, 50:50 표 금지",
+    "toc": "찾아보기/목차는 번호형 navigation list 기본",
+    "table": "실제 비교/선택 데이터만 사용"
   }
 }

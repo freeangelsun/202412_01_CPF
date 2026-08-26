@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "documentId": "FRAMEWORK_DEVELOPER_GUIDE",
   "title": "CPF 프레임워크 개발자 가이드",
   "locked": true,
@@ -311,7 +311,11 @@
     ],
     "gatewayRule": "내부 Domain↔Domain 호출은 Gateway 미경유. Gateway는 외부 진입/정책 경계에서만 선택.",
     "detailPolicy": "자주 쓰지 않는 내부 구현 상세는 1~2문장 이하로 요약하고 Specification/Source로 연결",
-    "pageBudgetRef": "content-density.json"
+    "pageBudgetRef": "content-density.json",
+    "tablePolicy": "API/Option/Decision Matrix는 표가 적합한 데이터에만 사용. 장을 보는 이유/Golden Path/절차/목차는 표 금지.",
+    "columnWidthPolicy": "실제 API/옵션/설명 길이와 중요도 기반. 균등폭은 대칭 비교에만 허용.",
+    "headerPolicy": "모든 표 Header 1줄. H1은 가능한 한 1줄.",
+    "verticalRhythm": "대메뉴 시작 전 한 줄 안팎의 추가 여백을 두고, 제목 아래 첫 내용은 compact하게 유지."
   },
   "coverageLocked": true,
   "compositionPolicy": {
@@ -362,5 +366,19 @@
     "sourceVerifiedDefaultsOnly": true,
     "explanationOnlyChapter": "hard_fail",
     "landscapeForFiveColumnReference": true
+  },
+  "presentationPolicy": {
+    "contentChoosesComponent": true,
+    "tableOnlyForTabularData": true,
+    "tocAndNavigationAsTable": false,
+    "tableHeaderSingleLine": true,
+    "columnWidth": "content-aware; symmetric equal width allowed when justified",
+    "majorHeadingSingleLinePreferred": true,
+    "majorSectionExtraBreathing": true,
+    "fixed5050": "forbidden unless symmetric comparison"
+  },
+  "tablePolicy": {
+    "listedPresets": "allowed_when_semantically_needed",
+    "mandatoryOnlyWhenAcceptanceExplicitlyRequires": true
   }
 }

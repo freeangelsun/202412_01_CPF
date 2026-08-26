@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.2.0",
+  "harnessVersion": "2.3.0",
   "locked": true,
   "purpose": "작성자 해석 편차를 줄이기 위해 공식 문서를 재사용 가능한 Layout Component로 조립한다.",
   "defaultAssembly": "PATCH_EXISTING_COMPONENTS_FIRST",
@@ -17,7 +17,10 @@
       "leftRail": "page",
       "spaceBeforeToken": "paragraph.h1_space_before_pt",
       "spaceAfterToken": "paragraph.h1_space_after_pt",
-      "keepWithNext": true
+      "keepWithNext": true,
+      "singleLinePreferred": true,
+      "orphanWrap": "hard_fail",
+      "spaceBeforePrinciple": "previous block과 한 줄 안팎의 추가 breathing room"
     },
     "H2_SUBSECTION": {
       "role": "subsection",
@@ -82,7 +85,11 @@
       "leftRail": "contextual",
       "maxColumnsPortrait": 4,
       "maxColumnsLandscape": 5,
-      "purposeRequired": true
+      "purposeRequired": true,
+      "useGate": "행·열 교차 관계가 독자의 비교/선택을 실제로 빠르게 할 때만 사용",
+      "columnWidthPolicy": "content-aware; symmetric equal width when semantically justified",
+      "headerSingleLine": true,
+      "fixed5050": "forbidden unless symmetric compare"
     },
     "CALLOUT_NOTE": {
       "role": "note",
@@ -124,7 +131,11 @@
         "누가 보는가",
         "왜 보는가",
         "이 문서로 무엇을 끝내는가"
-      ]
+      ],
+      "presentation": "full-width lead paragraph or compact callout",
+      "twoColumn5050": "forbidden",
+      "tableEncoding": "forbidden",
+      "spaceAfterPtPreferred": 10
     },
     "API_QUICK_REFERENCE": {
       "role": "developer task summary",
@@ -138,7 +149,9 @@
         "실패·복구"
       ],
       "orientationPolicy": "landscape_preferred_if_wrap_or_width_pressure",
-      "sourceVerifiedOnly": true
+      "sourceVerifiedOnly": true,
+      "columnWidthPolicy": "content-aware preset",
+      "headerSingleLine": true
     },
     "OPTION_MATRIX": {
       "role": "public option reference",
@@ -151,7 +164,28 @@
         "언제 변경",
         "주의"
       ],
-      "sourceVerifiedOnly": true
+      "sourceVerifiedOnly": true,
+      "columnWidthPolicy": "content-aware preset",
+      "headerSingleLine": true
+    },
+    "TOC_NAVIGATION": {
+      "role": "document navigation",
+      "presentation": "numbered list with page numbers/click targets",
+      "table": "forbidden",
+      "categoryColumn": "forbidden when repeated",
+      "singleLineEntryPreferred": true
+    },
+    "GOLDEN_PATH_CALLOUT": {
+      "role": "single recommended path",
+      "presentation": "label + full-width concise explanation",
+      "table": "forbidden",
+      "twoColumn5050": "forbidden",
+      "maxSentences": 2
+    },
+    "SEMANTIC_TRANSITION": {
+      "role": "visual breathing between meaning blocks",
+      "spaceBeforeToken": "paragraph.semanticTransitionGapPtMin",
+      "blankParagraph": "forbidden"
     }
   },
   "compositionRules": [

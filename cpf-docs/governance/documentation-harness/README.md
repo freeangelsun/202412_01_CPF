@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.2.0
+# CPF Documentation Harness v2.3.0
 
 CPF 공식 README/DOCX/PDF를 **점진적으로 개선**하기 위한 실행형 Design/QA Harness다.
 
@@ -42,3 +42,12 @@ Repository에는 현행 Harness 한 세트만 유지한다. 과거 Harness 복�
 ## 최초 재구축 예외 Lifecycle
 
 기존 공식 산출물이 사용자에 의해 `BASELINE_REJECTED`로 판정된 경우에만 사용자 명시 요청으로 최초 1회 `INITIAL_FRESH_REBUILD`를 수행할 수 있다. 결과는 `GOLDEN_BASELINE_CANDIDATE`이며, `USER_APPROVED` 또는 `VISUAL_QA_APPROVED` 이후에는 `PATCH_ONLY`로 전환한다. 승인 이후 관계없는 영역의 Fresh Rewrite는 Regression FAIL이다.
+
+
+## v2.3.0 핵심
+
+- 내용 구조가 Component를 결정한다. 표는 실제 행·열 데이터에만 사용한다.
+- 표 폭은 실제 내용/역할 기반이며, 대칭 비교는 균등폭을 허용한다.
+- 표 Header는 1줄 필수, H1은 1줄 우선이다.
+- 대메뉴 시작 전 한 줄 안팎의 추가 여백과 의미 단위별 Vertical Rhythm을 강제한다.
+- 원본 Figure뿐 아니라 README/DOCX/PDF 삽입 후 경계와 의미 완결성을 확인한다.

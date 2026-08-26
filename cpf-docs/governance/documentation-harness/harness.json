@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "title": "CPF 공식 산출물 실행형 디자인·품질 하네스",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
@@ -142,7 +142,14 @@
       "표 폭이 부족한데 세로형을 고집해 API/옵션/경로를 과도하게 줄이거나 개행하는 것",
       "README 또는 사용자용 문서 탐색 링크에 DOCX를 바로 열기 링크로 노출하는 것",
       "Figure 설명 앞에 “그림 해석”, “그림 설명” 같은 의미 없는 라벨을 반복하는 것",
-      "실제 Figure geometry manifest 검증 없이 Visual 존재/설정값만으로 PASS하는 것"
+      "실제 Figure geometry manifest 검증 없이 Visual 존재/설정값만으로 PASS하는 것",
+      "목차·찾아보기·단순 메뉴를 의미 없는 반복 Column을 가진 표로 표현하는 것",
+      "표 Column을 내용 관계 검토 없이 균등폭 또는 고정 50:50으로 배치하는 것",
+      "표 Header를 두 줄 이상 자동 개행한 상태로 승인하는 것",
+      "대제목/H1의 한두 단어만 다음 줄로 고립되는 자동 개행을 방치하는 것",
+      "대메뉴/단락/표/Callout/코드/Figure 전환을 충분한 시각적 여백 없이 붙여 배치하는 것",
+      "Figure 중앙 연결 구조가 의미 Node 없이 끊겨 결손처럼 보이는 상태를 기하학 PASS만으로 승인하는 것",
+      "원본 Figure만 검사하고 DOCX/PDF/README 삽입 후 경계 침범·Crop을 확인하지 않는 것"
     ]
   },
   "completionGate": {
@@ -152,6 +159,9 @@
       "READER_TASK_FIT_PASS",
       "RENDER_TECHNICAL_PASS",
       "FIGURE_GEOMETRY_PASS",
+      "TABLE_SEMANTIC_FIT_PASS",
+      "HEADING_AND_VERTICAL_RHYTHM_PASS",
+      "EMBEDDED_FIGURE_PASS",
       "HUMAN_VISUAL_PASS",
       "REGRESSION_PASS",
       "CLICK_THROUGH_PASS",
@@ -221,6 +231,14 @@
     "adaptiveOrientation": "표와 비교 정보가 핵심이고 세로형에서 API/옵션이 깨지거나 과밀해지면 Landscape를 사용한다. 방향은 문서 관행보다 독자의 스캔 속도와 실제 사용성을 우선한다.",
     "developerQuickReference": "Framework/Batch Developer Guide의 주요 기능 장은 Task Summary → Public API Matrix → Option Matrix → Selection Guide → Failure/Recovery → Minimal Example → Verification → Source 순으로 빠르게 찾을 수 있어야 한다.",
     "navigation": "일반 사용자 Navigation에는 PDF만 링크한다. DOCX는 편집/보관용 산출물로 ZIP에 포함하지만 README·산출물목록의 바로 열기 링크에는 노출하지 않는다.",
-    "figureExplanation": "그림 아래 설명은 별도 “그림 해석/그림 설명” 제목 없이 바로 1~2문장으로 연결한다."
+    "figureExplanation": "그림 아래 설명은 별도 “그림 해석/그림 설명” 제목 없이 바로 1~2문장으로 연결한다.",
+    "semanticComponentChoice": "표/목록/본문/Callout/Flow/Figure는 내용의 구조에 따라 선택한다. 표를 줄이거나 늘리는 것이 목표가 아니라 행·열 교차 관계가 있을 때만 표를 사용한다.",
+    "tableWidthAdaptation": "표 Column 폭은 헤더·셀의 실제 내용량과 역할을 기준으로 배분한다. 대칭 비교처럼 같은 중요도/길이를 가진 Column은 균등폭을 허용하고, 그 외에는 내용 비례 폭을 사용한다.",
+    "tableHeaderSingleLine": "표 Header는 반드시 한 줄로 유지한다. Wrap이 발생하면 문구 축약→폭 재배분→표/페이지 폭 조정→Landscape 순으로 해결하며 과도한 Font 축소는 금지한다.",
+    "majorHeadingSingleLine": "대제목/H1은 가능한 한 한 줄을 우선한다. 자동 Wrap이 발생하면 의미를 유지한 제목 축약과 가용폭 조정을 먼저 수행한다. 한두 단어만 다음 줄로 고립되면 Visual FAIL이다.",
+    "sectionBreathingRoom": "대메뉴/H1 시작 전에는 이전 내용과 명확히 분리되는 한 줄 안팎의 추가 호흡 공간을 확보한다. H2/H3·표·Callout·코드·Figure 등 의미 단위 전환도 붙어 보이지 않도록 차등 Vertical Rhythm을 사용한다.",
+    "tocAndNavigation": "목차·찾아보기·단순 순서·메뉴는 기본적으로 표가 아니다. 번호형 목록/Navigation으로 표현하고, 문서명·역할·상태·형식처럼 실제 행·열 데이터가 있을 때만 표를 사용한다.",
+    "visualSemanticCompleteness": "Figure는 기하학적 충돌 0뿐 아니라 의미 구조가 완결되어야 한다. 중앙 Junction/Hub를 암시하는 Connector가 있으면 실제 의미 Node 또는 의도된 연결 구조가 있어야 하며, 빈 중심 때문에 깨진 그림처럼 보이면 재설계한다.",
+    "embeddedFigureSafety": "PNG 자체가 정상이어도 README/DOCX/PDF에 삽입된 최종 표시 영역에서 제목·Node·Stroke·설명이 Frame/Page 경계를 침범하면 FAIL이다. 원본과 Embedded Render를 모두 확인한다."
   }
 }

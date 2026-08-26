@@ -1,4 +1,4 @@
-# CPF README Visual Storyboard — Harness v2.1.0
+# CPF README Visual Storyboard — Harness v2.2.0
 
 README에는 목차를 두지 않는다. Hero 다음에 CPF 전체 Architecture Map을 먼저 보여주고 번호형 H1/H2를 이어간다. 대메뉴·중메뉴는 번호와 차등 여백으로 구분한다. H2/H3 하위 내용은 공통 Content Rail로 묶고, 주요 Visual은 다크 README 위에서 밝은 Surface로 분리한다. 모든 Visual을 네모+화살표로 그리지 않고 내용별 시각 문법을 선택한다.
 
@@ -20,4 +20,4 @@ README에는 목차를 두지 않는다. Hero 다음에 CPF 전체 Architecture 
 핵심 장점은 한 문단에 Bold 문구를 연속 나열하지 않는다. 한 줄 한 메시지와 일관된 marker/bullet을 사용한다. 의미 있는 그림에는 바로 아래 간결한 한국어 설명을 둔다.
 
 
-모든 Visual은 제목·이미지·1~2문장 설명을 하나의 블록으로 묶는다. 설명은 다음 H1/H2보다 해당 Visual에 더 가깝게 두며, `[PDF]`/`[DOCX]` 문서 링크는 실제 형식과 정확히 일치시킨다. 산출물 보정은 직전 PASS Visual을 보존하는 PATCH_FIRST가 기본이다.
+모든 Visual은 제목·이미지·1~2문장 설명을 하나의 블록으로 묶는다. 설명은 다음 H1/H2보다 해당 Visual에 더 가깝게 두며, 일반 사용자 문서 링크는 `[PDF]`만 제공하고 실제 `.pdf` Target과 정확히 일치시킨다. DOCX는 ZIP 산출물에만 포함한다. 산출물 보정은 직전 PASS Visual을 보존하는 PATCH_FIRST가 기본이다.

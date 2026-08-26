@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -273,9 +273,11 @@
       "역할별 매뉴얼 링크 누락",
       "다크 README 배경과 구분되지 않는 다크톤 Visual",
       "내용과 무관하게 둥근 네모+화살표만 반복하는 Visual",
-      "[PDF]가 DOCX를 열거나 [DOCX]가 PDF를 여는 링크",
+      "사용자 Navigation에 DOCX 링크가 노출되거나 [PDF] Target이 .pdf가 아닌 링크",
       "Figure와 설명 사이 경계가 모호해 설명 귀속을 알기 어려운 배치",
-      "직전 PASS Visual/문서를 근거 없이 전면 재작성하여 시각 품질을 회귀시키는 것"
+      "직전 PASS Visual/문서를 근거 없이 전면 재작성하여 시각 품질을 회귀시키는 것",
+      "사용자 Navigation의 DOCX 링크",
+      "“그림 해석/그림 설명” 같은 generic Figure 라벨"
     ],
     "headingNumbering": {
       "H1": "1.",
@@ -304,7 +306,8 @@
     "manualNavigation": {
       "required": true,
       "position": "하단 License 직전",
-      "style": "역할별 문서 링크 + 한 줄 목적 설명"
+      "style": "역할별 문서 [PDF] 링크 + 한 줄 목적 설명; DOCX 링크 금지",
+      "docxLink": "forbidden"
     },
     "differentiatedValues": [
       "Domain Invocation Same JVM/Remote",
@@ -324,8 +327,9 @@
     },
     "markerPolicy": "짧은 핵심/선택/주의/복구는 필요할 때 bullet/number marker 사용. 단순 장식 bullet 남발 금지.",
     "visualSurface": {
-      "darkReadmeBackground": true,
-      "majorVisual": "light/neutral/tinted canvas or bright focal panel",
+      "hostViewerBackground": "uncontrolled",
+      "cpfOwnedSurface": "dark_brochure_required",
+      "primaryVisualCanvas": "light_or_neutral_on_dark",
       "darkOnDark": "hard_fail"
     },
     "visualGrammar": {
@@ -336,9 +340,10 @@
     },
     "figureExplanationOwnership": "Visual 바로 아래 같은 블록에 1~2문장. 다음 H1/H2보다 Visual에 더 가까워야 함.",
     "formatLinks": {
-      "PDF": "must target .pdf",
-      "DOCX": "must target .docx",
-      "paired": "문서명 — [PDF] [DOCX]",
+      "userNavigation": "PDF_ONLY",
+      "pdfTarget": ".pdf",
+      "docxLink": "forbidden",
+      "targetExists": true,
       "crossTarget": "hard_fail"
     },
     "incrementalImprovement": {
@@ -370,5 +375,16 @@
     "splitSectionAllowed": "only when scanability improves and total density does not increase",
     "headingText": "may be shortened for readability without changing meaning",
     "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
-  }
+  },
+  "readerFirst": {
+    "required": true,
+    "documentOpeningMustAnswer": [
+      "이 문서를 누가 보는가",
+      "왜 이 문서를 여는가",
+      "읽고 무엇을 할 수 있어야 하는가"
+    ],
+    "sectionMenuRule": "기능/파일 분류보다 독자의 작업·질문·판단 순서를 우선한다.",
+    "nonActionableContent": "remove_or_move_to_specification"
+  },
+  "orientationPolicy": "reader_first; switch to landscape when comparison/API/option tables lose scanability in portrait"
 }

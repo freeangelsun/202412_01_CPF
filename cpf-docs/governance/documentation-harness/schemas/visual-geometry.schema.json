@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.2.0",
+  "required": [
+    "asset",
+    "canvas",
+    "objects"
+  ],
+  "objectRequired": [
+    "id",
+    "kind",
+    "x",
+    "y",
+    "w",
+    "h"
+  ],
+  "kinds": [
+    "frame",
+    "node",
+    "text",
+    "annotation",
+    "connectorLabel"
+  ],
+  "rules": {
+    "insideCanvas": true,
+    "noForbiddenOverlap": true,
+    "safeMarginPx": 64,
+    "bottomSafeZonePx": 64,
+    "annotationGapPx": 28
+  }
+}

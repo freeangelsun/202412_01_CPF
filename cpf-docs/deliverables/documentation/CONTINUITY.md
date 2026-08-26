@@ -1,3 +1,3 @@
 # CPF Documentation Continuity
 
-다음 세션은 `master 054d894b47f4be8323439dc6f9e58b7d8b60fe54`보다 Source가 갱신되었는지 먼저 확인한다. Source가 동일하면 이번 산출물을 다시 Fresh 생성하지 않는다. 사용자 승인 후에는 Harness v2.1.0의 `PATCH_ONLY`를 적용하며, 새 Finding의 영향 범위만 수정한다.
+다음 세션은 현재 Source ZIP digest `B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D`와 실제 Local Working Tree가 같은 기준인지 먼저 확인한다. Git history를 Source 정본으로 전환하지 않는다. 동일 Source에서 Documentation 변경이 생기면 Harness v2.2.0의 `PATCH_FIRST`를 적용하고 승인된 정상 영역은 보존한다. 새 사용자 Finding은 산출물만 고치지 말고 Harness/Validator에 재발 방지 규칙을 먼저 반영한다.

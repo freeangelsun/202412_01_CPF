@@ -12,12 +12,17 @@ def load(name):
     except Exception as e: fail(f'json {name}: {e}')
 
 h=load('harness.json')
-if h.get('version')!='2.1.0': fail('version')
+if (ROOT/'CHANGELOG.md').exists(): fail('history file must not remain in current-only harness')
+for p in ROOT.rglob('*'):
+    n=p.name.lower()
+    if re.search(r'(^|[_\.-])(backup|old|history)([_\.-]|$)',n) or n.startswith('v1.') or n.startswith('v2.0') or n.startswith('v2.1'):
+        fail('stale harness artifact '+str(p.relative_to(ROOT)))
+if h.get('version')!='2.2.0': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='2.1.0': fail(f'version {f}')
+    if d.get('harnessVersion')!='2.2.0': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
@@ -36,7 +41,7 @@ if D['paragraph'].get('h1_space_before_pt',0) < 28: fail('H1 spacing')
 if D['paragraph'].get('h2_space_before_pt',0) < 16: fail('H2 spacing')
 if D['figures'].get('low_contrast_label')!='hard_fail': fail('figure contrast')
 if D['fonts'].get('pdf_korean_font_embedding_required') is not True: fail('pdf korean font embedding')
-# v2.1.0 visual geometry / balance gates
+# current visual geometry / balance gates
 FG=D.get('figures',{})
 if FG.get('node_inner_padding_px_min',0) < 18: fail('figure inner padding')
 if FG.get('label_to_label_gap_px_min',0) < 20: fail('figure label gap')
@@ -69,6 +74,8 @@ if D.get('indentation',{}).get('subheading_content_indent_mm',0)<4: fail('subhea
 if D['figures'].get('canvas_safe_margin_px_min',0)<48: fail('figure canvas safe margin')
 if D['figures'].get('rounded_rectangle_arrow_chain_default')!='forbidden': fail('box arrow default')
 if O.get('linkIntegrity',{}).get('pdfLabelMustTargetPdf') is not True: fail('pdf link target rule')
+if O.get('linkIntegrity',{}).get('docxUserNavigationAllowed') is not False: fail('docx user navigation')
+if O.get('linkIntegrity',{}).get('docxPackagingRequired') is not True: fail('docx packaging')
 if O.get('artifactEvolution',{}).get('default')!='PATCH_FIRST': fail('incremental artifact rule')
 if O.get('windowsValidation',{}).get('pythonRequired') is not False: fail('python must not be required on Windows')
 VS=load('visual-system.json')
@@ -152,6 +159,8 @@ if set(qam.get("baselineEligibility",[])) != {"USER_APPROVED","VISUAL_QA_APPROVE
 cs=load("component-system.json")
 for cid in ["H1_SECTION","H2_SUBSECTION","BODY_BLOCK","BULLET_GROUP","FIGURE_BLOCK","FIGURE_EXPLANATION","DECISION_TABLE","DOCUMENT_LINK_ROW"]:
     if cid not in cs.get("components",{}): fail("component "+cid)
+if cs['components']['FIGURE_EXPLANATION'].get('visibleLabel')!='forbidden': fail('generic figure explanation label')
+if cs['components']['DOCUMENT_LINK_ROW'].get('docxLink')!='forbidden': fail('document link component docx')
 
 for p in (ROOT/'profiles').glob('*.json'):
     pr=json.loads(p.read_text(encoding='utf-8'))

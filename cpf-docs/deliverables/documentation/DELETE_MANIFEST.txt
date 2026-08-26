@@ -1,13 +1,4 @@
-# CPF Documentation v2.1.0 exact delete manifest
-# Root-relative exact paths only. No wildcard.
-cpf-docs/assets/product-docs/docs.png
-cpf-docs/documentation-standards/BATCH_DEVELOPER_MANUAL_WRITING_STANDARD.md
-cpf-docs/documentation-standards/BATCH_OPERATION_MANUAL_WRITING_STANDARD.md
-cpf-docs/documentation-standards/CPF_OFFICIAL_DOCUMENT_REORGANIZATION_STANDARD.md
-cpf-docs/documentation-standards/DEVELOPER_MANUAL_WRITING_STANDARD.md
-cpf-docs/documentation-standards/GATEWAY_OPERATION_MANUAL_WRITING_STANDARD.md
-cpf-docs/documentation-standards/OPERATOR_MANUAL_WRITING_STANDARD.md
-cpf-docs/documentation-standards/README_WRITING_AND_REVIEW_STANDARD.md
-cpf-docs/documentation-standards/SPECIFICATION_DOCUMENT_WRITING_STANDARD.md
-cpf-docs/documentation-standards/IMMUTABLE_SHA256SUMS.txt
-cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md
+# CPF Documentation v2.2.0 exact delete manifest
+cpf-docs/governance/documentation-harness/CHANGELOG.md
+cpf-docs/deliverables/documentation/APPLY_V125.ps1
+cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1

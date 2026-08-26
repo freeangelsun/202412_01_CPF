@@ -1,1 +1,1 @@
-$ErrorActionPreference='Stop';$root=(git rev-parse --show-toplevel).Trim();Set-Location $root;pwsh -NoProfile -ExecutionPolicy Bypass -File '.\cpf-docs\deliverables\documentation\VERIFY.ps1'
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-docs\deliverables\documentation\VERIFY.ps1

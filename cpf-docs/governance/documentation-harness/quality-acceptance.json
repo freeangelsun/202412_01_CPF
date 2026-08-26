@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -32,10 +32,22 @@
       "meaning": "필수 Artifact/Link/Source/형식 규칙"
     },
     {
+      "id": "READER_TASK_FIT_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "Persona가 실제 질문/작업/판단을 문서에서 완료할 수 있음"
+    },
+    {
       "id": "RENDER_TECHNICAL_PASS",
       "automated": false,
       "required": true,
       "meaning": "DOCX/PDF/README 실제 Render, glyph/crop/overflow/font/link 기술 검증"
+    },
+    {
+      "id": "FIGURE_GEOMETRY_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "Figure bounding box/frame/safe area/overlap geometry manifest PASS"
     },
     {
       "id": "HUMAN_VISUAL_PASS",
@@ -53,7 +65,7 @@
       "id": "CLICK_THROUGH_PASS",
       "automated": false,
       "required": true,
-      "meaning": "PDF/DOCX/Navigation 실제 Target 확인"
+      "meaning": "PDF Navigation 실제 Target + 사용자 DOCX 링크 0 확인"
     },
     {
       "id": "PACKAGE_REPLAY_PASS",
@@ -90,7 +102,13 @@
       "ambiguous_figure_explanation",
       "dark_on_dark_primary_visual",
       "isolated_orphan_block",
-      "unintended_dead_page"
+      "unintended_dead_page",
+      "frame_outside_canvas",
+      "bottom_safe_area_violation",
+      "annotation_clearance_violation",
+      "generic_figure_explanation_label",
+      "docx_link_in_user_navigation",
+      "developer_api_option_summary_missing"
     ],
     "rule": "평균이 높아도 Critical 결함 1건이면 FAIL. 모든 Dimension 4 이상이어야 한다."
   },

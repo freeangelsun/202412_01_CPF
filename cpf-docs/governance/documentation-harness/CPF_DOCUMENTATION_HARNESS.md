@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.1.0
+# CPF Documentation Harness v2.2.0
 
 ## 0. v2 핵심 철학 — 새로 만드는 Harness가 아니라 개선하는 Harness
 
@@ -91,7 +91,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - PDF는 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 통과해야 한다.
 
 
-## v2.1.0 시각 균형 원칙
+## v2.2.0 시각 균형 원칙
 
 - 모든 문서와 Figure는 내용의 정확성뿐 아니라 시각적 균형을 품질 Gate로 관리한다.
 - Figure 글자 겹침·잘림·깨짐·낮은 대비·Connector 충돌·Group Title/Child Label 겹침은 0건이어야 한다.
@@ -101,7 +101,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - 시각 결함을 발견하면 해당 그림 하나만 임시 수정하지 않고 공통 원인이면 Harness Token/Visual Rule을 먼저 보완하고 영향받은 Block/페이지/링크만 Patch하고 필요한 경우 해당 파일만 재export한다.
 
 
-## v2.1.0 점진 개선·링크·Visual Grammar 원칙
+## v2.2.0 점진 개선·링크·Visual Grammar 원칙
 
 - 기본 작업 방식은 `PATCH_FIRST`다. USER_APPROVED 또는 VISUAL_QA_APPROVED 영역을 기준선으로 삼고 지적받은 영역과 실제 영향 범위만 보정한다. AUTOMATED_PASS_ONLY는 품질 승인으로 승계하지 않는다.
 - 관계없는 PASS 페이지·문장·Visual은 유지한다. 전체 재작성/재디자인은 사용자의 명시 요청, 구조 손상, Canonical 전체 구조 변경 등 Harness가 허용한 경우만 수행한다.
@@ -110,9 +110,20 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - Figure 제목·이미지·설명은 하나의 블록으로 보여야 하며, 설명이 다음 섹션에 더 가까워 어느 그림 설명인지 모호하면 FAIL이다.
 - README 다크 배경에서는 Architecture/Flow 등 주요 Visual을 밝은 neutral/light-tint canvas 또는 밝은 focal surface로 분리한다.
 - 내용별 Visual Grammar를 선택한다. Architecture는 Layer/Zone, 호출은 Lane/Route, UNKNOWN은 State Ring/Branch, Batch는 Control/Execution Plane, DB3는 Lifecycle Spine+Vendor Band, Capability는 Mosaic/Cluster를 우선한다. 동일 Rounded Rectangle+Arrow 반복은 금지한다.
-- `[PDF]`는 실제 `.pdf`, `[DOCX]`는 실제 `.docx`를 직접 가리켜야 한다. 표시 형식과 Target 확장자가 다르면 Link FAIL이다.
+- 일반 사용자 Navigation에는 `[PDF]`만 제공하며 실제 `.pdf`를 직접 가리켜야 한다. `.docx` 링크가 README/산출물목록/사용자 탐색 Surface에 노출되면 Link FAIL이다.
 - 회사 Windows 설치 검증은 PowerShell-only로 완료 가능해야 하며 Python은 필수 의존성이 아니다.
 
 ## 최초 재구축 예외 Lifecycle
 
 기존 공식 산출물이 사용자에 의해 `BASELINE_REJECTED`로 판정된 경우에만 사용자 명시 요청으로 최초 1회 `INITIAL_FRESH_REBUILD`를 수행할 수 있다. 결과는 `GOLDEN_BASELINE_CANDIDATE`이며, `USER_APPROVED` 또는 `VISUAL_QA_APPROVED` 이후에는 `PATCH_ONLY`로 전환한다. 승인 이후 관계없는 영역의 Fresh Rewrite는 Regression FAIL이다.
+
+
+## v2.2.0 독자 니즈·실행형 매뉴얼 강제 규칙
+
+- 모든 산출물은 `누가 → 왜 연다 → 무엇을 결정/개발/운영한다 → 완료 기준`을 먼저 정의한다. 파일/기능 분류를 위한 메뉴는 금지한다.
+- Framework/Batch Developer Guide의 주요 기능 장은 `Task Summary → Public API → Option/기본값 → 선택 기준 → 실패·복구 → 최소 예 → 검증 → Source`를 첫 스캔에서 찾을 수 있어야 한다. 설명문만 있는 장은 FAIL이다.
+- API/옵션/선택표가 핵심이고 Portrait에서 token 개행·과밀이 발생하면 Landscape를 사용한다. 문서 방향보다 독자의 스캔 속도를 우선한다.
+- 일반 사용자 Navigation은 PDF만 제공한다. DOCX는 최종 ZIP에 포함하지만 README/산출물목록의 바로 열기 링크로 노출하지 않는다.
+- Figure 설명 앞에 `그림 해석`, `그림 설명` 같은 중간 라벨을 두지 않는다. Figure 바로 아래 1~2문장으로 의미를 자연스럽게 고정한다.
+- 모든 Product Figure는 geometry manifest를 가진다. 실제 canvas/frame/node/text/annotation bounding box가 safe area를 침범하거나 서로 겹치면 자동 Gate에서 FAIL해야 한다.
+- Markdown Viewer의 Host Background는 README가 제어할 수 없다. 대신 CPF가 소유하는 Hero/주요 Content Surface는 Dark Brochure로 분명히 만들고 그 위 주요 Visual은 light/neutral canvas로 분리한다.

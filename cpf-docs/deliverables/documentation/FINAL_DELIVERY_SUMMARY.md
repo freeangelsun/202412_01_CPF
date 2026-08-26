@@ -1,12 +1,12 @@
 # CPF Documentation Final Delivery Summary
 
-- Source: `master 054d894b47f4be8323439dc6f9e58b7d8b60fe54`
-- Harness: v2.1.0
-- 공식 Artifact: 23 (README 1 + DOCX 11 + PDF 11)
-- README Visual: 8 (Hero 포함)
-- DOCX: 11 / 총 108 pages / Accessibility High·Medium·Low 0
-- PDF: 11 / 총 108 pages / Preflight warning 0 / Font embedding PASS / PDFium·Poppler 108/108
-- 최신 Batch Topology: `LOCAL / PARALLEL_STEPS / LOCAL_PARTITION`
-- Batch Remote Kafka/Broker Execution: 제품 범위 아님
-- 내부 Domain 호출: Gateway 미경유
-- 상태: Documentation 자체검수 PASS, 사용자 Golden Baseline 승인 대기
+- Source 기준: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip`
+- Source SHA-256: `B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D`
+- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP` (전달 ZIP에 `.git` 미포함)
+- Harness: v2.2.0, current-only
+- 공식 Artifact: README 1 + DOCX 11 + PDF 11 = 23 files
+- DOCX final render: 70 pages, 11/11 accessibility High/Medium/Low 0
+- PDF final render: PDFium 70 / Poppler 70, page parity PASS, preflight warning 0, embedded-font 누락 0, replacement glyph 0
+- README: 8 visuals, PDF-only user navigation, DOCX user links 0
+- User findings closed: visual overlap/boundary/spacing/text overflow, generic figure labels, reader-first developer guide, API/option decision matrices, current-only harness
+- PowerShell-only validators: final package includes them; this Linux execution environment has no `pwsh`, so Windows execution result is `미검증` and Python/cross-render results are not substituted as PowerShell PASS.

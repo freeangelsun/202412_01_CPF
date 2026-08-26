@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "documentId": "SPECIFICATION",
   "title": "CPF Specification 기술 명세",
   "locked": true,
@@ -289,5 +289,16 @@
     "splitSectionAllowed": "only when scanability improves and total density does not increase",
     "headingText": "may be shortened for readability without changing meaning",
     "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
-  }
+  },
+  "readerFirst": {
+    "required": true,
+    "documentOpeningMustAnswer": [
+      "이 문서를 누가 보는가",
+      "왜 이 문서를 여는가",
+      "읽고 무엇을 할 수 있어야 하는가"
+    ],
+    "sectionMenuRule": "기능/파일 분류보다 독자의 작업·질문·판단 순서를 우선한다.",
+    "nonActionableContent": "remove_or_move_to_specification"
+  },
+  "orientationPolicy": "reader_first; switch to landscape when comparison/API/option tables lose scanability in portrait"
 }

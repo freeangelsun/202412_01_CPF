@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "commonRulesRef": "visual-system.json",
   "presets": {
@@ -240,10 +240,10 @@
     }
   },
   "commonGeometryGate": {
-    "nodeInnerPaddingPxMin": 24,
-    "labelGapPxMin": 24,
-    "nodeGapPxMin": 28,
-    "labelConnectorClearancePxMin": 16,
+    "nodeInnerPaddingPxMin": 28,
+    "labelGapPxMin": 28,
+    "nodeGapPxMin": 32,
+    "labelConnectorClearancePxMin": 20,
     "groupTitleBandPxMin": 48,
     "labelLinesHardMax": 2,
     "textBoundaryCollisionAllowed": 0,
@@ -252,11 +252,22 @@
     "parallelLabelBaselineDriftAllowed": 0,
     "forcedTinyText": "forbidden",
     "visualBalance": "required; no accidental one-side crowding or dead space; explanation ownership must be visually clear",
-    "canvasSafeMarginPxMin": 48,
+    "canvasSafeMarginPxMin": 64,
     "figureExplanationGapPtMax": 6,
     "figureToNextSectionGapPtMin": 14,
     "roundedRectangleArrowChainDefault": "forbidden",
     "darkOnDarkReadmeVisual": "hard_fail",
-    "conceptVisualGrammarMatch": "required"
+    "conceptVisualGrammarMatch": "required",
+    "geometryManifestRequired": true,
+    "frameInsetPxMin": 48,
+    "bottomSafeZonePxMin": 64,
+    "annotationNodeGapPxMin": 28,
+    "textBoxMaxWidthPct": 86,
+    "wrapBeforeOverflow": true,
+    "textOutsideCanvas": 0,
+    "textOutsideNode": 0,
+    "frameOutsideCanvas": 0,
+    "labelOverlap": 0,
+    "connectorTextCollision": 0
   }
 }

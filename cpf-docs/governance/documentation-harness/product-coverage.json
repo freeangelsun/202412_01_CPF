@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "sourceBaseline": {
-    "file": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_104217.zip",
-    "sha256": "014a313a55c1852ac6131103668b3fe53e31a390e23ae7105aed97158977bad9"
+    "file": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip",
+    "sha256": "b47bce7700700bf4186b997e38ab84192f2db391e750a3781cd66f398824514d"
   },
   "items": [
     {

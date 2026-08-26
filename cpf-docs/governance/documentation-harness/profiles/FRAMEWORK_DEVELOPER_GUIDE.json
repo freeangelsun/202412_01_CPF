@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "documentId": "FRAMEWORK_DEVELOPER_GUIDE",
   "title": "CPF 프레임워크 개발자 가이드",
   "locked": true,
@@ -38,6 +38,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "FUNCTION_SELECTION",
         "SOURCE_NAV"
       ],
@@ -61,6 +63,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "FUNCTION_SELECTION",
         "API",
         "DB_VENDOR"
@@ -85,6 +89,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "DECISION",
         "OPTION",
         "STATE"
@@ -111,6 +117,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "TOPOLOGY_COMPARE",
         "SYSTEM6",
         "API",
@@ -138,6 +146,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "FUNCTION_SELECTION",
         "API",
         "ERROR"
@@ -161,6 +171,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "FUNCTION_SELECTION",
         "STARTER_SELECTION",
         "ERROR"
@@ -184,6 +196,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "API",
         "OPTION",
         "TEST_SCENARIO"
@@ -207,6 +221,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "SYSTEM6",
         "ERROR"
       ],
@@ -231,6 +247,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "STARTER_SELECTION",
         "OPTION",
         "SOURCE_NAV"
@@ -254,6 +272,8 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
+        "API_OPTION_MATRIX",
         "TEST_SCENARIO",
         "SOURCE_NAV"
       ],
@@ -303,5 +323,44 @@
     "splitSectionAllowed": "only when scanability improves and total density does not increase",
     "headingText": "may be shortened for readability without changing meaning",
     "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
+  },
+  "readerFirst": {
+    "required": true,
+    "documentOpeningMustAnswer": [
+      "이 문서를 누가 보는가",
+      "왜 이 문서를 여는가",
+      "읽고 무엇을 할 수 있어야 하는가"
+    ],
+    "sectionMenuRule": "기능/파일 분류보다 독자의 작업·질문·판단 순서를 우선한다.",
+    "nonActionableContent": "remove_or_move_to_specification",
+    "primaryQuestion": "업무 개발자가 지금 하려는 작업에 어떤 CPF Public API를 쓰고 어떤 옵션을 선택해야 하며 실패 시 무엇을 해야 하는가?",
+    "firstScanRequired": [
+      "Task Summary",
+      "Public API",
+      "옵션/기본값",
+      "언제 사용",
+      "피해야 할 경우",
+      "실패·복구",
+      "최소 예",
+      "검증"
+    ]
+  },
+  "orientationPolicy": "reader_first; switch to landscape when comparison/API/option tables lose scanability in portrait",
+  "developerChapterContract": {
+    "appliesTo": "all major capability sections",
+    "requiredSequence": [
+      "Task Summary",
+      "API Quick Reference",
+      "Option Matrix",
+      "Selection Guide",
+      "Failure/Recovery",
+      "Minimal Example",
+      "Verification",
+      "Source"
+    ],
+    "sourceVerifiedApiOnly": true,
+    "sourceVerifiedDefaultsOnly": true,
+    "explanationOnlyChapter": "hard_fail",
+    "landscapeForFiveColumnReference": true
   }
 }

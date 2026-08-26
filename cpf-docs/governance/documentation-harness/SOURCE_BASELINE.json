@@ -1,8 +1,8 @@
 {
-  "harnessVersion": "2.1.0",
-  "createdAtKst": "2026-08-25T12:20:44+0900",
-  "sourceZip": null,
-  "sha256": null,
+  "harnessVersion": "2.2.0",
+  "createdAtKst": "2026-08-26T18:44:47+0900",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip",
+  "sha256": "B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D",
   "canonicalRequirements": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
   "starterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "publicProfiles": [
@@ -245,5 +245,7 @@
   "sourceType": "GITHUB_MASTER",
   "repository": "https://github.com/freeangelsun/202412_01_CPF",
   "branch": "master",
-  "sourceCommit": "054d894b47f4be8323439dc6f9e58b7d8b60fe54"
+  "sourceCommit": "UNAVAILABLE_IN_SUPPLIED_ZIP",
+  "workingSourceAuthority": "USER_PROVIDED_FINAL_SOURCE_ZIP",
+  "sourceIdentity": "ZIP_SHA256:B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D"
 }

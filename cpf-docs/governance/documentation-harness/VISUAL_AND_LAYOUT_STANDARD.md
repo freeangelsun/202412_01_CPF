@@ -1,4 +1,4 @@
-# CPF 산출물 시각·레이아웃 표준 — Harness v2.1.0
+# CPF 산출물 시각·레이아웃 표준 — Harness v2.2.0
 
 ## 1. 목적
 
@@ -120,7 +120,7 @@
 
 ## 17. 링크 형식과 점진 개선
 
-- `[PDF]`는 `.pdf`, `[DOCX]`는 `.docx`를 직접 가리키고 실제 Target이 존재해야 한다. 같은 문서는 `문서명 — [PDF] [DOCX]`처럼 형식을 명확히 분리한다.
+- 일반 사용자 Navigation은 `[PDF]`만 노출하고 실제 `.pdf` Target이 존재해야 한다. `.docx`는 편집·보관용 최종 ZIP에는 포함하지만 README/산출물목록/사용자 탐색 링크에는 노출하지 않는다.
 - 산출물 개선은 USER_APPROVED 또는 VISUAL_QA_APPROVED 영역을 기준으로 `PATCH_FIRST`로 수행한다. 새 Finding과 영향 범위만 보정하고 관계없는 PASS 영역을 전면 재작성하지 않는다.
 - 변경 전/후 렌더를 비교해 이전에 좋았던 Visual·간격·표·링크가 나빠진 회귀가 0건인지 확인한다.
 
@@ -133,3 +133,14 @@
 - 승인 기준선이 있으면 Before/After를 동일 배율로 비교한다. 한 항목이라도 시각적으로 퇴행하면 `REGRESSION_FAIL`.
 - 새 Visual은 먼저 기존 Visual Patch 가능성을 검토한다. 교체할 때만 Visual Brief를 작성한다.
 - 문서별 임의 spacing/indent/font는 금지하고 Component System과 Design Token만 사용한다.
+
+
+## v2.2.0 독자 니즈·실행형 매뉴얼 강제 규칙
+
+- 모든 산출물은 `누가 → 왜 연다 → 무엇을 결정/개발/운영한다 → 완료 기준`을 먼저 정의한다. 파일/기능 분류를 위한 메뉴는 금지한다.
+- Framework/Batch Developer Guide의 주요 기능 장은 `Task Summary → Public API → Option/기본값 → 선택 기준 → 실패·복구 → 최소 예 → 검증 → Source`를 첫 스캔에서 찾을 수 있어야 한다. 설명문만 있는 장은 FAIL이다.
+- API/옵션/선택표가 핵심이고 Portrait에서 token 개행·과밀이 발생하면 Landscape를 사용한다. 문서 방향보다 독자의 스캔 속도를 우선한다.
+- 일반 사용자 Navigation은 PDF만 제공한다. DOCX는 최종 ZIP에 포함하지만 README/산출물목록의 바로 열기 링크로 노출하지 않는다.
+- Figure 설명 앞에 `그림 해석`, `그림 설명` 같은 중간 라벨을 두지 않는다. Figure 바로 아래 1~2문장으로 의미를 자연스럽게 고정한다.
+- 모든 Product Figure는 geometry manifest를 가진다. 실제 canvas/frame/node/text/annotation bounding box가 safe area를 침범하거나 서로 겹치면 자동 Gate에서 FAIL해야 한다.
+- Markdown Viewer의 Host Background는 README가 제어할 수 없다. 대신 CPF가 소유하는 Hero/주요 Content Surface는 Dark Brochure로 분명히 만들고 그 위 주요 Visual은 light/neutral canvas로 분리한다.

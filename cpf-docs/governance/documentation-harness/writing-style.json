@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "language": {
     "primary": "ko-KR",
@@ -85,7 +85,11 @@
       "개발자에게 좋은 점",
       "AI를 위한 설명",
       "그림 없이 읽는 설명",
-      "Public Consumer Acceptance"
+      "Public Consumer Acceptance",
+      "그림 해석",
+      "그림 설명",
+      "Figure 해석",
+      "Figure 설명"
     ],
     "benefit_heading_in_readme": "동작 또는 구조를 말하면서 사용자가 얻는 편의가 자연스럽게 드러나는 문장형 제목을 사용한다.",
     "numbered_h1_all_documents": true,
@@ -95,7 +99,8 @@
     "h3_numbering_when_used": "required local numbering (1), 2), 3)...)",
     "spacing_hierarchy_required": true,
     "major_section_must_be_visually_separated": true,
-    "subheading_content_grouping": "H2/H3 아래 내용은 공통 Content Rail로 들여쓰고 제목과 첫 내용 사이를 가깝게, 다음 부제목 전 여백을 더 크게 둔다."
+    "subheading_content_grouping": "H2/H3 아래 내용은 공통 Content Rail로 들여쓰고 제목과 첫 내용 사이를 가깝게, 다음 부제목 전 여백을 더 크게 둔다.",
+    "readerQuestionFirst": "각 H1/H2는 독자가 이 절을 왜 보는지 드러내는 작업/판단 중심 명칭을 우선한다. 내부 모듈명·문서명만으로 제목을 만들지 않는다."
   },
   "benefit_expression": {
     "explicit_marketing_section": "forbidden",
@@ -134,8 +139,9 @@
     "broken_link": "hard_fail",
     "pdf_label_target": "[PDF]는 반드시 .pdf 파일을 직접 가리킨다.",
     "docx_label_target": "[DOCX]는 반드시 .docx 파일을 직접 가리킨다.",
-    "paired_document_link": "같은 문서가 PDF/DOCX로 존재하면 문서명 뒤 [PDF] [DOCX]를 분리 표기하고 각각 정확한 형식으로 링크한다.",
-    "link_label_extension_mismatch": "hard_fail"
+    "paired_document_link": "사용자 Navigation은 문서명 뒤 [PDF]만 표기한다. DOCX는 링크하지 않는다.",
+    "link_label_extension_mismatch": "hard_fail",
+    "docx_user_navigation": "forbidden; DOCX는 ZIP 내부 편집/보관 산출물로만 유지한다."
   },
   "truth": {
     "source_identifier_invention": "hard_fail",
@@ -172,7 +178,13 @@
       "더 자세한 Source/문서 링크"
     ],
     "developer_frequency_priority": "개발자 가이드는 일상 개발에서 반복적으로 찾는 패턴/API/옵션/실패 대응을 우선한다. 저빈도·내부 구현 상세는 Source/Specification으로 연결한다.",
-    "developer_catalog_style": "forbidden"
+    "developer_catalog_style": "forbidden",
+    "reader_need_gate": "문단·표·그림마다 이 정보가 없으면 독자가 어떤 선택/작업/판단을 못 하는지 설명할 수 있어야 한다. 설명할 수 없으면 삭제한다.",
+    "developer_summary_required": "주요 개발 주제는 설명문보다 먼저 API/옵션/언제 사용/피해야 할 경우/실패·복구 Summary를 제공한다."
   },
-  "preservationRule": "의미와 문장이 이미 명료하고 승인된 경우 표현을 다시 쓰지 않는다. 지적받지 않은 문장을 스타일 통일 명목으로 전면 rewrite하지 않는다."
+  "preservationRule": "의미와 문장이 이미 명료하고 승인된 경우 표현을 다시 쓰지 않는다. 지적받지 않은 문장을 스타일 통일 명목으로 전면 rewrite하지 않는다.",
+  "links": {
+    "docx_user_navigation": "forbidden",
+    "pdf_user_navigation": "required where direct-open document navigation is offered"
+  }
 }

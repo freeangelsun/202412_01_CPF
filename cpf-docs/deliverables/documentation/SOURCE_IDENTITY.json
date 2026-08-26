@@ -1,12 +1,10 @@
 {
-  "repository": "https://github.com/freeangelsun/202412_01_CPF",
-  "branch": "master",
-  "sourceCommit": "054d894b47f4be8323439dc6f9e58b7d8b60fe54",
-  "harnessVersion": "2.1.0",
-  "officialArtifacts": 23,
-  "docx": 11,
-  "pdf": 11,
-  "readme": 1,
-  "pdfPages": 108,
-  "status": "DOCUMENTATION_QA_PASS_PENDING_USER_GOLDEN_APPROVAL"
+  "schemaVersion": "1.0",
+  "sourceType": "USER_SUPPLIED_FINAL_SOURCE_ZIP",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip",
+  "sourceZipSha256": "B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D",
+  "gitExactSha": "UNAVAILABLE_IN_SUPPLIED_ZIP",
+  "gitHistoryUsedForSourceSelection": false,
+  "harnessVersion": "2.2.0",
+  "note": "Supplied ZIP contains no .git provenance. Documentation is anchored to the immutable ZIP digest; historical master SHA is not inherited."
 }

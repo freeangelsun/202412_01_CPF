@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -84,7 +84,16 @@
     "automatedPassAcceptedAsFinalQuality": 0,
     "approvedBlockRegeneratedWithoutImpact": 0,
     "visualRegressionAgainstApprovedBaseline": 0,
-    "freshRewriteWithoutApprovedException": 0
+    "freshRewriteWithoutApprovedException": 0,
+    "frameOutsideCanvas": 0,
+    "bottomSafeAreaViolation": 0,
+    "annotationTooCloseToNode": 0,
+    "captionOrBodyOutsideContainer": 0,
+    "visualGeometryManifestMissing": 0,
+    "genericFigureExplanationLabel": 0,
+    "docxLinkExposedInUserNavigation": 0,
+    "readerNeedNotAnswered": 0,
+    "developerApiOptionSummaryMissing": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -201,7 +210,10 @@
       "unchanged PASS areas remain unchanged unless dependency requires change",
       "no previously approved visual becomes less readable or less polished",
       "full regeneration has an explicit allowed trigger and recorded reason"
-    ]
+    ],
+    "geometryManifest": "모든 README/Product Figure는 visual-geometry.json의 canvas/node/text/frame bounding box와 validator를 통과해야 한다.",
+    "figureExplanation": "“그림 해석/그림 설명” 라벨 없이 Figure 바로 아래 자연스러운 설명으로 연결되는지 확인한다.",
+    "readerTaskFit": "문서를 실제 Persona 입장에서 훑어 첫 30초 안에 목적과 필요한 다음 행동을 찾을 수 있는지 확인한다."
   },
   "fixLoop": [
     "collect all failures and identify impact scope",
@@ -224,5 +236,9 @@
   "manualScoreRequired": true,
   "minimumEachDimension": 4,
   "minimumAverage": 4.4,
-  "automatedPassDoesNotImplyVisualPass": true
+  "automatedPassDoesNotImplyVisualPass": true,
+  "linkIntegrity": [
+    "user navigation DOCX link count = 0",
+    "DOCX files remain packaged as editable artifacts"
+  ]
 }

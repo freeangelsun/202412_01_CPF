@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.1.0
+# CPF Documentation Harness v2.2.0
 
 CPF 공식 README/DOCX/PDF를 **점진적으로 개선**하기 위한 실행형 Design/QA Harness다.
 
@@ -34,7 +34,7 @@ CPF 공식 README/DOCX/PDF를 **점진적으로 개선**하기 위한 실행형 
 6. 실제 Render 전페이지 검증
 7. Manual Visual Score
 8. Before/After Regression 비교
-9. PDF/DOCX Click-through
+9. PDF Click-through + 사용자 DOCX 링크 0
 10. Clean Replay 후 완료
 
 Repository에는 현행 Harness 한 세트만 유지한다. 과거 Harness 복제본·해제본·백업·stale rule은 남기지 않는다.

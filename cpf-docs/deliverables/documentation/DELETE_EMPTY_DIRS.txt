@@ -1,5 +1,1 @@
-# remove only when empty
-cpf-docs/assets/readme
-cpf-docs/assets/manual
-cpf-docs/assets/manuals
-cpf-docs/assets/guides
+# no empty-directory deletion required

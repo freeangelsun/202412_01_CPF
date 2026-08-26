@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "documentId": "BATCH_DEVELOPER_GUIDE",
   "title": "CPF 배치 개발자 가이드",
   "locked": true,
@@ -37,6 +37,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "FUNCTION_SELECTION",
         "ROLE"
       ],
@@ -61,6 +62,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "API",
         "OPTION"
       ],
@@ -83,6 +85,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "STATE",
         "DECISION"
       ],
@@ -105,6 +108,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "ROLE",
         "API"
       ],
@@ -127,6 +131,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "RESTART_RERUN_REPROCESS_RECONCILE",
         "RUNBOOK"
       ],
@@ -151,6 +156,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "ERROR",
         "STATE"
       ],
@@ -173,6 +179,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "DECISION",
         "DB_VENDOR"
       ],
@@ -195,6 +202,7 @@
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "API_QUICK_REFERENCE",
         "TEST_SCENARIO",
         "SOURCE_NAV"
       ],
@@ -232,5 +240,32 @@
     "splitSectionAllowed": "only when scanability improves and total density does not increase",
     "headingText": "may be shortened for readability without changing meaning",
     "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
+  },
+  "readerFirst": {
+    "required": true,
+    "documentOpeningMustAnswer": [
+      "이 문서를 누가 보는가",
+      "왜 이 문서를 여는가",
+      "읽고 무엇을 할 수 있어야 하는가"
+    ],
+    "sectionMenuRule": "기능/파일 분류보다 독자의 작업·질문·판단 순서를 우선한다.",
+    "nonActionableContent": "remove_or_move_to_specification",
+    "primaryQuestion": "배치 개발자가 Job/Step을 어떤 Public API로 만들고 실행·재시작·동시성·UNKNOWN을 어떻게 안전하게 처리하는가?"
+  },
+  "orientationPolicy": "reader_first; switch to landscape when comparison/API/option tables lose scanability in portrait",
+  "developerChapterContract": {
+    "requiredSequence": [
+      "Task Summary",
+      "API Quick Reference",
+      "Option Matrix",
+      "Selection Guide",
+      "Failure/Recovery",
+      "Minimal Example",
+      "Verification",
+      "Source"
+    ],
+    "sourceVerifiedApiOnly": true,
+    "sourceVerifiedDefaultsOnly": true,
+    "landscapeForFiveColumnReference": true
   }
 }

@@ -1,6 +1,9 @@
-﻿requirement_id,development_status,verification_status,개발GPT_상태,개발GPT_검증,개발GPT_Evidence
-DOC-README,완료,완료,완료,README Harness/Visual/Link/Source QA PASS,cpf-docs/deliverables/documentation/TEST_AND_EVIDENCE.md
-DOC-DOCX-11,완료,완료,완료,11 DOCX render + accessibility PASS,cpf-docs/deliverables/documentation/TEST_AND_EVIDENCE.md
-DOC-PDF-11,완료,완료,완료,11 PDF preflight/font/parity PASS,cpf-docs/deliverables/documentation/TEST_AND_EVIDENCE.md
-DOC-HARNESS,완료,완료,완료,Harness v2.1.0 validator/lock PASS,cpf-docs/governance/documentation-harness/
-DOC-PACKAGE,완료,완료,완료,Root-relative overlay clean replay 대상,cpf-docs/deliverables/documentation/PACKAGE_MANIFEST.json
+﻿requirement_id,development_status,verification_status,development_detail,evidence
+DOC-HARNESS,완료,완료,Harness v2.2.0 reader-first/current-only + executable visual/link gates,cpf-docs/governance/documentation-harness/
+DOC-README,완료,완료,"8 visuals, PDF-only navigation, user findings reflected",README.md
+DOC-DEV-GUIDE,완료,완료,API/option/selection/failure/recovery matrices; landscape,cpf-docs/guides/02_프레임워크_개발자_가이드.docx
+DOC-BATCH-GUIDE,완료,완료,task/API/option/recovery matrices; landscape,cpf-docs/guides/03_배치_개발자_가이드.docx
+DOC-OTHER-9,완료,완료,reader-need profiles and final render,cpf-docs/guides/;cpf-docs/deliverables/
+DOC-DOCX-QA,완료,완료,11 docs / 70 pages / a11y 0,TEST_AND_EVIDENCE.md
+DOC-PDF-QA,완료,완료,PDFium 70 / Poppler 70 / fonts+glyph PASS,TEST_AND_EVIDENCE.md
+DOC-POWERSHELL,완료,미검증,PowerShell validators delivered; pwsh unavailable in execution environment,cpf-docs/deliverables/documentation/VERIFY.ps1

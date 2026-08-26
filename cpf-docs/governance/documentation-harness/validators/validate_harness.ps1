@@ -14,13 +14,16 @@ function Load-Json([string]$Relative){
 function As-Array($Value){ return @($Value) }
 
 $h=Load-Json 'harness.json'
-if($h.version -ne '2.1.0'){ Fail 'version' }
+if(Test-Path -LiteralPath (Join-Path $Root 'CHANGELOG.md')){ Fail 'history file must not remain in current-only harness' }
+$stale=@(Get-ChildItem -LiteralPath $Root -Recurse -Force | Where-Object { $_.Name -match '(?i)(^|[_.-])(backup|old|history)([_.-]|$)|^v1\.|^v2\.0|^v2\.1' })
+if($stale.Count -gt 0){ Fail('stale harness artifact '+$stale[0].FullName) }
+if($h.version -ne '2.2.0'){ Fail 'version' }
 if($h.locked -ne $true -or $h.changeAuthority -ne 'USER_EXPLICIT_REQUEST_ONLY'){ Fail 'change authority' }
 if($h.changePolicy.autoModify -ne $false){ Fail 'auto modify' }
 
 foreach($f in @('design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json')){
     $d=Load-Json $f
-    if($d.harnessVersion -ne '2.1.0'){ Fail("version " + $f) }
+    if($d.harnessVersion -ne '2.2.0'){ Fail("version " + $f) }
 }
 
 $D=Load-Json 'design-tokens.json'
@@ -121,7 +124,7 @@ foreach($a in $arts){
 }
 
 
-# v2.1.0 geometry / balance / incremental / link / content-rail gates
+# v2.2.0 geometry / reader-first / link / content-rail gates
 if([int]$D.figures.node_inner_padding_px_min -lt 24){ Fail 'figure inner padding' }
 if([int]$D.figures.label_to_label_gap_px_min -lt 24){ Fail 'figure label gap' }
 if([int]$D.figures.node_to_node_gap_px_min -lt 28){ Fail 'figure node gap' }
@@ -135,7 +138,7 @@ if($h.changePolicy.artifactEvolutionPolicy.defaultMode -ne 'PATCH_FIRST'){ Fail 
 if($h.changePolicy.artifactEvolutionPolicy.freshRebuildException.afterApproval -ne 'PATCH_ONLY'){ Fail 'fresh rebuild lifecycle' }
 if([int]$h.changePolicy.artifactEvolutionPolicy.freshRebuildException.maxConsecutiveFreshRebuilds -ne 1){ Fail 'fresh rebuild max once' }
 
-if($O.linkIntegrity.pdfLabelMustTargetPdf -ne $true -or $O.linkIntegrity.docxLabelMustTargetDocx -ne $true){ Fail 'format link target rule' }
+if($O.linkIntegrity.pdfLabelMustTargetPdf -ne $true -or $O.linkIntegrity.docxUserNavigationAllowed -ne $false -or $O.linkIntegrity.docxPackagingRequired -ne $true){ Fail 'PDF-only navigation rule' }
 if($O.artifactEvolution.default -ne 'PATCH_FIRST'){ Fail 'incremental artifact rule' }
 if($O.windowsValidation.pythonRequired -ne $false){ Fail 'python must not be required on Windows' }
 $VS=Load-Json 'visual-system.json'
@@ -149,6 +152,23 @@ foreach($k in @('subheadingContentGapTooLarge','subheadingContentRailMissing','f
     if($null -eq $prop -or [int]$prop.Value -ne 0){ Fail('visual qa '+$k) }
 }
 
+
+if([int]$D.figures.frame_to_canvas_inset_px_min -lt 48){ Fail 'figure frame inset' }
+if([int]$D.figures.bottom_safe_zone_px_min -lt 64){ Fail 'figure bottom safe zone' }
+if([int]$D.figures.annotation_to_node_gap_px_min -lt 28){ Fail 'figure annotation gap' }
+if($D.figures.geometry_manifest_required -ne $true){ Fail 'figure geometry manifest' }
+if(-not (Test-Path -LiteralPath (Join-Path $Root 'validators\validate_visual_assets.ps1') -PathType Leaf)){ Fail 'visual geometry validator missing' }
+if($W.cross_reference.docx_user_navigation -notlike 'forbidden*'){ Fail 'docx user navigation' }
+$CS=Load-Json 'component-system.json'
+if($CS.components.FIGURE_EXPLANATION.visibleLabel -ne 'forbidden'){ Fail 'generic figure explanation label' }
+if($CS.components.DOCUMENT_LINK_ROW.docxLink -ne 'forbidden'){ Fail 'document link component docx' }
+$DM=(Load-Json 'content-models.json').models.DEVELOPER_CAPABILITY_CHAPTER
+foreach($need in @('api_quick_reference','option_matrix_if_any','failure_recovery','minimal_example','verification','source_navigation')){ if(@($DM.sequence) -notcontains $need){ Fail('developer model '+$need) } }
+$FP=Load-Json 'profiles/FRAMEWORK_DEVELOPER_GUIDE.json'
+if($FP.orientation -ne 'landscape'){Fail 'framework guide landscape'}
+if($null -eq $FP.developerChapterContract){Fail 'framework developer chapter contract'}
+$BP=Load-Json 'profiles/BATCH_DEVELOPER_GUIDE.json'
+if($BP.orientation -ne 'landscape'){Fail 'batch guide landscape'}
 $C=Load-Json 'product-coverage.json'; $items=@($C.items)
 if($items.Count -lt 55){ Fail 'coverage' }
 
@@ -177,7 +197,6 @@ if($QA.automatedPassIsQualityPass -ne $false){ Fail 'automated pass quality sepa
 $be=@($QA.baselineEligibility)
 if($be.Count -ne 2 -or $be -notcontains 'USER_APPROVED' -or $be -notcontains 'VISUAL_QA_APPROVED'){ Fail 'baseline approval states' }
 if([int]$QA.manualVisualScore.minimumEach -lt 4 -or [double]$QA.manualVisualScore.minimumAverage -lt 4.4){ Fail 'manual visual score threshold' }
-$CS=Load-Json 'component-system.json'
 foreach($id in @('H1_SECTION','H2_SUBSECTION','BODY_BLOCK','BULLET_GROUP','FIGURE_BLOCK','FIGURE_EXPLANATION','DECISION_TABLE','DOCUMENT_LINK_ROW')){
     if($null -eq $CS.components.PSObject.Properties[$id]){ Fail('component '+$id) }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "models": {
     "BROCHURE_PANEL": {
@@ -24,22 +24,30 @@
         "BODY_BLOCK",
         "FIGURE_BLOCK",
         "FIGURE_EXPLANATION"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "DEVELOPER_CAPABILITY_CHAPTER": {
       "sequence": [
-        "one_sentence_purpose",
-        "compact_selection",
-        "minimal_example_if_useful",
-        "failure_or_caution",
+        "reader_task_and_outcome",
+        "api_quick_reference",
+        "option_matrix_if_any",
+        "selection_guide",
+        "failure_recovery",
+        "minimal_example",
         "verification",
         "source_navigation"
       ],
       "rules": {
-        "selection": "하려는 일→기능/API→핵심 옵션→선택 기준. 4열 이하.",
-        "example": "3~8줄을 기본.",
+        "selection": "상황→선택→언제 사용→피해야 할 경우를 먼저 보여준다.",
+        "example": "3~10줄의 최소 예. 전체 파일 복사 금지.",
         "failure": "최대 3개 불릿.",
-        "source": "1줄 exact path."
+        "source": "1줄 exact path.",
+        "reader_task": "첫 2문장 안에 개발자가 무엇을 구현/선택할 수 있게 되는지 말한다.",
+        "api_matrix": "Public Source에서 확인한 실제 API/Annotation만 사용한다. API명·옵션·기본값 추정 금지.",
+        "option_matrix": "Annotation attribute/메서드 option이 있으면 필수/기본값/언제 변경/주의를 표로 제공한다.",
+        "failure_recovery": "Retry 가능/금지, UNKNOWN, Idempotency, Reconcile/Compensation 중 해당되는 실제 계약을 명시한다.",
+        "orientation": "세로형에서 API/옵션/경로가 과도하게 개행되면 해당 문서는 Landscape를 사용한다."
       },
       "componentBindings": [
         "H1_SECTION",
@@ -47,7 +55,8 @@
         "BODY_BLOCK",
         "BULLET_GROUP",
         "DECISION_TABLE"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "OPERATOR_RUNBOOK_CHAPTER": {
       "sequence": [
@@ -68,7 +77,8 @@
         "BODY_BLOCK",
         "BULLET_GROUP",
         "DECISION_TABLE"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "ARCHITECTURE_CHAPTER": {
       "sequence": [
@@ -89,7 +99,8 @@
         "BODY_BLOCK",
         "FIGURE_BLOCK",
         "FIGURE_EXPLANATION"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "SPEC_CONTRACT_CHAPTER": {
       "sequence": [
@@ -109,7 +120,8 @@
         "BODY_BLOCK",
         "BULLET_GROUP",
         "DECISION_TABLE"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "STANDARD_RULE_CHAPTER": {
       "sequence": [
@@ -128,7 +140,8 @@
         "H1_SECTION",
         "H2_SUBSECTION",
         "BODY_BLOCK"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "TECH_SPEC_CHAPTER": {
       "sequence": [
@@ -147,7 +160,8 @@
         "BODY_BLOCK",
         "BULLET_GROUP",
         "DECISION_TABLE"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "DB_STANDARD_CHAPTER": {
       "sequence": [
@@ -167,7 +181,8 @@
         "BODY_BLOCK",
         "BULLET_GROUP",
         "DECISION_TABLE"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     },
     "DOCUMENT_INDEX_CHAPTER": {
       "sequence": [
@@ -183,7 +198,8 @@
         "H1_SECTION",
         "H2_SUBSECTION",
         "BODY_BLOCK"
-      ]
+      ],
+      "readerNeedGate": "이 장이 독자의 실제 질문/업무를 해결하지 못하면 구성요소 존재 여부와 무관하게 FAIL."
     }
   },
   "assemblyPolicy": {

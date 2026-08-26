@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "page": {
     "paper": "A4",
@@ -23,7 +23,8 @@
     "content_grid": "본문·표 제목·표·그림 Caption의 왼쪽 기준선을 동일하게 맞춘다.",
     "no_blank_paragraph_for_spacing": true,
     "h1_remaining_space_rule_mm": 45,
-    "rule": "H1과 첫 콘텐츠 블록이 45mm 안에 함께 들어가지 않으면 다음 페이지에서 시작한다. 모든 H1에 강제 Page Break를 넣지 않는다."
+    "rule": "H1과 첫 콘텐츠 블록이 45mm 안에 함께 들어가지 않으면 다음 페이지에서 시작한다. 모든 H1에 강제 Page Break를 넣지 않는다.",
+    "orientationPolicy": "독자의 비교/선택 작업에 필요한 5열 표 또는 긴 API/옵션/경로가 세로형에서 깨지면 Landscape를 사용한다. 방향 자체보다 읽기 속도와 무개행성을 우선한다."
   },
   "fonts": {
     "canonical_korean": "Noto Sans KR",
@@ -135,7 +136,10 @@
       "preferred_body_target": "7:1"
     },
     "random_decorative_colors": "forbidden",
-    "zebra_striping_default": false
+    "zebra_striping_default": false,
+    "readme_host_background": "uncontrolled_by_markdown_viewer",
+    "readme_content_surface": "#071A2B",
+    "readme_visual_canvas": "#F7FAFC"
   },
   "tables": {
     "use_gate": "표는 비교·선택·상태·규격처럼 행/열 관계가 읽기를 빠르게 할 때만 사용한다. 긴 설명, 단순 목록, 절차 본문은 표 금지.",
@@ -224,7 +228,8 @@
       "Profile이 허용한 경우 Landscape 사용",
       "표 Font는 9pt 미만 금지"
     ],
-    "visual_separation": "표와 다음 표 사이 최소 12pt. 연속 표는 각 표 제목+목적문을 반드시 둔다. 표 제목 없이 표가 연속되면 FAIL."
+    "visual_separation": "표와 다음 표 사이 최소 12pt. 연속 표는 각 표 제목+목적문을 반드시 둔다. 표 제목 없이 표가 연속되면 FAIL.",
+    "orientation_switch_rule": "API/옵션/선택표에서 핵심 token이 2줄 이상으로 반복 개행되거나 4열 이상 비교가 핵심이면 Landscape를 우선한다."
   },
   "figures": {
     "use_gate": "그림이 같은 내용을 텍스트/표보다 빠르게 이해시키고 실제 구조·흐름·상태·선택을 보여줄 때만 사용. 장식용 그림 금지.",
@@ -257,11 +262,11 @@
     "min_text_contrast_ratio": "4.5:1 for normal labels; 3:1 only for large labels",
     "low_contrast_label": "hard_fail",
     "secondary_label_contrast_min": "4.5:1 when label is required to understand the figure",
-    "node_inner_padding_px_min": 24,
+    "node_inner_padding_px_min": 28,
     "node_inner_padding_px_preferred": 32,
-    "label_to_label_gap_px_min": 24,
-    "node_to_node_gap_px_min": 28,
-    "label_to_connector_clearance_px_min": 16,
+    "label_to_label_gap_px_min": 28,
+    "node_to_node_gap_px_min": 32,
+    "label_to_connector_clearance_px_min": 20,
     "group_title_band_height_px_min": 48,
     "group_title_to_first_child_gap_px_min": 18,
     "label_line_count_preferred": 1,
@@ -273,14 +278,27 @@
     "forced_font_shrink_to_fit": "forbidden below minimum text size",
     "geometry_rule": "텍스트 Bounding Box는 Node/Container 경계를 침범하지 않고 최소 내부 여백을 유지한다. Group Title은 전용 Title Band를 사용하며 내부 데이터 Label과 겹치지 않는다.",
     "connector_rule": "Connector는 Text/Label을 가로지르지 않는다. Endpoint를 제외하고 Node 내부를 관통하지 않는다. 방향과 연결 대상이 100%/200%에서 즉시 식별되어야 한다.",
-    "canvas_safe_margin_px_min": 48,
+    "canvas_safe_margin_px_min": 64,
     "figure_explanation_gap_pt_max": 6,
     "figure_to_next_section_gap_pt_min": 14,
     "explanation_ownership": "설명은 해당 Figure 바로 아래에 붙여 Figure 제목/이미지/설명 3개가 하나의 시각 블록으로 읽혀야 한다.",
     "readme_dark_surface_rule": "README 다크 배경에서는 light/neutral/tinted figure canvas 또는 밝은 focal surface를 사용해 외곽과 내부 구조를 분명히 분리. dark-on-dark는 hard_fail.",
     "visual_grammar_rule": "내용 의미에 맞는 shape/layout 문법을 선택하며 모든 Figure를 동일 rounded-rectangle + arrow chain으로 만들지 않는다.",
     "rounded_rectangle_arrow_chain_default": "forbidden",
-    "label_canvas_edge_collision": 0
+    "label_canvas_edge_collision": 0,
+    "frame_to_canvas_inset_px_min": 48,
+    "bottom_safe_zone_px_min": 64,
+    "caption_to_visual_gap_px_min": 24,
+    "annotation_to_node_gap_px_min": 28,
+    "text_box_max_width_pct": 86,
+    "wrap_before_overflow": true,
+    "geometry_manifest_required": true,
+    "geometry_validator": "validators/validate_visual_assets.ps1",
+    "frame_outside_canvas": 0,
+    "text_outside_canvas": 0,
+    "text_outside_node": 0,
+    "label_overlap": 0,
+    "caption_overlap": 0
   },
   "callouts": {
     "allowed": [

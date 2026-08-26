@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "title": "CPF 공식 산출물 실행형 디자인·품질 하네스",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
@@ -11,7 +11,7 @@
     "assistantPreferenceDoesNotAuthorizeHarnessChange": true,
     "allowedTrigger": "사용자가 하네스 자체를 수정·추가·삭제하라고 명시적으로 요청한 경우만",
     "onMismatch": "HARNESS_CHANGE_REQUIRED를 기록하고 산출물 작성 중 임의 Profile/목차/규칙 추가를 금지한다.",
-    "versioning": "사용자 승인 수정 시 semantic version을 증가시키고 변경 이유/요청 문구/영향 문서를 CHANGELOG에 기록한 뒤 HARNESS_LOCK.json을 재생성한다.",
+    "versioning": "현행 documentation-harness 한 세트만 유지한다. 작업 중간 버전·변경이력 파일·snapshot·backup·history 파일을 남기지 않고 최종 현행본의 HARNESS_LOCK.json과 PACKAGE_MANIFEST.json만 재생성한다.",
     "documentationFeedbackIsHarnessChangeRequest": true,
     "feedbackRule": "사용자가 README/DOCX/PDF의 품질·구조·가독성·내용 우선순위를 직접 지적하면 해당 지적은 Harness 보완 승인으로 간주한다. 산출물만 임시 수정하지 않는다.",
     "harnessFirstWorkflow": [
@@ -136,14 +136,22 @@
       "Golden Reference 또는 승인 영역보다 시각 품질이 낮아지는 변경",
       "기존 승인 Component를 Finding 영향 없이 재생성",
       "문서마다 spacing/indent/font 값을 임의로 새로 정의",
-      "자동 Validator PASS만으로 최종 품질 PASS 선언"
+      "자동 Validator PASS만으로 최종 품질 PASS 선언",
+      "독자 질문과 작업 목적 없이 파일/기능 중심으로 목차를 구성하는 것",
+      "개발자 가이드 주요 기능 장에서 Public API/옵션/선택 기준/실패·복구 중 하나라도 누락하는 것",
+      "표 폭이 부족한데 세로형을 고집해 API/옵션/경로를 과도하게 줄이거나 개행하는 것",
+      "README 또는 사용자용 문서 탐색 링크에 DOCX를 바로 열기 링크로 노출하는 것",
+      "Figure 설명 앞에 “그림 해석”, “그림 설명” 같은 의미 없는 라벨을 반복하는 것",
+      "실제 Figure geometry manifest 검증 없이 Visual 존재/설정값만으로 PASS하는 것"
     ]
   },
   "completionGate": {
     "required": [
       "HARNESS_SCHEMA_PASS",
       "ARTIFACT_STRUCTURE_PASS",
+      "READER_TASK_FIT_PASS",
       "RENDER_TECHNICAL_PASS",
+      "FIGURE_GEOMETRY_PASS",
       "HUMAN_VISUAL_PASS",
       "REGRESSION_PASS",
       "CLICK_THROUGH_PASS",
@@ -202,11 +210,17 @@
     "figureNarrativeBoundary": "각 Figure의 설명은 해당 Figure 바로 아래 같은 시각 블록에 붙이고 다음 섹션보다 Figure에 더 가깝게 둔다. 독자가 설명의 귀속을 즉시 알아야 한다.",
     "modernVisualGrammar": "Visual은 내용에 맞는 시각 문법을 선택한다. Architecture=layered planes/zones, Flow=route/timeline/sequence lanes, Recovery=state/ring/branch, Batch=control/execution planes, DB3=vendor bands+lifecyle spine 등으로 다양화하며 둥근 네모+화살표를 기본값으로 사용하지 않는다.",
     "readmeLightVisualOnDark": "README 다크 표면에서는 주요 Visual을 밝은 neutral/light-tint canvas 또는 분명한 밝은 focal surface로 분리한다. dark-on-dark 저분리 Visual은 FAIL이다.",
-    "linkTargetAccuracy": "README/문서 내 [PDF] 링크는 .pdf를, [DOCX] 링크는 .docx를 직접 가리킨다. 표시 형식과 실제 Target 확장자/파일 Signature 불일치는 Hard Fail이다.",
+    "linkTargetAccuracy": "일반 사용자 Navigation은 [PDF]만 허용하고 실제 .pdf Target/파일 Signature가 일치해야 한다. DOCX는 ZIP에 포함하되 사용자 바로 열기 링크에 노출하지 않는다.",
     "windowsValidation": "회사 Windows 환경의 정본 설치 검증은 PowerShell-only 경로를 제공한다. Python은 선택적 교차검증이며 필수 Runtime이 아니다.",
     "executableDesignSystem": "문서별 임의 Style 해석을 줄이고 component-system.json의 공식 Component와 design-tokens.json을 조립해 문서를 보정한다.",
     "approval": "AUTOMATED_PASS_ONLY는 품질 승인이 아니다. USER_APPROVED 또는 VISUAL_QA_APPROVED만 보존 기준선이다.",
     "regression": "변경 영향 범위는 승인 기준선과 Before/After 비교하며 한 Dimension이라도 품질이 낮아지면 REGRESSION_FAIL이다.",
-    "profileFlexibility": "Profile은 반드시 답해야 하는 Coverage/Outcome을 잠근다. 화면/페이지의 정확한 H1/H2 개수 채우기가 목적이 아니며, 가독성을 위해 인접 내용을 병합·재배치할 수 있다."
+    "profileFlexibility": "Profile은 반드시 답해야 하는 Coverage/Outcome을 잠근다. 화면/페이지의 정확한 H1/H2 개수 채우기가 목적이 아니며, 가독성을 위해 인접 내용을 병합·재배치할 수 있다.",
+    "readerFirst": "모든 문서는 파일/기능을 나열하기 전에 누가 왜 이 문서를 여는지, 어떤 결정을 내리거나 어떤 작업을 완료하려는지부터 설계한다. 독자의 질문에 답하지 않는 장·표·그림은 제거한다.",
+    "taskCompletion": "문서를 읽은 사람이 실제 개발·운영·판단을 끝낼 수 있어야 한다. 설명만 있고 API/옵션/선택 기준/실패·복구/검증이 없어 행동으로 이어지지 않으면 FAIL이다.",
+    "adaptiveOrientation": "표와 비교 정보가 핵심이고 세로형에서 API/옵션이 깨지거나 과밀해지면 Landscape를 사용한다. 방향은 문서 관행보다 독자의 스캔 속도와 실제 사용성을 우선한다.",
+    "developerQuickReference": "Framework/Batch Developer Guide의 주요 기능 장은 Task Summary → Public API Matrix → Option Matrix → Selection Guide → Failure/Recovery → Minimal Example → Verification → Source 순으로 빠르게 찾을 수 있어야 한다.",
+    "navigation": "일반 사용자 Navigation에는 PDF만 링크한다. DOCX는 편집/보관용 산출물로 ZIP에 포함하지만 README·산출물목록의 바로 열기 링크에는 노출하지 않는다.",
+    "figureExplanation": "그림 아래 설명은 별도 “그림 해석/그림 설명” 제목 없이 바로 1~2문장으로 연결한다."
   }
 }

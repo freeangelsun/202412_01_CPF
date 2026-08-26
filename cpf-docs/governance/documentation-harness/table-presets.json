@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "commonRulesRef": "design-tokens.json#/tables",
   "presets": {
@@ -366,16 +366,16 @@
     },
     "DOCUMENT_INDEX": {
       "columns": [
-        "상황",
+        "이럴 때",
         "먼저 볼 문서",
-        "얻는 답",
-        "다음 문서"
+        "이 문서에서 얻는 답",
+        "바로 열기"
       ],
       "widthPct": [
-        23,
         25,
-        32,
-        20
+        25,
+        35,
+        15
       ],
       "align": [
         "left",
@@ -423,6 +423,54 @@
         "left",
         "left"
       ]
+    },
+    "API_QUICK_REFERENCE": {
+      "columns": [
+        "하려는 일",
+        "Public API / Annotation",
+        "핵심 옵션",
+        "언제 선택",
+        "실패·복구"
+      ],
+      "widthPct": [
+        17,
+        25,
+        20,
+        20,
+        18
+      ],
+      "align": [
+        "left",
+        "left",
+        "left",
+        "left",
+        "left"
+      ],
+      "landscapeRequired": true
+    },
+    "API_OPTION_MATRIX": {
+      "columns": [
+        "API",
+        "옵션",
+        "필수 / 기본값",
+        "언제 변경",
+        "주의"
+      ],
+      "widthPct": [
+        23,
+        18,
+        20,
+        21,
+        18
+      ],
+      "align": [
+        "left",
+        "left",
+        "left",
+        "left",
+        "left"
+      ],
+      "landscapeRequired": true
     }
   }
 }

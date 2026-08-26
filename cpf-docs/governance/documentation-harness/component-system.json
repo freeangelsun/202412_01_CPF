@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.1.0",
+  "harnessVersion": "2.2.0",
   "locked": true,
   "purpose": "작성자 해석 편차를 줄이기 위해 공식 문서를 재사용 가능한 Layout Component로 조립한다.",
   "defaultAssembly": "PATCH_EXISTING_COMPONENTS_FIRST",
@@ -68,7 +68,14 @@
       "leftRail": "subheading-content",
       "maxSentences": 2,
       "maxChars": 120,
-      "spaceAfterFigurePtMax": 4
+      "spaceAfterFigurePtMax": 4,
+      "visibleLabel": "forbidden",
+      "forbiddenPrefixes": [
+        "그림 해석",
+        "그림 설명",
+        "Figure 해석",
+        "Figure 설명"
+      ]
     },
     "DECISION_TABLE": {
       "role": "selection/comparison",
@@ -98,14 +105,53 @@
     },
     "DOCUMENT_LINK_ROW": {
       "role": "manual navigation",
-      "format": "문서명 — [PDF] [DOCX] — 한 줄 목적",
-      "targetSignatureCheck": true
+      "format": "문서명 — [PDF] — 한 줄 목적",
+      "targetSignatureCheck": true,
+      "docxLink": "forbidden"
     },
     "SOURCE_RAIL": {
       "role": "source navigation",
       "leftRail": "subheading-content",
       "maxLines": 2,
       "exactPathRequired": true
+    },
+    "READER_NEED_BLOCK": {
+      "role": "reader intent / outcome",
+      "leftRail": "subheading-content",
+      "requiredAtDocumentStart": true,
+      "maxSentences": 2,
+      "mustAnswer": [
+        "누가 보는가",
+        "왜 보는가",
+        "이 문서로 무엇을 끝내는가"
+      ]
+    },
+    "API_QUICK_REFERENCE": {
+      "role": "developer task summary",
+      "leftRail": "contextual",
+      "requiredFor": "developer major capability chapter",
+      "columns": [
+        "하려는 일",
+        "Public API / Annotation",
+        "핵심 옵션",
+        "언제 선택",
+        "실패·복구"
+      ],
+      "orientationPolicy": "landscape_preferred_if_wrap_or_width_pressure",
+      "sourceVerifiedOnly": true
+    },
+    "OPTION_MATRIX": {
+      "role": "public option reference",
+      "leftRail": "contextual",
+      "requiredFor": "developer major capability chapter when API has options",
+      "columns": [
+        "API",
+        "옵션",
+        "필수/기본값",
+        "언제 변경",
+        "주의"
+      ],
+      "sourceVerifiedOnly": true
     }
   },
   "compositionRules": [

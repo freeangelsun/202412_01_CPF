@@ -1,0 +1,480 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.2.0",
+  "assets": [
+    {
+      "asset": "cpf-docs/assets/product-docs/hero.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "hero_frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "title",
+          "kind": "text",
+          "x": 130,
+          "y": 150,
+          "w": 600,
+          "h": 180,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "lead",
+          "kind": "text",
+          "x": 130,
+          "y": 390,
+          "w": 1500,
+          "h": 150,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "chips",
+          "kind": "node",
+          "x": 120,
+          "y": 630,
+          "w": 1540,
+          "h": 130,
+          "allowSafeMargin": "true"
+        }
+      ],
+      "noOverlap": [],
+      "minVerticalGaps": []
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/architecture.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "entry",
+          "kind": "node",
+          "x": 120,
+          "y": 220,
+          "w": 225,
+          "h": 480
+        },
+        {
+          "id": "domain",
+          "kind": "node",
+          "x": 385,
+          "y": 220,
+          "w": 315,
+          "h": 480
+        },
+        {
+          "id": "framework",
+          "kind": "node",
+          "x": 740,
+          "y": 220,
+          "w": 510,
+          "h": 480
+        },
+        {
+          "id": "ops",
+          "kind": "node",
+          "x": 1290,
+          "y": 220,
+          "w": 370,
+          "h": 480
+        },
+        {
+          "id": "db",
+          "kind": "node",
+          "x": 420,
+          "y": 730,
+          "w": 960,
+          "h": 105
+        },
+        {
+          "id": "dbnote",
+          "kind": "annotation",
+          "x": 630,
+          "y": 860,
+          "w": 680,
+          "h": 32,
+          "allowSafeMargin": "true"
+        }
+      ],
+      "noOverlap": [
+        [
+          "db",
+          "dbnote"
+        ]
+      ],
+      "minVerticalGaps": [
+        {
+          "from": "db",
+          "to": "dbnote",
+          "min": 25
+        }
+      ]
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/invoke.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "local",
+          "kind": "node",
+          "x": 115,
+          "y": 220,
+          "w": 740,
+          "h": 540
+        },
+        {
+          "id": "remote",
+          "kind": "node",
+          "x": 945,
+          "y": 220,
+          "w": 740,
+          "h": 540
+        },
+        {
+          "id": "localnote",
+          "kind": "annotation",
+          "x": 150,
+          "y": 650,
+          "w": 670,
+          "h": 70
+        },
+        {
+          "id": "remotenote",
+          "kind": "annotation",
+          "x": 990,
+          "y": 625,
+          "w": 650,
+          "h": 80
+        }
+      ],
+      "noOverlap": [],
+      "minVerticalGaps": []
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/tx.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "statezone",
+          "kind": "node",
+          "x": 240,
+          "y": 190,
+          "w": 900,
+          "h": 620
+        },
+        {
+          "id": "recovery",
+          "kind": "node",
+          "x": 1180,
+          "y": 270,
+          "w": 450,
+          "h": 460
+        },
+        {
+          "id": "bottom",
+          "kind": "annotation",
+          "x": 180,
+          "y": 825,
+          "w": 1430,
+          "h": 75,
+          "allowSafeMargin": "true"
+        }
+      ],
+      "noOverlap": [],
+      "minVerticalGaps": []
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/batch.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "control",
+          "kind": "node",
+          "x": 125,
+          "y": 240,
+          "w": 1550,
+          "h": 210
+        },
+        {
+          "id": "exec",
+          "kind": "node",
+          "x": 125,
+          "y": 520,
+          "w": 1550,
+          "h": 270
+        },
+        {
+          "id": "bottom",
+          "kind": "annotation",
+          "x": 180,
+          "y": 845,
+          "w": 1430,
+          "h": 65,
+          "allowSafeMargin": "true"
+        }
+      ],
+      "noOverlap": [],
+      "minVerticalGaps": []
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/gateway.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "with",
+          "kind": "node",
+          "x": 120,
+          "y": 235,
+          "w": 720,
+          "h": 530
+        },
+        {
+          "id": "without",
+          "kind": "node",
+          "x": 960,
+          "y": 235,
+          "w": 720,
+          "h": 530
+        }
+      ],
+      "noOverlap": [],
+      "minVerticalGaps": []
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/ops.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "timeline",
+          "kind": "node",
+          "x": 180,
+          "y": 300,
+          "w": 1430,
+          "h": 360
+        },
+        {
+          "id": "audit",
+          "kind": "node",
+          "x": 250,
+          "y": 750,
+          "w": 1300,
+          "h": 105
+        }
+      ],
+      "noOverlap": [],
+      "minVerticalGaps": []
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/capabilities.png",
+      "canvas": {
+        "width": 1800,
+        "height": 1000,
+        "safeMargin": 72
+      },
+      "objects": [
+        {
+          "id": "frame",
+          "kind": "frame",
+          "x": 72,
+          "y": 72,
+          "w": 1656,
+          "h": 856,
+          "allowSafeMargin": "true"
+        },
+        {
+          "id": "cap0",
+          "kind": "node",
+          "x": 150,
+          "y": 250,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap1",
+          "kind": "node",
+          "x": 545,
+          "y": 250,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap2",
+          "kind": "node",
+          "x": 940,
+          "y": 250,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap3",
+          "kind": "node",
+          "x": 1335,
+          "y": 250,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap4",
+          "kind": "node",
+          "x": 150,
+          "y": 440,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap5",
+          "kind": "node",
+          "x": 545,
+          "y": 440,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap6",
+          "kind": "node",
+          "x": 940,
+          "y": 440,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap7",
+          "kind": "node",
+          "x": 1335,
+          "y": 440,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap8",
+          "kind": "node",
+          "x": 150,
+          "y": 630,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap9",
+          "kind": "node",
+          "x": 545,
+          "y": 630,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap10",
+          "kind": "node",
+          "x": 940,
+          "y": 630,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "cap11",
+          "kind": "node",
+          "x": 1335,
+          "y": 630,
+          "w": 310,
+          "h": 135
+        },
+        {
+          "id": "bottom",
+          "kind": "annotation",
+          "x": 180,
+          "y": 825,
+          "w": 1440,
+          "h": 80,
+          "allowSafeMargin": "true"
+        }
+      ],
+      "noOverlap": [],
+      "minVerticalGaps": []
+    }
+  ]
+}

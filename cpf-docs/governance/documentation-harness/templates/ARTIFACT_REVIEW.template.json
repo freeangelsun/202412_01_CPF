@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
+  "artifact": "",
+  "baselineState": "",
+  "baselineRef": "",
+  "changeScope": [],
+  "preservedBlocks": [],
+  "patchedBlocks": [],
+  "intentionallyRegeneratedBlocks": [],
+  "regenerationJustification": "",
+  "automated": {
+    "harnessSchema": "NOT_EXECUTED",
+    "artifactStructure": "NOT_EXECUTED",
+    "link": "NOT_EXECUTED"
+  },
+  "render": {
+    "readmeDarkPreview": "NOT_EXECUTED",
+    "docxAllPages": "NOT_EXECUTED",
+    "pdfAllPages": "NOT_EXECUTED",
+    "pdfium": "NOT_EXECUTED",
+    "poppler": "NOT_EXECUTED"
+  },
+  "manualVisualScores": {},
+  "criticalFindings": [],
+  "regression": {
+    "beforeAfterCompared": false,
+    "regressions": [],
+    "status": "NOT_EXECUTED"
+  },
+  "approvalState": "DRAFT"
+}

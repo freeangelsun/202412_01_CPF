@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CPF Documentation Profile",
+  "title": "CPF Documentation Profile v2",
   "type": "object",
   "additionalProperties": true,
   "required": [
@@ -11,6 +11,7 @@
     "locked",
     "changeAuthority",
     "structureLocked",
+    "coverageLocked",
     "sections"
   ],
   "properties": {
@@ -21,7 +22,7 @@
       "const": "USER_EXPLICIT_REQUEST_ONLY"
     },
     "structureLocked": {
-      "const": true
+      "const": false
     },
     "sections": {
       "type": "array",
@@ -55,6 +56,9 @@
           }
         }
       }
+    },
+    "coverageLocked": {
+      "const": true
     }
   }
 }

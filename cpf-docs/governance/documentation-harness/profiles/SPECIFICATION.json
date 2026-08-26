@@ -1,12 +1,12 @@
 {
-  "schemaVersion": "1.1",
-  "harnessVersion": "1.3.0",
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
   "documentId": "SPECIFICATION",
   "title": "CPF Specification 기술 명세",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
-  "structureLocked": true,
-  "h1OrderLocked": true,
+  "structureLocked": false,
+  "h1OrderLocked": false,
   "additionalH1": false,
   "tocRequired": true,
   "primaryPersona": [
@@ -19,12 +19,13 @@
   "exitCondition": "Public 계약·입출력·실패·Consumer·호환성을 정확히 찾는다.",
   "orientation": "landscape",
   "globalRules": {
-    "allH1MustAppearExactlyOnce": true,
-    "allRequiredH2MustAppearExactlyOnce": true,
-    "renamingHeadings": "forbidden",
-    "reorderingHeadings": "forbidden",
-    "extraSections": "forbidden without user-authorized harness revision",
-    "contentDensityRef": "content-density.json"
+    "allH1MustAppearExactlyOnce": false,
+    "allRequiredH2MustAppearExactlyOnce": false,
+    "renamingHeadings": "semantic meaning locked; concise wording allowed",
+    "reorderingHeadings": "allowed when reader flow improves; preserve approved order unless Finding requires change",
+    "extraSections": "forbidden unless coverage gap requires it",
+    "contentDensityRef": "content-density.json",
+    "coverageMustRemain": true
   },
   "sections": [
     {
@@ -45,7 +46,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "거래 Identity 계약",
@@ -65,7 +67,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Result·Error 계약",
@@ -85,7 +88,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Framework Common·Persistence 계약",
@@ -104,7 +108,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Transaction·Idempotency·Reconcile 계약",
@@ -125,7 +130,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Domain·External Integration 계약",
@@ -145,7 +151,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Messaging·Notification·Cache·File 계약",
@@ -165,7 +172,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Security·Approval·Audit 계약",
@@ -183,7 +191,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Batch·Gateway 계약",
@@ -202,7 +211,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "DB·Runtime·Platform State 계약",
@@ -222,7 +232,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Operations·OpenAPI·Public API",
@@ -242,7 +253,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "State·Compatibility·Acceptance",
@@ -263,7 +275,19 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     }
-  ]
+  ],
+  "coverageLocked": true,
+  "compositionPolicy": {
+    "mode": "OUTCOME_LOCKED_LAYOUT_FLEXIBLE",
+    "defaultChange": "PATCH_FIRST",
+    "preserveApprovedLayout": true,
+    "sectionsAre": "coverage blueprints, not mandatory page boxes",
+    "mergeAdjacentSectionsAllowed": true,
+    "splitSectionAllowed": "only when scanability improves and total density does not increase",
+    "headingText": "may be shortened for readability without changing meaning",
+    "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
+  }
 }

@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference='Stop'
+$ErrorActionPreference='Stop'
 $Root=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 
 function Fail([string]$Message){
@@ -14,13 +14,13 @@ function Load-Json([string]$Relative){
 function As-Array($Value){ return @($Value) }
 
 $h=Load-Json 'harness.json'
-if($h.version -ne '1.3.0'){ Fail 'version' }
+if($h.version -ne '2.0.0'){ Fail 'version' }
 if($h.locked -ne $true -or $h.changeAuthority -ne 'USER_EXPLICIT_REQUEST_ONLY'){ Fail 'change authority' }
 if($h.changePolicy.autoModify -ne $false){ Fail 'auto modify' }
 
 foreach($f in @('design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json')){
     $d=Load-Json $f
-    if($d.harnessVersion -ne '1.3.0'){ Fail("version " + $f) }
+    if($d.harnessVersion -ne '2.0.0'){ Fail("version " + $f) }
 }
 
 $D=Load-Json 'design-tokens.json'
@@ -83,6 +83,7 @@ foreach($a in $arts){
     try { $pr=Get-Content -LiteralPath $profilePath -Raw -Encoding UTF8 | ConvertFrom-Json }
     catch { Fail("profile json " + [string]$a.profile + ': ' + $_.Exception.Message) }
     if($pr.documentId -ne $a.id -or $pr.changeAuthority -ne 'USER_EXPLICIT_REQUEST_ONLY'){ Fail("profile " + [string]$a.profile) }
+    if($pr.structureLocked -ne $false -or $pr.coverageLocked -ne $true){ Fail("profile flexibility " + [string]$a.profile) }
     if($pr.additionalH1 -ne $false){ Fail("extra h1 " + [string]$a.profile) }
     if($a.id -eq 'README'){
         if($pr.tocRequired -ne $false){ Fail 'README profile TOC' }
@@ -104,7 +105,7 @@ foreach($a in $arts){
         if($pr.specialRules.incrementalImprovement.default -ne 'PATCH_FIRST'){ Fail 'README incremental policy' }
         if($pr.specialRules.formatLinks.crossTarget -ne 'hard_fail'){ Fail 'README format links' }
 
-        if(@($pr.sections).Count -ne 10){ Fail 'README section count v1.2' }
+        if(@($pr.sections).Count -lt 6){ Fail 'README coverage section minimum' }
         Require-LicenseSha $pr.specialRules.license.exactSentence 'license README profile'
         $licenseSections=@($pr.sections | Where-Object { @($_.requiredH2).Count -eq 1 -and (Get-Utf8Sha256Text ([string]$_.requiredH2[0])) -eq $LicenseExpectedSha })
         if($licenseSections.Count -ne 1){ Fail('license README H2 expected=' + $LicenseExpectedSha + ' matches=' + $licenseSections.Count) }
@@ -120,7 +121,7 @@ foreach($a in $arts){
 }
 
 
-# v1.3.0 geometry / balance / incremental / link / content-rail gates
+# v2.0.0 geometry / balance / incremental / link / content-rail gates
 if([int]$D.figures.node_inner_padding_px_min -lt 24){ Fail 'figure inner padding' }
 if([int]$D.figures.label_to_label_gap_px_min -lt 24){ Fail 'figure label gap' }
 if([int]$D.figures.node_to_node_gap_px_min -lt 28){ Fail 'figure node gap' }
@@ -161,6 +162,28 @@ foreach($prop in $lock.files.PSObject.Properties){
     if(-not (Test-Path -LiteralPath $p -PathType Leaf)){ Fail("lock missing " + $rel) }
     $actual=(Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash.ToLowerInvariant()
     if($actual -ne $expected){ Fail("lock mismatch " + $rel + ' expected=' + $expected + ' actual=' + $actual) }
+}
+
+
+# v2 executable design / quality acceptance gates
+foreach($f in @('component-system.json','quality-acceptance.json','golden-reference.json','GOLDEN_REFERENCE_STANDARD.md','templates\ARTIFACT_REVIEW.template.json')){
+    if(-not (Test-Path -LiteralPath (Join-Path $Root $f) -PathType Leaf)){ Fail('v2 missing '+$f) }
+}
+$QA=Load-Json 'quality-acceptance.json'
+if($QA.automatedPassIsQualityPass -ne $false){ Fail 'automated pass quality separation' }
+$be=@($QA.baselineEligibility)
+if($be.Count -ne 2 -or $be -notcontains 'USER_APPROVED' -or $be -notcontains 'VISUAL_QA_APPROVED'){ Fail 'baseline approval states' }
+if([int]$QA.manualVisualScore.minimumEach -lt 4 -or [double]$QA.manualVisualScore.minimumAverage -lt 4.4){ Fail 'manual visual score threshold' }
+$CS=Load-Json 'component-system.json'
+foreach($id in @('H1_SECTION','H2_SUBSECTION','BODY_BLOCK','BULLET_GROUP','FIGURE_BLOCK','FIGURE_EXPLANATION','DECISION_TABLE','DOCUMENT_LINK_ROW')){
+    if($null -eq $CS.components.PSObject.Properties[$id]){ Fail('component '+$id) }
+}
+if($h.changePolicy.artifactEvolutionPolicy.freshRewriteDefault -ne 'FORBIDDEN'){ Fail 'fresh rewrite default' }
+if($h.changePolicy.artifactEvolutionPolicy.automatedPassOnlyIsBaseline -ne $false){ Fail 'automated baseline' }
+foreach($prPath in (Get-ChildItem -LiteralPath (Join-Path $Root 'profiles') -Filter '*.json' -File)){
+  $px=Get-Content -LiteralPath $prPath.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+  if($px.structureLocked -ne $false -or $px.coverageLocked -ne $true){ Fail('profile outcome-flex '+$prPath.Name) }
+  if($px.compositionPolicy.mode -ne 'OUTCOME_LOCKED_LAYOUT_FLEXIBLE'){ Fail('profile composition '+$prPath.Name) }
 }
 
 $profiles=(Get-ChildItem -LiteralPath (Join-Path $Root 'profiles') -Filter '*.json' -File).Count

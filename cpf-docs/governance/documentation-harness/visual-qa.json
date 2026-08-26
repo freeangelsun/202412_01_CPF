@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "1.3.0",
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -80,7 +80,11 @@
     "boxArrowVisualMonoculture": 0,
     "figureTextCanvasEdgeCollision": 0,
     "visualGrammarConceptMismatch": 0,
-    "figureExplanationCloserToNextSection": 0
+    "figureExplanationCloserToNextSection": 0,
+    "automatedPassAcceptedAsFinalQuality": 0,
+    "approvedBlockRegeneratedWithoutImpact": 0,
+    "visualRegressionAgainstApprovedBaseline": 0,
+    "freshRewriteWithoutApprovedException": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -214,5 +218,11 @@
     "complexSectionRepresentation": "복잡한 거래/호출/운영 설명은 표/비교/Flow/State/Figure 중 이해를 빠르게 하는 표현과 1~2문장 설명을 조합",
     "sameDensityTextBlocksInSeries": "review_or_fail",
     "visualAndTextMustComplement": true
-  }
+  },
+  "acceptanceModelRef": "quality-acceptance.json",
+  "goldenReferenceRef": "golden-reference.json",
+  "manualScoreRequired": true,
+  "minimumEachDimension": 4,
+  "minimumAverage": 4.4,
+  "automatedPassDoesNotImplyVisualPass": true
 }

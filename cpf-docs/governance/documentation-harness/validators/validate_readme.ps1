@@ -1,4 +1,4 @@
-﻿param([string]$Readme = 'README.md')
+param([string]$Readme = 'README.md')
 $ErrorActionPreference='Stop'
 function Fail([string]$m){ Write-Host ('README=FAIL '+$m); exit 1 }
 if(-not (Test-Path -LiteralPath $Readme -PathType Leaf)){ Fail('missing '+$Readme) }

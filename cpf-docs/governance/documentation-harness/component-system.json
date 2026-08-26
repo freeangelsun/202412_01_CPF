@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
+  "locked": true,
+  "purpose": "작성자 해석 편차를 줄이기 위해 공식 문서를 재사용 가능한 Layout Component로 조립한다.",
+  "defaultAssembly": "PATCH_EXISTING_COMPONENTS_FIRST",
+  "components": {
+    "DOCUMENT_TITLE": {
+      "role": "document title",
+      "leftRail": "page",
+      "spaceBeforePt": 0,
+      "spaceAfterPt": 12,
+      "keepWithNext": true
+    },
+    "H1_SECTION": {
+      "role": "major section",
+      "leftRail": "page",
+      "spaceBeforeToken": "paragraph.h1_space_before_pt",
+      "spaceAfterToken": "paragraph.h1_space_after_pt",
+      "keepWithNext": true
+    },
+    "H2_SUBSECTION": {
+      "role": "subsection",
+      "leftRail": "page",
+      "spaceBeforeToken": "paragraph.h2_space_before_pt",
+      "spaceAfterToken": "paragraph.h2_space_after_pt",
+      "keepWithNext": true
+    },
+    "H3_TOPIC": {
+      "role": "small topic",
+      "leftRail": "page",
+      "spaceBeforeToken": "paragraph.h3_space_before_pt",
+      "spaceAfterToken": "paragraph.h3_space_after_pt",
+      "keepWithNext": true
+    },
+    "BODY_BLOCK": {
+      "role": "body",
+      "leftRail": "subheading-content",
+      "indentToken": "indentation.subheading_content_indent_mm",
+      "maxParagraphsPreferred": 2
+    },
+    "BULLET_GROUP": {
+      "role": "key points",
+      "leftRail": "subheading-content",
+      "marker": "•",
+      "maxItemsPreferred": 5,
+      "useWhen": "분해했을 때 스캔 속도가 개선되는 핵심/선택/주의/복구"
+    },
+    "NUMBERED_STEPS": {
+      "role": "ordered procedure",
+      "leftRail": "subheading-content",
+      "marker": "1) 2) 3)",
+      "maxItemsPreferred": 6
+    },
+    "FIGURE_BLOCK": {
+      "role": "visual explanation",
+      "leftRail": "contextual",
+      "children": [
+        "FIGURE_TITLE",
+        "FIGURE_CANVAS",
+        "FIGURE_EXPLANATION"
+      ],
+      "keepTogetherPreferred": true,
+      "explanationOwnership": "same visual block"
+    },
+    "FIGURE_EXPLANATION": {
+      "role": "figure takeaway",
+      "leftRail": "subheading-content",
+      "maxSentences": 2,
+      "maxChars": 120,
+      "spaceAfterFigurePtMax": 4
+    },
+    "DECISION_TABLE": {
+      "role": "selection/comparison",
+      "leftRail": "contextual",
+      "maxColumnsPortrait": 4,
+      "maxColumnsLandscape": 5,
+      "purposeRequired": true
+    },
+    "CALLOUT_NOTE": {
+      "role": "note",
+      "leftRail": "subheading-content",
+      "maxSentencesPreferred": 3
+    },
+    "CALLOUT_WARNING": {
+      "role": "warning/forbidden",
+      "leftRail": "subheading-content",
+      "maxSentencesPreferred": 3
+    },
+    "CODE_EXAMPLE": {
+      "role": "minimal executable hint",
+      "leftRail": "subheading-content",
+      "preferredLines": [
+        1,
+        5
+      ],
+      "fullFileCopy": "forbidden"
+    },
+    "DOCUMENT_LINK_ROW": {
+      "role": "manual navigation",
+      "format": "문서명 — [PDF] [DOCX] — 한 줄 목적",
+      "targetSignatureCheck": true
+    },
+    "SOURCE_RAIL": {
+      "role": "source navigation",
+      "leftRail": "subheading-content",
+      "maxLines": 2,
+      "exactPathRequired": true
+    }
+  },
+  "compositionRules": [
+    "제목과 첫 내용은 같은 시각 블록으로 읽혀야 한다.",
+    "같은 H2/H3의 BODY/BULLET/CALLOUT/FIGURE_EXPLANATION은 같은 Content Rail을 사용한다.",
+    "Full-width Figure/Table 이후 다음 본문은 즉시 Content Rail로 복귀한다.",
+    "컴포넌트 사이 여백은 빈 문단이 아니라 Token으로 구현한다.",
+    "기존 승인 Component는 Finding 영향이 없으면 재생성하지 않는다."
+  ],
+  "generatorRule": "문서 생성/보정 스크립트는 이 Component ID를 내부적으로 매핑한다. 임의 Style 숫자를 문서마다 새로 만들지 않는다."
+}

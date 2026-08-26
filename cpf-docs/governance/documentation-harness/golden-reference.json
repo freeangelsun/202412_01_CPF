@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
+  "locked": true,
+  "states": [
+    "USER_APPROVED",
+    "VISUAL_QA_APPROVED",
+    "SUPERSEDED"
+  ],
+  "entries": [],
+  "emptyRegistryPolicy": "허용. 승인 Reference가 아직 없으면 현재 문서의 좋은 영역을 보존하고 전면 재작성 금지를 유지한다. 첫 승인 결과부터 등록한다.",
+  "requiredEvidenceFields": [
+    "artifact",
+    "pageOrBlock",
+    "state",
+    "approvedAt",
+    "approvedBy",
+    "reason",
+    "renderRefOrHash",
+    "qualityScores"
+  ]
+}

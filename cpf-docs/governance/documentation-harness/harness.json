@@ -1,7 +1,7 @@
 {
-  "schemaVersion": "1.0",
-  "version": "1.3.0",
-  "title": "CPF 공식 산출물 작성 하네스",
+  "schemaVersion": "2.0",
+  "version": "2.0.0",
+  "title": "CPF 공식 산출물 실행형 디자인·품질 하네스",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "changePolicy": {
@@ -15,28 +15,37 @@
     "documentationFeedbackIsHarnessChangeRequest": true,
     "feedbackRule": "사용자가 README/DOCX/PDF의 품질·구조·가독성·내용 우선순위를 직접 지적하면 해당 지적은 Harness 보완 승인으로 간주한다. 산출물만 임시 수정하지 않는다.",
     "harnessFirstWorkflow": [
-      "현재 공식 산출물과 최근 PASS 요소를 기준선으로 고정",
-      "사용자 Documentation Steering/지적 수집",
-      "Harness 공통/대상 Profile 반영",
+      "현재 현행 Harness와 직전 산출물 Inventory 확인",
+      "USER_APPROVED/VISUAL_QA_APPROVED 영역과 REJECTED/AUTOMATED_PASS_ONLY 영역 구분",
+      "사용자 Documentation Steering/지적을 Harness 공통/대상 Profile에 먼저 반영",
       "Harness Validator PASS",
-      "영향받은 구간만 PATCH_FIRST로 보정하고 기존 PASS 요소를 보존",
-      "변경 전/후 시각·링크·내용 회귀 비교",
-      "최종 렌더에서 새 Finding 발견 시 Harness부터 재보완 후 영향 구간만 다시 보정"
+      "Finding 영향 범위만 PATCH_FIRST로 보정; 승인 영역 보존",
+      "Component System으로 spacing/rail/figure/table/link 구성",
+      "실제 Render 전페이지 기술 QA",
+      "Manual Visual Score + Before/After Regression QA",
+      "새 Finding이면 Harness 원인을 보완하고 해당 영향 범위만 재Patch"
     ],
     "artifactEvolutionPolicy": {
       "defaultMode": "PATCH_FIRST",
-      "baseline": "직전 공식 PASS 산출물",
-      "preservePassedSections": true,
-      "preservePassedVisuals": true,
+      "freshRewriteDefault": "FORBIDDEN",
+      "approvedBaselineStates": [
+        "USER_APPROVED",
+        "VISUAL_QA_APPROVED"
+      ],
+      "automatedPassOnlyIsBaseline": false,
+      "preserveApprovedSections": true,
+      "preserveApprovedVisuals": true,
+      "preserveUnaffectedContent": true,
       "unrelatedRewrite": "forbidden",
       "regressionComparisonRequired": true,
       "fullRegenerationAllowedOnlyWhen": [
         "사용자가 전체 재작성/재디자인을 명시적으로 요청",
-        "파일 구조 손상으로 부분 보정이 안전하지 않음",
-        "Canonical Architecture/Profile 변경이 문서 전체 구조를 무효화",
-        "생성기 정본 구조상 부분 보정이 불가능하고 그 사유가 Evidence에 기록됨"
+        "파일 구조가 손상되어 부분 보정이 기술적으로 불가능",
+        "Canonical Architecture 또는 Artifact Profile의 핵심 Outcome이 전체 구조를 무효화",
+        "공식 생성 도구가 부분 Patch를 지원하지 않아 재생성이 불가피하며, 기존 승인 Block을 동일하게 재현하는 Regression Evidence가 있음"
       ],
-      "rule": "좋아진 요소를 다시 바꾸지 않는다. 새 Finding은 원인과 영향 범위를 좁혀 보정하고, 관계없는 페이지/그림/문장은 유지한다."
+      "fullRegenerationRequires": "사유+영향범위+보존대상+Before/After 회귀 계획을 Evidence에 기록",
+      "rule": "항상 먼저 보완 수정한다. 새로 만드는 것은 예외다. 한 곳을 고치다가 잘 되어 있던 다른 곳이 바뀌면 회귀로 FAIL한다."
     }
   },
   "sessionStartOrder": [
@@ -108,20 +117,27 @@
       "README 다크 배경 위에 경계가 묻히는 다크톤 Visual을 반복 배치하는 것",
       "내용 종류와 무관하게 모든 Visual을 동일한 둥근 네모+화살표 문법으로 그리는 것",
       "Figure 설명을 어느 그림에 속하는지 모호한 거리/위치에 배치하는 것",
-      "Text/Label이 Figure 외곽 safe area 또는 Shape 경계를 침범하는 것"
+      "Text/Label이 Figure 외곽 safe area 또는 Shape 경계를 침범하는 것",
+      "AUTOMATED_PASS_ONLY 결과를 품질 승인본으로 간주",
+      "Golden Reference 또는 승인 영역보다 시각 품질이 낮아지는 변경",
+      "기존 승인 Component를 Finding 영향 없이 재생성",
+      "문서마다 spacing/indent/font 값을 임의로 새로 정의",
+      "자동 Validator PASS만으로 최종 품질 PASS 선언"
     ]
   },
   "completionGate": {
     "required": [
-      "SEMANTIC_PASS",
+      "HARNESS_SCHEMA_PASS",
+      "ARTIFACT_STRUCTURE_PASS",
+      "RENDER_TECHNICAL_PASS",
+      "HUMAN_VISUAL_PASS",
+      "REGRESSION_PASS",
+      "CLICK_THROUGH_PASS",
       "SOURCE_IDENTITY_PASS",
-      "CROSS_DOCUMENT_PASS",
-      "VISUAL_PASS",
+      "SEMANTIC_PASS",
       "ACCESSIBILITY_PASS",
       "PDF_PREFLIGHT_PASS",
-      "LINK_PASS",
-      "UNICODE_NFC_PASS",
-      "PACKAGE_INTEGRITY_PASS"
+      "PACKAGE_REPLAY_PASS"
     ],
     "allRequired": true,
     "partialPass": "forbidden",
@@ -142,7 +158,12 @@
     "content-density.json",
     "readme-value-inventory.json",
     "document-output-rules.json",
-    "HARNESS_LOCK.json"
+    "HARNESS_LOCK.json",
+    "component-system.json",
+    "quality-acceptance.json",
+    "GOLDEN_REFERENCE_STANDARD.md",
+    "golden-reference.json",
+    "templates/ARTIFACT_REVIEW.template.json"
   ],
   "qualityDoctrine": {
     "primary": "문서를 위한 문서를 만들지 않는다. 독자가 실제로 선택·개발·판단·운영하는 데 필요한 정보만 남긴다.",
@@ -161,13 +182,17 @@
     "textVisualRhythm": "복잡한 거래·호출·운영 설명을 동일 밀도의 장문 문단으로 연속 배치하지 않는다. Decision Table, Compare, Flow, State, Architecture 중 실제 이해를 빠르게 하는 표현을 선택하고 짧은 한국어 설명과 조합한다.",
     "pathBudget": "사용자 Windows Repository Root(C:\\dev\\projects\\jck\\202412_01_CPF)를 포함한 생성 파일 절대경로는 150자를 넘지 않는다.",
     "singleCurrentHarness": "Repository에는 현행 documentation-harness 한 세트만 유지한다. 과거 버전 Harness, 세션 백업, 날짜/R/REV suffix, 해제본, 임시 Validator 출력은 제품 가비지로 제거한다.",
-    "progressiveImprovement": "산출물은 직전 공식 PASS본을 기준선으로 점진 개선한다. 기본은 PATCH_FIRST이며, 영향 없는 PASS 구간과 좋은 Visual을 보존하고 변경 전/후 회귀를 비교한다.",
+    "progressiveImprovement": "산출물은 USER_APPROVED 또는 VISUAL_QA_APPROVED 영역을 기준선으로 점진 개선한다. AUTOMATED_PASS_ONLY는 보존 승인 상태가 아니다. 기본은 PATCH_FIRST이며 영향 없는 승인 구간과 좋은 Visual을 보존한다.",
     "subheadingContentRail": "README 포함 모든 공식 문서에서 H2/H3 제목은 기준 Grid에 두고, 그 아래 본문·불릿·Callout·그림 설명은 공통 Content Rail로 한 단계 안쪽 정렬한다. 제목과 첫 내용은 가까이 묶고 다음 부제목 전 여백은 더 크게 둔다.",
     "markerUse": "짧은 핵심·선택·주의·복구 포인트는 필요할 때 bullet/number marker로 구조화한다. 모든 문단에 marker를 남발하지 않는다.",
     "figureNarrativeBoundary": "각 Figure의 설명은 해당 Figure 바로 아래 같은 시각 블록에 붙이고 다음 섹션보다 Figure에 더 가깝게 둔다. 독자가 설명의 귀속을 즉시 알아야 한다.",
     "modernVisualGrammar": "Visual은 내용에 맞는 시각 문법을 선택한다. Architecture=layered planes/zones, Flow=route/timeline/sequence lanes, Recovery=state/ring/branch, Batch=control/execution planes, DB3=vendor bands+lifecyle spine 등으로 다양화하며 둥근 네모+화살표를 기본값으로 사용하지 않는다.",
     "readmeLightVisualOnDark": "README 다크 표면에서는 주요 Visual을 밝은 neutral/light-tint canvas 또는 분명한 밝은 focal surface로 분리한다. dark-on-dark 저분리 Visual은 FAIL이다.",
     "linkTargetAccuracy": "README/문서 내 [PDF] 링크는 .pdf를, [DOCX] 링크는 .docx를 직접 가리킨다. 표시 형식과 실제 Target 확장자/파일 Signature 불일치는 Hard Fail이다.",
-    "windowsValidation": "회사 Windows 환경의 정본 설치 검증은 PowerShell-only 경로를 제공한다. Python은 선택적 교차검증이며 필수 Runtime이 아니다."
+    "windowsValidation": "회사 Windows 환경의 정본 설치 검증은 PowerShell-only 경로를 제공한다. Python은 선택적 교차검증이며 필수 Runtime이 아니다.",
+    "executableDesignSystem": "문서별 임의 Style 해석을 줄이고 component-system.json의 공식 Component와 design-tokens.json을 조립해 문서를 보정한다.",
+    "approval": "AUTOMATED_PASS_ONLY는 품질 승인이 아니다. USER_APPROVED 또는 VISUAL_QA_APPROVED만 보존 기준선이다.",
+    "regression": "변경 영향 범위는 승인 기준선과 Before/After 비교하며 한 Dimension이라도 품질이 낮아지면 REGRESSION_FAIL이다.",
+    "profileFlexibility": "Profile은 반드시 답해야 하는 Coverage/Outcome을 잠근다. 화면/페이지의 정확한 H1/H2 개수 채우기가 목적이 아니며, 가독성을 위해 인접 내용을 병합·재배치할 수 있다."
   }
 }

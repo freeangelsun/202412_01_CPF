@@ -121,5 +121,15 @@
 ## 17. 링크 형식과 점진 개선
 
 - `[PDF]`는 `.pdf`, `[DOCX]`는 `.docx`를 직접 가리키고 실제 Target이 존재해야 한다. 같은 문서는 `문서명 — [PDF] [DOCX]`처럼 형식을 명확히 분리한다.
-- 산출물 개선은 직전 공식 PASS본을 기준으로 `PATCH_FIRST`로 수행한다. 새 Finding과 영향 범위만 보정하고 관계없는 PASS 영역을 전면 재작성하지 않는다.
+- 산출물 개선은 USER_APPROVED 또는 VISUAL_QA_APPROVED 영역을 기준으로 `PATCH_FIRST`로 수행한다. 새 Finding과 영향 범위만 보정하고 관계없는 PASS 영역을 전면 재작성하지 않는다.
 - 변경 전/후 렌더를 비교해 이전에 좋았던 Visual·간격·표·링크가 나빠진 회귀가 0건인지 확인한다.
+
+
+## v2 Render Acceptance
+
+- 전페이지 Render를 실제 페이지 크기로 확인한다. Contact Sheet는 탐색용이며 PASS 근거가 아니다.
+- 각 변경 페이지는 `quality-acceptance.json`의 12개 Manual Visual Dimension을 1~5점으로 평가한다.
+- 모든 항목 4 이상, 평균 4.4 이상, Critical Finding 0이어야 `HUMAN_VISUAL_PASS`다.
+- 승인 기준선이 있으면 Before/After를 동일 배율로 비교한다. 한 항목이라도 시각적으로 퇴행하면 `REGRESSION_FAIL`.
+- 새 Visual은 먼저 기존 Visual Patch 가능성을 검토한다. 교체할 때만 Visual Brief를 작성한다.
+- 문서별 임의 spacing/indent/font는 금지하고 Component System과 Design Token만 사용한다.

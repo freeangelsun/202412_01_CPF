@@ -12,12 +12,12 @@ def load(name):
     except Exception as e: fail(f'json {name}: {e}')
 
 h=load('harness.json')
-if h.get('version')!='1.3.0': fail('version')
+if h.get('version')!='2.0.0': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='1.3.0': fail(f'version {f}')
+    if d.get('harnessVersion')!='2.0.0': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
@@ -36,7 +36,7 @@ if D['paragraph'].get('h1_space_before_pt',0) < 28: fail('H1 spacing')
 if D['paragraph'].get('h2_space_before_pt',0) < 16: fail('H2 spacing')
 if D['figures'].get('low_contrast_label')!='hard_fail': fail('figure contrast')
 if D['fonts'].get('pdf_korean_font_embedding_required') is not True: fail('pdf korean font embedding')
-# v1.3.0 visual geometry / balance gates
+# v2.0.0 visual geometry / balance gates
 FG=D.get('figures',{})
 if FG.get('node_inner_padding_px_min',0) < 18: fail('figure inner padding')
 if FG.get('label_to_label_gap_px_min',0) < 20: fail('figure label gap')
@@ -110,7 +110,7 @@ for a in arts:
         if sr.get('gatewayOptionality',{}).get('internalDomainViaGateway')!='forbidden': fail('README gateway internal-domain rule')
         if sr.get('manualNavigation',{}).get('required') is not True: fail('README manual navigation profile')
         if sr.get('developerEntryBlock',{}).get('required') is not True: fail('README developer entry block')
-        if len(pr.get('sections',[]))!=10: fail('README section count v1.2')
+        if len(pr.get('sections',[]))<6: fail('README coverage section minimum')
         # Every non-license README subsection is hierarchically numbered.
         for secidx,sec in enumerate(pr.get('sections',[])[:-1],start=1):
             for h2idx,t in enumerate(sec.get('requiredH2',[]),start=1):
@@ -139,6 +139,23 @@ for rel,expected in lock.get('files',{}).items():
     p=ROOT/rel
     if not p.is_file(): fail(f'lock missing {rel}')
     if hashlib.sha256(p.read_bytes()).hexdigest()!=expected: fail(f'lock mismatch {rel}')
+# v2 executable design / acceptance gates
+for req in ["component-system.json","quality-acceptance.json","golden-reference.json","GOLDEN_REFERENCE_STANDARD.md","templates/ARTIFACT_REVIEW.template.json"]:
+    if not (ROOT/req).exists(): fail("missing v2 file "+req)
+qam=load("quality-acceptance.json")
+if qam.get("automatedPassIsQualityPass") is not False: fail("automated pass quality separation")
+if set(qam.get("baselineEligibility",[])) != {"USER_APPROVED","VISUAL_QA_APPROVED"}: fail("baseline approval states")
+cs=load("component-system.json")
+for cid in ["H1_SECTION","H2_SUBSECTION","BODY_BLOCK","BULLET_GROUP","FIGURE_BLOCK","FIGURE_EXPLANATION","DECISION_TABLE","DOCUMENT_LINK_ROW"]:
+    if cid not in cs.get("components",{}): fail("component "+cid)
+
+for p in (ROOT/'profiles').glob('*.json'):
+    pr=json.loads(p.read_text(encoding='utf-8'))
+    if pr.get('structureLocked') is not False or pr.get('coverageLocked') is not True: fail('profile outcome-flex '+p.name)
+    if pr.get('compositionPolicy',{}).get('mode')!='OUTCOME_LOCKED_LAYOUT_FLEXIBLE': fail('profile composition '+p.name)
+if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('freshRewriteDefault')!='FORBIDDEN': fail('fresh rewrite default')
+if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('automatedPassOnlyIsBaseline') is not False: fail('automated baseline')
+if qam.get('manualVisualScore',{}).get('minimumEach',0)<4 or qam.get('manualVisualScore',{}).get('minimumAverage',0)<4.4: fail('manual visual score threshold')
 print('HARNESS=PASS')
 print('VERSION='+h['version'])
 print('ARTIFACTS='+str(len(arts)))
@@ -146,3 +163,6 @@ print('COVERAGE_ITEMS='+str(len(items)))
 print('PROFILES='+str(len(list((ROOT/'profiles').glob('*.json')))))
 print('TABLE_PRESETS='+str(len(T)))
 print('FIGURE_PRESETS='+str(len(F)))
+print('QUALITY_MODEL=EXECUTABLE_DESIGN_SYSTEM')
+print('DEFAULT_EVOLUTION=PATCH_FIRST')
+print('FRESH_REWRITE_DEFAULT=FORBIDDEN')

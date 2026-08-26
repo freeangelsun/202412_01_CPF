@@ -1,12 +1,12 @@
 {
-  "schemaVersion": "1.1",
-  "harnessVersion": "1.3.0",
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
   "documentId": "TECHNICAL_SPECIFICATION",
   "title": "CPF 기술사양서",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
-  "structureLocked": true,
-  "h1OrderLocked": true,
+  "structureLocked": false,
+  "h1OrderLocked": false,
   "additionalH1": false,
   "tocRequired": true,
   "primaryPersona": [
@@ -18,12 +18,13 @@
   "exitCondition": "지원 범위와 구성·제약·검증 방법을 빠르게 확인한다.",
   "orientation": "landscape",
   "globalRules": {
-    "allH1MustAppearExactlyOnce": true,
-    "allRequiredH2MustAppearExactlyOnce": true,
-    "renamingHeadings": "forbidden",
-    "reorderingHeadings": "forbidden",
-    "extraSections": "forbidden without user-authorized harness revision",
-    "contentDensityRef": "content-density.json"
+    "allH1MustAppearExactlyOnce": false,
+    "allRequiredH2MustAppearExactlyOnce": false,
+    "renamingHeadings": "semantic meaning locked; concise wording allowed",
+    "reorderingHeadings": "allowed when reader flow improves; preserve approved order unless Finding requires change",
+    "extraSections": "forbidden unless coverage gap requires it",
+    "contentDensityRef": "content-density.json",
+    "coverageMustRemain": true
   },
   "sections": [
     {
@@ -44,7 +45,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Starter·Profile·Provider·Configuration",
@@ -65,7 +67,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Common·Persistence·Transaction",
@@ -84,7 +87,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Integration·Messaging·Notification·File",
@@ -104,7 +108,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Security·Observability",
@@ -123,7 +128,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Platform Operations·OpenAPI",
@@ -142,7 +148,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Batch·Gateway",
@@ -160,7 +167,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Database·Generator·Generated Domain",
@@ -180,7 +188,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Performance·Compatibility·Release",
@@ -201,7 +210,19 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     }
-  ]
+  ],
+  "coverageLocked": true,
+  "compositionPolicy": {
+    "mode": "OUTCOME_LOCKED_LAYOUT_FLEXIBLE",
+    "defaultChange": "PATCH_FIRST",
+    "preserveApprovedLayout": true,
+    "sectionsAre": "coverage blueprints, not mandatory page boxes",
+    "mergeAdjacentSectionsAllowed": true,
+    "splitSectionAllowed": "only when scanability improves and total density does not increase",
+    "headingText": "may be shortened for readability without changing meaning",
+    "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
+  }
 }

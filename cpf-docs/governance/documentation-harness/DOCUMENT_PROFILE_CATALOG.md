@@ -484,3 +484,8 @@
   - Code Review Gate
   - 금지 패턴
 
+
+
+## v2 Profile 해석
+
+Profile의 `sections`와 `requiredH2`는 독자가 반드시 답을 얻어야 하는 **Coverage Blueprint**다. 정확한 페이지 박스/H1/H2 수를 채우는 목표가 아니다. 직전 승인 Layout을 우선 보존하며, 중복·과밀·스캔 문제를 해결할 때 인접 항목을 병합할 수 있다. 새로운 H1을 장식/분량 목적으로 추가하는 것은 금지한다.

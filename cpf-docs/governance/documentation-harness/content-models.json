@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.1",
-  "harnessVersion": "1.3.0",
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
   "locked": true,
   "models": {
     "BROCHURE_PANEL": {
@@ -17,7 +17,14 @@
         "lead": "1~2문장, 150자 이내.",
         "detail": "핵심 2~4개 불릿 또는 짧은 문단 1개.",
         "visual": "정보를 더 빨리 이해시킬 때만. 같은 Template 반복 금지."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK",
+        "FIGURE_BLOCK",
+        "FIGURE_EXPLANATION"
+      ]
     },
     "DEVELOPER_CAPABILITY_CHAPTER": {
       "sequence": [
@@ -33,7 +40,14 @@
         "example": "3~8줄을 기본.",
         "failure": "최대 3개 불릿.",
         "source": "1줄 exact path."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK",
+        "BULLET_GROUP",
+        "DECISION_TABLE"
+      ]
     },
     "OPERATOR_RUNBOOK_CHAPTER": {
       "sequence": [
@@ -47,7 +61,14 @@
         "check_and_judge": "최대 4개 불릿 또는 RUNBOOK 4열 표.",
         "action": "최대 4단계.",
         "completion": "1~2개 불릿."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK",
+        "BULLET_GROUP",
+        "DECISION_TABLE"
+      ]
     },
     "ARCHITECTURE_CHAPTER": {
       "sequence": [
@@ -61,7 +82,14 @@
         "responsibility_boundary": "2~4개 불릿.",
         "figure": "Module/Owner/Boundary/Flow를 실제로 보여줄 때만.",
         "decision": "최대 4열 표 또는 4개 불릿."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK",
+        "FIGURE_BLOCK",
+        "FIGURE_EXPLANATION"
+      ]
     },
     "SPEC_CONTRACT_CHAPTER": {
       "sequence": [
@@ -74,7 +102,14 @@
         "definition": "1~2문장.",
         "compact_contract": "API/Contract 상세는 compact table. 긴 prose 금지.",
         "source": "exact identifier/path."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK",
+        "BULLET_GROUP",
+        "DECISION_TABLE"
+      ]
     },
     "STANDARD_RULE_CHAPTER": {
       "sequence": [
@@ -88,7 +123,12 @@
         "rule_summary": "필수/금지 중심. 권장/허용은 필요한 경우만.",
         "examples": "각 1개.",
         "verification": "최대 3개 불릿."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK"
+      ]
     },
     "TECH_SPEC_CHAPTER": {
       "sequence": [
@@ -100,7 +140,14 @@
       "rules": {
         "supported_scope": "Source에서 확인되는 값만.",
         "verification": "최대 3개 확인 지점."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK",
+        "BULLET_GROUP",
+        "DECISION_TABLE"
+      ]
     },
     "DB_STANDARD_CHAPTER": {
       "sequence": [
@@ -113,7 +160,14 @@
       "rules": {
         "vendor_order": "Oracle → PostgreSQL → MariaDB.",
         "db_lifecycle": "DDL만 설명 금지. 실제 영향 있는 단계만 짧게."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK",
+        "BULLET_GROUP",
+        "DECISION_TABLE"
+      ]
     },
     "DOCUMENT_INDEX_CHAPTER": {
       "sequence": [
@@ -124,7 +178,17 @@
       ],
       "rules": {
         "goal": "30초 안에 열 문서를 판단. 단순 파일 목록 금지."
-      }
+      },
+      "componentBindings": [
+        "H1_SECTION",
+        "H2_SUBSECTION",
+        "BODY_BLOCK"
+      ]
     }
+  },
+  "assemblyPolicy": {
+    "default": "PATCH_EXISTING_BLOCKS",
+    "componentSystemRef": "component-system.json",
+    "newBlockAllowedWhen": "기존 Block으로 사용자의 질문/품질 요구를 충족할 수 없을 때만"
   }
 }

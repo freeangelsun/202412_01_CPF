@@ -1,12 +1,12 @@
 {
-  "schemaVersion": "1.1",
-  "harnessVersion": "1.3.0",
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.0.0",
   "documentId": "ARCHITECTURE_DESIGN",
   "title": "CPF 아키텍처설계서",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
-  "structureLocked": true,
-  "h1OrderLocked": true,
+  "structureLocked": false,
+  "h1OrderLocked": false,
   "additionalH1": false,
   "tocRequired": true,
   "primaryPersona": [
@@ -18,12 +18,13 @@
   "exitCondition": "Owner·Boundary·Dependency·Failure Domain과 Topology 선택을 판단한다.",
   "orientation": "landscape",
   "globalRules": {
-    "allH1MustAppearExactlyOnce": true,
-    "allRequiredH2MustAppearExactlyOnce": true,
-    "renamingHeadings": "forbidden",
-    "reorderingHeadings": "forbidden",
-    "extraSections": "forbidden without user-authorized harness revision",
-    "contentDensityRef": "content-density.json"
+    "allH1MustAppearExactlyOnce": false,
+    "allRequiredH2MustAppearExactlyOnce": false,
+    "renamingHeadings": "semantic meaning locked; concise wording allowed",
+    "reorderingHeadings": "allowed when reader flow improves; preserve approved order unless Finding requires change",
+    "extraSections": "forbidden unless coverage gap requires it",
+    "contentDensityRef": "content-density.json",
+    "coverageMustRemain": true
   },
   "sections": [
     {
@@ -43,7 +44,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "CPF 전체 Architecture Map",
@@ -64,7 +66,8 @@
       ],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Same JVM·Remote·Domain Invocation",
@@ -86,7 +89,8 @@
       ],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Context·Security Boundary",
@@ -105,7 +109,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Gateway·Backoffice",
@@ -126,7 +131,8 @@
       ],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Batch Architecture",
@@ -147,7 +153,8 @@
       ],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Persistence·DB Ownership",
@@ -167,7 +174,8 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Observability·Multi-instance·HA",
@@ -186,7 +194,8 @@
       ],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     },
     {
       "title": "Deployment·금지 패턴·Decision",
@@ -205,7 +214,19 @@
       "figures": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": []
+      "acceptance": [],
+      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
     }
-  ]
+  ],
+  "coverageLocked": true,
+  "compositionPolicy": {
+    "mode": "OUTCOME_LOCKED_LAYOUT_FLEXIBLE",
+    "defaultChange": "PATCH_FIRST",
+    "preserveApprovedLayout": true,
+    "sectionsAre": "coverage blueprints, not mandatory page boxes",
+    "mergeAdjacentSectionsAllowed": true,
+    "splitSectionAllowed": "only when scanability improves and total density does not increase",
+    "headingText": "may be shortened for readability without changing meaning",
+    "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
+  }
 }

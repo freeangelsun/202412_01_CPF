@@ -1,4 +1,19 @@
-# CPF 공식 산출물 작성 하네스 v1.3.0
+# CPF Documentation Harness v2.0.0
+
+## 0. v2 핵심 철학 — 새로 만드는 Harness가 아니라 개선하는 Harness
+
+1. 기본 동작은 **PATCH_FIRST**다.
+2. 전체 Fresh Rewrite는 예외이며 반드시 사유와 영향 범위를 기록한다.
+3. 보존 기준선은 `USER_APPROVED` 또는 `VISUAL_QA_APPROVED`다. `AUTOMATED_PASS_ONLY`는 품질 승인으로 간주하지 않는다.
+4. 승인된 제목·본문·표·그림·Link·Layout은 Finding 영향이 없으면 재생성하지 않는다.
+5. 한 항목을 고친 뒤 관계없는 승인 영역이 바뀌면 **REGRESSION_FAIL**이다.
+6. 모든 문서는 `component-system.json` Component + `design-tokens.json` Token으로 구성한다.
+7. `HARNESS_SCHEMA_PASS`와 `HUMAN_VISUAL_PASS`는 다른 Gate다. 자동 PASS만으로 완료를 선언하지 않는다.
+8. Golden Reference가 있으면 승인본보다 낮은 품질을 허용하지 않는다.
+9. Profile은 Coverage/Outcome을 잠그며 정확한 H1/H2 개수를 채우는 것이 목표가 아니다. 가독성을 위해 인접 내용을 병합할 수 있다.
+10. 새 Finding은 Harness 원인을 먼저 보완한 뒤 **해당 영향 범위만** 다시 Patch한다.
+
+---
 
 ## 1. 목적과 변경 권한
 
@@ -76,19 +91,19 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - PDF는 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 통과해야 한다.
 
 
-## v1.2.5 시각 균형 원칙
+## v2.0.0 시각 균형 원칙
 
 - 모든 문서와 Figure는 내용의 정확성뿐 아니라 시각적 균형을 품질 Gate로 관리한다.
 - Figure 글자 겹침·잘림·깨짐·낮은 대비·Connector 충돌·Group Title/Child Label 겹침은 0건이어야 한다.
 - Node 내부 여백, Label/Node 간격, Connector clearance를 정량 기준으로 관리한다.
 - 병렬 데이터 Label은 동일 baseline·크기·간격으로 배치하고, 그룹 제목과 별도 영역으로 분리한다.
 - 모든 페이지에서 좌우/상하 정보 밀도·whitespace·강조의 무게를 확인한다. 한쪽 과밀/한쪽 과공백을 최종본으로 승인하지 않는다.
-- 시각 결함을 발견하면 해당 그림 하나만 임시 수정하지 않고 공통 원인이면 Harness Token/Visual Rule을 먼저 보완하고 영향 문서를 재생성한다.
+- 시각 결함을 발견하면 해당 그림 하나만 임시 수정하지 않고 공통 원인이면 Harness Token/Visual Rule을 먼저 보완하고 영향받은 Block/페이지/링크만 Patch하고 필요한 경우 해당 파일만 재export한다.
 
 
-## v1.3.0 점진 개선·링크·Visual Grammar 원칙
+## v2.0.0 점진 개선·링크·Visual Grammar 원칙
 
-- 기본 작업 방식은 `PATCH_FIRST`다. 직전 공식 PASS 산출물을 기준선으로 삼고 지적받은 영역과 실제 영향 범위만 보정한다.
+- 기본 작업 방식은 `PATCH_FIRST`다. USER_APPROVED 또는 VISUAL_QA_APPROVED 영역을 기준선으로 삼고 지적받은 영역과 실제 영향 범위만 보정한다. AUTOMATED_PASS_ONLY는 품질 승인으로 승계하지 않는다.
 - 관계없는 PASS 페이지·문장·Visual은 유지한다. 전체 재작성/재디자인은 사용자의 명시 요청, 구조 손상, Canonical 전체 구조 변경 등 Harness가 허용한 경우만 수행한다.
 - 변경 전/후를 비교해 좋아진 요소가 나빠지는 시각·내용 회귀가 0건인지 확인한다.
 - H2/H3와 첫 내용은 가까이 묶고 하위 내용은 공통 Content Rail로 들여쓴다. 짧은 핵심/선택/주의/복구는 필요한 경우 marker를 사용한다.

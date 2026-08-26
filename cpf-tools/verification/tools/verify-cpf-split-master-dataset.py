@@ -178,14 +178,34 @@ def verify(
         working_tree_clean: bool | None = None
         source_mode = PROVENANCE_SOURCE_MODE
     else:
-        head = git(root, "rev-parse", "HEAD")
-        if expected_sha and head != expected_sha:
-            raise GateError(f"HEAD mismatch expected={expected_sha} actual={head}")
-        status = git(root, "status", "--porcelain")
-        if require_clean and status:
-            raise GateError("working tree is not clean")
-        working_tree_clean = not bool(status)
-        source_mode = "local-git-worktree"
+        if (root / ".git").exists():
+            head = git(root, "rev-parse", "HEAD")
+            if expected_sha and head != expected_sha:
+                raise GateError(f"HEAD mismatch expected={expected_sha} actual={head}")
+            status = git(root, "status", "--porcelain")
+            if require_clean and status:
+                raise GateError("working tree is not clean")
+            working_tree_clean = not bool(status)
+            source_mode = "local-git-worktree"
+        else:
+            if require_clean:
+                raise GateError("--require-clean requires a Git working tree")
+            # User-provided Local Working Tree ZIP is a first-class Source Identity.
+            # This verifier validates the split datasets by byte/hash metadata and cross-links;
+            # Git provenance must not be fabricated when the authoritative source has no .git.
+            source_state = root / "cpf-tools/verification/tools/cpf-source-state.py"
+            identity = hashlib.sha256()
+            for relative, _, _ in INDEXES.values():
+                path = root / relative
+                identity.update(relative.encode("utf-8"))
+                identity.update(b"\0")
+                identity.update(path.read_bytes())
+                identity.update(b"\0")
+            head = "local-zip-index-sha256:" + identity.hexdigest()
+            if expected_sha and expected_sha != head:
+                raise GateError(f"local ZIP identity mismatch expected={expected_sha} actual={head}")
+            working_tree_clean = None
+            source_mode = "local-working-tree-zip"
         provenance_result = None
 
     result: dict[str, object] = {

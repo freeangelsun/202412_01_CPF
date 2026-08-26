@@ -19,6 +19,6 @@ public record BatRetentionPolicyDefinition(
         if (maxRowsPerRun < 1) throw new IllegalArgumentException("maxRowsPerRun은 1 이상이어야 합니다.");
         if (maxRuntimeSeconds < 1 || maxRuntimeSeconds > 86_400) throw new IllegalArgumentException("maxRuntimeSeconds 범위 오류");
         if (leaseSeconds < 5 || leaseSeconds > 3_600) throw new IllegalArgumentException("leaseSeconds 범위 오류");
-        policyId = policyId.trim().toUpperCase(); target = target.trim().toUpperCase(); action = action.trim().toUpperCase();
+        policyId = policyId.trim().toUpperCase(java.util.Locale.ROOT); target = target.trim().toUpperCase(java.util.Locale.ROOT); action = action.trim().toUpperCase(java.util.Locale.ROOT);
     }
 }

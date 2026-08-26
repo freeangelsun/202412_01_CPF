@@ -1,3 +1,2 @@
 -- CPF_LOGICAL_DATABASE=mbwDB
-USE mbwDB;
 ALTER TABLE MBW_PERMISSION DROP INDEX uk_mbw_permission_scope;

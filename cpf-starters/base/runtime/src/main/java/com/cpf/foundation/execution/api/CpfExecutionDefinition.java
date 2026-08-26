@@ -35,7 +35,7 @@ public record CpfExecutionDefinition(
         httpMethod = httpMethod == null ? "" : httpMethod;
         description = description == null ? "" : description;
         requiredPermission = requiredPermission == null ? "" : requiredPermission;
-        visibility = visibility == null || visibility.isBlank() ? "INTERNAL" : visibility.trim().toUpperCase();
+        visibility = visibility == null || visibility.isBlank() ? "INTERNAL" : visibility.trim().toUpperCase(java.util.Locale.ROOT);
         discoveredAt = discoveredAt == null ? Instant.now() : discoveredAt;
     }
 

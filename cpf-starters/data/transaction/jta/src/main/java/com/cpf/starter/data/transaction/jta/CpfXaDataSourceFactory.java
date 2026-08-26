@@ -12,7 +12,7 @@ public final class CpfXaDataSourceFactory {
             "mariadb", "org.mariadb.jdbc.MariaDbDataSource");
     public XADataSource create(String vendor, String url, String user, char[] password) {
         try {
-            String className = TYPES.get(vendor == null ? "" : vendor.toLowerCase());
+            String className = TYPES.get(vendor == null ? "" : vendor.toLowerCase(java.util.Locale.ROOT));
             if (className == null) throw new IllegalArgumentException("Unsupported XA vendor: " + vendor);
             Object candidate = Class.forName(className).getConstructor().newInstance();
             if (!(candidate instanceof XADataSource xa)) throw new IllegalStateException(className + " does not implement XADataSource");

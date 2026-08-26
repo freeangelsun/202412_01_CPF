@@ -274,7 +274,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         for (String name : names) {
             Object value = row.get(name);
             if (value == null) {
-                value = row.get(name.toLowerCase());
+                value = row.get(name.toLowerCase(java.util.Locale.ROOT));
             }
             if (value != null && CpfStrings.hasText(String.valueOf(value))) {
                 return String.valueOf(value);

@@ -86,7 +86,7 @@ public final class CenterCutRuntimeStateProvider implements RuntimeStateProvider
                         valid ? "UP" : "INVALID", now);
             } catch (Exception failure) {
                 probe = new Probe(false, false,
-                        failure.getClass().getSimpleName().toUpperCase(), now);
+                        failure.getClass().getSimpleName().toUpperCase(java.util.Locale.ROOT), now);
             }
             return probe;
         }

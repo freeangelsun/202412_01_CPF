@@ -506,7 +506,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                 """);
         if (hasText(criteria.get("originModuleCode"))) {
             sql.append(" HAVING MAX(CASE WHEN cpf_row_no = 1 THEN module_code END) = ?");
-            args.add(criteria.get("originModuleCode").trim().toUpperCase());
+            args.add(criteria.get("originModuleCode").trim().toUpperCase(java.util.Locale.ROOT));
         }
         sql.append(orderBy(sort));
 
@@ -691,7 +691,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
     private void appendEquals(StringBuilder sql, List<Object> args, String column, String value) {
         if (hasText(value)) {
             sql.append(" AND ").append(column).append(" = ?");
-            args.add(value.trim().toUpperCase());
+            args.add(value.trim().toUpperCase(java.util.Locale.ROOT));
         }
     }
 

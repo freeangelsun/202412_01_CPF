@@ -182,7 +182,7 @@ public final class CpfRuntimeInstanceInboxStore {
     }
 
     private String normalize(String value) {
-        String result = value == null ? "" : value.trim().toUpperCase();
+        String result = value == null ? "" : value.trim().toUpperCase(java.util.Locale.ROOT);
         return result.startsWith("ROLLBACK:") ? result.substring("ROLLBACK:".length()) : result;
     }
     private String empty(String value) { return value == null ? "" : value; }

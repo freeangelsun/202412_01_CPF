@@ -188,7 +188,7 @@ public final class AdmIntegrationClosureService {
                 Map<String, Object> safe = new LinkedHashMap<>();
                 execution.forEach((k, v) -> {
                     String name = String.valueOf(k);
-                    if (!name.toLowerCase().contains("payload") && !name.toLowerCase().contains("secret")) safe.put(name, v);
+                    if (!name.toLowerCase(java.util.Locale.ROOT).contains("payload") && !name.toLowerCase(java.util.Locale.ROOT).contains("secret")) safe.put(name, v);
                 });
                 sanitized.put(key, safe);
             } else {

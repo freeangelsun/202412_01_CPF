@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260826-EXEC-04",
+  "evidenceType": "execution",
+  "sourceSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "resultSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "command": "python -B -m pytest cpf-tools/testing/tools/tests/test_cpf_local_full_validation_contract.py cpf-tools/runtime/tools/tests/test_bat_two_worker_runtime_shell_contract.py -q && python -B cpf-tools/verification/tools/verify-cpf-generated-domain-canonical-ia.py --root .",
+  "startedAt": "2026-08-26T02:29:26.618686+00:00",
+  "endedAt": "2026-08-26T02:29:29.121964+00:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-02.11",
+    "WP-02.12",
+    "WP-02.13",
+    "WP-02.14",
+    "WP-03.01"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-EXEC-04-S01",
+      "precondition": "Product source identity 3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d and current desired-state tree",
+      "action": "python -B -m pytest cpf-tools/testing/tools/tests/test_cpf_local_full_validation_contract.py cpf-tools/runtime/tools/tests/test_bat_two_worker_runtime_shell_contract.py -q && python -B cpf-tools/verification/tools/verify-cpf-generated-domain-canonical-ia.py --root .",
+      "expectedResult": "All invoked fail-closed verification commands exit 0",
+      "actualResult": "All invoked verification commands exited 0"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-04.log",
+      "sha256": "95b0783b987b494ba819be9806e87126019e1e420f6ddd6d2d8c9ce8514cb6b1"
+    }
+  ]
+}

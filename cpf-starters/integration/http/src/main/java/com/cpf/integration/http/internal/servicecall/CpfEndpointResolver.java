@@ -32,7 +32,7 @@ public class CpfEndpointResolver {
     }
 
     public ServiceCallResolvedTarget resolve(ServiceCallRequest request, Set<String> excludedInstanceIds) {
-        String serviceId = requireText(request.serviceId(), "serviceId").toUpperCase();
+        String serviceId = requireText(request.serviceId(), "serviceId").toUpperCase(java.util.Locale.ROOT);
         Map<String, Object> service = serviceRegistry.findService(serviceId)
                 .orElseThrow(() -> new IllegalStateException("CPF 서비스 레지스트리에 서비스가 없습니다. serviceId=" + serviceId));
         Map<String, Object> endpoint = endpointRegistry.findEndpoint(serviceId, request.endpointCode())

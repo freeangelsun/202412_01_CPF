@@ -6350,3 +6350,8 @@ DB 변경이 하나라도 발생한 작업카드는 아래 하위 검증을 **�
 ## Runtime 완료조건
 
 Source/정적 PASS는 Runtime PASS를 대신하지 않는다. `run-cpf-required-full-runtime-validation.ps1`이 Java 25 + Docker 환경에서 ExitCode 0, DB3 3사 Fresh/Upgrade/Rollback-Reapply/거래 E2E, Batch/CEC 장애복구, Approval, Browser/OpenAPI, Open Git/Fresh consumer와 Side Effect를 모두 PASS할 때만 `런타임검증완료=PASS`로 변경한다.
+
+
+## 2026-08-26 BAT-NO-REMOTE-KAFKA Current Steering
+
+이 문서의 과거 `remote-kafka` / `REMOTE_PARTITION` / `REMOTE_CHUNK` / Provider-neutral Remote Adapter 관련 계획·보고는 **historical context**이며 현재 요구가 아니다. 사용자 직접 Steering `BAT-NO-REMOTE-KAFKA`가 이를 supersede한다. 일반 Batch·Worker·Scheduler·Center-Cut은 Kafka 없이 보존하고 Kafka 기반 Batch Remote Execution 전체 Surface를 실제 Consumer/Bean/Runtime/DB/Publication/Harness 호출경로 기준으로 제거한다. 새 Remote Transport/Broker를 만들지 않는다. 공용 Messaging Kafka는 별도 Owner/Consumer로만 판단한다.

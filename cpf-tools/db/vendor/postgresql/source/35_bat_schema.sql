@@ -412,38 +412,7 @@ COMMENT ON COLUMN bat_operation_log_archive.archived_at IS '보관 일시';
 COMMENT ON COLUMN bat_operation_log_archive.archived_by IS '보관 수행자';
 COMMENT ON COLUMN bat_operation_log_archive.archive_reason IS '보관 사유';
 
-CREATE TABLE bat_remote_message_ledger (
-    direction_cd VARCHAR(20) NOT NULL,
-    message_id VARCHAR(64) NOT NULL,
-    payload_sha256 VARCHAR(64) NOT NULL,
-    status_cd VARCHAR(20) NOT NULL,
-    owner_id VARCHAR(150) NOT NULL,
-    lease_until TIMESTAMP(6) NOT NULL,
-    expires_at TIMESTAMP(6) NOT NULL,
-    attempt_no INTEGER NOT NULL DEFAULT 1,
-    last_error_cd VARCHAR(100) DEFAULT NULL,
-    created_at TIMESTAMP(6) NOT NULL,
-    updated_at TIMESTAMP(6) NOT NULL,
-    version_no BIGINT NOT NULL DEFAULT 1,
-    CONSTRAINT pk_bat_remote_message_ledger PRIMARY KEY (direction_cd, message_id),
-    CONSTRAINT ck_bat_remote_msg_attempt CHECK (attempt_no > 0),
-    CONSTRAINT ck_bat_remote_msg_version CHECK (version_no > 0)
-);
-CREATE INDEX idx_bat_remote_msg_status ON bat_remote_message_ledger (status_cd, lease_until);
-CREATE INDEX idx_bat_remote_msg_expiry ON bat_remote_message_ledger (expires_at);
-COMMENT ON TABLE bat_remote_message_ledger IS 'Kafka Remote Batch at-least-once Idempotency/Fencing Ledger';
-COMMENT ON COLUMN bat_remote_message_ledger.direction_cd IS 'REQUEST 또는 REPLY';
-COMMENT ON COLUMN bat_remote_message_ledger.message_id IS '안정 Remote Message 식별자';
-COMMENT ON COLUMN bat_remote_message_ledger.payload_sha256 IS 'Payload SHA-256';
-COMMENT ON COLUMN bat_remote_message_ledger.status_cd IS 'PROCESSING COMPLETE FAILED';
-COMMENT ON COLUMN bat_remote_message_ledger.owner_id IS '현재 처리 인스턴스';
-COMMENT ON COLUMN bat_remote_message_ledger.lease_until IS '처리 Lease 만료 일시';
-COMMENT ON COLUMN bat_remote_message_ledger.expires_at IS 'Message TTL 만료 일시';
-COMMENT ON COLUMN bat_remote_message_ledger.attempt_no IS '처리 시도 횟수';
-COMMENT ON COLUMN bat_remote_message_ledger.last_error_cd IS '마지막 Sanitized 오류 코드';
-COMMENT ON COLUMN bat_remote_message_ledger.created_at IS '최초 수신 일시';
-COMMENT ON COLUMN bat_remote_message_ledger.updated_at IS '최종 상태 변경 일시';
-COMMENT ON COLUMN bat_remote_message_ledger.version_no IS 'Fencing/낙관적 잠금 버전';
+
 
 CREATE TABLE bat_runtime_command (
     command_id VARCHAR(80),

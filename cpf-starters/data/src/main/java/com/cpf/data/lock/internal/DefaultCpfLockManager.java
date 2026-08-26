@@ -447,7 +447,7 @@ public final class DefaultCpfLockManager implements CpfLockManager, CpfLockRunti
 
 
     private static String deterministicAuditId(String approvalId, String commandHash) {
-        String canonical = approvalId + "\n" + commandHash.toLowerCase();
+        String canonical = approvalId + "\n" + commandHash.toLowerCase(java.util.Locale.ROOT);
         return java.util.UUID.nameUUIDFromBytes(canonical.getBytes(StandardCharsets.UTF_8)).toString();
     }
 

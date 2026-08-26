@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 57,
+  "schemaVersion": 58,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -87,7 +87,7 @@
     "tableMappingArtifact": "cpf-tools/db/canonical/platform-db-consolidation-map.csv",
     "crossOwnerReferenceCount": 5
   },
-  "tableCount": 236,
+  "tableCount": 235,
   "tables": [
     {
       "name": "ADM_API_PERMISSION",
@@ -14751,166 +14751,6 @@
       "targetDatabaseRole": "CPF_PLATFORM_DB",
       "targetPhysicalDatabase": "cpfDB",
       "targetTableName": "BAT_RECONCILIATION_AUDIT",
-      "targetTablePrefix": "BAT_",
-      "migrationOwner": "batch",
-      "runtimeConsumer": "batch",
-      "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
-    },
-    {
-      "name": "BAT_REMOTE_MESSAGE_LEDGER",
-      "columns": [
-        {
-          "name": "direction_cd",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "REQUEST 또는 REPLY"
-        },
-        {
-          "name": "message_id",
-          "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "안정 Remote Message 식별자"
-        },
-        {
-          "name": "payload_sha256",
-          "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Payload SHA-256"
-        },
-        {
-          "name": "status_cd",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "PROCESSING COMPLETE FAILED"
-        },
-        {
-          "name": "owner_id",
-          "type": "VARCHAR(150)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "현재 처리 인스턴스"
-        },
-        {
-          "name": "lease_until",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "처리 Lease 만료 일시"
-        },
-        {
-          "name": "expires_at",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Message TTL 만료 일시"
-        },
-        {
-          "name": "attempt_no",
-          "type": "INT",
-          "nullable": false,
-          "default": "1",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "처리 시도 횟수"
-        },
-        {
-          "name": "last_error_cd",
-          "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마지막 Sanitized 오류 코드"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "최초 수신 일시"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "최종 상태 변경 일시"
-        },
-        {
-          "name": "version_no",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "1",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Fencing/낙관적 잠금 버전"
-        }
-      ],
-      "primaryKey": [
-        "direction_cd",
-        "message_id"
-      ],
-      "uniqueKeys": [],
-      "indexes": [
-        {
-          "name": "idx_bat_remote_msg_status",
-          "columns": [
-            "status_cd",
-            "lease_until"
-          ],
-          "unique": false
-        },
-        {
-          "name": "idx_bat_remote_msg_expiry",
-          "columns": [
-            "expires_at"
-          ],
-          "unique": false
-        }
-      ],
-      "foreignKeys": [],
-      "checks": [
-        {
-          "name": "ck_bat_remote_msg_attempt",
-          "expression": "attempt_no > 0"
-        },
-        {
-          "name": "ck_bat_remote_msg_version",
-          "expression": "version_no > 0"
-        }
-      ],
-      "comment": "Kafka Remote Batch at-least-once Idempotency/Fencing Ledger",
-      "module": "bat",
-      "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
-      "currentName": "bat_remote_message_ledger",
-      "logicalOwner": "batch",
-      "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "targetPhysicalDatabase": "cpfDB",
-      "targetTableName": "BAT_REMOTE_MESSAGE_LEDGER",
       "targetTablePrefix": "BAT_",
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",

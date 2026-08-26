@@ -76,7 +76,7 @@ public class BatRetentionController {
 
     /** 기존 ad-hoc Preview는 호환용으로 유지하되 실제 파괴 실행은 정책 기반 Engine만 허용합니다. */
     @PostMapping("/preview") public ResponseEntity<?> preview(@RequestBody LegacyPreviewRequest r,HttpServletRequest http){
-        String actor=actorResolver.actor(http,r.requestedBy(),"requestedBy"); String action=r.action()==null?"KEEP":r.action().trim().toUpperCase();
+        String actor=actorResolver.actor(http,r.requestedBy(),"requestedBy"); String action=r.action()==null?"KEEP":r.action().trim().toUpperCase(java.util.Locale.ROOT);
         var result=operations.execute(new com.cpf.platform.operations.api.retention.CpfRetentionCommand(new com.cpf.platform.operations.api.retention.CpfRetentionPolicy(r.target(),action,r.legalHold(),true),r.cutoff(),actor,reason(r.reason()),Math.max(1,Math.min(r.limit(),100000))));
         return ResponseEntity.ok(result);
     }

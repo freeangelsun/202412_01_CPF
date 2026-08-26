@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260826-EXEC-07",
+  "evidenceType": "execution",
+  "sourceSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "resultSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "command": "python -B cpf-tools/verification/tools/verify-cpf-locale-root.py --root . && python -B cpf-tools/verification/tools/verify-cpf-vscode-source-model.py --root . && python -B -m pytest cpf-tools/testing/tools/tests/test_verify_cpf_adm_route_source_consumers_registry.py -q",
+  "startedAt": "2026-08-26T02:31:47.871302+00:00",
+  "endedAt": "2026-08-26T02:31:51.208696+00:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-05.04",
+    "WP-06.01",
+    "WP-06.02",
+    "WP-07.01",
+    "WP-07.02"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-EXEC-07-S01",
+      "precondition": "Product source identity 3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d and current desired-state tree",
+      "action": "python -B cpf-tools/verification/tools/verify-cpf-locale-root.py --root . && python -B cpf-tools/verification/tools/verify-cpf-vscode-source-model.py --root . && python -B -m pytest cpf-tools/testing/tools/tests/test_verify_cpf_adm_route_source_consumers_registry.py -q",
+      "expectedResult": "All invoked fail-closed verification commands exit 0",
+      "actualResult": "All invoked verification commands exited 0"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-07.log",
+      "sha256": "aa7447141fec4d11163b58ef1493bb124392cd7db06a214e672fd4e3caa23ad7"
+    }
+  ]
+}

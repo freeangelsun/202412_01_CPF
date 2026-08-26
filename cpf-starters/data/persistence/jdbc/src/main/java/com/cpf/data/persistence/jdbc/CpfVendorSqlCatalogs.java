@@ -17,7 +17,7 @@ public final class CpfVendorSqlCatalogs {
 
     public static CpfVendorSqlCatalog fromPack(CpfDatabaseVendor vendor, String moduleCode, Path configuredPackRoot) {
         Objects.requireNonNull(vendor, "vendor");
-        String module = require(moduleCode, "moduleCode").toLowerCase();
+        String module = require(moduleCode, "moduleCode").toLowerCase(java.util.Locale.ROOT);
         Path root = Objects.requireNonNull(configuredPackRoot, "configuredPackRoot").toAbsolutePath().normalize();
         if (!Files.isRegularFile(root.resolve("pack.json"))) throw new IllegalArgumentException("Verified Vendor Pack requires pack.json: " + root);
         Path repository = root.resolve("runtime").resolve(module).resolve("repository").normalize();

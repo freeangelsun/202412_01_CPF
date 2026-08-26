@@ -1,0 +1,10 @@
+generatedAt=2026-08-26T02:37:46+00:00
+Python 3.13.5
+openjdk version "21.0.11" 2026-04-21
+OpenJDK Runtime Environment (build 21.0.11+10-1-deb13u2-Debian)
+OpenJDK 64-Bit Server VM (build 21.0.11+10-1-deb13u2-Debian, mixed mode, sharing)
+v22.16.0
+10.9.2
+pwsh=UNAVAILABLE
+docker=UNAVAILABLE
+gradle91DistributionCache=UNAVAILABLE_IN_ASSISTANT_SANDBOX

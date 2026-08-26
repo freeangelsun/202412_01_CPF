@@ -425,7 +425,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private boolean isFixedLengthKey(String key) {
-        String normalized = key == null ? "" : key.toLowerCase();
+        String normalized = key == null ? "" : key.toLowerCase(java.util.Locale.ROOT);
         return normalized.contains("fixed") || normalized.contains("telegram") || normalized.contains("전문");
     }
 

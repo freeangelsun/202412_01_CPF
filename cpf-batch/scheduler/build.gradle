@@ -11,14 +11,12 @@ dependencies {
  implementation project(':framework:core')
  implementation project(':starters:data:jdbc')
  implementation project(':starters:common')
- implementation project(':runtime:batch:remote-kafka')
  implementation project(':internal:messaging:reliability:jdbc')
  implementation project(':internal:integration:resilience')
  implementation 'org.springframework.boot:spring-boot-starter-webmvc'
  implementation 'org.springframework.boot:spring-boot-starter-actuator'
  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
  implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
- implementation 'org.springframework.batch:spring-batch-integration'
  runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
  runtimeOnly 'org.postgresql:postgresql'
  runtimeOnly 'com.oracle.database.jdbc:ojdbc11'

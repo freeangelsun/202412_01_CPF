@@ -26,7 +26,7 @@ public final class CpfFiles {
     public static String extension(String value) {
         String fileName = safeFileName(value);
         int index = fileName.lastIndexOf('.');
-        return index <= 0 || index == fileName.length() - 1 ? "" : fileName.substring(index + 1).toLowerCase();
+        return index <= 0 || index == fileName.length() - 1 ? "" : fileName.substring(index + 1).toLowerCase(java.util.Locale.ROOT);
     }
     /** 허용 Root 아래의 정규화된 child 경로만 반환합니다.
      * @param root 허용 기준 Root 경로

@@ -57,7 +57,7 @@ public class CpfOpenApiAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public OpenAPI cpfOpenAPI(Environment environment) {
-        String applicationName = environment.getProperty("spring.application.name", "cpf-service").toUpperCase();
+        String applicationName = environment.getProperty("spring.application.name", "cpf-service").toUpperCase(java.util.Locale.ROOT);
         return new OpenAPI()
                 .info(new Info()
                         .title("CPF " + applicationName + " API")

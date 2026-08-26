@@ -22,7 +22,7 @@ final class CpfJdbcDataSourceRegistry implements CpfDataSourceRegistry {
     @Override
     public DataSource require(CpfDatabaseRole role) {
         Objects.requireNonNull(role, "role");
-        String key = "cpf.data.persistence.jdbc.roles." + role.name().toLowerCase().replace('_', '-');
+        String key = "cpf.data.persistence.jdbc.roles." + role.name().toLowerCase(java.util.Locale.ROOT).replace('_', '-');
         String beanName = environment.getProperty(key);
         if (beanName != null && !beanName.isBlank()) {
             if (!beanFactory.containsBean(beanName) || !beanFactory.isTypeMatch(beanName, DataSource.class)) {

@@ -111,7 +111,7 @@ public final class CpfConnectionPoolRuntimeController {
 
         private static Target resolve(DataSource dataSource) {
             Object target = unwrapKnown(dataSource);
-            String name = target.getClass().getName().toLowerCase();
+            String name = target.getClass().getName().toLowerCase(java.util.Locale.ROOT);
             if (!name.contains("hikari")) {
                 throw new IllegalStateException("Runtime Connection Pool 조정을 지원하지 않는 DataSource입니다: " + target.getClass().getName());
             }

@@ -506,7 +506,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     }
 
     private String yn(String value, String fallback) {
-        String normalized = defaultText(value, fallback).toUpperCase();
+        String normalized = defaultText(value, fallback).toUpperCase(java.util.Locale.ROOT);
         return "N".equals(normalized) ? "N" : "Y";
     }
 

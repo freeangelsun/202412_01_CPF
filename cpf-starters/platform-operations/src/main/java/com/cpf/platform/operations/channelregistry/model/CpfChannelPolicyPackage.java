@@ -20,7 +20,7 @@ public record CpfChannelPolicyPackage(
         exportedAt = exportedAt == null ? Instant.now() : exportedAt;
         channels = List.copyOf(channels == null ? List.of() : channels);
         policies = List.copyOf(policies == null ? List.of() : policies);
-        checksumSha256 = checksumSha256 == null ? "" : checksumSha256.toLowerCase();
+        checksumSha256 = checksumSha256 == null ? "" : checksumSha256.toLowerCase(java.util.Locale.ROOT);
     }
 
     public static CpfChannelPolicyPackage from(CpfChannelPolicySnapshot snapshot) {

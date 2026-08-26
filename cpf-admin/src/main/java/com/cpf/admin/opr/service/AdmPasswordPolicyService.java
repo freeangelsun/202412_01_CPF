@@ -33,7 +33,7 @@ public class AdmPasswordPolicyService extends com.cpf.admin.common.base.AdmBaseS
         if (password.length() < properties.getMinLength()) {
             violations.add("비밀번호는 " + properties.getMinLength() + "자 이상이어야 합니다.");
         }
-        if (CpfStrings.hasText(operatorId) && password.toLowerCase().contains(operatorId.toLowerCase())) {
+        if (CpfStrings.hasText(operatorId) && password.toLowerCase(java.util.Locale.ROOT).contains(operatorId.toLowerCase(java.util.Locale.ROOT))) {
             violations.add("비밀번호에는 운영자 ID를 포함할 수 없습니다.");
         }
         if (categoryCount(password) < properties.getRequiredCategoryCount()) {

@@ -291,7 +291,7 @@ public class CpfServiceCallEngine {
     }
 
     private boolean retrySafe(ServiceCallRequest request) {
-        String method = defaultIfBlank(request.httpMethod(), "GET").toUpperCase();
+        String method = defaultIfBlank(request.httpMethod(), "GET").toUpperCase(java.util.Locale.ROOT);
         if (Set.of("GET", "HEAD", "OPTIONS", "PUT", "DELETE").contains(method)) {
             return true;
         }
@@ -426,7 +426,7 @@ public class CpfServiceCallEngine {
                 CpfTransactionSegmentPort.Direction.OUTBOUND,
                 sourceModule,
                 sourceModule,
-                request.serviceId().toUpperCase(),
+                request.serviceId().toUpperCase(java.util.Locale.ROOT),
                 request.requestPath(),
                 "Service Call " + request.serviceId() + " attempt " + attempt);
         scope.update(new CpfTransactionSegmentPort.SegmentAttributes(
@@ -511,7 +511,7 @@ public class CpfServiceCallEngine {
         }
         Throwable current = failure;
         while (current != null) {
-            String name = current.getClass().getName().toLowerCase();
+            String name = current.getClass().getName().toLowerCase(java.util.Locale.ROOT);
             if (name.contains("timeout") || name.contains("timedout")) {
                 return true;
             }

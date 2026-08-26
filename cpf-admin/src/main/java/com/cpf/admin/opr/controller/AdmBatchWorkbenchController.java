@@ -138,7 +138,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
             Object value = row.get("status");
             if (value == null) value = row.get("execution_status");
             if (value == null) value = row.get("executionStatus");
-            return value != null && statuses.contains(String.valueOf(value).toUpperCase());
+            return value != null && statuses.contains(String.valueOf(value).toUpperCase(java.util.Locale.ROOT));
         }).count();
     }
 }

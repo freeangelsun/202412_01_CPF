@@ -37,11 +37,11 @@ final class CpfFixedLengthLayoutPayloadDecoder {
                     integer(field.get("start"), "field.start"),
                     integer(field.get("length"), "field.length"),
                     CpfFixedLengthFieldType.valueOf(
-                            optional(field.get("type"), "STRING").toUpperCase()),
+                            optional(field.get("type"), "STRING").toUpperCase(java.util.Locale.ROOT)),
                     bool(field.get("required"), false),
                     character(field.get("padding"), '\0'),
                     CpfFixedLengthAlignment.valueOf(
-                            optional(field.get("alignment"), "AUTO").toUpperCase()),
+                            optional(field.get("alignment"), "AUTO").toUpperCase(java.util.Locale.ROOT)),
                     bool(field.get("sensitive"), false),
                     number(field.get("scale"), 0),
                     optional(field.get("defaultValue"), ""),

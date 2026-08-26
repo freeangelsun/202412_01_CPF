@@ -392,7 +392,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "mbw_refresh_token", S
                 password.matches(".*[^A-Za-z0-9].*"))
                 .filter(Boolean::booleanValue)
                 .count();
-        if (password.length() < 12 || categories < 3 || password.toLowerCase().contains(loginId.toLowerCase())) {
+        if (password.length() < 12 || categories < 3 || password.toLowerCase(java.util.Locale.ROOT).contains(loginId.toLowerCase(java.util.Locale.ROOT))) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "비밀번호는 12자 이상이며 영문 대·소문자, 숫자, 특수문자 중 3종 이상을 포함하고 로그인 ID를 포함하지 않아야 합니다.");

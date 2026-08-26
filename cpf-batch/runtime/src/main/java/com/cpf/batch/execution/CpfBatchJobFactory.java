@@ -4,9 +4,8 @@ import com.cpf.batch.api.BatchExecutionPlan;
 import com.cpf.batch.api.BatchExecutionTopology;
 import com.cpf.batch.api.BatchStepDefinition;
 import com.cpf.batch.spi.BatchFencingPort;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.FlowBuilder;
@@ -17,17 +16,10 @@ import org.springframework.batch.core.partition.support.TaskExecutorPartitionHan
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.integration.chunk.RemoteChunkingManagerStepBuilder;
-import org.springframework.batch.integration.partition.RemotePartitioningManagerStepBuilder;
-import org.springframework.batch.integration.remote.RemoteStep;
-import org.springframework.batch.infrastructure.item.support.ListItemReader;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.transaction.PlatformTransactionManager;
 
-/** 승인된 CPF Plan을 Spring Batch Job/Step graph로 materialize합니다. */
+/** 승인된 CPF Plan을 Kafka/Broker 없이 Spring Batch Job/Step graph로 materialize합니다. */
 public final class CpfBatchJobFactory implements AutoCloseable {
     private final JobRepository repository;
     private final PlatformTransactionManager transactionManager;
@@ -37,10 +29,6 @@ public final class CpfBatchJobFactory implements AutoCloseable {
     private final CpfBatchExecutionListener listener;
     private final CpfBatchExecutionProperties properties;
     private final CpfBatchExecutionContextSupport contextSupport;
-    private final MessageChannel remoteRequests;
-    private final PollableChannel remoteReplies;
-    private final MessagingTemplate remoteMessagingTemplate;
-    private final CpfBatchDynamicManagerFlowLifecycle dynamicManagerFlows;
     private final Map<String, Job> cache;
 
     public CpfBatchJobFactory(
@@ -51,11 +39,7 @@ public final class CpfBatchJobFactory implements AutoCloseable {
             BatchFencingPort fencing,
             CpfBatchExecutionListener listener,
             CpfBatchExecutionProperties properties,
-            CpfBatchExecutionContextSupport contextSupport,
-            MessageChannel remoteRequests,
-            PollableChannel remoteReplies,
-            MessagingTemplate remoteMessagingTemplate,
-            CpfBatchDynamicManagerFlowLifecycle dynamicManagerFlows) {
+            CpfBatchExecutionContextSupport contextSupport) {
         this.repository = repository;
         this.transactionManager = transactionManager;
         this.taskExecutor = taskExecutor;
@@ -64,15 +48,9 @@ public final class CpfBatchJobFactory implements AutoCloseable {
         this.listener = listener;
         this.properties = properties;
         this.contextSupport = contextSupport;
-        this.remoteRequests = remoteRequests;
-        this.remoteReplies = remoteReplies;
-        this.remoteMessagingTemplate = remoteMessagingTemplate;
-        this.dynamicManagerFlows = dynamicManagerFlows;
         this.cache = new LinkedHashMap<>(128, 0.75f, true) {
             @Override protected boolean removeEldestEntry(Map.Entry<String, Job> eldest) {
-                boolean evict = size() > properties.maxMaterializedJobs();
-                if (evict) dynamicManagerFlows.release(eldest.getKey());
-                return evict;
+                return size() > CpfBatchJobFactory.this.properties.maxMaterializedJobs();
             }
         };
     }
@@ -82,19 +60,12 @@ public final class CpfBatchJobFactory implements AutoCloseable {
         String cacheKey = plan.planId() + "@" + plan.planVersion() + ":" + plan.checksum();
         Job existing = cache.get(cacheKey);
         if (existing != null) return existing;
-        int expectedManagerFlows = plan.topology() == BatchExecutionTopology.REMOTE_PARTITION
-                ? plan.steps().size() : 0;
-        Job created = dynamicManagerFlows.materialize(
-                cacheKey, expectedManagerFlows, () -> build(plan));
+        Job created = build(plan);
         cache.put(cacheKey, created);
         return created;
     }
 
-    @Override
-    public synchronized void close() {
-        cache.clear();
-        dynamicManagerFlows.close();
-    }
+    @Override public synchronized void close() { cache.clear(); }
 
     public static String jobName(String planId, long planVersion, String checksum) {
         if (checksum == null || !checksum.matches("[0-9a-f]{64}")) {
@@ -121,7 +92,7 @@ public final class CpfBatchJobFactory implements AutoCloseable {
     }
 
     private Job conditionalJob(JobBuilder builder, String jobName, BatchExecutionPlan plan, List<Step> steps) {
-        Map<String, Step> byId = new java.util.LinkedHashMap<>();
+        Map<String, Step> byId = new LinkedHashMap<>();
         for (int index = 0; index < plan.steps().size(); index++) byId.put(plan.steps().get(index).stepId(), steps.get(index));
         FlowBuilder<Flow> flow = new FlowBuilder<Flow>(jobName + ".conditional").start(steps.getFirst());
         for (int index = 0; index < plan.steps().size(); index++) {
@@ -147,18 +118,13 @@ public final class CpfBatchJobFactory implements AutoCloseable {
         return builder.start(flow.build()).end().build();
     }
 
-    private Flow flow(Step step) {
-        return new FlowBuilder<Flow>(step.getName() + ".flow").start(step).build();
-    }
+    private Flow flow(Step step) { return new FlowBuilder<Flow>(step.getName() + ".flow").start(step).build(); }
 
     private Step step(BatchExecutionTopology topology, BatchStepDefinition definition) {
         Step worker = taskletStep(definition.stepId() + ".worker", definition);
         return switch (topology) {
             case LOCAL, PARALLEL_STEPS -> worker;
             case LOCAL_PARTITION -> localPartition(definition, worker);
-            case REMOTE_PARTITION -> remotePartition(definition);
-            case REMOTE_CHUNK -> remoteChunk(definition);
-            case REMOTE_STEP -> remoteStep(definition);
         };
     }
 
@@ -181,58 +147,5 @@ public final class CpfBatchJobFactory implements AutoCloseable {
                 .gridSize(definition.partitionCount())
                 .listener(listener)
                 .build();
-    }
-
-    private Step remotePartition(BatchStepDefinition definition) {
-        String workerName = "cpfRemotePartitionWorkerStep";
-        return new RemotePartitioningManagerStepBuilder(definition.stepId() + ".remote-manager", repository)
-                .partitioner(workerName, new CpfBatchPartitioner(definition, properties.maxPartitionCount()))
-                .gridSize(definition.partitionCount())
-                .outputChannel(remoteRequests)
-                .inputChannel(remoteReplies)
-                .pollInterval(properties.remotePollIntervalMs())
-                .timeout(properties.remoteTimeoutMs())
-                .beanFactory(dynamicManagerFlows.beanFactory())
-                .listener(listener)
-                .build();
-    }
-
-    private Step remoteChunk(BatchStepDefinition definition) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (int index = 0; index < definition.partitionCount(); index++) {
-            items.add(Map.of(
-                    "stepId", definition.stepId(),
-                    "executorType", definition.executorType().name(),
-                    "itemIndex", index,
-                    "executorReference", definition.executorReference(),
-                    "parameters", definition.parameters(),
-                    "partitionCount", definition.partitionCount(),
-                    "restartable", definition.restartable()));
-        }
-        return new RemoteChunkingManagerStepBuilder<Map<String, Object>, Map<String, Object>>(
-                definition.stepId() + ".chunk-manager", repository)
-                .chunk(properties.defaultChunkSize())
-                .reader(new ListItemReader<>(items))
-                .transactionManager(transactionManager)
-                .outputChannel(remoteRequests)
-                .inputChannel(remoteReplies)
-                .maxWaitTimeouts(properties.remoteChunkMaxWaitTimeouts())
-                .throttleLimit(properties.remoteChunkThrottleLimit())
-                .listener(listener)
-                .build();
-    }
-
-    private Step remoteStep(BatchStepDefinition definition) {
-        RemoteStep step = new RemoteStep(
-                definition.stepId() + ".remote",
-                "cpfRemoteStepWorker",
-                repository,
-                remoteMessagingTemplate);
-        step.setMessageChannel(remoteRequests);
-        step.setPollInterval(properties.remotePollIntervalMs());
-        step.setTimeout(properties.remoteTimeoutMs());
-        step.registerStepExecutionListener(new CpfRemoteStepDefinitionListener(definition));
-        step.registerStepExecutionListener(listener);
-        return step;
     }
 }

@@ -127,6 +127,32 @@
         "retired-actions-route-is-not-seeded",
         "canonical-decisions-route-remains-authorized"
       ]
+    },
+    {
+      "id": "CPF-DB3-BAT-NO-REMOTE-KAFKA-001",
+      "steps": [
+        "fresh-install-current-schema",
+        "assert-remote-ledger-absent",
+        "install-pre-v140-fixture-with-v87-ledger",
+        "v140-upgrade",
+        "assert-ledger-dropped",
+        "r140-recovery",
+        "assert-ledger-recreated",
+        "v140-reapply",
+        "assert-ledger-dropped",
+        "run-general-batch-and-centercut-regression",
+        "cleanup"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true,
+      "invariants": [
+        "historical-v87-remains-immutable",
+        "current-schema-has-no-bat-remote-message-ledger",
+        "upgrade-removes-only-retired-remote-ledger",
+        "rollback-recreates-compatible-ledger",
+        "reapply-is-idempotent",
+        "general-batch-worker-scheduler-centercut-remain-kafka-free"
+      ]
     }
   ]
 }

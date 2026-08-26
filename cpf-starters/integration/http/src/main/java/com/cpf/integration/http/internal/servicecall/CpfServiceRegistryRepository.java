@@ -57,7 +57,7 @@ public class CpfServiceRegistryRepository {
         if (dataSource == null) return false;
         String requested = tableName.trim();
         try (Connection connection = dataSource.getConnection()) {
-            for (String candidate : List.of(requested, requested.toUpperCase(), requested.toLowerCase())) {
+            for (String candidate : List.of(requested, requested.toUpperCase(java.util.Locale.ROOT), requested.toLowerCase(java.util.Locale.ROOT))) {
                 try (ResultSet tables = connection.getMetaData().getTables(connection.getCatalog(), null, candidate, new String[]{"TABLE"})) {
                     if (tables.next()) return true;
                 }
@@ -513,7 +513,7 @@ public class CpfServiceRegistryRepository {
     private String textOr(String v,String d){return hasText(v)?v.trim():d;}
     private String emptyToNull(String v){return hasText(v)?v.trim():null;}
     private String yn(String v,String name){return ynDefault(v,"Y",name);}
-    private String ynDefault(String v,String d,String name){String x=hasText(v)?v.trim().toUpperCase():d;if(!"Y".equals(x)&&!"N".equals(x))throw new IllegalArgumentException(name+"는 Y/N만 허용합니다.");return x;}
+    private String ynDefault(String v,String d,String name){String x=hasText(v)?v.trim().toUpperCase(java.util.Locale.ROOT):d;if(!"Y".equals(x)&&!"N".equals(x))throw new IllegalArgumentException(name+"는 Y/N만 허용합니다.");return x;}
     private String require(String v,String name){if(!hasText(v))throw new IllegalArgumentException(name+"가 필요합니다.");return v.trim();}
 
     /**
@@ -615,7 +615,7 @@ public class CpfServiceRegistryRepository {
     }
 
     private String normalize(String value) {
-        return hasText(value) ? value.trim().toUpperCase() : null;
+        return hasText(value) ? value.trim().toUpperCase(java.util.Locale.ROOT) : null;
     }
 
     private String firstText(String first, String fallback) {

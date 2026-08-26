@@ -87,6 +87,6 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
         return List.copyOf(out);
     }
     private String first(String... keys){for(String k:keys){String v=environment.getProperty(k);if(v!=null&&!v.isBlank())return v.trim();}return null;}
-    private static String required(String v,String field){if(v==null||v.isBlank())throw new IllegalStateException("CPF_ONLINE_TRANSACTION_"+field.toUpperCase()+"_REQUIRED");return v.trim();}
+    private static String required(String v,String field){if(v==null||v.isBlank())throw new IllegalStateException("CPF_ONLINE_TRANSACTION_"+field.toUpperCase(java.util.Locale.ROOT)+"_REQUIRED");return v.trim();}
     private static String fingerprint(String v){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(v.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}}
 }

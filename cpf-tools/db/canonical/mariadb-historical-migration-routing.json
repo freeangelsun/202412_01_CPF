@@ -199,6 +199,34 @@
           "logicalDatabase": "cpfDB"
         }
       ]
+    },
+    "V140__remove_batch_remote_kafka_execution.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R140__remove_batch_remote_kafka_execution.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "V133__backoffice_mbw_identity.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "mbwDB"
+        }
+      ]
+    },
+    "R133__backoffice_mbw_identity.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "mbwDB"
+        }
+      ]
     }
   }
 }

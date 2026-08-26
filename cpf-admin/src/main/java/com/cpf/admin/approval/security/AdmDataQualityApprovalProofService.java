@@ -68,7 +68,7 @@ public final class AdmDataQualityApprovalProofService {
         String expected = sign(command.quarantineId(), command.expectedVersion(), command.approvalExecutionReference(),
                 command.payloadHash(), command.nonce(), command.approvedAt());
         return MessageDigest.isEqual(expected.getBytes(StandardCharsets.US_ASCII),
-                command.proof().toLowerCase().getBytes(StandardCharsets.US_ASCII));
+                command.proof().toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.US_ASCII));
     }
 
     /** Framework gateway verification: valid proof + TTL + cluster-safe atomic single-use nonce consumption. */
@@ -89,6 +89,6 @@ public final class AdmDataQualityApprovalProofService {
     }
 
     private static String message(String id,long version,String ref,String hash,String nonce,Instant at) {
-        return id + "\n" + version + "\n" + ref + "\n" + hash.toLowerCase() + "\n" + nonce + "\n" + at.toString();
+        return id + "\n" + version + "\n" + ref + "\n" + hash.toLowerCase(java.util.Locale.ROOT) + "\n" + nonce + "\n" + at.toString();
     }
 }

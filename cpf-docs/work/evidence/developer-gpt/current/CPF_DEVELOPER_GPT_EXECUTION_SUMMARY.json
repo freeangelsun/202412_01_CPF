@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 2,
+  "summaryType": "DEVELOPER_EXECUTION_SUMMARY",
+  "sourceIdentity": {
+    "sha256": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+    "sha1": "c1c89d455cf5b198090f483e28dbb576b539897c",
+    "fileCount": 8439,
+    "totalBytes": 49349580
+  },
+  "baseline": {
+    "name": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_000733.zip",
+    "sha256": "17778ece0bd2b816f55b0a3140bfb004399bfb9801768e21f28a3fcb300bca16"
+  },
+  "canonicalDevelopmentFinalGate": {
+    "status": "PASS",
+    "canonicalStatic": "25/25",
+    "cleanSource": "PASS",
+    "evidenceSemantics": "45/45 direct rows / 9 execution documents",
+    "failed": 0
+  },
+  "inventory": {
+    "total": 47,
+    "closed": 45,
+    "blockedExternal": 2
+  },
+  "blockedExternal": [
+    "WP-10.01 Java25/Gradle9.1/VSCode Fresh Sync",
+    "WP-11.01 DB3/Kafka-free Batch Full Runtime/Browser/Fresh Runtime Replay"
+  ],
+  "overall": "NOT_COMPLETE_RUNTIME_PENDING",
+  "directExecutionEvidence": [
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-01.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-02.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-03.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-04.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-05.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-06.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-07.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-08.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-09.json"
+  ],
+  "freshReplay": {
+    "status": "PASS",
+    "canonicalFiles": 10234,
+    "missing": 0,
+    "extra": 0,
+    "hashMismatch": 0,
+    "sourceSha256": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+    "developmentFinalGateRc": 0
+  }
+}

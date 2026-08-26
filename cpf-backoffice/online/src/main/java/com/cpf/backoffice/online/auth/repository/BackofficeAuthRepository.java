@@ -372,10 +372,10 @@ public class BackofficeAuthRepository {
 
     private static String resolveEnvironmentCode(Environment environment) {
         String explicit = environment.getProperty("cpf.environment-code");
-        if (explicit != null && !explicit.isBlank()) return explicit.trim().toUpperCase();
+        if (explicit != null && !explicit.isBlank()) return explicit.trim().toUpperCase(java.util.Locale.ROOT);
         String[] profiles = environment.getActiveProfiles();
         if (profiles.length == 0) return "ALL";
-        return profiles[0].trim().toUpperCase();
+        return profiles[0].trim().toUpperCase(java.util.Locale.ROOT);
     }
 
 

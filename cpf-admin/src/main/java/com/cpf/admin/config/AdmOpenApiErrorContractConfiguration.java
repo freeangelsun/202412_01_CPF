@@ -42,7 +42,7 @@ public class AdmOpenApiErrorContractConfiguration {
         if (openApi.getPaths() == null) return;
         openApi.getPaths().forEach((path, pathItem) -> pathItem.readOperationsMap().forEach((method, operation) -> {
             if (!path.startsWith("/adm/api/")) return;
-            String methodName = method.name().toLowerCase();
+            String methodName = method.name().toLowerCase(java.util.Locale.ROOT);
             List<String> statuses = new ArrayList<>(List.of("400", "401", "403", "429", "500", "503"));
             if (path.contains("{")) statuses.add("404");
             if (MUTATIONS.contains(methodName)) statuses.add("409");

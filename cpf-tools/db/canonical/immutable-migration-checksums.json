@@ -1,12 +1,11 @@
 {
   "schemaVersion": 1,
   "owner": "cpf-tools/db",
-  "baselineCommit": "85ad612f740293b93e2ce28a2ce4623ad4504508",
-  "baselineReanchorNote": "Repository history was squashed/reset (CROSS_PC_CODEX_HANDOVER_GUIDE); original baselineCommit 6b2d5d669c2e3e6c44f7b7350ce3577c428df20a no longer exists. Re-anchored 2026-08-25 to a real, reachable commit representing pre-release state (no field environment has ever consumed these migration trees). historicalMigrationImmutable enforcement resumes strictly from this new anchor forward; content committed at or before this anchor is treated as the new frozen baseline.",
+  "baselineCommit": "6b2d5d669c2e3e6c44f7b7350ce3577c428df20a",
   "policy": "Historical migration trees are immutable. Current schema snapshots are rendered under cpf-tools/db/generated/current and never overwrite these trees.",
   "trees": [
-    {"vendor":"mariadb","path":"cpf-tools/db/vendor/mariadb/migration","gitTreeSha":"10db85c0f51aaeac37057a85d5e5f0d4a48e4f7b"},
-    {"vendor":"postgresql","path":"cpf-tools/db/vendor/postgresql/migration","gitTreeSha":"dea1f6827717e4b9c9e2aa8c96ce0d63c9b986e2"},
-    {"vendor":"oracle","path":"cpf-tools/db/vendor/oracle/migration","gitTreeSha":"532ecb54cb1fdf22372c8a58140e5c308e554852"}
+    {"vendor":"mariadb","path":"cpf-tools/db/vendor/mariadb/migration","gitTreeSha":"11b4d93946b7f4db7e104cd6267f56c7091d6397"},
+    {"vendor":"postgresql","path":"cpf-tools/db/vendor/postgresql/migration","gitTreeSha":"6e2490194b9607b275d4ba141b0e64996ba73612"},
+    {"vendor":"oracle","path":"cpf-tools/db/vendor/oracle/migration","gitTreeSha":"f1b6bca3e14ac72f1d90c973d6508aa5a1ee937b"}
   ]
 }

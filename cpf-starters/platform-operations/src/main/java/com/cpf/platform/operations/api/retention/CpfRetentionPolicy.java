@@ -5,7 +5,7 @@ public record CpfRetentionPolicy(String target, String action, boolean legalHold
     public CpfRetentionPolicy {
         if (target == null || target.isBlank()) throw new IllegalArgumentException("target은 필수입니다.");
         if (action == null || action.isBlank()) action = "KEEP";
-        target = target.trim().toUpperCase();
-        action = action.trim().toUpperCase();
+        target = target.trim().toUpperCase(java.util.Locale.ROOT);
+        action = action.trim().toUpperCase(java.util.Locale.ROOT);
     }
 }

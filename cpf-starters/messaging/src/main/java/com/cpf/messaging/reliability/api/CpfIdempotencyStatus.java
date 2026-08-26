@@ -16,7 +16,7 @@ public enum CpfIdempotencyStatus {
             return UNKNOWN;
         }
         try {
-            return valueOf(value.trim().toUpperCase());
+            return valueOf(value.trim().toUpperCase(java.util.Locale.ROOT));
         } catch (IllegalArgumentException ex) {
             return UNKNOWN;
         }

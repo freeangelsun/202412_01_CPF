@@ -151,7 +151,7 @@ public class JdbcCpfReconciliationRepository implements CpfReconciliationPort, C
     }
 
     private String normalize(String status) {
-        return status == null || status.isBlank() ? "RESOLVED" : status.trim().toUpperCase();
+        return status == null || status.isBlank() ? "RESOLVED" : status.trim().toUpperCase(java.util.Locale.ROOT);
     }
 
     private int safeLimit(int limit) {

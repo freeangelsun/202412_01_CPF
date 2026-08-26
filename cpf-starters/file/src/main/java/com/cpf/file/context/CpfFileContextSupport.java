@@ -46,8 +46,8 @@ public final class CpfFileContextSupport {
     }
 
     private static String standardExecutionId(String protocol, String direction) {
-        String p = protocol == null || protocol.isBlank() ? "file" : protocol.trim().toLowerCase();
-        String d = direction == null || direction.isBlank() ? "operation" : direction.trim().toLowerCase();
+        String p = protocol == null || protocol.isBlank() ? "file" : protocol.trim().toLowerCase(java.util.Locale.ROOT);
+        String d = direction == null || direction.isBlank() ? "operation" : direction.trim().toLowerCase(java.util.Locale.ROOT);
         return "file." + p + "." + d;
     }
 }

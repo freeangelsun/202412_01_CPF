@@ -66,7 +66,7 @@ public final class ControlServerRuntimeStateProvider implements RuntimeStateProv
                 boolean valid = connection.isValid(2);
                 probe = new Probe(valid, valid ? "UP" : "INVALID", now);
             } catch (Exception failure) {
-                probe = new Probe(false, failure.getClass().getSimpleName().toUpperCase(), now);
+                probe = new Probe(false, failure.getClass().getSimpleName().toUpperCase(java.util.Locale.ROOT), now);
             }
             return probe;
         }

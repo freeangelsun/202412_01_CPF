@@ -18,7 +18,7 @@ public final class CmnCacheRuntimeApplier implements CpfRuntimeChangeApplier {
             String changeType,
             Runnable refreshAction,
             Supplier<Map<String, Object>> statusSupplier) {
-        this.changeType = Objects.requireNonNull(changeType, "changeType").trim().toUpperCase();
+        this.changeType = Objects.requireNonNull(changeType, "changeType").trim().toUpperCase(java.util.Locale.ROOT);
         this.refreshAction = Objects.requireNonNull(refreshAction, "refreshAction");
         this.statusSupplier = Objects.requireNonNull(statusSupplier, "statusSupplier");
     }

@@ -293,7 +293,7 @@ public interface CpfLockManager {
             }
             approvalId = approvalId.trim();
             approverId = approverId.trim();
-            commandHash = commandHash == null ? null : commandHash.trim().toLowerCase();
+            commandHash = commandHash == null ? null : commandHash.trim().toLowerCase(java.util.Locale.ROOT);
             if (commandHash != null && !commandHash.matches("[0-9a-f]{64}")) {
                 throw new IllegalArgumentException("commandHash must be a lowercase SHA-256 value");
             }

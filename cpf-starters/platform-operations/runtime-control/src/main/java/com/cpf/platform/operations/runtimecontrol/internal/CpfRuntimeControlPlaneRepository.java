@@ -307,7 +307,7 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     private boolean isWaveOpen(Map<String,Object> candidate) {
-        String rollout = blank(nullable(candidate.get("rollout_mode"))).trim().toUpperCase();
+        String rollout = blank(nullable(candidate.get("rollout_mode"))).trim().toUpperCase(java.util.Locale.ROOT);
         if (rollout.isBlank() || "ALL_AT_ONCE".equals(rollout)) return true;
         String changeId = String.valueOf(candidate.get("change_id"));
         Integer blocked = jdbc.queryForObject(
@@ -361,7 +361,7 @@ public class CpfRuntimeControlPlaneRepository {
                             long appliedVersion, String actualHash, String state, String errorCode,
                             String message, Instant at) {
         assertFence(instanceId, fencingToken);
-        String normalized = blank(state).trim().toUpperCase();
+        String normalized = blank(state).trim().toUpperCase(java.util.Locale.ROOT);
         if (!Set.of("SUCCESS", "ACKED", "FAILED", "UNKNOWN_RESULT", "RESTART_REQUIRED").contains(normalized)) {
             throw new IllegalArgumentException("지원하지 않는 Runtime ACK state: " + state);
         }
@@ -460,7 +460,7 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     private boolean isPermanentFailure(String errorCode) {
-        String code = blank(errorCode).trim().toUpperCase();
+        String code = blank(errorCode).trim().toUpperCase(java.util.Locale.ROOT);
         return Set.of("APPLIER_NOT_FOUND", "PAYLOAD_SCHEMA_UNSUPPORTED", "PAYLOAD_HASH_MISMATCH",
                 "VERSION_GAP_REQUIRES_SNAPSHOT", "ACTUAL_HASH_MISSING").contains(code);
     }
@@ -680,14 +680,14 @@ public class CpfRuntimeControlPlaneRepository {
                             "source_delivery_id=?,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE instance_id=? AND change_type=?",
                     state.actualVersion(), state.actualHash(), state.actualVersion(), state.actualHash(),
-                    state.sourceDeliveryId(), instanceId, state.changeType().trim().toUpperCase());
+                    state.sourceDeliveryId(), instanceId, state.changeType().trim().toUpperCase(java.util.Locale.ROOT));
             if (updated == 0) {
                 try {
                     jdbc.update("INSERT INTO OPS_RUNTIME_INSTANCE_FEATURE_STATE " +
                                     "(instance_id,change_type,desired_version,actual_version,desired_hash,actual_hash," +
                                     "drift_state,source_delivery_id,created_by,updated_by) " +
                                     "VALUES (?,?,0,?,?,?,'DRIFT',?,'CPF','CPF')",
-                            instanceId, state.changeType().trim().toUpperCase(), state.actualVersion(),
+                            instanceId, state.changeType().trim().toUpperCase(java.util.Locale.ROOT), state.actualVersion(),
                             null, state.actualHash(), state.sourceDeliveryId());
                 } catch (DuplicateKeyException duplicate) {
                     reconcileActualState(instanceId, fencingToken, List.of(state));
@@ -1405,7 +1405,7 @@ public class CpfRuntimeControlPlaneRepository {
     private long number(Object value){return value==null?0L:((Number)value).longValue();}
     private static String nullable(Object value){return value==null?null:String.valueOf(value);}
     private String baseChangeType(String value) {
-        String type = blank(value).trim().toUpperCase();
+        String type = blank(value).trim().toUpperCase(java.util.Locale.ROOT);
         return type.startsWith("ROLLBACK:") ? type.substring("ROLLBACK:".length()) : type;
     }
     private static String blank(String value){return value==null?"":value;}

@@ -81,7 +81,7 @@ public class BatchJobDefinitionController {
             @PathVariable String jobId,
             @PathVariable long version,
             @RequestBody TransitionRequest request) {
-        String target = request.targetState() == null ? "" : request.targetState().trim().toUpperCase();
+        String target = request.targetState() == null ? "" : request.targetState().trim().toUpperCase(java.util.Locale.ROOT);
         BatchJobDefinitionService.AuditContext auditContext;
         String actor;
         if (java.util.Set.of("PUBLISHED", "RETIRED").contains(target)) {

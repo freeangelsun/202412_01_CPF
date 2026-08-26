@@ -7,17 +7,16 @@ dependencies {
     testImplementation 'org.springframework.batch:spring-batch-test'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-    testImplementation 'org.apache.kafka:kafka-clients'
     testImplementation 'org.postgresql:postgresql'
     testImplementation 'org.mariadb.jdbc:mariadb-java-client'
     testImplementation 'com.oracle.database.jdbc:ojdbc11'
 }
-// qa32-runtime/qa34-runtime는 실제 Oracle/PostgreSQL/MariaDB/Kafka 환경변수가 있어야 하는
+// qa32-runtime/qa34-runtime는 실제 Oracle/PostgreSQL/MariaDB 환경변수가 있어야 하는
 // opt-in Release 검증 Tag다. 전용 태스크(qa32IntegrationTest/qa34IntegrationTest)에서만
 // 실행하며, 일반 test 태스크는 환경 미제공 상태에서 항상 실패하지 않도록 제외한다.
 tasks.named('test') { useJUnitPlatform { excludeTags 'qa32-runtime', 'qa34-runtime' } }
 tasks.register('qa32IntegrationTest', Test) {
-    group='verification'; description='QA32 real Oracle/PostgreSQL/MariaDB/Kafka environment contract tests.'
+    group='verification'; description='QA32 real Oracle/PostgreSQL/MariaDB environment contract tests.'
     useJUnitPlatform { includeTags 'qa32-runtime' }
     shouldRunAfter test
     systemProperties System.properties
@@ -27,7 +26,7 @@ publishing { publications { mavenJava(MavenPublication) { from components.java; 
 
 tasks.register('qa34IntegrationTest', Test) {
     group = 'verification'
-    description = 'QA34 real Oracle/PostgreSQL/MariaDB/Kafka/multi-instance contract tests.'
+    description = 'QA34 real Oracle/PostgreSQL/MariaDB/multi-instance contract tests.'
     useJUnitPlatform {
         includeTags 'qa32-runtime', 'qa34-runtime'
     }
@@ -35,7 +34,7 @@ tasks.register('qa34IntegrationTest', Test) {
     systemProperties System.properties
     environment System.getenv()
     doFirst {
-        ['CPF_QA34_RUNTIME_ENABLED', 'CPF_KAFKA_BOOTSTRAP_SERVERS',
+        ['CPF_QA34_RUNTIME_ENABLED',
          'CPF_MARIADB_JDBC_URL', 'CPF_POSTGRESQL_JDBC_URL', 'CPF_ORACLE_JDBC_URL'].each { key ->
             if (!(System.getenv(key) ?: '').trim()) {
                 throw new GradleException("qa34IntegrationTest requires ${key}; runtime checks never skip silently.")

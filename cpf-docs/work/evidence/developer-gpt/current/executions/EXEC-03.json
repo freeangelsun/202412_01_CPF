@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260826-EXEC-03",
+  "evidenceType": "execution",
+  "sourceSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "resultSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "command": "python -B cpf-tools/verification/tools/verify-cpf-batch-no-remote-kafka.py --root . && python -B cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py --root . && python -B -m pytest cpf-tools/runtime/tools/tests/test_bat_two_worker_runtime_shell_contract.py -q",
+  "startedAt": "2026-08-26T02:29:22.996134+00:00",
+  "endedAt": "2026-08-26T02:29:26.617832+00:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-02.06",
+    "WP-02.07",
+    "WP-02.08",
+    "WP-02.09",
+    "WP-02.10"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-EXEC-03-S01",
+      "precondition": "Product source identity 3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d and current desired-state tree",
+      "action": "python -B cpf-tools/verification/tools/verify-cpf-batch-no-remote-kafka.py --root . && python -B cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py --root . && python -B -m pytest cpf-tools/runtime/tools/tests/test_bat_two_worker_runtime_shell_contract.py -q",
+      "expectedResult": "All invoked fail-closed verification commands exit 0",
+      "actualResult": "All invoked verification commands exited 0"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-03.log",
+      "sha256": "86c534b379f30d65c700f2394c895b67b02797406bbe87da07644b075458395c"
+    }
+  ]
+}

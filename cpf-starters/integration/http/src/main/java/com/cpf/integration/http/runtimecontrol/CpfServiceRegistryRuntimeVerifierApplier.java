@@ -15,7 +15,7 @@ public final class CpfServiceRegistryRuntimeVerifierApplier implements CpfRuntim
     private final CpfServiceRegistryRepository repository;
 
     public CpfServiceRegistryRuntimeVerifierApplier(String changeType, CpfServiceRegistryRepository repository) {
-        this.changeType = Objects.requireNonNull(changeType).trim().toUpperCase();
+        this.changeType = Objects.requireNonNull(changeType).trim().toUpperCase(java.util.Locale.ROOT);
         this.repository = Objects.requireNonNull(repository);
         if (!List.of("SERVICE_ROUTE", "CIRCUIT", "MAINTENANCE").contains(this.changeType)) {
             throw new IllegalArgumentException("지원하지 않는 Service Registry Runtime 기능입니다.");

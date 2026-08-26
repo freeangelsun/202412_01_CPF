@@ -18,14 +18,14 @@ public class BatRetentionOperations implements CpfRetentionOperations {
     public BatRetentionOperations(List<CpfRetentionTargetHandler> handlers) {
         Map<String,CpfRetentionTargetHandler> map = new LinkedHashMap<>();
         for (CpfRetentionTargetHandler h : handlers) {
-            String key = h.target().trim().toUpperCase();
+            String key = h.target().trim().toUpperCase(java.util.Locale.ROOT);
             if (map.putIfAbsent(key, h) != null) throw new IllegalStateException("중복 Retention target: " + key);
         }
         this.handlers = Map.copyOf(map);
     }
     @Override public Set<String> targets() { return handlers.keySet(); }
     @Override public CpfRetentionResult execute(CpfRetentionCommand command) {
-        String target = command.policy().target().toUpperCase();
+        String target = command.policy().target().toUpperCase(java.util.Locale.ROOT);
         CpfRetentionTargetHandler handler = handlers.get(target);
         if (handler == null) throw new IllegalArgumentException("지원하지 않는 Retention target: " + target);
         return handler.execute(command);

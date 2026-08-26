@@ -23,4 +23,3 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF;
 END;
 /
-COMMENT ON COLUMN bat_remote_message_ledger.status_cd IS 'PROCESSING COMPLETE FAILED UNKNOWN; UNKNOWN requires approved explicit reconcile';

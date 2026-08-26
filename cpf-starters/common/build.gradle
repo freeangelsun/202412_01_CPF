@@ -40,7 +40,8 @@ sourceSets {
         resources.exclude 'cpf-sql/**'
     }
     test {
-        java.setSrcDirs(['src/test/java/com/cpf/common/runtime'])
+        java.setSrcDirs(['src/test/java'])
+        java.include 'com/cpf/common/runtime/**'
     }
 }
 

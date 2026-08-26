@@ -16,4 +16,3 @@ CREATE TABLE IF NOT EXISTS bat_reconciliation_audit (
     CONSTRAINT ck_bat_reconcile_separation CHECK (requester_id <> approver_id)
 );
 CREATE INDEX IF NOT EXISTS ix_bat_reconcile_entity ON bat_reconciliation_audit(entity_type, entity_key, created_at);
-COMMENT ON COLUMN bat_remote_message_ledger.status_cd IS 'PROCESSING COMPLETE FAILED UNKNOWN; UNKNOWN requires approved explicit reconcile';

@@ -17,7 +17,6 @@ def main():
   h.write_text(textwrap.dedent('''
   import com.cpf.batch.context.*;
   import com.cpf.batch.scheduler.internal.context.CpfBatchContextFactory;
-  import com.cpf.batch.execution.context.CpfBatchContextCarrier;
   import com.cpf.batch.execution.internal.context.CpfBatchRuntimeContexts;
   import com.cpf.foundation.id.spi.*;
   import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
@@ -51,14 +50,6 @@ def main():
       ok("UNK-1".equals(unknown.batch().unknownOutcomeId()),"unknown id");
       ok("REC-2".equals(unknown.batch().recoveryId()),"unknown recovery id");
       ok(unknown.snapshot().context().transactionId().equals(rootTx),"unknown tx relation");
-      CpfBatchContextCarrier carrier=new CpfBatchContextCarrier(ex);
-      Map<String,String> wire=carrier.inject(unknown);
-      ok(wire.size()<=32,"wire key budget");
-      CpfBatchContextBundle restored=carrier.restore(wire);
-      ok(restored.snapshot().context().transactionId().equals(rootTx),"wire tx");
-      ok("UNK-1".equals(restored.batch().unknownOutcomeId()),"wire unknown");
-      ok("REC-2".equals(restored.batch().recoveryId()),"wire recovery");
-      ok(restored.batch().businessDate().equals(LocalDate.of(2026,8,9)),"wire business date");
       ok(CpfBatchRuntimeContexts.current()==null,"runtime initial leak");
       try(AutoCloseable s1=CpfBatchRuntimeContexts.bind(root)){
         ok(CpfBatchRuntimeContexts.current()==root,"runtime bind");
@@ -69,7 +60,7 @@ def main():
     }
   }
   '''),encoding='utf-8')
-  src=fs('cpf-core/src/main/java/com/cpf/core/api/context/CpfContext.java','cpf-core/src/main/java/com/cpf/core/api/context/CpfContextSnapshot.java','cpf-batch/api/src/main/java/com/cpf/batch/context','cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/internal/context/CpfBatchContextFactory.java','cpf-batch/runtime/src/main/java/com/cpf/batch/execution/context/CpfBatchContextCarrier.java','cpf-batch/runtime/src/main/java/com/cpf/batch/execution/internal/context/CpfBatchRuntimeContexts.java','cpf-starters/base/runtime/src/main/java/com/cpf/foundation/id/spi','cpf-starters/base/runtime/src/main/java/com/cpf/foundation/time/spi')+[str(h)]
+  src=fs('cpf-core/src/main/java/com/cpf/core/api/context/CpfContext.java','cpf-core/src/main/java/com/cpf/core/api/context/CpfContextSnapshot.java','cpf-batch/api/src/main/java/com/cpf/batch/context','cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/internal/context/CpfBatchContextFactory.java','cpf-batch/runtime/src/main/java/com/cpf/batch/execution/internal/context/CpfBatchRuntimeContexts.java','cpf-starters/base/runtime/src/main/java/com/cpf/foundation/id/spi','cpf-starters/base/runtime/src/main/java/com/cpf/foundation/time/spi')+[str(h)]
   out=tmp/'classes';out.mkdir();cp=subprocess.run(['javac','-encoding','UTF-8','-d',str(out),*src],text=True,capture_output=True)
   if cp.returncode:
    print('CPF_BATCH_CONTEXT_RUNTIME=FAIL compile');print(cp.stdout);print(cp.stderr);return cp.returncode

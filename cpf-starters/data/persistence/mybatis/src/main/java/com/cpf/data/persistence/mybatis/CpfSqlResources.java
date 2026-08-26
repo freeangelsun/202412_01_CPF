@@ -18,7 +18,7 @@ public final class CpfSqlResources {
 
     public static Resource[] mapperResources(Environment environment, String domainName) throws IOException {
         Path root = resourceRoot(environment);
-        String domain = domainName == null || domainName.isBlank() ? "*" : domainName.trim().toLowerCase();
+        String domain = domainName == null || domainName.isBlank() ? "*" : domainName.trim().toLowerCase(java.util.Locale.ROOT);
         Path runtime = root.resolve("runtime");
         if (!Files.isDirectory(runtime)) throw new IOException("CPF DB runtime root not found: " + runtime);
         List<Path> files = new ArrayList<>();
@@ -35,12 +35,12 @@ public final class CpfSqlResources {
     }
 
     public static String repositoryResourceRoot(Environment environment, String domainName) {
-        String domain = Objects.requireNonNull(domainName, "domainName").trim().toLowerCase();
+        String domain = Objects.requireNonNull(domainName, "domainName").trim().toLowerCase(java.util.Locale.ROOT);
         return resourceRoot(environment).resolve("runtime").resolve(domain).resolve("repository").toString();
     }
 
     public static String vendor(Environment environment) {
-        String vendor = environment.getProperty("cpf.db.vendor", "mariadb").trim().toLowerCase();
+        String vendor = environment.getProperty("cpf.db.vendor", "mariadb").trim().toLowerCase(java.util.Locale.ROOT);
         if (!vendor.equals("mariadb") && !vendor.equals("postgresql") && !vendor.equals("oracle"))
             throw new IllegalArgumentException("Unsupported CPF DB vendor: " + vendor);
         return vendor;

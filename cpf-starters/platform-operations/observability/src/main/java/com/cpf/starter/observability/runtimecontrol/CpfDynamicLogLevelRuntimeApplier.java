@@ -64,7 +64,7 @@ public final class CpfDynamicLogLevelRuntimeApplier implements CpfRuntimeChangeA
                     throw new IllegalArgumentException("transactionId or businessTransactionId required");
                 }
                 rules.add(new DynamicLogLevelRule(ruleId, normalize(transactionId), normalize(businessTransactionId),
-                        normalize(optional(item, "moduleId")), CpfLogLevel.valueOf(level.trim().toUpperCase()),
+                        normalize(optional(item, "moduleId")), CpfLogLevel.valueOf(level.trim().toUpperCase(java.util.Locale.ROOT)),
                         reason.trim(), createdBy.trim(), createdAt, expiresAt));
             }
             List<DynamicLogLevelRule> previous = service.findActiveRules();
@@ -115,6 +115,6 @@ public final class CpfDynamicLogLevelRuntimeApplier implements CpfRuntimeChangeA
     }
 
     private String normalize(String value) {
-        return value == null || value.isBlank() ? null : value.trim().toUpperCase();
+        return value == null || value.isBlank() ? null : value.trim().toUpperCase(java.util.Locale.ROOT);
     }
 }

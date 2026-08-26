@@ -752,7 +752,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     private String normalizeMethod(String value) {
-        String method = CpfStrings.defaultIfBlank(value, "GET").trim().toUpperCase();
+        String method = CpfStrings.defaultIfBlank(value, "GET").trim().toUpperCase(java.util.Locale.ROOT);
         return switch (method) {
             case "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "ANY" -> method;
             default -> throw new CpfValidationException("허용하지 않는 HTTP 메서드입니다. method=" + value);

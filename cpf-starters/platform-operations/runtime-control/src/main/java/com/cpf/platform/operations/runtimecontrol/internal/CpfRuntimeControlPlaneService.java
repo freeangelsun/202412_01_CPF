@@ -190,7 +190,7 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
     public CpfRuntimeChangeResult acknowledge(CpfRuntimeAck ack){
         if(ack==null)throw new IllegalArgumentException("ACK가 필요합니다.");
         repository.acknowledge(require(ack.deliveryId(),"deliveryId"),require(ack.changeId(),"changeId"),require(ack.instanceId(),"instanceId"),
-                ack.fencingToken(),ack.appliedVersion(),ack.actualHash(),safe(ack.state()).toUpperCase(),ack.errorCode(),ack.message(),ack.acknowledgedAt()==null?Instant.now():ack.acknowledgedAt());
+                ack.fencingToken(),ack.appliedVersion(),ack.actualHash(),safe(ack.state()).toUpperCase(java.util.Locale.ROOT),ack.errorCode(),ack.message(),ack.acknowledgedAt()==null?Instant.now():ack.acknowledgedAt());
         return getChange(ack.changeId());
     }
 

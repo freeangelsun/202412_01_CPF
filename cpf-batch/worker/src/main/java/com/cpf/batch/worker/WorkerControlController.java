@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Operational admission control for the Spring Batch/Kafka worker listener. */
+/** Operational admission control for the Spring Batch worker runtime. */
 @RestController
 @RequestMapping("/internal/v1/worker")
 public final class WorkerControlController {

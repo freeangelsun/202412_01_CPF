@@ -328,7 +328,7 @@ public class BatchRuntimeControlClient {
     }
 
     private static BatchControlClientException.Category category(String code) {
-        String normalized = value(code, "").toUpperCase();
+        String normalized = value(code, "").toUpperCase(java.util.Locale.ROOT);
         if (normalized.contains("VALID")) {
             return BatchControlClientException.Category.VALIDATION;
         }

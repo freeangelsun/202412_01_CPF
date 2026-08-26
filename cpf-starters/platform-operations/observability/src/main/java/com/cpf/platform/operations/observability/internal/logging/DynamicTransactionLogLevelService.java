@@ -143,7 +143,7 @@ public class DynamicTransactionLogLevelService implements CpfDynamicLogLevelOper
     }
 
     private String normalize(String value) {
-        return hasText(value) ? value.trim().toUpperCase() : null;
+        return hasText(value) ? value.trim().toUpperCase(java.util.Locale.ROOT) : null;
     }
 
     private boolean hasText(String value) {

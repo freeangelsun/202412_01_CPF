@@ -1,0 +1,16 @@
+{
+  "status": "FAIL",
+  "info": {
+    "deleteManifestCount": 295,
+    "approvedDeleteManifestCount": 295,
+    "pendingUserExecutionDeleteCount": 295,
+    "userApprovedDeleteCount": 295,
+    "eduOnline": 20,
+    "eduBatch": 15,
+    "operationPairs": 115,
+    "uniqueOperationIds": 115
+  },
+  "failures": [
+    "JSON parse:cpf-docs/work/evidence/developer-gpt/current/current-final.json:Expecting value: line 1 column 1 (char 0)"
+  ]
+}

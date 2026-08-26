@@ -58,3 +58,8 @@ $log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; ./gradle
 
 정상 기대: `Result=PASS`, `ExitCode=0`, `Failed Tasks=0`, `BUILD SUCCESSFUL`.  
 실패 전달 파일: `%USERPROFILE%\Downloads\gradle-problems.txt`.
+
+
+## 2026-08-26 BAT-NO-REMOTE-KAFKA Current Steering
+
+이 문서의 과거 `remote-kafka` / `REMOTE_PARTITION` / `REMOTE_CHUNK` / Provider-neutral Remote Adapter 관련 계획·보고는 **historical context**이며 현재 요구가 아니다. 사용자 직접 Steering `BAT-NO-REMOTE-KAFKA`가 이를 supersede한다. 일반 Batch·Worker·Scheduler·Center-Cut은 Kafka 없이 보존하고 Kafka 기반 Batch Remote Execution 전체 Surface를 실제 Consumer/Bean/Runtime/DB/Publication/Harness 호출경로 기준으로 제거한다. 새 Remote Transport/Broker를 만들지 않는다. 공용 Messaging Kafka는 별도 Owner/Consumer로만 판단한다.

@@ -30,6 +30,7 @@ CAPABILITY_GATES = {
     "batch": (
         "cpf-tools/verification/verify_cpf_batch_developer_top50.py",
         "cpf-tools/verification/tools/verify-cpf-batch-fail-closed.py",
+        "cpf-tools/verification/tools/verify-cpf-batch-no-remote-kafka.py",
         "cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py",
     ),
     "security": (

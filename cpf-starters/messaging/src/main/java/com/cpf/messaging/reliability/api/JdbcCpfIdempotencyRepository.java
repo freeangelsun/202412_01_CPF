@@ -113,7 +113,7 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
     }
 
     private String normalizeStatus(String status) {
-        return status == null || status.isBlank() ? "UNKNOWN" : status.trim().toUpperCase();
+        return status == null || status.isBlank() ? "UNKNOWN" : status.trim().toUpperCase(java.util.Locale.ROOT);
     }
 
     private int safeLimit(int limit) {

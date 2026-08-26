@@ -156,6 +156,11 @@
         "--mutation-self-test"
       ],
       "required": true
+    },
+    {
+      "id": "batch-no-remote-kafka",
+      "path": "cpf-tools/verification/tools/verify-cpf-batch-no-remote-kafka.py",
+      "required": true
     }
   ]
 }

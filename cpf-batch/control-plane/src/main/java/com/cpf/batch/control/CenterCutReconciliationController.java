@@ -216,11 +216,11 @@ public class CenterCutReconciliationController {
 
     private static String requiredIdentifier(String value, String field) {
         if (value == null || value.isBlank()) {
-            throw badRequest("CENTER_CUT_" + field.toUpperCase() + "_REQUIRED");
+            throw badRequest("CENTER_CUT_" + field.toUpperCase(java.util.Locale.ROOT) + "_REQUIRED");
         }
         String normalized = value.trim();
         if (normalized.length() > 128 || containsControl(normalized)) {
-            throw badRequest("CENTER_CUT_" + field.toUpperCase() + "_INVALID");
+            throw badRequest("CENTER_CUT_" + field.toUpperCase(java.util.Locale.ROOT) + "_INVALID");
         }
         return normalized;
     }

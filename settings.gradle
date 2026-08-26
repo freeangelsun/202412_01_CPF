@@ -109,7 +109,7 @@ if (cpfBackofficePresent) {
     include ':apps:backoffice'
 }
 include ':internal:verification:core-only-consumer'
-include ':runtime:batch:api', ':runtime:batch:runtime-support', ':runtime:batch:runtime', ':runtime:batch:remote-kafka', ':runtime:batch:center-cut-runtime', ':runtime:batch:control-plane', ':runtime:batch:scheduler', ':runtime:batch:worker', ':runtime:batch:center-cut', ':runtime:batch:agent', ':runtime:batch:testkit'
+include ':runtime:batch:api', ':runtime:batch:runtime-support', ':runtime:batch:runtime', ':runtime:batch:center-cut-runtime', ':runtime:batch:control-plane', ':runtime:batch:scheduler', ':runtime:batch:worker', ':runtime:batch:center-cut', ':runtime:batch:agent', ':runtime:batch:testkit'
 
 project(':cpf-common').projectDir = file('cpf-common')
 project(':framework:core').projectDir = file('cpf-core')
@@ -128,7 +128,6 @@ project(':internal:verification:core-only-consumer').projectDir = file('cpf-tool
 project(':runtime:batch:api').projectDir = file('cpf-batch/api')
 project(':runtime:batch:runtime-support').projectDir = file('cpf-batch/runtime-support')
 project(':runtime:batch:runtime').projectDir = file('cpf-batch/runtime')
-project(':runtime:batch:remote-kafka').projectDir = file('cpf-batch/remote-kafka')
 project(':runtime:batch:control-plane').projectDir = file('cpf-batch/control-plane')
 project(':runtime:batch:scheduler').projectDir = file('cpf-batch/scheduler')
 project(':runtime:batch:worker').projectDir = file('cpf-batch/worker')

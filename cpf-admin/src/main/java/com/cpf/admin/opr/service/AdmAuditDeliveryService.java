@@ -180,7 +180,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
         return jdbc.query(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql);
             if (CpfStrings.hasText(state)) {
-                ps.setString(1, state.trim().toUpperCase());
+                ps.setString(1, state.trim().toUpperCase(java.util.Locale.ROOT));
             }
             ps.setMaxRows(safeLimit);
             return ps;

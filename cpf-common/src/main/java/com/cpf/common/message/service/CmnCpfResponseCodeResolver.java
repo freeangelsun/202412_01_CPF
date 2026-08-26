@@ -101,7 +101,7 @@ public class CmnCpfResponseCodeResolver implements CpfResponseCodeResolver {
             value = source.get(snakeKey);
         }
         if (value == null && snakeKey != null) {
-            value = source.get(snakeKey.toUpperCase());
+            value = source.get(snakeKey.toUpperCase(java.util.Locale.ROOT));
         }
         return value == null ? fallback : String.valueOf(value);
     }

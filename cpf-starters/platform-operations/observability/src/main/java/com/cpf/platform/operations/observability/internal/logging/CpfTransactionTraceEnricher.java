@@ -16,14 +16,14 @@ public final class CpfTransactionTraceEnricher {
         if (record == null) throw new IllegalArgumentException("transaction log record is required");
         String transactionId = required(record.getTransactionId(), "transactionId");
         String traceId = validHex(record.getTraceId(), 32)
-                ? record.getTraceId().trim().toLowerCase()
+                ? record.getTraceId().trim().toLowerCase(java.util.Locale.ROOT)
                 : digest(transactionId).substring(0, 32);
         String operation = first(record.getExecutionSignature(), record.getUri(), record.getExecutionMethod(), "transaction");
         String spanId = validHex(record.getSpanId(), 16)
-                ? record.getSpanId().trim().toLowerCase()
+                ? record.getSpanId().trim().toLowerCase(java.util.Locale.ROOT)
                 : digest(traceId + '|' + operation + '|' + number(record.getSequenceNo())).substring(0, 16);
         String parent = validHex(record.getParentSpanId(), 16)
-                ? record.getParentSpanId().trim().toLowerCase() : null;
+                ? record.getParentSpanId().trim().toLowerCase(java.util.Locale.ROOT) : null;
         CpfTraceContext context = new CpfTraceContext(
                 traceId, spanId, parent, transactionId,
                 first(record.getWorkflowStepId(), record.getWorkflowInstanceId(), null),
@@ -39,7 +39,7 @@ public final class CpfTransactionTraceEnricher {
     }
 
     private static CpfTraceContext.SpanKind kind(TransactionLogRecord record) {
-        String type = first(record.getRequestType(), record.getLogType(), "LOCAL").toUpperCase();
+        String type = first(record.getRequestType(), record.getLogType(), "LOCAL").toUpperCase(java.util.Locale.ROOT);
         if (type.contains("MESSAGE") || type.contains("BROKER") || type.contains("EVENT")) return CpfTraceContext.SpanKind.MESSAGE;
         if (type.contains("BATCH") || type.contains("JOB")) return CpfTraceContext.SpanKind.BATCH;
         if (type.contains("FILE")) return CpfTraceContext.SpanKind.FILE;

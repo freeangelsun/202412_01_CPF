@@ -1,4 +1,4 @@
-﻿currentLogicalDatabase,currentName,logicalOwner,targetDatabaseRole,targetPhysicalDatabase,targetTableName,targetTablePrefix,migrationOwner,runtimeConsumer,atomicityClass,productionDefault
+currentLogicalDatabase,currentName,logicalOwner,targetDatabaseRole,targetPhysicalDatabase,targetTableName,targetTablePrefix,migrationOwner,runtimeConsumer,atomicityClass,productionDefault
 admDB,adm_api_permission,admin,CPF_PLATFORM_DB,cpfDB,ADM_API_PERMISSION,ADM_,admin,admin,PLATFORM_OWNER_LOCAL,True
 admDB,adm_approval_capability_nonce,admin,CPF_PLATFORM_DB,cpfDB,ADM_APPROVAL_CAPABILITY_NONCE,ADM_,admin,admin,PLATFORM_OWNER_LOCAL,True
 admDB,adm_approval_execution,admin,CPF_PLATFORM_DB,cpfDB,ADM_APPROVAL_EXECUTION,ADM_,admin,admin,PLATFORM_OWNER_LOCAL,True
@@ -78,7 +78,6 @@ batDB,bat_on_demand_request,batch,CPF_PLATFORM_DB,cpfDB,BAT_ON_DEMAND_REQUEST,BA
 batDB,bat_operation_log,batch,CPF_PLATFORM_DB,cpfDB,BAT_OPERATION_LOG,BAT_,batch,batch,PLATFORM_OWNER_LOCAL,True
 batDB,bat_operation_log_archive,batch,CPF_PLATFORM_DB,cpfDB,BAT_OPERATION_LOG_ARCHIVE,BAT_,batch,batch,PLATFORM_OWNER_LOCAL,True
 batDB,bat_operation_request,batch,CPF_PLATFORM_DB,cpfDB,BAT_OPERATION_REQUEST,BAT_,batch,batch,PLATFORM_OWNER_LOCAL,True
-batDB,bat_remote_message_ledger,batch,CPF_PLATFORM_DB,cpfDB,BAT_REMOTE_MESSAGE_LEDGER,BAT_,batch,batch,PLATFORM_OWNER_LOCAL,True
 batDB,bat_runtime_capability,batch,CPF_PLATFORM_DB,cpfDB,BAT_RUNTIME_CAPABILITY,BAT_,batch,batch,PLATFORM_OWNER_LOCAL,True
 batDB,bat_runtime_command,batch,CPF_PLATFORM_DB,cpfDB,BAT_RUNTIME_COMMAND,BAT_,batch,batch,PLATFORM_OWNER_LOCAL,True
 batDB,bat_runtime_command_attempt,batch,CPF_PLATFORM_DB,cpfDB,BAT_RUNTIME_COMMAND_ATTEMPT,BAT_,batch,batch,PLATFORM_OWNER_LOCAL,True

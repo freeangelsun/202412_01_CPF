@@ -96,7 +96,7 @@ public final class AdmParameterReferenceCatalogAdapter implements CpfParameterRe
         CpfGatewayRegistryPort port=gateway.getIfAvailable();if(port==null)return unavailable("GATEWAY_GROUP","Gateway Control Plane이 설치되지 않았습니다.");
         return port.findServerGroups(null,clean(serviceId),null,1000).stream().filter(v->matches(v.serverGroupId(),v.groupName(),q)).map(v->new ReferenceItem(v.serverGroupId(),v.groupName(),"GATEWAY_GROUP",v.serviceId(),!"RETIRED".equals(v.status()),"RETIRED".equals(v.status())?"폐기된 Group":null,Map.of("environment",v.environmentCode(),"status",v.status(),"version",v.version()))).toList();
     }
-    private static boolean matches(String a,String b,String q){String n=clean(q);return n==null||a.toLowerCase().contains(n.toLowerCase())||b.toLowerCase().contains(n.toLowerCase());}
+    private static boolean matches(String a,String b,String q){String n=clean(q);return n==null||a.toLowerCase(java.util.Locale.ROOT).contains(n.toLowerCase(java.util.Locale.ROOT))||b.toLowerCase(java.util.Locale.ROOT).contains(n.toLowerCase(java.util.Locale.ROOT));}
     private static List<ReferenceItem> unavailable(String type,String reason){return List.of(new ReferenceItem("","",type,null,false,reason,Map.of("capability","UNAVAILABLE")));}
     private static boolean isUnavailable(List<ReferenceItem> values){return values.size()==1&&values.getFirst().id().isBlank()&&!values.getFirst().enabled();}
     private static String clean(String value){return value==null||value.isBlank()?null:value.trim();}

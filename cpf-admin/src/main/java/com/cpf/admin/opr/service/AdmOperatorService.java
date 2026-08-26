@@ -565,7 +565,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         if (request.expectedVersion() == null) {
             throw new CpfValidationException("상태 변경에는 expectedVersion이 필요합니다.");
         }
-        String status = CpfStrings.requireText(request.accountStatus(), "accountStatus").toUpperCase();
+        String status = CpfStrings.requireText(request.accountStatus(), "accountStatus").toUpperCase(java.util.Locale.ROOT);
         if (!ACCOUNT_STATES.contains(status)) throw new CpfValidationException("지원하지 않는 운영자 계정 상태입니다.");
         String user = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
 

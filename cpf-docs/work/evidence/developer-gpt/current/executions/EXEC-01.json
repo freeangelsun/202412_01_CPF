@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260826-EXEC-01",
+  "evidenceType": "execution",
+  "sourceSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "resultSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "command": "python -B cpf-tools/verification/tools/cpf-source-state.py --root . && python -B cpf-tools/verification/tools/verify-cpf-current-final.py",
+  "startedAt": "2026-08-26T02:29:16.223456+00:00",
+  "endedAt": "2026-08-26T02:29:21.674036+00:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-01.01",
+    "WP-01.02",
+    "WP-01.03",
+    "WP-01.04",
+    "WP-01.05"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-EXEC-01-S01",
+      "precondition": "Product source identity 3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d and current desired-state tree",
+      "action": "python -B cpf-tools/verification/tools/cpf-source-state.py --root . && python -B cpf-tools/verification/tools/verify-cpf-current-final.py",
+      "expectedResult": "All invoked fail-closed verification commands exit 0",
+      "actualResult": "All invoked verification commands exited 0"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-01.log",
+      "sha256": "51038ab33bada7a32543a02e63e7d87a7e6b9c943ee714d577c5d8465e54cb0d"
+    }
+  ]
+}

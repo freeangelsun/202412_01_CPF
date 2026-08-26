@@ -78,7 +78,7 @@ public final class AdmApprovalSnapshotIntegrity {
         String stored = Objects.toString(request.get("payloadHash"), "").trim();
         String calculated = hash(request);
         boolean wellFormed = stored.matches("[0-9a-fA-F]{64}");
-        String safeStored = wellFormed ? stored.toLowerCase() : "INVALID";
+        String safeStored = wellFormed ? stored.toLowerCase(java.util.Locale.ROOT) : "INVALID";
         boolean valid = wellFormed
                 && MessageDigest.isEqual(safeStored.getBytes(StandardCharsets.US_ASCII),
                 calculated.getBytes(StandardCharsets.US_ASCII));
@@ -87,8 +87,8 @@ public final class AdmApprovalSnapshotIntegrity {
 
     public boolean constantTimeEquals(String left, String right) {
         if (left == null || right == null) return false;
-        return MessageDigest.isEqual(left.toLowerCase().getBytes(StandardCharsets.US_ASCII),
-                right.toLowerCase().getBytes(StandardCharsets.US_ASCII));
+        return MessageDigest.isEqual(left.toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.US_ASCII),
+                right.toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.US_ASCII));
     }
 
     private String canonicalJson(Object value) {

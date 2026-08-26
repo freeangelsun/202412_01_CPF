@@ -27,7 +27,7 @@ public record CpfIdempotencyRecord(
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
             throw new IllegalArgumentException("idempotencyKey는 필수입니다.");
         }
-        status = status == null || status.isBlank() ? "PROCESSING" : status.trim().toUpperCase();
+        status = status == null || status.isBlank() ? "PROCESSING" : status.trim().toUpperCase(java.util.Locale.ROOT);
         createdAt = createdAt == null ? Instant.now() : createdAt;
     }
 

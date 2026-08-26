@@ -23,7 +23,7 @@ public record CpfRuntimeChangeCommand(
     public CpfRuntimeChangeCommand {
         payloadSchemaVersion = payloadSchemaVersion <= 0 ? 1 : payloadSchemaVersion;
         payload = payload == null ? CpfRuntimePayload.empty() : payload;
-        rolloutMode = rolloutMode == null || rolloutMode.isBlank() ? "ALL_AT_ONCE" : rolloutMode.trim().toUpperCase();
+        rolloutMode = rolloutMode == null || rolloutMode.isBlank() ? "ALL_AT_ONCE" : rolloutMode.trim().toUpperCase(java.util.Locale.ROOT);
         waveSize = waveSize == null || waveSize < 1 ? 1 : waveSize;
         quorumPercent = quorumPercent == null ? 100 : Math.max(1, Math.min(100, quorumPercent));
     }

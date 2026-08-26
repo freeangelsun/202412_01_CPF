@@ -5,7 +5,7 @@
   "physicalSourceRoot": "cpf-tools/db/generated/current/mariadb",
   "installProfile": "cpf-tools/db/config/database-install.default.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 236,
+  "tableCount": 235,
   "tables": [
     {
       "vendor": "mariadb",
@@ -3944,44 +3944,6 @@
             "entity_type",
             "entity_key",
             "created_at"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "cpfDB",
-      "sourceFile": "cpf-platform-schema.sql",
-      "tableName": "BAT_REMOTE_MESSAGE_LEDGER",
-      "columns": [
-        "direction_cd",
-        "message_id",
-        "payload_sha256",
-        "status_cd",
-        "owner_id",
-        "lease_until",
-        "expires_at",
-        "attempt_no",
-        "last_error_cd",
-        "created_at",
-        "updated_at",
-        "version_no"
-      ],
-      "indexes": [
-        {
-          "name": "idx_bat_remote_msg_status",
-          "unique": false,
-          "columns": [
-            "status_cd",
-            "lease_until"
-          ]
-        },
-        {
-          "name": "idx_bat_remote_msg_expiry",
-          "unique": false,
-          "columns": [
-            "expires_at"
           ]
         }
       ],

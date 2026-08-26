@@ -94,8 +94,8 @@ public final class BatchCanonicalDigest {
         return sha256(Map.of(
                 "jobId", request.definition().jobId(),
                 "definitionVersion", request.definition().definitionVersion(),
-                "definitionChecksum", request.definition().checksum().toLowerCase(),
-                "planChecksum", request.plan().checksum().toLowerCase(),
+                "definitionChecksum", request.definition().checksum().toLowerCase(java.util.Locale.ROOT),
+                "planChecksum", request.plan().checksum().toLowerCase(java.util.Locale.ROOT),
                 "parameters", request.parameters(),
                 "approvalId", request.approvalId()));
     }

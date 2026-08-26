@@ -473,7 +473,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         List<Object> args = new ArrayList<>();
         if (CpfStrings.hasText(targetType)) {
             sql.append(" AND target_type = ?");
-            args.add(targetType.trim().toUpperCase());
+            args.add(targetType.trim().toUpperCase(java.util.Locale.ROOT));
         }
         if (CpfStrings.hasText(targetId)) {
             sql.append(" AND target_id LIKE ?");
@@ -696,7 +696,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     private String yn(String value, String fallback) {
-        String normalized = defaultIfBlank(value, fallback).toUpperCase();
+        String normalized = defaultIfBlank(value, fallback).toUpperCase(java.util.Locale.ROOT);
         return "Y".equals(normalized) ? "Y" : "N";
     }
 
@@ -744,7 +744,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     private String nullIfBlank(String value) { return value==null||value.isBlank()?null:value; }
     private void rejectSensitiveHeaders(List<String> headers) {
         for(String header:headers) {
-            String normalized=header.toLowerCase();
+            String normalized=header.toLowerCase(java.util.Locale.ROOT);
             if(normalized.equals("authorization")||normalized.equals("cookie")||normalized.equals("set-cookie")
                     ||normalized.contains("token")||normalized.contains("secret")||normalized.contains("password")) {
                 throw new CpfValidationException("민감 Header는 로그 허용 목록에 포함할 수 없습니다: "+header);

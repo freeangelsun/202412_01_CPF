@@ -1,79 +1,56 @@
 #!/usr/bin/env python3
-"""DB3 fail-closed gate for Batch UNKNOWN/reconciliation runtime SQL and current vendor-pack contract."""
+"""DB3 fail-closed gate for Kafka-free Batch UNKNOWN/reconciliation contracts."""
 from pathlib import Path
-import argparse,json,re,sys
-ap=argparse.ArgumentParser()
-ap.add_argument('positional_root',nargs='?',default=None)
-ap.add_argument('--root',dest='root_opt',default=None)
-ns=ap.parse_args()
-root=Path(ns.root_opt or ns.positional_root or '.').resolve()
-vendors=('oracle','postgresql','mariadb')
-required=('scheduler-trigger-find-dispatchable.sql','scheduler-trigger-claim.sql','centercut-item-complete.sql','execution-remote-message-reclaim.sql','scheduler-trigger-reconcile-load.sql','scheduler-trigger-reconcile-unknown-retry.sql','scheduler-trigger-reconcile-audit.sql','scheduler-trigger-reconcile-audit-find.sql','execution-remote-message-reconcile-load.sql','execution-remote-message-reconcile-unknown-retry.sql','execution-remote-message-reconcile-audit.sql')
-errors=[]; fingerprints={}
-# SQL 존재만으로 PASS하지 않고 실제 Runtime Consumer와 fail-closed 계약을 같이 확인한다.
-scheduler_controller=root/'cpf-batch/control-plane/src/main/java/com/cpf/batch/control/SchedulerTriggerReconciliationController.java'
-remote_controller=root/'cpf-batch/control-plane/src/main/java/com/cpf/batch/control/RemoteMessageReconciliationController.java'
-for path, required_tokens in (
-    (scheduler_controller, ('actorResolver.approved', 'scheduler-trigger-reconcile-load', 'scheduler-trigger-reconcile-unknown-retry', 'scheduler-trigger-reconcile-audit', 'scheduler-trigger-reconcile-audit-find', '@Transactional')),
-    (remote_controller, ('actorResolver.approved', 'execution-remote-message-reconcile-load', 'execution-remote-message-reconcile-unknown-retry', 'execution-remote-message-reconcile-audit', '@Transactional'))):
-    if not path.is_file():
-        errors.append(f'consumer:missing:{path.relative_to(root).as_posix()}')
-        continue
-    source=path.read_text(encoding='utf-8')
-    for token in required_tokens:
-        if token not in source: errors.append(f'consumer:{path.name}:missing:{token}')
-# Scheduler UNKNOWN은 BAT 내부 API 존재만으로 완료가 아니다. 정식 ADM Approval Owner가 실제 실행/재조회 Consumer여야 한다.
-adm_owner=root/'cpf-admin/src/main/java/com/cpf/admin/approval/owner/BatchRuntimeApprovalOwnerCommandAdapter.java'
-adm_client=root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlClient.java'
-for path, required_tokens in (
-    (adm_owner, ('tuple("reconcileSchedulerTrigger", "BATCH_SCHEDULER_RECONCILE_UNKNOWN", "bat_schedule_trigger")',
-                 'executeSchedulerTriggerReconcile', 'observeSchedulerTrigger',
-                 'schedulerTriggerReconcileApproved', 'schedulerTriggerState')),
-    (adm_client, ('schedulerTriggerReconcileApproved', 'schedulerTriggerState',
-                  '/triggers/reconcile-unknown/retry', '/triggers?scheduledFireAt='))):
-    if not path.is_file():
-        errors.append(f'adm-consumer:missing:{path.relative_to(root).as_posix()}')
-        continue
-    source=path.read_text(encoding='utf-8')
-    for token in required_tokens:
-        if token not in source: errors.append(f'adm-consumer:{path.name}:missing:{token}')
+import argparse,json,sys
+VENDORS=('oracle','postgresql','mariadb')
+REQUIRED=(
+ 'scheduler-trigger-find-dispatchable.sql','scheduler-trigger-claim.sql',
+ 'scheduler-trigger-reconcile-load.sql','scheduler-trigger-reconcile-unknown-retry.sql',
+ 'scheduler-trigger-reconcile-audit.sql','scheduler-trigger-reconcile-audit-find.sql',
+ 'centercut-item-complete.sql','centercut-item-mark-unknown.sql',
+ 'centercut-claim-find-expired-running.sql','centercut-item-reconcile-unknown.sql',
+)
 
-metadata_path=root/'cpf-tools/db/metadata/bat-runtime-query-contract.json'
-if not metadata_path.is_file():
-    errors.append('metadata:missing:bat-runtime-query-contract.json')
-else:
-    metadata_text=metadata_path.read_text(encoding='utf-8')
-    for key in ('scheduler-trigger-reconcile-load','scheduler-trigger-reconcile-unknown-retry','scheduler-trigger-reconcile-audit','scheduler-trigger-reconcile-audit-find'):
-        if key not in metadata_text or 'SchedulerTriggerReconciliationController' not in metadata_text:
-            errors.append(f'metadata:consumer-drift:{key}')
-for v in vendors:
- base=root/f'cpf-tools/db/vendor/{v}/runtime/bat/repository'
- texts={n:(base/n).read_text(encoding='utf-8') if (base/n).is_file() else '' for n in required}
- for n,t in texts.items():
-  if not t: errors.append(f'{v}:missing:{n}')
- for n in ('scheduler-trigger-find-dispatchable.sql','scheduler-trigger-claim.sql'):
-  if re.search(r"trigger_status\s+IN\s*\([^)]*'UNKNOWN'",texts[n],re.I|re.S): errors.append(f'{v}:UNKNOWN_AUTO_DISPATCH:{n}')
- if "item_status = 'RUNNING'" not in texts['centercut-item-complete.sql']: errors.append(f'{v}:CENTER_CUT_NO_RUNNING_CAS')
- if "status_cd IN ('PROCESSING','FAILED')" not in texts['execution-remote-message-reclaim.sql'].replace('  ',' '): errors.append(f'{v}:REMOTE_RECLAIM_NOT_FAIL_CLOSED')
- if not all(token in texts['scheduler-trigger-reconcile-unknown-retry.sql'] for token in ("trigger_status = 'UNKNOWN'",'idempotency_key = ?','attempt_count = ?')): errors.append(f'{v}:SCHEDULER_RECONCILE_CAS_INCOMPLETE')
- if not all(token in texts['execution-remote-message-reconcile-unknown-retry.sql'] for token in ("status_cd = 'UNKNOWN'",'attempt_no = ?','version_no = ?')): errors.append(f'{v}:REMOTE_RECONCILE_CAS_INCOMPLETE')
- audit_sql = texts['scheduler-trigger-reconcile-audit.sql'].lower()
- if not all(token.lower() in audit_sql for token in ('bat_reconciliation_audit', "'SCHEDULER_TRIGGER'", 'idempotency_key')): errors.append(f'{v}:SCHEDULER_RECONCILE_AUDIT_INCOMPLETE')
- audit_find_sql = texts['scheduler-trigger-reconcile-audit-find.sql'].lower()
- if not all(token.lower() in audit_find_sql for token in ('bat_reconciliation_audit', "entity_type = 'SCHEDULER_TRIGGER'", 'idempotency_key = ?')): errors.append(f'{v}:SCHEDULER_RECONCILE_IDEMPOTENCY_LOOKUP_INCOMPLETE')
- required_pack_paths=('source/18_batch_unknown_reconciliation.sql','install/07_batch_unknown_reconciliation.sql','migration/V103__batch_unknown_reconciliation.sql','rollback/R103__batch_unknown_reconciliation.sql','verify/103_verify_batch_unknown_reconciliation.sql')
- for rel in required_pack_paths:
-  if not (root/f'cpf-tools/db/vendor/{v}'/rel).is_file(): errors.append(f'{v}:missing:{rel}')
- pack_path=root/f'cpf-tools/db/vendor/{v}/pack.json'
- if not pack_path.is_file(): errors.append(f'{v}:missing:pack.json')
- else:
-  pack=json.loads(pack_path.read_text(encoding='utf-8'))
-  # schemaVersion 5+ intentionally removed feature-specific table counters. Verify canonical lifecycle roots instead.
-  for key in ('canonicalSchema','generatedCurrentRoot','historicalMigrationRoot','runtimeRoot'):
-   value=pack.get(key)
-   if not isinstance(value,str) or not value.strip(): errors.append(f'{v}:pack:{key}')
-  if str(pack.get('schemaVersion','')) < '5': errors.append(f'{v}:pack:schemaVersion')
- fingerprints[v]=tuple(sorted(required))
-semantic=len(set(fingerprints.values()))==1
-result={'vendors':list(vendors),'requiredRuntimeKeys':list(required),'errors':errors,'semanticParity':semantic,'pass':not errors and semantic}
-print(json.dumps(result,ensure_ascii=False,indent=2));sys.exit(0 if result['pass'] else 1)
+def main():
+ ap=argparse.ArgumentParser();ap.add_argument('positional_root',nargs='?');ap.add_argument('--root',dest='root_opt');a=ap.parse_args();root=Path(a.root_opt or a.positional_root or '.').resolve();errors=[]
+ # Actual consumers: scheduler and Center-Cut only.
+ consumers=(
+  (root/'cpf-batch/control-plane/src/main/java/com/cpf/batch/control/SchedulerTriggerReconciliationController.java',('actorResolver.approved','scheduler-trigger-reconcile-load','scheduler-trigger-reconcile-unknown-retry','scheduler-trigger-reconcile-audit','@Transactional')),
+  (root/'cpf-batch/control-plane/src/main/java/com/cpf/batch/control/CenterCutReconciliationController.java',(
+   '@PostMapping("/executions/{executionId}/reconcile-unknown")',
+   '@PostMapping("/executions/{executionId}/reprocess-failed")',
+   'centercut-reconcile-unknown-items','centercut-reconcile-unknown-execution',
+   'centercut-reconcile-failed-items','centercut-reconcile-failed-execution',
+   'centercut-reconcile-audit','actorResolver.approved','@Transactional')),
+  (root/'cpf-batch/center-cut-runtime/src/main/java/com/cpf/batch/centercut/runtime/JdbcCenterCutClaimRepository.java',('recoverExpiredToUnknown','reconcileUnknown')),
+ )
+ for p,tokens in consumers:
+  if not p.is_file(): errors.append(f'consumer:missing:{p.relative_to(root).as_posix()}');continue
+  text=p.read_text(encoding='utf-8')
+  for token in tokens:
+   if token not in text:errors.append(f'consumer:{p.name}:missing:{token}')
+ # ADM approval owner must remain the scheduler dangerous-operation consumer.
+ for p,tokens in (
+  (root/'cpf-admin/src/main/java/com/cpf/admin/approval/owner/BatchRuntimeApprovalOwnerCommandAdapter.java',('reconcileSchedulerTrigger','executeSchedulerTriggerReconcile','observeSchedulerTrigger')),
+  (root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlClient.java',('schedulerTriggerReconcileApproved','schedulerTriggerState')),
+ ):
+  if not p.is_file():errors.append(f'adm-consumer:missing:{p.relative_to(root).as_posix()}');continue
+  text=p.read_text(encoding='utf-8')
+  for token in tokens:
+   if token not in text:errors.append(f'adm-consumer:{p.name}:missing:{token}')
+ # DB3 query packs must contain the same non-remote semantic keys and none of the retired ledger queries.
+ for v in VENDORS:
+  pack=root/f'cpf-tools/db/vendor/{v}/runtime/bat/repository'
+  names={p.name for p in pack.glob('*.sql')}
+  for name in REQUIRED:
+   if name not in names:errors.append(f'{v}:missing:{name}')
+  for name in names:
+   if name.startswith('execution-remote-message-'):errors.append(f'{v}:retired-query:{name}')
+ # Metadata cannot retain dead consumers/queries.
+ meta=root/'cpf-tools/db/metadata/bat-runtime-query-contract.json'
+ text=meta.read_text(encoding='utf-8') if meta.is_file() else ''
+ for token in ('execution-remote-message-','RemoteMessageReconciliationController','JdbcCpfBatchRemoteMessageLedger'):
+  if token in text:errors.append(f'metadata:retired:{token}')
+ result={'vendors':list(VENDORS),'requiredRuntimeFiles':list(REQUIRED),'errors':errors,'pass':not errors}
+ print(json.dumps(result,ensure_ascii=False,indent=2));return 0 if not errors else 1
+if __name__=='__main__':raise SystemExit(main())

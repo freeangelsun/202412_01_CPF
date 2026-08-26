@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260826-EXEC-06",
+  "evidenceType": "execution",
+  "sourceSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "resultSha": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
+  "command": "python -B cpf-tools/db/verify_canonical_vendor_render.py --root . && python -B cpf-tools/db/verification/verify-cpf-db-vendor-semantic-parity.py --root . && python -B -m pytest cpf-tools/testing/tools/tests/test_verify_cpf_approval_state_machine.py cpf-tools/testing/tools/tests/test_verify_cpf_adm_route_source_consumers.py -q",
+  "startedAt": "2026-08-26T02:31:19.063009+00:00",
+  "endedAt": "2026-08-26T02:31:37.706037+00:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-04.03",
+    "WP-04.04",
+    "WP-05.01",
+    "WP-05.02",
+    "WP-05.03"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-EXEC-06-S01",
+      "precondition": "Product source identity 3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d and current desired-state tree",
+      "action": "python -B cpf-tools/db/verify_canonical_vendor_render.py --root . && python -B cpf-tools/db/verification/verify-cpf-db-vendor-semantic-parity.py --root . && python -B -m pytest cpf-tools/testing/tools/tests/test_verify_cpf_approval_state_machine.py cpf-tools/testing/tools/tests/test_verify_cpf_adm_route_source_consumers.py -q",
+      "expectedResult": "All invoked fail-closed verification commands exit 0",
+      "actualResult": "All invoked verification commands exited 0"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-06.log",
+      "sha256": "75f65c3e130fa22818e92b043a7001e1672a4016daf6bbcfbec78312c73941c6"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.2.1",
+  "harnessVersion": "1.3.0",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -259,14 +259,19 @@
       "핵심 장점을 한 문단에 굵은 문구로 다닥다닥 나열",
       "Visual 아래 의미 설명 누락",
       "Bootstrap/Build/Test/Runtime 진입점 누락",
-      "역할별 매뉴얼 링크 누락"
+      "역할별 매뉴얼 링크 누락",
+      "다크 README 배경과 구분되지 않는 다크톤 Visual",
+      "내용과 무관하게 둥근 네모+화살표만 반복하는 Visual",
+      "[PDF]가 DOCX를 열거나 [DOCX]가 PDF를 여는 링크",
+      "Figure와 설명 사이 경계가 모호해 설명 귀속을 알기 어려운 배치",
+      "직전 PASS Visual/문서를 근거 없이 전면 재작성하여 시각 품질을 회귀시키는 것"
     ],
     "headingNumbering": {
       "H1": "1.",
       "H2": "1.1",
       "H3": "1) when explicitly allowed"
     },
-    "spacing": "H1/H2/본문/Visual은 design-tokens의 차등 여백을 사용하고 대메뉴 시작 전 시각적 분리를 확보",
+    "spacing": "H1/H2/본문/Visual은 design-tokens 차등 여백을 사용. H2/H3와 첫 내용 사이를 compact하게, 다음 부제목 전 간격은 더 크게.",
     "valueHighlights": "CPF 차별점은 한 줄 한 메시지 + 일관된 marker/bullet로 표시. 한 문단에서 굵은 문구만 연속 나열 금지.",
     "visualTextBalance": "의미 있는 Visual 아래에는 1~2문장 간결한 한글 설명 필수",
     "gatewayOptionality": {
@@ -301,6 +306,35 @@
       "Generator→Starter→DB3→Runtime",
       "Gateway Optional Boundary",
       "Backoffice Owner Boundary"
-    ]
+    ],
+    "subheadingContentRail": {
+      "required": true,
+      "rule": "H2/H3 아래 본문·불릿·Callout·Figure 설명을 한 단계 안쪽 공통 Content Rail로 그룹화. Markdown 4-space code indent 금지."
+    },
+    "markerPolicy": "짧은 핵심/선택/주의/복구는 필요할 때 bullet/number marker 사용. 단순 장식 bullet 남발 금지.",
+    "visualSurface": {
+      "darkReadmeBackground": true,
+      "majorVisual": "light/neutral/tinted canvas or bright focal panel",
+      "darkOnDark": "hard_fail"
+    },
+    "visualGrammar": {
+      "uniqueMinWhenFiveOrMore": 4,
+      "roundedRectangleArrowChainMax": 1,
+      "conceptSpecific": true,
+      "sameGrammarMax": 2
+    },
+    "figureExplanationOwnership": "Visual 바로 아래 같은 블록에 1~2문장. 다음 H1/H2보다 Visual에 더 가까워야 함.",
+    "formatLinks": {
+      "PDF": "must target .pdf",
+      "DOCX": "must target .docx",
+      "paired": "문서명 — [PDF] [DOCX]",
+      "crossTarget": "hard_fail"
+    },
+    "incrementalImprovement": {
+      "default": "PATCH_FIRST",
+      "preservePassedVisuals": true,
+      "preserveUnaffectedSections": true,
+      "beforeAfterRegressionReview": true
+    }
   }
 }

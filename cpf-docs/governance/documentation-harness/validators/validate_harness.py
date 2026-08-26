@@ -12,12 +12,12 @@ def load(name):
     except Exception as e: fail(f'json {name}: {e}')
 
 h=load('harness.json')
-if h.get('version')!='1.2.1': fail('version')
+if h.get('version')!='1.3.0': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='1.2.1': fail(f'version {f}')
+    if d.get('harnessVersion')!='1.3.0': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
@@ -36,7 +36,7 @@ if D['paragraph'].get('h1_space_before_pt',0) < 28: fail('H1 spacing')
 if D['paragraph'].get('h2_space_before_pt',0) < 16: fail('H2 spacing')
 if D['figures'].get('low_contrast_label')!='hard_fail': fail('figure contrast')
 if D['fonts'].get('pdf_korean_font_embedding_required') is not True: fail('pdf korean font embedding')
-# v1.2.1 visual geometry / balance gates
+# v1.3.0 visual geometry / balance gates
 FG=D.get('figures',{})
 if FG.get('node_inner_padding_px_min',0) < 18: fail('figure inner padding')
 if FG.get('label_to_label_gap_px_min',0) < 20: fail('figure label gap')
@@ -45,6 +45,10 @@ if FG.get('label_to_connector_clearance_px_min',0) < 12: fail('figure connector 
 if FG.get('group_title_band_height_px_min',0) < 44: fail('figure group title band')
 if FG.get('text_node_boundary_collision') != 0 or FG.get('text_connector_collision') != 0: fail('figure collision gate')
 if D.get('visual_quality',{}).get('page_visual_balance_required') is not True: fail('page visual balance')
+if h.get('qualityDoctrine',{}).get('singleCurrentHarness') is None: fail('single current harness')
+if O.get('globalPathGate',{}).get('absolutePathMaxChars') != 150: fail('path max 150')
+if O.get('harnessRetention',{}).get('currentOnly') is not True: fail('current harness only')
+if O.get('DOCX',{}).get('tocMaterializedVisibleEntriesRequired') is not True: fail('visible TOC entries')
 Q=load('visual-qa.json')
 for k in ['figureTextNodeBoundaryCollision','figureTextConnectorCollision','figureTitleChildLabelOverlap','pageAccidentalVisualImbalance','figureAccidentalVisualImbalance','unresolvedLargeDeadSpace']:
     if Q.get('hardFail',{}).get(k) != 0: fail('visual qa '+k)
@@ -53,6 +57,21 @@ CG=FROOT.get('commonGeometryGate',{})
 if CG.get('nodeInnerPaddingPxMin',0) < 18 or CG.get('labelConnectorClearancePxMin',0) < 12: fail('figure preset common geometry')
 if O['README'].get('manualNavigation','').startswith('mandatory') is not True: fail('README manual navigation')
 if O['README'].get('bootstrapRuntimeBlock','').startswith('mandatory') is not True: fail('README bootstrap/runtime')
+
+# v1.3 incremental/visual/link/content-rail gates
+if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('defaultMode')!='PATCH_FIRST': fail('patch first policy')
+if D['paragraph'].get('h2_space_after_pt',99)>6 or D['paragraph'].get('h3_space_after_pt',99)>5: fail('subheading content gap')
+if D.get('indentation',{}).get('subheading_content_indent_mm',0)<4: fail('subheading content rail')
+if D['figures'].get('canvas_safe_margin_px_min',0)<48: fail('figure canvas safe margin')
+if D['figures'].get('rounded_rectangle_arrow_chain_default')!='forbidden': fail('box arrow default')
+if O.get('linkIntegrity',{}).get('pdfLabelMustTargetPdf') is not True: fail('pdf link target rule')
+if O.get('artifactEvolution',{}).get('default')!='PATCH_FIRST': fail('incremental artifact rule')
+if O.get('windowsValidation',{}).get('pythonRequired') is not False: fail('python must not be required on Windows')
+VS=load('visual-system.json')
+if VS.get('readme',{}).get('uniqueVisualGrammarsMinWhenFiveOrMore',0)<4: fail('visual grammar diversity')
+if VS.get('readme',{}).get('roundedRectangleArrowChainMaxTotal',99)>1: fail('box arrow monoculture')
+if VS.get('readme',{}).get('backgroundContrast','').find('dark-on-dark hard_fail')<0: fail('readme surface contrast')
+if not (ROOT/'validators'/'validate_readme.ps1').is_file(): fail('PowerShell README validator missing')
 
 T=load('table-presets.json')['presets']
 for name,t in T.items():

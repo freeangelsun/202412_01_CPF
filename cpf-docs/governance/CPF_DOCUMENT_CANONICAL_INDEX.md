@@ -53,8 +53,8 @@ README와 Developer/Batch/Operator/Gateway/Specification 등 공식 사용자 �
 
 CPF 공식 사용자 산출물의 생성·현행화·시각 QA·Packaging 기준은 다음 디렉터리를 단일 정본으로 사용한다.
 
-- `cpf-docs/governance/documentation-harness/` — **CPF Documentation Harness v1.1.3**
+- `cpf-docs/governance/documentation-harness/` — **CPF Documentation Harness v1.2.5**
 
-Harness는 **사용자의 명시 요청에 의해서만 수정**한다. Source 변경, QA Finding, 작성자 판단은 Harness 자동 수정 권한이 아니다. 새 Source와 Harness가 충돌하면 `HARNESS_CHANGE_REQUIRED` 또는 `HARNESS_SOURCE_CONFLICT`로 기록하고 사용자 승인 없이 목차·규격·Coverage를 바꾸지 않는다.
+산출물 작업은 **Harness 현행화 → Harness Validator PASS → Harness 기준 산출물 생성/QA** 순서를 따른다. 사용자가 산출물 품질·구성·시각화·분량·경로·호환성 기준을 직접 지적하거나 새 기준을 요청하면 산출물만 임시 수정하지 않고 Harness에 먼저 반영한다. Repository에는 `documentation-harness/` 현행본 하나만 유지하고 과거 Harness 버전·백업·세션성 복제본은 Delete Manifest로 제거한다.
 
 과거 분산 Documentation 작성 지침은 Harness의 `DELETE_MANIFEST.txt`에 기록된 exact path를 기준으로 제거하며, 제거 이후 이 Index에서는 Harness만 산출물 작성 기준으로 사용한다.

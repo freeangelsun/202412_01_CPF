@@ -1,4 +1,4 @@
-# CPF 공식 산출물 작성 하네스 v1.2.1
+# CPF 공식 산출물 작성 하네스 v1.3.0
 
 ## 1. 목적과 변경 권한
 
@@ -16,9 +16,9 @@
 
 ## 3. 공통 Layout
 
-세로 문서는 상·하 9mm, 좌·우 10mm. 가로 문서는 4면 9mm. 본문·표 제목·표·그림 Caption은 같은 왼쪽 Grid에 정렬한다. H1은 이전 콘텐츠와 충분히 분리되도록 22pt 선행 간격을 사용하며 표/그림 직후에는 최소 18pt를 확보한다.
+세로 문서는 상·하 9mm, 좌·우 10mm. 가로 문서는 4면 9mm. 본문·표 제목·표·그림 Caption은 같은 왼쪽 Grid에 정렬한다. H1은 이전 콘텐츠와 충분히 분리한다. H2/H3는 첫 내용과 한 블록으로 보이도록 아래 여백을 작게 하고 다음 부제목 전 여백을 더 크게 둔다.
 
-들여쓰기는 1단 4.5mm, 2단 9mm로 고정한다. 동일 Level의 불릿·번호가 다른 위치에서 시작하면 Visual FAIL이다. 3단 불릿은 원칙적으로 금지한다.
+README 포함 모든 문서에서 H2/H3 아래 본문·불릿·Callout·Figure 설명은 제목 기준선보다 4.5mm 안쪽의 공통 Content Rail로 정렬한다. 1단 불릿은 그 Content Rail 안에서 hanging indent를 사용하고, 동일 Level이 다른 위치에서 시작하면 Visual FAIL이다. Markdown은 4-space code indent 대신 semantic list/callout으로 같은 계층을 표현한다.
 
 ## 4. 표
 
@@ -76,7 +76,7 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - PDF는 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 통과해야 한다.
 
 
-## v1.2.1 시각 균형 원칙
+## v1.2.5 시각 균형 원칙
 
 - 모든 문서와 Figure는 내용의 정확성뿐 아니라 시각적 균형을 품질 Gate로 관리한다.
 - Figure 글자 겹침·잘림·깨짐·낮은 대비·Connector 충돌·Group Title/Child Label 겹침은 0건이어야 한다.
@@ -84,3 +84,16 @@ Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페�
 - 병렬 데이터 Label은 동일 baseline·크기·간격으로 배치하고, 그룹 제목과 별도 영역으로 분리한다.
 - 모든 페이지에서 좌우/상하 정보 밀도·whitespace·강조의 무게를 확인한다. 한쪽 과밀/한쪽 과공백을 최종본으로 승인하지 않는다.
 - 시각 결함을 발견하면 해당 그림 하나만 임시 수정하지 않고 공통 원인이면 Harness Token/Visual Rule을 먼저 보완하고 영향 문서를 재생성한다.
+
+
+## v1.3.0 점진 개선·링크·Visual Grammar 원칙
+
+- 기본 작업 방식은 `PATCH_FIRST`다. 직전 공식 PASS 산출물을 기준선으로 삼고 지적받은 영역과 실제 영향 범위만 보정한다.
+- 관계없는 PASS 페이지·문장·Visual은 유지한다. 전체 재작성/재디자인은 사용자의 명시 요청, 구조 손상, Canonical 전체 구조 변경 등 Harness가 허용한 경우만 수행한다.
+- 변경 전/후를 비교해 좋아진 요소가 나빠지는 시각·내용 회귀가 0건인지 확인한다.
+- H2/H3와 첫 내용은 가까이 묶고 하위 내용은 공통 Content Rail로 들여쓴다. 짧은 핵심/선택/주의/복구는 필요한 경우 marker를 사용한다.
+- Figure 제목·이미지·설명은 하나의 블록으로 보여야 하며, 설명이 다음 섹션에 더 가까워 어느 그림 설명인지 모호하면 FAIL이다.
+- README 다크 배경에서는 Architecture/Flow 등 주요 Visual을 밝은 neutral/light-tint canvas 또는 밝은 focal surface로 분리한다.
+- 내용별 Visual Grammar를 선택한다. Architecture는 Layer/Zone, 호출은 Lane/Route, UNKNOWN은 State Ring/Branch, Batch는 Control/Execution Plane, DB3는 Lifecycle Spine+Vendor Band, Capability는 Mosaic/Cluster를 우선한다. 동일 Rounded Rectangle+Arrow 반복은 금지한다.
+- `[PDF]`는 실제 `.pdf`, `[DOCX]`는 실제 `.docx`를 직접 가리켜야 한다. 표시 형식과 Target 확장자가 다르면 Link FAIL이다.
+- 회사 Windows 설치 검증은 PowerShell-only로 완료 가능해야 하며 Python은 필수 의존성이 아니다.

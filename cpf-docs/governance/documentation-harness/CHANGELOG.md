@@ -1,6 +1,25 @@
 # CPF Documentation Harness Changelog
 
-## 1.2.1 — 2026-08-26
+## 1.3.0 - 2026-08-26
+
+- README 포함 모든 문서의 H2/H3와 첫 내용 사이 간격을 축소하고, 하위 본문·불릿·Callout·Figure 설명을 공통 Content Rail로 들여쓰도록 고정.
+- 짧은 핵심/선택/주의/복구는 필요할 때 bullet/number marker로 구조화하되 장식성 남발은 금지.
+- Figure와 설명을 하나의 시각 블록으로 묶어 설명 귀속이 명확하도록 하고, 설명이 다음 섹션에 더 가까워지는 배치를 Hard Fail로 정의.
+- README 다크 배경에서는 주요 Visual을 밝은 neutral/light-tint canvas 또는 bright focal surface로 분리하고 dark-on-dark Visual을 금지.
+- Visual을 내용별 문법으로 다양화: Layer/Zone, Lane, Route/Timeline, State Ring, Split Boundary, Vendor Band, Mosaic/Cluster, Nested Zone 등을 사용하고 동일 Rounded Rectangle+Arrow 반복을 금지.
+- Figure Canvas safe margin 48px, Node padding 24px(권장 32px), Label gap 24px, Node gap 28px, Label-Connector 16px로 강화.
+- README 문서 링크에서 `[PDF]`는 `.pdf`, `[DOCX]`는 `.docx`를 직접 가리키도록 강제하고 형식/Target 불일치를 Hard Fail로 추가.
+- 산출물 작업 기본을 `PATCH_FIRST` 점진 개선으로 변경. 직전 PASS 영역/Visual은 보존하고 새 Finding 영향 범위만 보정하며 변경 전/후 회귀 비교를 필수화.
+- 회사 Windows 환경에서 Python을 필수 Runtime으로 요구하지 않도록 `validate_readme.ps1`을 추가하고 PowerShell-only 검증 경로를 정본으로 명시.
+
+## 1.2.5 - 2026-08-26
+
+- 복잡한 Text 연속 배치 금지와 Visual+짧은 한국어 설명 조합을 공통 Gate로 추가.
+- 사용자 Windows Root 포함 절대경로 150자 이하 Gate 추가.
+- 현행 Harness 한 세트만 유지하고 과거 Harness/세션/백업/날짜·R·REV suffix/해제본/임시 Validator 출력은 삭제 대상으로 지정.
+- 빈 TOC/고립 저밀도 페이지 Gate 추가.
+
+## 1.2.5 — 2026-08-26
 
 - 사용자 지적: Figure 내부 글자 깨짐/겹침과 문서 전체 시각적 균형을 Harness 공통 Gate로 승격.
 - Node 내부 여백 18px(권장 24px), Label 간 20px, Node 간 24px, Label-Connector 12px 최소 기준 추가.

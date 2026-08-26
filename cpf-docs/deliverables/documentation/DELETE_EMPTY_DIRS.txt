@@ -1,8 +1,5 @@
-# Remove only when empty after exact file deletion.
-cpf-docs/assets/architecture
-cpf-docs/assets/brand
+# remove only when empty
 cpf-docs/assets/readme
 cpf-docs/assets/manual
 cpf-docs/assets/manuals
 cpf-docs/assets/guides
-cpf-docs/assets/product-docs

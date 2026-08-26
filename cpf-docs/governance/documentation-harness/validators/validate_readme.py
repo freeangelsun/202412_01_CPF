@@ -18,6 +18,13 @@ if re.search(r'\[[^\]]*LICENSE[^\]]*\]\(',text,re.I): errs.append('LICENSE ÌååÏù
 imgs=re.findall(r'!\[[^\]]*\]\(([^)]+)\)',text)
 if len(imgs)<5 or len(imgs)>8: errs.append(f'Visual count {len(imgs)} not 5..8')
 if not any('architecture' in x.lower() for x in imgs): errs.append('Architecture visual reference missing')
+
+# v1.3 link target format integrity
+for label,target in re.findall(r'\[([^\]]+)\]\(([^)]+)\)',text):
+ clean=target.split('#',1)[0].replace('%20',' ')
+ if re.search(r'PDF',label,re.I) and not re.search(r'\.pdf$',clean,re.I): errs.append(f'PDF label target mismatch: {label} -> {clean}')
+ if re.search(r'DOCX',label,re.I) and not re.search(r'\.docx$',clean,re.I): errs.append(f'DOCX label target mismatch: {label} -> {clean}')
+
 if errs:
  print('README=FAIL'); [print('-',e) for e in errs]; sys.exit(1)
 print('README=PASS')

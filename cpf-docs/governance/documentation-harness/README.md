@@ -1,4 +1,4 @@
-# CPF Documentation Harness v1.2.1
+# CPF Documentation Harness v1.3.0
 
 CPF 공식 README 및 11개 DOCX/PDF를 생성·현행화할 때 사용하는 고정 하네스입니다.
 
@@ -26,9 +26,22 @@ Windows에서는 `validators/validate_harness.ps1`을 정본 검증기로 사용
 - 개발자 가이드는 거래 패턴/API/옵션/오류/복구의 선택 중심으로 압축합니다.
 - PDF 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 필수화합니다.
 
-## v1.2.1 핵심 추가
+## v1.2.5 핵심 추가
 
 - Figure 내부 Text/Box/Connector 충돌과 Group Title/Child Label 겹침을 정량 Gate로 검수합니다.
 - Node 내부 여백, Label/Node/Connector 최소 간격, 병렬 Label baseline을 검수합니다.
 - README/DOCX/PDF 모든 페이지의 좌우·상하 정보 밀도와 whitespace 균형을 최종 Render에서 확인합니다.
 - 한쪽 과밀·반대쪽 과공백·큰 dead space·과도한 font 축소를 최종본으로 허용하지 않습니다.
+
+## 현행본 유지
+
+이 디렉터리 한 세트만 Harness 정본이다. 과거 Harness 버전/ZIP 해제본/세션 백업은 Repository에 보존하지 않는다.
+
+## v1.3.0 핵심 추가
+
+- 산출물은 직전 공식 PASS본을 기준으로 `PATCH_FIRST` 점진 개선하며 관계없는 좋은 요소를 전면 재생성하지 않습니다.
+- README 포함 모든 문서의 H2/H3 하위 내용은 공통 Content Rail로 들여쓰고, 제목-첫 내용 간격은 compact하게 유지합니다.
+- 핵심/선택/주의/복구는 필요할 때 marker를 사용해 읽기 진입점을 만듭니다.
+- Figure와 설명을 같은 시각 블록으로 묶어 어느 그림 설명인지 모호하지 않게 합니다.
+- README 다크 배경 위 주요 Visual은 밝은 Surface로 분리하고, 내용별 Visual Grammar를 사용해 동일 네모+화살표 반복을 금지합니다.
+- `[PDF]`와 `[DOCX]` 링크 Target을 실제 형식과 일치시키며 PowerShell-only README Validator를 제공합니다.

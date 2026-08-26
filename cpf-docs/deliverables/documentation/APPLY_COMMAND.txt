@@ -1,2 +1,0 @@
-# Project Root PowerShell. Run DELETE_COMMAND first, then this overlay extraction.
-$ErrorActionPreference='Stop';$root=(git rev-parse --show-toplevel).Trim();$zip=Join-Path $HOME 'Downloads\CPF_DOCUMENTATION_HARNESS_V1_1_3_FINAL_OVERLAY_20260825_234930.zip';if(!(Test-Path -LiteralPath $zip)){throw "ZIP NOT FOUND: $zip"};Expand-Archive -LiteralPath $zip -DestinationPath $root -Force;Write-Host '[CPF][DOC] overlay applied'

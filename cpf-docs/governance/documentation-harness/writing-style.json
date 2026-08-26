@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "1.2.1",
+  "harnessVersion": "1.3.0",
   "locked": true,
   "language": {
     "primary": "ko-KR",
@@ -64,7 +64,9 @@
     "third_level": "forbidden unless profile explicitly allows",
     "intro_sentence_required": "only when heading does not already make list purpose clear",
     "highlight_value_list": "README/요약의 핵심 장점은 한 줄 한 메시지로 분리하고 각 줄 시작에 일관된 bullet/marker를 둔다.",
-    "dense_bold_inline_value_chain": "forbidden"
+    "dense_bold_inline_value_chain": "forbidden",
+    "marker_when_helpful": "짧은 핵심 포인트·선택 기준·주의·복구·체크포인트는 글만 연속 배치하기보다 bullet/number marker를 우선 검토한다.",
+    "marker_overuse": "forbidden; 하나의 설명 문단을 억지로 여러 bullet로 쪼개지 않는다."
   },
   "headings": {
     "descriptive": true,
@@ -92,7 +94,8 @@
     "h2_numbering_all_documents": "required hierarchical numbering (1.1, 1.2, 2.1...)",
     "h3_numbering_when_used": "required local numbering (1), 2), 3)...)",
     "spacing_hierarchy_required": true,
-    "major_section_must_be_visually_separated": true
+    "major_section_must_be_visually_separated": true,
+    "subheading_content_grouping": "H2/H3 아래 내용은 공통 Content Rail로 들여쓰고 제목과 첫 내용 사이를 가깝게, 다음 부제목 전 여백을 더 크게 둔다."
   },
   "benefit_expression": {
     "explicit_marketing_section": "forbidden",
@@ -128,7 +131,11 @@
     "descriptive_link_text": true,
     "here_click_text": "forbidden",
     "relative_repo_links_required": true,
-    "broken_link": "hard_fail"
+    "broken_link": "hard_fail",
+    "pdf_label_target": "[PDF]는 반드시 .pdf 파일을 직접 가리킨다.",
+    "docx_label_target": "[DOCX]는 반드시 .docx 파일을 직접 가리킨다.",
+    "paired_document_link": "같은 문서가 PDF/DOCX로 존재하면 문서명 뒤 [PDF] [DOCX]를 분리 표기하고 각각 정확한 형식으로 링크한다.",
+    "link_label_extension_mismatch": "hard_fail"
   },
   "truth": {
     "source_identifier_invention": "hard_fail",

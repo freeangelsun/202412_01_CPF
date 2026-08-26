@@ -1,216 +1,99 @@
-﻿action,path,size,sha256,note
-REPLACE,README.md,11422,6af5baa2c31a5205f7867469d4d316816460be6912b5516f4c3a307aeb40eb63,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/02_프레임워크_개발자_가이드.docx,190627,8c8ad4452b6bd3feace933ff9f1b499c53d3bc4b21268fb5a54977a8377e397c,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/02_프레임워크_개발자_가이드.pdf,804199,adb641a9a50e59ad356315cfaaab056444182282b8748b3bb63bb107041774d4,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/03_배치_개발자_가이드.docx,133571,3d91b634e41b83a063e87a5a87c363afc5b2e045bcbea4a2a4347ed5b790a52a,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/03_배치_개발자_가이드.pdf,588162,668a7184d3ba0bfeb46eced207353839f86237809fc288f72a42caebe64207e4,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/04_운영자_매뉴얼.docx,72744,fc282325b69131bb70bfb14f00704b8bf623bb358af2864c0046bf12924a4bea,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/04_운영자_매뉴얼.pdf,476908,5da6a75bef77eb8f9e9b8d516ea29c1b03db9add9d7048ff125329712f88c8d7,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/05_배치_운영_가이드.docx,89691,b9ddacb0fd00f2c60aacba0f85de15df4bb83c9f05d7fe28128b437ba6ea15ac,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/05_배치_운영_가이드.pdf,440688,15409ce40a355bccf15d383139e0a5b57dbad4bffdcffbb4d41ceeddd8626751,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/06_Gateway_개발_사용_가이드.docx,107673,97cd16c818ca966c1632937d8c6a068c592b236861e3af43927e8ac933b6ab0e,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf,543546,9d71a46071abca9ef3a27ade8fb5427e5020551c9d1cb444b2b71bf041cd400f,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/07_Specification_기술_명세.docx,46303,e16b376ba62200249f7812c3700f00becc80a4c581f0a5aa8ec480a608a89984,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/guides/07_Specification_기술_명세.pdf,567315,18930b2b495b5a6b7a02fca7cb158db9452bcc9867b8aa668597e92e00fa14b0,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/아키텍처설계서.docx,339915,a39829629424add216ef5eded8971d0e6e431beaf61ebd2dd28dc7cd83dd3796,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/아키텍처설계서.pdf,731630,5ffd9418705206dc14f8a432ffeefa6da451de92ff60564adcea447b4c469fd4,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/기술사양서.docx,40220,f42445f6e0912727e965179a67f4ab21a26dd32bae10cd2954727be4281c64aa,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/기술사양서.pdf,416397,eadaafe007a92c92b3ae8e2c4643a6e3693edb339ffc6c545eadc5befad45b56,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/기술표준서.docx,38089,a84817191a22fd981fd3ef635de3b2e907ac97579d2483453727361cec2afd2f,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/기술표준서.pdf,355005,94faaa5b30f7ba950e7a48abdf37c07e9f0ce8a54fc107df27d2e98730a0ac99,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/데이터베이스표준서.docx,38201,64376bbb1699cd1f1558291036b375f7de62169b738c607390104fbd9f03cc4a,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/데이터베이스표준서.pdf,381446,73325ddc84a5df9b166b996da644948101cf2fe0f6b63c41e09073f1ee2a024a,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/산출물목록.docx,31628,2c6bdc85f9ee7d43ed25edf5b188ace9d8cd70d947f229dc365bb69c480977ca,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/deliverables/산출물목록.pdf,215670,b6c1545b823b6bd6a952b567e33c5ec150c89b83bc5541373013175f95bd54d7,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-architecture-map.svg,6101,debaa2bd45aeb07419d273b6a7a0707d69a5723507bdd07993f8333bcac7b68d,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-batch-control.svg,3728,ebf4a08a2f22d26b81255d70afbc51ef3ffb20e3735cb3c3ffe8f511908cf067,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-canonical-lifecycle.svg,4499,fd3d09d3ddd814cd858d5e11d44f5e06caf3a1707dc13d53010364db182dd94e,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-capability-landscape.svg,5640,0fb89782397dbbafed32e5edc7a81919c2681907d73f5d9bf1abdf2cfffd07a3,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-ownership-boundary.svg,3517,c70f72feb38c435a6c1b73745efb484d375c745a20a231cb13cb102815597de5,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-readme-hero.svg,2471,8a991e110be2813535fdaaba6e47303fb21266a977ed39e5286cac82502ee3ab,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-recovery-state.svg,4018,486022a1bf857ed71ed526523304257063b53d83ca549749195f016efe7b6e2e,Harness v1.1.3 Fresh artifact
-ADD_OR_REPLACE,cpf-docs/assets/product-docs/cpf-topology-parity.svg,3469,60291884b207c2de35c103c20c13d0f7db0771b52c0a95f6e214ea26f69b2c06,Harness v1.1.3 Fresh artifact
-DELETE,cpf-docs/assets/architecture/cpf-batch-runtime.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/architecture/cpf-capability-map.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/architecture/cpf-domain-extension.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/architecture/cpf-module-ownership.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/architecture/cpf-product-overview.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/architecture/cpf-runtime-topology.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/brand/cpf-ci-app-icon-dark.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/brand/cpf-ci-header-dark.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/brand/cpf-ci-hero-dark.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/brand/cpf-ci-key-visual.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/brand/cpf-ci-master-board.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/brand/cpf-ci-symbol-dark.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/brand/cpf-hero.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/adm-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/batch-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/config-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/cpf-db-development-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/cpf-domain-call-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/db-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/education-map.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/generator-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/guide-map.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/messaging-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/online-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/quick-start.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/reconcile-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/security-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/starter-map.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/guides/tool-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/admin-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/admin-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/batch-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/batch-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/deploy-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/deploy-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/developer-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/developer-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/integration-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/integration-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/ops-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/ops-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/security-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manual/security-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/adm-batch.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/adm-dashboard.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/adm-gateway.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/adm-login.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/adm-trace.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/batch-development-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/batch-development-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-cache-screen.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-center-cut-screen.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-incident-decision.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-integration-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-mfa-login.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-permission-screen.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-runtime-screen.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-screen-anatomy.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-adm-screen-anatomy.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-batch-book-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-batch-lifecycle.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-batch-lifecycle.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-batch-reconciliation.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-batch-reconciliation.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-cache-durable-invalidation.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-ci-header-dark.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-ci-key-visual.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-ci-master-board.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-command-lifecycle.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-command-lifecycle.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-common-durable-change.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-config-change-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-db-lifecycle-book.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-db-lifecycle.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-db-lifecycle.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-document-map.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-document-map.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-document-quality-gate.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-gateway-publish-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-gateway-publish.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-gateway-publish.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-gateway-route-workbench.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-gateway-route-workbench.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-gateway-screen-anatomy.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-gateway-screen-anatomy.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-integration-closure-operations.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-integration-closure-screen.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-integration-closure-screen.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-module-dependency.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-module-dependency.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-online-transaction.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-online-transaction.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-operation-decision.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-operator-first-response.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-operator-first-response.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-pay-book-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-pay-reference-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-platform-install-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-platform-install.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-platform-install.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-profile-decision.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-profile-decision.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-reader-journey.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-reader-start.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-reader-start.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-runtime-control.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-security-control.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-security-control.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-template-lifecycle.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-unknown-result.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/cpf-unknown-result.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-business-function-map.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-business-function-map.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-domain-call.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-domain-call.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-external-integration.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-external-integration.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-standard-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-standard-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-transaction-patterns.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/developer-transaction-patterns.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/operator-troubleshooting-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/manuals/operator-troubleshooting-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-architecture-overview.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-architecture-overview.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-architecture-premium.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-architecture.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-architecture.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-batch-centercut.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-batch-lifecycle-v8.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-batch-runtime.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-batch-runtime.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-capability-map.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-capability-map.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-composition-model.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-composition-model.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-developer-transaction-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-development-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-development-flow.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-development-operation-lifecycle.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-doc-map-premium.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-doc-map.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-doc-map.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-gateway-role.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-gateway-topology.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-gateway-topology.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-generated-domain.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-hero-premium.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-hero.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-hero.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-orchestration-overview.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-orchestration.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-orchestration.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-quick-overview.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-quick-overview.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-readme-hero.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-starter-expansion.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-starter-selection.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-starter-selection.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-transaction-boundary.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-unknown-result-flow.png,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/assets/readme/cpf-value-pillars.svg,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_DOCUMENTATION_CLEANUP_MANIFEST.txt,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_DOCUMENTATION_DELETE_MANIFEST.txt,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_DOCUMENT_FILE_MANIFEST.csv,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_FEATURE_MANUAL_COVERAGE.csv,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_MANUAL_READER_TASK_MATRIX.csv,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_OPERATION_PLAYBOOK_INDEX.csv,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_ROLE_TASK_CATALOG.csv,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_SOURCE_EVIDENCE_MATRIX.csv,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/CPF_STATE_ERROR_RECOVERY_CATALOG.csv,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/deliverables/evidence/SHA256SUMS.txt,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/BATCH_DEVELOPER_MANUAL_WRITING_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/BATCH_OPERATION_MANUAL_WRITING_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/CPF_OFFICIAL_DOCUMENT_REORGANIZATION_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/DEVELOPER_MANUAL_WRITING_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/GATEWAY_OPERATION_MANUAL_WRITING_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/IMMUTABLE_SHA256SUMS.txt,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/OPERATOR_MANUAL_WRITING_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/README_WRITING_AND_REVIEW_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/documentation-standards/SPECIFICATION_DOCUMENT_WRITING_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/guides/source/DOCUMENTATION_STRUCTURE.md,,,Prior/superseded documentation artifact or asset
-DELETE,cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md,,,Prior/superseded documentation artifact or asset
-DELETE,readme_preview.html,,,Prior/superseded documentation artifact or asset
+﻿path,action,bytes
+README.md,ADD_OR_REPLACE,10487
+cpf-docs/assets/product-docs/architecture.png,ADD_OR_REPLACE,62570
+cpf-docs/assets/product-docs/batch.png,ADD_OR_REPLACE,55540
+cpf-docs/assets/product-docs/docs.png,ADD_OR_REPLACE,61901
+cpf-docs/assets/product-docs/gateway.png,ADD_OR_REPLACE,63983
+cpf-docs/assets/product-docs/hero.png,ADD_OR_REPLACE,25839
+cpf-docs/assets/product-docs/invoke.png,ADD_OR_REPLACE,61041
+cpf-docs/assets/product-docs/ops.png,ADD_OR_REPLACE,37662
+cpf-docs/assets/product-docs/tx.png,ADD_OR_REPLACE,39186
+cpf-docs/deliverables/documentation/APPLY_V125.ps1,ADD_OR_REPLACE,2721
+cpf-docs/deliverables/documentation/CODEX_REVALIDATION_REQUEST.md,ADD_OR_REPLACE,701
+cpf-docs/deliverables/documentation/CONTINUITY.md,ADD_OR_REPLACE,212
+cpf-docs/deliverables/documentation/DELETE_EMPTY_DIRS.txt,ADD_OR_REPLACE,118
+cpf-docs/deliverables/documentation/DELETE_MANIFEST.txt,ADD_OR_REPLACE,9857
+cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1,ADD_OR_REPLACE,1312
+cpf-docs/deliverables/documentation/FINAL_DELIVERY_SUMMARY.md,ADD_OR_REPLACE,570
+cpf-docs/deliverables/documentation/GIT_STATUS_COMMAND.txt,ADD_OR_REPLACE,19
+cpf-docs/deliverables/documentation/HANDOVER.md,ADD_OR_REPLACE,525
+cpf-docs/deliverables/documentation/LOW_COST_VERIFY_COMMAND.txt,ADD_OR_REPLACE,379
+cpf-docs/deliverables/documentation/OPEN_ISSUES.md,ADD_OR_REPLACE,303
+cpf-docs/deliverables/documentation/PACKAGE_MANIFEST.json,ADD_OR_REPLACE,631
+cpf-docs/deliverables/documentation/QA_REWORK_REQUEST.md,ADD_OR_REPLACE,227
+cpf-docs/deliverables/documentation/REQUIREMENT_STATUS.csv,ADD_OR_REPLACE,623
+cpf-docs/deliverables/documentation/SOURCE_IDENTITY.json,ADD_OR_REPLACE,675
+cpf-docs/deliverables/documentation/TEST_AND_EVIDENCE.md,ADD_OR_REPLACE,2196
+cpf-docs/deliverables/documentation/verify_documentation_delivery.py,ADD_OR_REPLACE,3511
+cpf-docs/deliverables/기술사양서.docx,ADD_OR_REPLACE,39634
+cpf-docs/deliverables/기술사양서.pdf,ADD_OR_REPLACE,410048
+cpf-docs/deliverables/기술표준서.docx,ADD_OR_REPLACE,37641
+cpf-docs/deliverables/기술표준서.pdf,ADD_OR_REPLACE,349128
+cpf-docs/deliverables/데이터베이스표준서.docx,ADD_OR_REPLACE,37720
+cpf-docs/deliverables/데이터베이스표준서.pdf,ADD_OR_REPLACE,374918
+cpf-docs/deliverables/산출물목록.docx,ADD_OR_REPLACE,31110
+cpf-docs/deliverables/산출물목록.pdf,ADD_OR_REPLACE,213935
+cpf-docs/deliverables/아키텍처설계서.docx,ADD_OR_REPLACE,295386
+cpf-docs/deliverables/아키텍처설계서.pdf,ADD_OR_REPLACE,405317
+cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,ADD_OR_REPLACE,4840
+cpf-docs/governance/documentation-harness/CHANGELOG.md,ADD_OR_REPLACE,4017
+cpf-docs/governance/documentation-harness/CONTENT_COMPRESSION_STANDARD.md,ADD_OR_REPLACE,3317
+cpf-docs/governance/documentation-harness/CPF_DOCUMENTATION_HARNESS.md,ADD_OR_REPLACE,6431
+cpf-docs/governance/documentation-harness/DELETE_MANIFEST.json,ADD_OR_REPLACE,2260
+cpf-docs/governance/documentation-harness/DELETE_MANIFEST.txt,ADD_OR_REPLACE,928
+cpf-docs/governance/documentation-harness/DOCUMENT_PROFILE_CATALOG.md,ADD_OR_REPLACE,13407
+cpf-docs/governance/documentation-harness/FINAL_GATE_CHECKLIST.md,ADD_OR_REPLACE,3981
+cpf-docs/governance/documentation-harness/HARNESS_LOCK.json,ADD_OR_REPLACE,4910
+cpf-docs/governance/documentation-harness/PACKAGE_MANIFEST.json,ADD_OR_REPLACE,9845
+cpf-docs/governance/documentation-harness/PRODUCT_COVERAGE_MATRIX.md,ADD_OR_REPLACE,9262
+cpf-docs/governance/documentation-harness/README.md,ADD_OR_REPLACE,2494
+cpf-docs/governance/documentation-harness/README_VISUAL_STORYBOARD.md,ADD_OR_REPLACE,2308
+cpf-docs/governance/documentation-harness/REFERENCE_BASIS.md,ADD_OR_REPLACE,816
+cpf-docs/governance/documentation-harness/SOURCE_BASELINE.json,ADD_OR_REPLACE,7660
+cpf-docs/governance/documentation-harness/SOURCE_CAPABILITY_INVENTORY.json,ADD_OR_REPLACE,37704
+cpf-docs/governance/documentation-harness/VISUAL_AND_LAYOUT_STANDARD.md,ADD_OR_REPLACE,6917
+cpf-docs/governance/documentation-harness/content-density.json,ADD_OR_REPLACE,3981
+cpf-docs/governance/documentation-harness/content-models.json,ADD_OR_REPLACE,3780
+cpf-docs/governance/documentation-harness/design-tokens.json,ADD_OR_REPLACE,12495
+cpf-docs/governance/documentation-harness/document-output-rules.json,ADD_OR_REPLACE,3956
+cpf-docs/governance/documentation-harness/document-shell.json,ADD_OR_REPLACE,2790
+cpf-docs/governance/documentation-harness/figure-presets.json,ADD_OR_REPLACE,6916
+cpf-docs/governance/documentation-harness/harness.json,ADD_OR_REPLACE,8543
+cpf-docs/governance/documentation-harness/product-coverage.json,ADD_OR_REPLACE,21241
+cpf-docs/governance/documentation-harness/profiles/ARCHITECTURE_DESIGN.json,ADD_OR_REPLACE,5630
+cpf-docs/governance/documentation-harness/profiles/BATCH_DEVELOPER_GUIDE.json,ADD_OR_REPLACE,6104
+cpf-docs/governance/documentation-harness/profiles/BATCH_OPERATOR_GUIDE.json,ADD_OR_REPLACE,4649
+cpf-docs/governance/documentation-harness/profiles/DATABASE_STANDARD.json,ADD_OR_REPLACE,5656
+cpf-docs/governance/documentation-harness/profiles/DELIVERABLE_INDEX.json,ADD_OR_REPLACE,2844
+cpf-docs/governance/documentation-harness/profiles/FRAMEWORK_DEVELOPER_GUIDE.json,ADD_OR_REPLACE,8397
+cpf-docs/governance/documentation-harness/profiles/GATEWAY_GUIDE.json,ADD_OR_REPLACE,4693
+cpf-docs/governance/documentation-harness/profiles/OPERATOR_MANUAL.json,ADD_OR_REPLACE,4712
+cpf-docs/governance/documentation-harness/profiles/README.json,ADD_OR_REPLACE,10457
+cpf-docs/governance/documentation-harness/profiles/SPECIFICATION.json,ADD_OR_REPLACE,6916
+cpf-docs/governance/documentation-harness/profiles/TECHNICAL_SPECIFICATION.json,ADD_OR_REPLACE,5382
+cpf-docs/governance/documentation-harness/profiles/TECHNICAL_STANDARD.json,ADD_OR_REPLACE,5256
+cpf-docs/governance/documentation-harness/readme-value-inventory.json,ADD_OR_REPLACE,4592
+cpf-docs/governance/documentation-harness/schemas/document-profile.schema.json,ADD_OR_REPLACE,1214
+cpf-docs/governance/documentation-harness/schemas/scope.schema.json,ADD_OR_REPLACE,381
+cpf-docs/governance/documentation-harness/scope.json,ADD_OR_REPLACE,3964
+cpf-docs/governance/documentation-harness/table-presets.json,ADD_OR_REPLACE,6633
+cpf-docs/governance/documentation-harness/templates/SESSION_RUN_MANIFEST.template.json,ADD_OR_REPLACE,689
+cpf-docs/governance/documentation-harness/terminology.json,ADD_OR_REPLACE,3908
+cpf-docs/governance/documentation-harness/validators/validate_harness.ps1,ADD_OR_REPLACE,8419
+cpf-docs/governance/documentation-harness/validators/validate_harness.py,ADD_OR_REPLACE,8466
+cpf-docs/governance/documentation-harness/validators/validate_readme.py,ADD_OR_REPLACE,1232
+cpf-docs/governance/documentation-harness/visual-qa.json,ADD_OR_REPLACE,6534
+cpf-docs/governance/documentation-harness/visual-system.json,ADD_OR_REPLACE,7240
+cpf-docs/governance/documentation-harness/writing-style.json,ADD_OR_REPLACE,6277
+cpf-docs/guides/02_프레임워크_개발자_가이드.docx,ADD_OR_REPLACE,171871
+cpf-docs/guides/02_프레임워크_개발자_가이드.pdf,ADD_OR_REPLACE,628812
+cpf-docs/guides/03_배치_개발자_가이드.docx,ADD_OR_REPLACE,125935
+cpf-docs/guides/03_배치_개발자_가이드.pdf,ADD_OR_REPLACE,489291
+cpf-docs/guides/04_운영자_매뉴얼.docx,ADD_OR_REPLACE,70468
+cpf-docs/guides/04_운영자_매뉴얼.pdf,ADD_OR_REPLACE,402876
+cpf-docs/guides/05_배치_운영_가이드.docx,ADD_OR_REPLACE,88123
+cpf-docs/guides/05_배치_운영_가이드.pdf,ADD_OR_REPLACE,383829
+cpf-docs/guides/06_Gateway_개발_사용_가이드.docx,ADD_OR_REPLACE,100404
+cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf,ADD_OR_REPLACE,446895
+cpf-docs/guides/07_Specification_기술_명세.docx,ADD_OR_REPLACE,45528
+cpf-docs/guides/07_Specification_기술_명세.pdf,ADD_OR_REPLACE,559136

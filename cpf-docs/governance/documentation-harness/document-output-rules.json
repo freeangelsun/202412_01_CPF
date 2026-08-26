@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.2.1",
+  "harnessVersion": "1.3.0",
   "locked": true,
   "README": {
     "toc": "forbidden",
@@ -20,7 +20,14 @@
     "gatewayOptionalityVisual": "mandatory; selected vs not-selected comparison; internal domain-to-domain path MUST NOT traverse Gateway",
     "valueHighlights": "one message per line with visible bullet/marker; dense bold phrase chain forbidden",
     "visualBalance": "all major sections/visuals: balanced whitespace and visual weight; no accidental one-side crowding/dead space",
-    "figureGeometry": "all labels inside nodes with safe padding; no title/label/connector overlap"
+    "figureGeometry": "all labels inside nodes with safe padding; no title/label/connector overlap",
+    "subheadingContentRail": "H2/H3 content visually indented/grouped relative to heading; semantic Markdown grouping, not code-space indentation",
+    "subheadingContentGap": "heading-to-first-content compact; next-heading gap visibly larger",
+    "visualSurfaceOnDark": "major diagrams use light/neutral/tinted canvas or bright focal surface; dark-on-dark hard_fail",
+    "visualGrammarDiversity": "concept-specific visual grammar; rounded-box+arrow chain is not default; at least 4 distinct visual grammars when README has 5+ visuals",
+    "figureExplanationOwnership": "figure explanation directly below same figure block; must not be visually closer to next section",
+    "documentFormatLinks": "[PDF] -> .pdf and [DOCX] -> .docx; target exists; label/extension mismatch hard_fail",
+    "incrementalImprovement": "PATCH_FIRST; preserve previous PASS sections/visuals unless impacted; compare before/after for regression"
   },
   "DOCX": {
     "toc": "required H1/H2 with real page numbers",
@@ -40,7 +47,14 @@
     "pdfKoreanFontEmbedding": "mandatory",
     "pdfCrossRendererGlyph": "minimum two independent renderers; Korean glyph must match/read correctly",
     "pageVisualBalance": "mandatory on every page; headings/body/tables/figures/callouts balanced; accidental dead space hard_fail",
-    "figureGeometry": "node inner padding/label gap/connector clearance/title band follow design-tokens; overlap/crop/baseline drift hard_fail"
+    "figureGeometry": "node inner padding/label gap/connector clearance/title band follow design-tokens; overlap/crop/baseline drift hard_fail",
+    "tocMaterializedVisibleEntriesRequired": true,
+    "blankTocPage": "hard_fail",
+    "isolatedTrailingBlockPage": "hard_fail",
+    "subheadingContentRail": "H2/H3 content + bullets + callouts + figure explanation use 4.5mm content rail; full-width figure/table explicit exception only",
+    "subheadingContentGap": "H2 after <=6pt, H3 after <=5pt; next subsection separation larger",
+    "figureExplanationOwnership": "figure/caption/explanation stay one visual block; explanation closer to figure than next heading",
+    "incrementalImprovement": "PATCH_FIRST; unchanged PASS pages/visuals preserved; no unrelated redesign"
   },
   "finalReview": {
     "semantic": "각 문서의 독자가 실제 질문에 답할 수 있는지",
@@ -51,5 +65,47 @@
     "gatewayTopology": "내부 Domain 간 호출이 Gateway를 경유한다고 오표현한 곳이 0건인지",
     "pdfCompatibility": "한글 Font embedding + 2개 렌더러 Glyph PASS",
     "visualBalance": "모든 문서의 전페이지와 모든 Figure에서 상하·좌우 밀도, whitespace, alignment, label/connector geometry를 실제 렌더로 확인"
+  },
+  "globalPathGate": {
+    "windowsRoot": "C:\\dev\\projects\\jck\\202412_01_CPF",
+    "absolutePathMaxChars": 150,
+    "appliesTo": [
+      "README",
+      "DOCX",
+      "PDF",
+      "figure",
+      "evidence",
+      "manifest",
+      "zip entry",
+      "temporary generated output used for delivery"
+    ],
+    "onViolation": "hard_fail"
+  },
+  "harnessRetention": {
+    "currentOnly": true,
+    "staleHarnessHistory": "delete",
+    "sessionBackup": "delete",
+    "datedOrRevisionSuffix": "delete",
+    "extractedHarnessZip": "delete",
+    "validatorTemp": "delete"
+  },
+  "linkIntegrity": {
+    "pdfLabelMustTargetPdf": true,
+    "docxLabelMustTargetDocx": true,
+    "targetMustExist": true,
+    "labelExtensionMismatch": "hard_fail",
+    "pairedFormatPresentation": "문서명 — [PDF] [DOCX]"
+  },
+  "artifactEvolution": {
+    "default": "PATCH_FIRST",
+    "baseline": "previous official PASS artifact",
+    "preserveUnaffected": true,
+    "beforeAfterRegressionReview": true,
+    "fullRegeneration": "only explicit Harness triggers"
+  },
+  "windowsValidation": {
+    "primary": "PowerShell",
+    "python": "optional_cross_check",
+    "pythonRequired": false
   }
 }

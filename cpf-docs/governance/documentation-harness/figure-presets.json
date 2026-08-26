@@ -1,60 +1,68 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.2.1",
+  "harnessVersion": "1.3.0",
   "locked": true,
   "commonRulesRef": "visual-system.json",
   "presets": {
     "README_HERO": {
       "aspect": "16:6",
       "minRaster": "1920x720",
-      "layout": "brand hero + layered platform hint",
+      "layout": "editorial hero with light focal platform surface + layered depth; no box chain",
       "maxLabels": 8,
       "titleInside": false,
-      "background": "dark",
+      "background": "dark page + bright focal surface",
       "decorativeOnly": false,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "layered surface / focal plane",
+      "roundedRectangleArrowChain": "forbidden"
     },
     "README_ARCHITECTURE_MAP": {
       "aspect": "16:9",
       "minRaster": "1920x1080",
-      "layout": "layered architecture map",
+      "layout": "layered planes + ownership zones + anchored capability clusters",
       "maxPrimaryGroups": 7,
       "maxPrimaryNodes": 12,
       "required": "README",
       "mustShowOwnershipAndBoundary": true,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "planes/zones/clusters",
+      "leftToRightBoxChain": "forbidden",
+      "readmeSurface": "light/neutral/tinted canvas on dark page"
     },
     "SPLIT_COMPARE": {
       "aspect": "16:9",
-      "layout": "left/right contrast",
+      "layout": "asymmetric split topology / comparison field",
       "maxItemsPerSide": 4,
       "bestFor": [
         "Same JVM vs Remote",
         "Gateway vs Direct",
         "Before vs CPF"
       ],
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "split fields + boundary marker"
     },
     "JOURNEY_FLOW": {
       "aspect": "16:9",
-      "layout": "timeline/journey",
+      "layout": "route/timeline spine with stage markers; avoid boxed stages",
       "maxStages": 7,
       "exceptionLane": "below",
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "route/spine/markers"
     },
     "RECOVERY_STATE_MAP": {
       "aspect": "16:9",
-      "layout": "state ribbon + recovery branch",
+      "layout": "state ring/orbit + explicit reconcile branch",
       "maxStates": 7,
       "requiredLabelsWhenRelevant": [
         "UNKNOWN",
         "Reconcile"
       ],
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "ring/orbit/branch"
     },
     "BATCH_CONTROL_EXECUTION_MAP": {
       "aspect": "16:9",
-      "layout": "control plane over execution plane",
+      "layout": "control-plane ribbon above execution swimlanes",
       "requiredNodes": [
         "Control Plane",
         "Scheduler",
@@ -63,17 +71,19 @@
         "Agent"
       ],
       "showLeaseBoundary": true,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "plane ribbon + lanes/markers"
     },
     "LIFECYCLE_PIPELINE": {
       "aspect": "16:9",
-      "layout": "numbered pipeline",
+      "layout": "continuous lifecycle spine with milestones and optional branches",
       "maxStages": 7,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "spine/milestones"
     },
     "OPERATIONS_TRACE": {
       "aspect": "16:9",
-      "layout": "multi-lane timeline",
+      "layout": "multi-lane trace rails + event markers",
       "lanes": [
         "transactionId",
         "operationId",
@@ -81,67 +91,77 @@
         "Log/Trace/Timeline"
       ],
       "maxLanes": 5,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "lanes/rails/timeline"
     },
     "CAPABILITY_LANDSCAPE": {
       "aspect": "16:9",
-      "layout": "grouped landscape, not equal cards",
+      "layout": "mosaic/cluster landscape with variable group shapes, not equal cards",
       "groupsMax": 6,
       "itemsPerGroupMax": 5,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "mosaic/clusters"
     },
     "DECISION_MAP": {
       "aspect": "16:9",
-      "layout": "branching decision",
+      "layout": "decision fork / branch paths with compact labels, not rectangle tree",
       "maxDecisionNodes": 5,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "fork/branch"
     },
     "OWNERSHIP_BOUNDARY": {
       "aspect": "16:9",
-      "layout": "nested/layered boundaries",
+      "layout": "nested ownership zones / contours with anchored owners",
       "containersMax": 6,
       "dependencyArrowSingleDirection": true,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "nested zones/contours"
     },
     "ARCHITECTURE_TOPOLOGY": {
       "aspect": "16:9",
-      "layout": "layered architecture map",
+      "layout": "layered planes + topology zones, not horizontal box chain",
       "maxPrimaryNodes": 12,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "planes/zones"
     },
     "REQUEST_FLOW": {
       "aspect": "16:9",
-      "layout": "journey/sequence",
+      "layout": "sequence lanes / route path",
       "maxStages": 7,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "lanes/path"
     },
     "STATE_TRANSITION": {
       "aspect": "16:9",
-      "layout": "state ribbon + recovery branch",
+      "layout": "state ring + transition arcs + recovery branch",
       "maxStates": 7,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "ring/arcs"
     },
     "LIFECYCLE": {
       "aspect": "16:9",
-      "layout": "numbered pipeline",
+      "layout": "lifecycle spine + milestones",
       "maxStages": 7,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "spine/milestones"
     },
     "OPERATION_TRACE": {
       "aspect": "16:9",
-      "layout": "multi-lane timeline",
+      "layout": "trace rails + event markers",
       "maxLanes": 5,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "rails/timeline"
     },
     "DECISION_FLOW": {
       "aspect": "16:9",
-      "layout": "branching decision",
+      "layout": "decision fork / branch paths",
       "maxDecisionNodes": 5,
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "fork/branch"
     },
     "DB3_LIFECYCLE": {
       "aspect": "16:9",
-      "layout": "pipeline with three vendor bands",
+      "layout": "shared lifecycle spine + three equal vendor bands",
       "vendorBands": [
         "Oracle",
         "PostgreSQL",
@@ -149,11 +169,12 @@
       ],
       "commonGeometryGateRef": "$.commonGeometryGate",
       "vendorLabelRule": "Oracle/PostgreSQL/MariaDB labels use equal visual weight, same baseline, same font size, explicit horizontal or vertical lanes; no overlap with DATA/EXTERNAL group title.",
-      "groupTitleRule": "DATA/EXTERNAL or DB group title occupies separate title band; vendor labels begin below title band with >=18px gap."
+      "groupTitleRule": "DATA/EXTERNAL or DB group title occupies separate title band; vendor labels begin below title band with >=18px gap.",
+      "shapeGrammar": "spine + vendor bands"
     },
     "BATCH_TOPOLOGY": {
       "aspect": "16:9",
-      "layout": "control plane over execution plane",
+      "layout": "control plane ribbon + scheduler/worker execution lanes",
       "requiredNodes": [
         "Control Plane",
         "Scheduler",
@@ -161,22 +182,24 @@
         "Center-Cut",
         "Agent"
       ],
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "plane + lanes"
     },
     "BATCH_RECOVERY": {
       "aspect": "16:9",
-      "layout": "four-way recovery decision",
+      "layout": "recovery compass/four-way decision around execution state",
       "requiredLabels": [
         "Restart",
         "Rerun",
         "Reprocess",
         "Reconcile"
       ],
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "compass/branch"
     },
     "GENERATOR_FLOW": {
       "aspect": "16:9",
-      "layout": "numbered pipeline",
+      "layout": "artifact assembly spine with generation milestones",
       "requiredStages": [
         "Domain Input",
         "Generator",
@@ -184,11 +207,12 @@
         "Starter/DB",
         "Build/Test"
       ],
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "spine/milestones"
     },
     "GATEWAY_OPTIONALITY": {
       "aspect": "16:9",
-      "layout": "split compare",
+      "layout": "split topology with explicit external boundary gate and internal direct invocation rail",
       "requiredPaths": [
         "외부 Client → Gateway → Target Domain (Gateway 선택 시)",
         "외부/내부 허용 Direct Path (Gateway 미선택 시)",
@@ -198,32 +222,41 @@
       "internalDomainToDomainViaGateway": "forbidden",
       "requiredKoreanExplanation": "그림 아래 1~2문장으로 Gateway 선택 기준과 내부 Domain 호출 비경유 원칙을 설명",
       "contrastGate": "all required labels >= 4.5:1",
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "split topology + boundary marker",
+      "readmeSurface": "light/neutral/tinted canvas on dark page"
     },
     "SECURITY_AUDIT_FLOW": {
       "aspect": "16:9",
-      "layout": "journey/approval trail",
+      "layout": "concentric guardrails + approval/audit trail",
       "requiredConcepts": [
         "Identity",
         "Permission",
         "Approval",
         "Audit"
       ],
-      "commonGeometryGateRef": "$.commonGeometryGate"
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "shapeGrammar": "guardrail rings + trail"
     }
   },
   "commonGeometryGate": {
-    "nodeInnerPaddingPxMin": 18,
-    "labelGapPxMin": 20,
-    "nodeGapPxMin": 24,
-    "labelConnectorClearancePxMin": 12,
-    "groupTitleBandPxMin": 44,
+    "nodeInnerPaddingPxMin": 24,
+    "labelGapPxMin": 24,
+    "nodeGapPxMin": 28,
+    "labelConnectorClearancePxMin": 16,
+    "groupTitleBandPxMin": 48,
     "labelLinesHardMax": 2,
     "textBoundaryCollisionAllowed": 0,
     "textConnectorCollisionAllowed": 0,
     "groupTitleChildOverlapAllowed": 0,
     "parallelLabelBaselineDriftAllowed": 0,
     "forcedTinyText": "forbidden",
-    "visualBalance": "required; no accidental one-side crowding or dead space"
+    "visualBalance": "required; no accidental one-side crowding or dead space; explanation ownership must be visually clear",
+    "canvasSafeMarginPxMin": 48,
+    "figureExplanationGapPtMax": 6,
+    "figureToNextSectionGapPtMin": 14,
+    "roundedRectangleArrowChainDefault": "forbidden",
+    "darkOnDarkReadmeVisual": "hard_fail",
+    "conceptVisualGrammarMatch": "required"
   }
 }

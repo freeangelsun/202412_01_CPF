@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "1.2.1",
+  "harnessVersion": "1.3.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -64,7 +64,23 @@
     "figureForcedTinyText": 0,
     "pageAccidentalVisualImbalance": 0,
     "figureAccidentalVisualImbalance": 0,
-    "unresolvedLargeDeadSpace": 0
+    "unresolvedLargeDeadSpace": 0,
+    "denseTextOnlyComplexSection": 0,
+    "blankTocPage": 0,
+    "isolatedTrailingBlockPage": 0,
+    "pathOver150Chars": 0,
+    "subheadingContentGapTooLarge": 0,
+    "subheadingContentRailMissing": 0,
+    "figureExplanationOwnershipAmbiguous": 0,
+    "readmePdfLinkTargetsDocx": 0,
+    "linkLabelExtensionMismatch": 0,
+    "unjustifiedWholeArtifactRegeneration": 0,
+    "previousPassVisualRegression": 0,
+    "readmeDarkOnDarkVisual": 0,
+    "boxArrowVisualMonoculture": 0,
+    "figureTextCanvasEdgeCollision": 0,
+    "visualGrammarConceptMismatch": 0,
+    "figureExplanationCloserToNextSection": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -88,7 +104,15 @@
     "figureGroupTitleBandPxBelow": 44,
     "figureLabelLinesOver": 2,
     "pageLeftRightVisualWeightRatioReviewAbove": "1.6:1",
-    "pageTopBottomVisualWeightRatioReviewAbove": "1.8:1"
+    "pageTopBottomVisualWeightRatioReviewAbove": "1.8:1",
+    "h2SpaceAfterPtAbove": 6,
+    "h3SpaceAfterPtAbove": 5,
+    "subheadingContentIndentMmBelow": 4.0,
+    "figureCanvasSafeMarginPxBelow": 48,
+    "readmeUniqueVisualGrammarsBelow": 4,
+    "readmeRoundedRectangleArrowChainVisualsOver": 1,
+    "figureExplanationGapPtAbove": 6,
+    "figureToNextSectionGapPtBelow": 14
   },
   "mandatoryInspection": {
     "allPagesQuickScan": true,
@@ -120,7 +144,11 @@
       "connector never crosses required text and keeps >=12px text clearance",
       "group title uses separate title band; no overlap with child labels",
       "no forced tiny font to make text fit",
-      "left/right and top/bottom visual weight is balanced"
+      "left/right and top/bottom visual weight is balanced",
+      "visual grammar matches concept; do not default to rounded rectangles + arrows",
+      "README dark surface uses light/neutral/tinted figure canvas or bright focal panel",
+      "canvas edge safe margin >=48px; no label/stroke intrusion",
+      "figure explanation is visually attached to this figure and separated from next section"
     ],
     "tableInspection": [
       "actual Word tblGrid",
@@ -148,23 +176,43 @@
       "H1 is visually separated from previous block",
       "H2/H3 use progressively smaller but visible top/bottom spacing",
       "hierarchical numbering is visible",
-      "no dense uniform repeated spacing"
+      "no dense uniform repeated spacing",
+      "H2/H3 first content gap is compact and smaller than next subsection separation",
+      "H2/H3 content/body/list/explanation uses common indented Content Rail; heading itself remains on title grid"
     ],
     "pageBalanceInspection": [
       "inspect every page for left/right and top/bottom density balance",
       "detect accidental large dead space, isolated tiny blocks, or one-corner crowding",
       "check heading/body/table/figure/callout visual weight and whitespace rhythm",
       "re-layout when imbalance is caused by pagination or object anchoring; do not hide with blank paragraphs"
+    ],
+    "linkInspection": [
+      "[PDF] target exists and extension is .pdf",
+      "[DOCX] target exists and extension is .docx",
+      "when both formats exist, links are separately labeled and never cross-targeted",
+      "link label and actual target file signature/extension agree"
+    ],
+    "regressionInspection": [
+      "compare changed pages/visuals with previous official PASS artifact",
+      "unchanged PASS areas remain unchanged unless dependency requires change",
+      "no previously approved visual becomes less readable or less polished",
+      "full regeneration has an explicit allowed trigger and recorded reason"
     ]
   },
   "fixLoop": [
-    "collect all failures",
-    "group by root cause",
-    "apply global token/profile fix where applicable",
-    "regenerate all impacted documents",
-    "rerender",
-    "repeat full high-risk checks",
+    "collect all failures and identify impact scope",
+    "update Harness first when finding is a reusable/common rule",
+    "PATCH_FIRST: preserve unaffected PASS sections/visuals",
+    "apply root-cause token/profile fix only to impacted outputs",
+    "rerender changed/high-risk pages",
+    "compare before/after for visual/link/content regression",
+    "repeat full required gates for affected artifacts",
     "only then mark VISUAL_PASS"
   ],
-  "passDefinition": "Visual PASS는 전페이지 실제 렌더, 계층 번호/여백, 표/그림/들여쓰기 Grid, Figure 대비+간결한 한글 설명, Figure 내부 geometry/충돌/정렬/시각적 균형, 페이지 좌우·상하 시각적 균형, README Architecture/Gateway 선택도/매뉴얼/Bootstrap 진입점, PDF 한글 Font embedding 및 복수 렌더러 정상 Glyph를 모두 만족한 상태다."
+  "passDefinition": "Visual PASS는 전페이지 실제 렌더, 계층 번호/부제목-내용 Content Rail과 압축된 간격, 표/그림 들여쓰기 Grid, Figure 대비+설명 귀속+geometry, 내용별 Visual Grammar 다양성, README dark surface와 밝은 Visual 분리, 링크 형식 정확성, 이전 PASS 대비 비의도 회귀 0, PDF 한글 Font/복수 렌더러를 모두 만족한 상태다.",
+  "pageRhythmReview": {
+    "complexSectionRepresentation": "복잡한 거래/호출/운영 설명은 표/비교/Flow/State/Figure 중 이해를 빠르게 하는 표현과 1~2문장 설명을 조합",
+    "sameDensityTextBlocksInSeries": "review_or_fail",
+    "visualAndTextMustComplement": true
+  }
 }

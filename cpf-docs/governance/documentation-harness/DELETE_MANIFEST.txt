@@ -1,4 +1,4 @@
-# CPF Documentation Harness v1.1.3 superseded-file delete manifest
+# CPF Documentation Harness v1.3.0 superseded-file delete manifest
 # Root-relative exact paths only. No wildcard. 기존 분산 산출물 작성 지침만 삭제한다.
 cpf-docs/documentation-standards/BATCH_DEVELOPER_MANUAL_WRITING_STANDARD.md
 cpf-docs/documentation-standards/BATCH_OPERATION_MANUAL_WRITING_STANDARD.md
@@ -10,4 +10,3 @@ cpf-docs/documentation-standards/README_WRITING_AND_REVIEW_STANDARD.md
 cpf-docs/documentation-standards/SPECIFICATION_DOCUMENT_WRITING_STANDARD.md
 cpf-docs/documentation-standards/IMMUTABLE_SHA256SUMS.txt
 cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md
-cpf-docs/guides/source/DOCUMENTATION_STRUCTURE.md

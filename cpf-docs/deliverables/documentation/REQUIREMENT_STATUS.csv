@@ -1,12 +1,7 @@
-﻿work_package,scope,development_status,verification_status,evidence
-WP-01,Baseline/Harness,완료,PASS,master SHA / Harness v1.1.3 / 12 artifacts / 57 coverage
-WP-02,Legacy documentation cleanup,완료,PASS,Exact delete manifest; no wildcard
-WP-03,README fresh generation,완료,PASS,README validator PASS; 8 fresh visuals
-WP-04,11 DOCX fresh generation,완료,PASS,11/11 profile H1/H2 locked structure
-WP-05,11 PDF companions,완료,PASS,"11/11 openable, not encrypted, not scan-only"
-WP-06,Accessibility,완료,PASS,11/11 High=0 Medium=0 Low=0
-WP-07,Visual QA,완료,PASS,146 pages reviewed; blank/low-density/out-of-page/broken glyph 0
-WP-08,Semantic/source cross-check,완료,PASS,92 source paths exist and semantic mappings corrected
-WP-09,README responsive render,완료,PASS_WITH_RENDERER_SUBSTITUTION,"Dark 1440/1024/480 render PASS; Chromium CLI hang, WeasyPrint+Inkscape used"
-WP-10,Package manifest/hash,완료,PASS,Overlay manifest and SHA256SUMS generated
-WP-11,Clean snapshot replay,완료,PASS,Fresh baseline delete -> overlay -> validator -> checksum replay PASS
+﻿requirement_id,개발GPT_상태,개발GPT_내용
+DOC-HARNESS-V125,완료,Harness v1.2.5 validator PASS; current-only harness policy
+DOC-README-V125,완료,"README fresh structure, 8 visuals, Gateway optionality, manuals/bootstrap entry points"
+DOC-DOCX-11,완료,11 DOCX fresh/reworked; final accessibility 0/0/0
+DOC-PDF-11,완료,11 PDF fresh; 131 pages; embedded fonts; Poppler/PDFium page parity
+DOC-PATH-150,완료,Windows user repository root included absolute path <=150
+DOC-CLEAN-REPLAY,완료,Directory replay PASS: delete→overlay→Harness/README/Documentation verify; byte mismatch 0; legacy assets 0

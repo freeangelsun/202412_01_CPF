@@ -1,10 +1,7 @@
-# CPF Documentation Final Handover
+# HANDOVER
 
-- 정본 Harness: v1.1.3
-- 기준 master SHA: `8670f6c9b675e3d210576c843d826898c781f9f0`
-- 입력 Source ZIP SHA-256: `9c716e16752972bc15ec9834071f44d721c60d893c929a55a51ed95f654ee11e`
-- 공식 Artifact: README 1 + DOCX 11 + PDF 11
-- 신규 README Visual: 8 SVG
-- 최종 PDF: 146 pages
-
-다음 세션은 과거 산출물 형식으로 되돌리지 않는다. Harness v1.1.3과 최신 Source를 정본으로 사용한다. QA/Codex Finding이 발생하면 문서만 국소 수정하지 말고 Source mapping, Profile, Consumer/Owner, Cross-document 영향까지 다시 검수한다. Git commit/push는 사용자 명시 승인 없이는 수행하지 않는다.
+- 정본 Harness: v1.2.5 (`cpf-docs/governance/documentation-harness/`)
+- 작업 순서: Harness 현행화 → Validator PASS → 산출물 생성 → 전페이지/다중 PDF renderer QA → Package/Clean Replay.
+- 과거 Harness 버전/백업/세션 복제본과 과거 Documentation asset은 Current Surface에 유지하지 않는다.
+- 내부 Domain↔Domain 호출은 Gateway를 경유하지 않는다.
+- 생성 파일은 `C:\dev\projects\jck\202412_01_CPF` 포함 절대경로 150자 이하를 유지한다.

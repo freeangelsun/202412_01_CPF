@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.2.1",
+  "harnessVersion": "1.3.0",
   "locked": true,
   "page": {
     "paper": "A4",
@@ -55,13 +55,13 @@
     "center_body_text": "forbidden",
     "first_line_indent_mm": 0,
     "body_line_spacing_multiple": 1.17,
-    "body_space_after_pt": 6.0,
+    "body_space_after_pt": 5.0,
     "h1_space_before_pt": 32,
     "h1_space_after_pt": 12,
-    "h2_space_before_pt": 20,
-    "h2_space_after_pt": 8,
-    "h3_space_before_pt": 14,
-    "h3_space_after_pt": 6,
+    "h2_space_before_pt": 18,
+    "h2_space_after_pt": 5,
+    "h3_space_before_pt": 12,
+    "h3_space_after_pt": 4,
     "h1_after_table_or_figure_min_pt": 24,
     "keep_with_next": [
       "document_title",
@@ -76,7 +76,10 @@
     "section_block_gap_pt": 10,
     "major_section_visual_gap_pt": 18,
     "headingSpacingPrinciple": "H1 > H2 > H3 > 본문 순으로 전후 여백 차이를 명확히 둔다. 대메뉴 시작 전에는 앞 내용과 한 줄 이상 분리되어 보이는 시각적 공간을 확보한다. 빈 문단으로 만들지 않고 Style spacing으로 구현한다.",
-    "denseUniformRhythm": "forbidden"
+    "denseUniformRhythm": "forbidden",
+    "subheading_first_content_gap_pt_max": 6,
+    "next_subheading_space_before_pt_min": 12,
+    "subheadingPairingRule": "H2/H3와 첫 본문/첫 리스트는 한 시각 블록으로 보이게 붙인다. 제목 아래 간격은 다음 부제목 시작 전 간격보다 작아야 한다."
   },
   "indentation": {
     "body_left_mm": 0,
@@ -93,7 +96,20 @@
     "table_title_left_mm": 0,
     "table_left_mm": 0,
     "figure_caption_left_mm": 0,
-    "hardFail": "같은 계층의 불릿/번호/본문 왼쪽 기준선이 들쭉날쭉하면 VISUAL_FAIL"
+    "hardFail": "같은 H2/H3 계층의 본문/불릿/설명 Content Rail이 들쭉날쭉하거나 제목과 내용이 모두 같은 시작선으로 평평해 보이면 VISUAL_FAIL",
+    "subheading_content_indent_mm": 4.5,
+    "h2_content_left_mm": 4.5,
+    "h3_content_left_mm": 4.5,
+    "subheading_content_applies_to": [
+      "body paragraph",
+      "bullet/number list",
+      "callout",
+      "figure explanation",
+      "table purpose when narrow",
+      "code example when narrow"
+    ],
+    "full_width_exception": "넓은 표/그림만 폭이 필요할 때 기준 Grid까지 확장 가능. 이후 본문은 즉시 4.5mm Content Rail로 복귀.",
+    "readme_semantic_indent": "Markdown에서 4-space 들여쓰기로 code block을 만들지 않는다. bullet/number/callout/figure-caption grouping으로 동일한 시각 계층을 만든다."
   },
   "colors": {
     "body_text": "#202124",
@@ -241,12 +257,12 @@
     "min_text_contrast_ratio": "4.5:1 for normal labels; 3:1 only for large labels",
     "low_contrast_label": "hard_fail",
     "secondary_label_contrast_min": "4.5:1 when label is required to understand the figure",
-    "node_inner_padding_px_min": 18,
-    "node_inner_padding_px_preferred": 24,
-    "label_to_label_gap_px_min": 20,
-    "node_to_node_gap_px_min": 24,
-    "label_to_connector_clearance_px_min": 12,
-    "group_title_band_height_px_min": 44,
+    "node_inner_padding_px_min": 24,
+    "node_inner_padding_px_preferred": 32,
+    "label_to_label_gap_px_min": 24,
+    "node_to_node_gap_px_min": 28,
+    "label_to_connector_clearance_px_min": 16,
+    "group_title_band_height_px_min": 48,
     "group_title_to_first_child_gap_px_min": 18,
     "label_line_count_preferred": 1,
     "label_line_count_hard_max": 2,
@@ -256,7 +272,15 @@
     "title_child_label_overlap": 0,
     "forced_font_shrink_to_fit": "forbidden below minimum text size",
     "geometry_rule": "텍스트 Bounding Box는 Node/Container 경계를 침범하지 않고 최소 내부 여백을 유지한다. Group Title은 전용 Title Band를 사용하며 내부 데이터 Label과 겹치지 않는다.",
-    "connector_rule": "Connector는 Text/Label을 가로지르지 않는다. Endpoint를 제외하고 Node 내부를 관통하지 않는다. 방향과 연결 대상이 100%/200%에서 즉시 식별되어야 한다."
+    "connector_rule": "Connector는 Text/Label을 가로지르지 않는다. Endpoint를 제외하고 Node 내부를 관통하지 않는다. 방향과 연결 대상이 100%/200%에서 즉시 식별되어야 한다.",
+    "canvas_safe_margin_px_min": 48,
+    "figure_explanation_gap_pt_max": 6,
+    "figure_to_next_section_gap_pt_min": 14,
+    "explanation_ownership": "설명은 해당 Figure 바로 아래에 붙여 Figure 제목/이미지/설명 3개가 하나의 시각 블록으로 읽혀야 한다.",
+    "readme_dark_surface_rule": "README 다크 배경에서는 light/neutral/tinted figure canvas 또는 밝은 focal surface를 사용해 외곽과 내부 구조를 분명히 분리. dark-on-dark는 hard_fail.",
+    "visual_grammar_rule": "내용 의미에 맞는 shape/layout 문법을 선택하며 모든 Figure를 동일 rounded-rectangle + arrow chain으로 만들지 않는다.",
+    "rounded_rectangle_arrow_chain_default": "forbidden",
+    "label_canvas_edge_collision": 0
   },
   "callouts": {
     "allowed": [
@@ -303,7 +327,10 @@
     "one_side_overcrowding_allowed": 0,
     "accidental_large_dead_space_allowed": 0,
     "visual_weight_balance_review_required": true,
-    "balance_rule": "페이지와 Figure는 좌우/상하 정보량·여백·강조의 시각적 무게가 균형을 이루어야 한다. 의도 없는 한쪽 과밀·반대쪽 과공백은 FAIL 또는 재배치 대상이다."
+    "balance_rule": "페이지와 Figure는 좌우/상하 정보량·여백·강조의 시각적 무게가 균형을 이루어야 한다. 의도 없는 한쪽 과밀·반대쪽 과공백은 FAIL 또는 재배치 대상이다.",
+    "link_label_target_mismatch_allowed": 0,
+    "pdf_link_to_docx_allowed": 0,
+    "previous_pass_visual_regression_allowed": 0
   },
   "headingNumbering": {
     "H1": "1. / 2. / 3. ...",

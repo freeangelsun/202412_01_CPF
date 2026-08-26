@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "reason": "CPF Documentation Harness v1.1.3이 기존 분산 산출물 작성 지침을 완전히 대체한다.",
+  "reason": "CPF Documentation Harness v1.3.0이 기존 분산 산출물 작성 지침을 대체하며 Repository에는 현행 Harness 한 세트만 유지한다.",
   "applyPolicy": "exact path only; no wildcard; verify overlay first",
   "paths": [
     {
@@ -42,12 +42,8 @@
     {
       "path": "cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md",
       "reason": "superseded documentation-writing guidance"
-    },
-    {
-      "path": "cpf-docs/guides/source/DOCUMENTATION_STRUCTURE.md",
-      "reason": "superseded documentation-writing guidance"
     }
   ],
-  "protectedPathNote": "cpf-docs/guides/source/DOCUMENTATION_STRUCTURE.md는 보호 경로 하위의 특정 파일이다. 전체 cpf-docs/guides 삭제는 금지하며 이 exact file만 사용자 지시에 따라 제거 대상으로 기록한다.",
-  "harnessVersion": "1.2.1"
+  "protectedPathNote": "보호 경로 cpf-docs/guides/**는 Harness cleanup이 삭제하지 않는다. 보호 경로 삭제는 별도 사용자 명시 승인이 있을 때만 별도 Delete Manifest로 수행한다.",
+  "harnessVersion": "1.3.0"
 }

@@ -1,20 +1,22 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.2.1",
+  "harnessVersion": "1.3.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
-  "goal": "시각화는 제품 구조를 더 빠르게 이해시키고 완성도 높은 제품 인상을 주어야 한다. 같은 박스·화살표 반복은 시각화로 인정하지 않는다.",
+  "goal": "시각화는 제품 구조를 더 빠르게 이해시키면서 현대적이고 정돈된 제품 인상을 주어야 한다. 내용마다 어울리는 시각 문법을 선택하고 동일 둥근 네모·화살표 반복을 시각화로 인정하지 않는다.",
   "designLanguage": {
     "grid": "12-column grid",
-    "outerPaddingPx": 48,
-    "innerGapPx": 24,
+    "outerPaddingPx": 56,
+    "innerGapPx": 28,
     "cornerRadiusPx": [
-      10,
-      14
+      8,
+      12,
+      18
     ],
     "backgrounds": [
-      "dark hero/README boards",
-      "white/light manual diagrams"
+      "README dark surface + light/neutral/tinted figure canvas",
+      "white/light manual diagrams",
+      "dark hero allowed only with bright focal surface"
     ],
     "palette": "Navy base + Blue/Cyan accent + Amber/Red only for warning/failure. 한 그림에서 의미색 최대 4개.",
     "lineWeightPx": {
@@ -23,7 +25,7 @@
     },
     "arrowCrossingPreferredMax": 1,
     "arrowCrossingHardReview": 2,
-    "nodeRule": "같은 의미 Level의 Node 크기/Corner/Font를 통일. 내용 길이에 따라 임의 크기 변화 금지.",
+    "nodeRule": "의미 Level은 정렬과 Typography로 통일하되 모든 요소를 같은 Rounded Rectangle로 만들지 않는다. Plane/Band/Lane/Ring/Path/Zone/Card/Marker 중 의미에 맞는 형태를 사용한다.",
     "textHierarchy": [
       "Primary label",
       "Secondary short label",
@@ -32,16 +34,31 @@
     "iconRule": "동일 icon family만 사용. 장식 icon을 정보 Node 대신 사용 금지.",
     "shadowRule": "Hero/브로셔 카드에만 매우 약하게 허용. Architecture/State diagram에는 금지.",
     "gradientRule": "Hero 배경의 약한 Gradient만 허용. 데이터/상태 의미에 Gradient 사용 금지.",
-    "nodeInnerPaddingPxMin": 18,
-    "nodeInnerPaddingPxPreferred": 24,
-    "nodeGapPxMin": 24,
-    "labelGapPxMin": 20,
-    "labelConnectorClearancePxMin": 12,
-    "groupTitleBandPxMin": 44,
+    "nodeInnerPaddingPxMin": 24,
+    "nodeInnerPaddingPxPreferred": 32,
+    "nodeGapPxMin": 28,
+    "labelGapPxMin": 24,
+    "labelConnectorClearancePxMin": 16,
+    "groupTitleBandPxMin": 48,
     "groupTitleRule": "Container/Group 제목은 별도 title band에 두고 내부 Node/DB Vendor/API Label과 같은 baseline/공간을 공유하지 않는다.",
     "baselineRule": "같은 행의 Label은 공통 baseline과 정렬축을 사용한다. 한국어/영문/숫자 혼합 시 시각적 baseline drift를 허용하지 않는다.",
     "balanceRule": "Node 크기와 간격은 의미 계층과 정보량에 비례한다. 한 영역에 Label이 몰리고 다른 영역이 비는 배치를 금지한다.",
-    "fitRule": "Label이 맞지 않으면 font를 과도하게 줄이지 말고 Node 폭/배치/문구를 재설계한다."
+    "fitRule": "Label이 맞지 않으면 font를 과도하게 줄이지 말고 Node 폭/배치/문구를 재설계한다.",
+    "shapeGrammar": [
+      "layered planes/zones",
+      "lanes/swimlanes",
+      "route/timeline spine",
+      "state ring/orbit",
+      "split boundary compare",
+      "vendor bands",
+      "mosaic/cluster",
+      "nested ownership zones",
+      "cards only when the concept is actually a card/list"
+    ],
+    "boxArrowRule": "둥근 네모+화살표 연쇄는 기본 Template이 아니다. 방향 의미가 실제로 있을 때만 Arrow를 사용하고, containment/proximity/order/lane으로 표현 가능한 관계에 불필요한 Arrow를 쓰지 않는다.",
+    "modernPolish": "넓은 whitespace, 명확한 focal point, 얇은 경계, 제한된 accent, 단순한 shape hierarchy를 사용한다. 장식보다 구조적 세련미를 우선한다.",
+    "readmeSurfaceRule": "README dark background에서 주요 Visual은 밝은 neutral/light-tint canvas 또는 명확한 밝은 panel을 사용한다. 외곽 경계가 배경에 묻히는 dark-on-dark 금지.",
+    "canvasSafeMarginPxMin": 48
   },
   "readme": {
     "visualCount": {
@@ -77,9 +94,13 @@
       "Oracle/PostgreSQL/MariaDB ownership/lifecycle",
       "Operations/ADM/Trace plane"
     ],
-    "architectureMapAcceptance": "처음 보는 개발자가 15초 안에 업무 Domain, 호출 경계, Batch, DB, 운영 영역의 위치를 설명할 수 있어야 한다.",
-    "caption": "각 Visual 아래 1~2문장. 그림을 그대로 번역하지 않고, 사용자가 얻는 편의/선택 기준을 짧게 설명.",
-    "decorativeVisual": "forbidden"
+    "architectureMapAcceptance": "처음 보는 개발자가 15초 안에 업무 Domain, 호출 경계, Batch, DB, 운영 영역의 위치를 설명할 수 있어야 하며, 좌→우 동일 박스 열이 아니라 Layer/Zone/Plane으로 구조를 보여야 한다.",
+    "caption": "각 Visual 바로 아래 같은 블록에 1~2문장. 어느 그림 설명인지 즉시 알 수 있어야 하며 다음 섹션과 섞이지 않는다.",
+    "decorativeVisual": "forbidden",
+    "sameVisualGrammarMaxTotal": 2,
+    "uniqueVisualGrammarsMinWhenFiveOrMore": 4,
+    "roundedRectangleArrowChainMaxTotal": 1,
+    "backgroundContrast": "dark README + light/neutral/tinted visual surface preferred; dark-on-dark hard_fail"
   },
   "manuals": {
     "figureUse": "대표 Architecture/Flow/State/Decision이 필요한 장에만. 기능마다 그림 1개 만들기 금지.",
@@ -121,7 +142,13 @@
     "Connector가 Label을 통과하거나 화살표 끝이 Box/Text에 묻힘",
     "Box 안 글자를 맞추기 위해 글꼴을 과도하게 축소",
     "한쪽에 Node/텍스트가 몰리고 반대쪽이 의도 없이 비는 Composition",
-    "페이지 상단은 과밀한데 하단이 비거나 그 반대인 시각적 밀도 불균형"
+    "페이지 상단은 과밀한데 하단이 비거나 그 반대인 시각적 밀도 불균형",
+    "README dark page 위에 거의 같은 명도의 dark Figure canvas를 사용해 경계가 묻힘",
+    "모든 Visual이 짙은 남색 Rounded Rectangle + 수평 Arrow 조합",
+    "Architecture를 단순 좌→우 박스 연쇄로 표현해 Layer/Owner/Boundary가 약함",
+    "내용에 방향성이 없는데도 관계를 전부 Arrow로 표현",
+    "텍스트가 Canvas 외곽 safe margin 또는 Shape stroke를 침범",
+    "Figure 설명이 다음 제목과 더 가까워 어느 그림 설명인지 모호함"
   ],
   "visualPassQuestions": [
     "이 그림이 없으면 이해 시간이 실제로 늘어나는가?",
@@ -134,6 +161,23 @@
     "Group Title과 내부 데이터 Label이 시각적으로 분리되어 있는가?",
     "병렬 Label의 baseline, 간격, 크기, 강조가 균형적인가?",
     "페이지와 Figure의 좌우/상하 시각적 무게가 균형적인가?",
-    "큰 빈 공간이 의도된 정보 위계인지, 배치 실패로 생긴 dead space인지 확인했는가?"
-  ]
+    "큰 빈 공간이 의도된 정보 위계인지, 배치 실패로 생긴 dead space인지 확인했는가?",
+    "이 내용에 가장 적합한 시각 문법을 선택했는가, 아니면 또 같은 네모+화살표를 복사했는가?",
+    "README 다크 배경과 Figure가 명도/Surface로 분명히 분리되는가?",
+    "텍스트가 Shape/Canvas safe area 안에서 충분한 여백을 갖는가?",
+    "Figure 설명이 해당 그림에 시각적으로 붙어 있어 귀속이 명확한가?",
+    "직전 PASS Visual보다 미관/가독성이 나빠진 부분이 없는가?"
+  ],
+  "visualGrammarSelection": {
+    "wholeArchitecture": "layered planes + ownership zones + anchored clusters; arrow chain forbidden",
+    "invocationOrSequence": "sequence lanes or route path; arrows only for actual direction",
+    "transactionChoice": "decision fork + compact comparison bands",
+    "unknownRecovery": "state ring/orbit + reconcile branch",
+    "batch": "control-plane ribbon over execution lanes; workers as lanes/markers, not identical cards",
+    "db3": "shared lifecycle spine + three equal vendor bands",
+    "operations": "trace/timeline lanes with ID rails",
+    "gateway": "split topology with explicit boundary gate",
+    "capability": "mosaic/cluster landscape, not equal card grid",
+    "documents": "navigation/signpost or grouped index, not arrow chain"
+  }
 }

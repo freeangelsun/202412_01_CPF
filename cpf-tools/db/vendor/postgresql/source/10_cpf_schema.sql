@@ -1438,8 +1438,6 @@ COMMENT ON COLUMN BAT_RECONCILIATION_AUDIT.expected_attempt IS 'Expected trigger
 COMMENT ON COLUMN BAT_RECONCILIATION_AUDIT.expected_version IS 'Expected entity optimistic version';
 COMMENT ON COLUMN BAT_RECONCILIATION_AUDIT.created_at IS 'Immutable audit creation time';
 
-
-
 CREATE TABLE BAT_RUNTIME_COMMAND (
     command_id VARCHAR(80),
     idempotency_key VARCHAR(160) NOT NULL,

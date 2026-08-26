@@ -101,7 +101,9 @@ function Invoke-SqlPlusText($t,[string]$Username,[string]$Password,[string]$Sql,
     $psi.RedirectStandardOutput=$true
     $psi.RedirectStandardError=$true
     $psi.CreateNoWindow=$true
-    $psi.StandardInputEncoding=[Text.Encoding]::UTF8
+    # SQL*Plus treats an UTF-8 BOM on redirected stdin as part of the first
+    # command (SP2-0734).  The wire script is UTF-8, explicitly without BOM.
+    $psi.StandardInputEncoding=[Text.UTF8Encoding]::new($false)
     $psi.StandardOutputEncoding=[Text.Encoding]::UTF8
     $psi.StandardErrorEncoding=[Text.Encoding]::UTF8
     foreach($argument in @('-L','-S','/nolog')){[void]$psi.ArgumentList.Add($argument)}

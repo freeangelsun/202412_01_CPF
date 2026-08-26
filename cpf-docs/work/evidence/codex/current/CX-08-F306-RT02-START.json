@@ -1,0 +1,17 @@
+{
+  "findingId": "CX-F-306",
+  "requirementId": "DB3-IMMUTABLE-MIGRATION",
+  "status": "IN_PROGRESS",
+  "startedAt": "2026-08-26T13:49:00+09:00",
+  "startingSourceIdentity": "9cb73fdbb1bb077cd81c1d7fe2eda76211247609648e3ba87f762b2d0dd8d0bb",
+  "rootCauseHypothesis": "The immutable verifier requires one historical Git object that is absent from the local object database even though the canonical registry retains its full commit and three tree identities. The repair must use authentic historical provenance or an existing checksum registry path, never a re-anchored current commit.",
+  "releasedMigrationEditAllowed": false,
+  "baselineReanchorAllowed": false,
+  "plannedChecks": [
+    "probe authoritative remote for the exact historical commit without writing this repository",
+    "compare all three registered baseline trees",
+    "run DB targeted immutable/render tests",
+    "prove released V/R bytes unchanged"
+  ],
+  "completionCriteria": "The exact baseline or an equivalent pre-existing immutable registry is verified fail-closed; no released migration/checksum baseline is rewritten; targeted DB tests pass."
+}

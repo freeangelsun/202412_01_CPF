@@ -806,8 +806,6 @@ CREATE TABLE IF NOT EXISTS BAT_RECONCILIATION_AUDIT (
     INDEX ix_bat_reconcile_entity (entity_type, entity_key, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Immutable BAT UNKNOWN-result reconciliation approval audit';
 
-
-
 CREATE TABLE IF NOT EXISTS BAT_RUNTIME_COMMAND (
     command_id VARCHAR(80) NULL COMMENT 'Runtime command identifier',
     idempotency_key VARCHAR(160) NOT NULL COMMENT 'Command idempotency key',
@@ -6490,7 +6488,7 @@ ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by)
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 SELECT 'cpfDB.table_count' AS check_name,
-       IF(COUNT(*) = 202, 1, 0) AS passed
+       IF(COUNT(*) = 201, 1, 0) AS passed
 FROM information_schema.tables
 WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';
 

@@ -1,0 +1,21 @@
+{
+  "findingId": "CX-F-307",
+  "status": "VERIFICATION_PENDING",
+  "vendor": "mariadb",
+  "startedAt": "2026-08-26T13:53:37+09:00",
+  "finishedAt": "2026-08-26T13:54:27+09:00",
+  "exitCode": 0,
+  "result": "PASS",
+  "sourceIdentitySha1": "712b61184d8d6700a8c175f1722d4cfde58e4fd1",
+  "dockerImage": "mariadb:12.3.2",
+  "imagePulled": false,
+  "freshInstall": "PASS",
+  "canonicalVerifyChecks": 20,
+  "platformTableCount": 201,
+  "backofficeTableCount": 30,
+  "upgrade": "PASS",
+  "rollbackReapply": "PASS",
+  "currentMigrationEdge": 140,
+  "cleanup": "PASS",
+  "externalEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/mariadb/db-runtime-matrix.json"
+}

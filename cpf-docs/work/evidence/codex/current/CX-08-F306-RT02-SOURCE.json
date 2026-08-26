@@ -1,0 +1,20 @@
+{
+  "findingId": "CX-F-306",
+  "status": "SOURCE_FIXED",
+  "recordedAt": "2026-08-26T13:44:07+09:00",
+  "sourceIdentitySha256": "9d767a0ffcf5e4a432d74b96336f401850364008d53441b57804d3ae6bd3135c",
+  "sourceIdentitySha1": "fb2dd66f06e9f7ab3ae632b50d1d9e888957e987",
+  "sourceFiles": 8341,
+  "sourceBytes": 43730388,
+  "baselineCommit": "6b2d5d669c2e3e6c44f7b7350ce3577c428df20a",
+  "localGitProvenance": "UNAVAILABLE",
+  "workspaceGitWrites": 0,
+  "remoteRecoveryUsed": false,
+  "baselineReanchored": false,
+  "releasedMigrationWorkingTreeChanges": 0,
+  "sourceChanges": [
+    "cpf-tools/db/verify_canonical_vendor_render.py",
+    "cpf-tools/db/tests/test_immutable_baseline_registry.py"
+  ],
+  "implementation": "When the declared baseline is unavailable in local read-only Git history, the canonical DB gate validates every file in all declared immutable migration trees against the existing cpf-docs/deliverables/SHA256SUMS.txt registry and independently validates every directory-local checksums.sha256 inventory, entry uniqueness, file coverage, and SQL bytes."
+}

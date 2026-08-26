@@ -1,0 +1,29 @@
+{
+  "findingId": "CX-F-307",
+  "workPackage": "WP-2",
+  "detail": "RT-05 DB3 table_count/readiness",
+  "status": "IN_PROGRESS",
+  "startedAt": "2026-08-26T13:48:34+09:00",
+  "sourceIdentitySha256": "9d767a0ffcf5e4a432d74b96336f401850364008d53441b57804d3ae6bd3135c",
+  "requirement": "MariaDB and PostgreSQL Fresh lifecycle PASS; Oracle readiness and lifecycle PASS or exact external blocker; Local One-WAS DB Prep PASS",
+  "rootCauseHypothesis": "The stale Runtime failures may compare logical module counts with consolidated physical CPF_PLATFORM_DB/Backoffice/Reference Fixture inventories; Oracle may be a cold-start/readiness or service contract issue rather than the same Source defect.",
+  "affectedOwners": [
+    "cpf-tools/db/canonical platform schema and DB3 lifecycle contract",
+    "cpf-tools/db vendor lifecycle runner and verify queries",
+    "Full Runtime DB3 and Local One-WAS DB preparation stages"
+  ],
+  "plannedVerification": [
+    "compare canonical role/table inventory with rendered and physical targets",
+    "inspect existing Docker images/containers without pulling or installing images",
+    "run Fresh MariaDB lifecycle",
+    "run Fresh PostgreSQL lifecycle",
+    "inspect Oracle logs/readiness/service/credential and run lifecycle when available",
+    "run Local One-WAS DB Prep targeted stage"
+  ],
+  "prohibitions": [
+    "no new Docker image pull",
+    "no released migration rewrite",
+    "no logical-count verifier weakening",
+    "no environment blocker reported as PASS"
+  ]
+}

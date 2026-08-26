@@ -806,8 +806,6 @@ CREATE TABLE IF NOT EXISTS BAT_RECONCILIATION_AUDIT (
     INDEX ix_bat_reconcile_entity (entity_type, entity_key, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Immutable BAT UNKNOWN-result reconciliation approval audit';
 
-
-
 CREATE TABLE IF NOT EXISTS BAT_RUNTIME_COMMAND (
     command_id VARCHAR(80) NULL COMMENT 'Runtime command identifier',
     idempotency_key VARCHAR(160) NOT NULL COMMENT 'Command idempotency key',

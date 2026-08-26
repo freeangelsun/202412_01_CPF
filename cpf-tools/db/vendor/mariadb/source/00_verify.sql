@@ -11,7 +11,7 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 SELECT 'cpfDB.table_count' AS check_name,
-       IF(COUNT(*) = 202, 1, 0) AS passed
+       IF(COUNT(*) = 201, 1, 0) AS passed
 FROM information_schema.tables
 WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';
 

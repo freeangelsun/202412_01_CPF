@@ -12,6 +12,8 @@ def load(path:Path): return json.loads(path.read_text(encoding='utf-8-sig'))
 
 
 CHECKSUM_LINE=re.compile(r'^([0-9a-fA-F]{64}) ([ *])(.+)$')
+PUBLISHED_DIGEST_LINE=re.compile(r'^([0-9a-fA-F]{64})\s+\*?(.+)$')
+VERSIONED_SQL=re.compile(r'^V(\d+)__.+\.sql$')
 
 
 def verify_appended_checksum_index(root:Path, baseline:str, index_path:str, added_paths:set[str], fail):
@@ -90,24 +92,120 @@ def verify_appended_checksum_index(root:Path, baseline:str, index_path:str, adde
             fail(f'appended checksum hash mismatch: {index_path}: {referenced} expected={expected_hash} actual={actual_hash}')
 
 
+def verify_canonical_immutable_digest_registry(root:Path, checksum:dict, fail):
+    """Verify immutable trees without Git history using the published canonical digests."""
+    registry_path=root/'cpf-docs/deliverables/SHA256SUMS.txt'
+    if not registry_path.is_file():
+        fail(f'canonical immutable digest registry is unavailable: {registry_path.relative_to(root).as_posix()}')
+        return
+    registry={}
+    for number,line in enumerate(registry_path.read_text(encoding='utf-8-sig').splitlines(),1):
+        if not line.strip():
+            continue
+        match=PUBLISHED_DIGEST_LINE.fullmatch(line)
+        if not match:
+            fail(f'invalid canonical digest registry line {number}')
+            continue
+        raw_path=match.group(2).replace('\\','/')
+        relative=PurePosixPath(raw_path)
+        if (relative.is_absolute() or relative.as_posix()!=raw_path or
+                any(part in ('','.','..') for part in relative.parts)):
+            fail(f'unsafe canonical digest registry path: {raw_path}')
+            continue
+        if raw_path in registry:
+            fail(f'duplicate canonical digest registry path: {raw_path}')
+            continue
+        registry[raw_path]=match.group(1).lower()
+
+    seen_tree_paths=set()
+    for tree in checksum.get('trees') or []:
+        tree_path=str(tree.get('path') or '').replace('\\','/')
+        relative_tree=PurePosixPath(tree_path)
+        tree_digest=str(tree.get('gitTreeSha') or '')
+        if (relative_tree.is_absolute() or relative_tree.as_posix()!=tree_path or
+                any(part in ('','.','..') for part in relative_tree.parts)):
+            fail(f'unsafe immutable migration tree path: {tree_path}')
+            continue
+        if tree_path in seen_tree_paths:
+            fail(f'duplicate immutable migration tree path: {tree_path}')
+            continue
+        seen_tree_paths.add(tree_path)
+        if not re.fullmatch(r'[0-9a-fA-F]{40}',tree_digest):
+            fail(f'invalid stored historical tree digest: {tree_path}')
+        tree_root=root/Path(*relative_tree.parts)
+        if not tree_root.is_dir():
+            fail(f'immutable migration tree missing: {tree_path}')
+            continue
+
+        actual_paths={p.relative_to(root).as_posix() for p in tree_root.rglob('*') if p.is_file()}
+        prefix=tree_path.rstrip('/')+'/'
+        registered_paths={path for path in registry if path.startswith(prefix)}
+        for missing in sorted(actual_paths-registered_paths):
+            fail(f'canonical immutable digest missing: {missing}')
+        for stale in sorted(registered_paths-actual_paths):
+            fail(f'canonical immutable digest target missing: {stale}')
+        for path in sorted(actual_paths & registered_paths):
+            actual_hash=hashlib.sha256((root/Path(*PurePosixPath(path).parts)).read_bytes()).hexdigest()
+            if actual_hash!=registry[path]:
+                fail(f'canonical immutable digest mismatch: {path} expected={registry[path]} actual={actual_hash}')
+
+        sql_directories={path.parent for path in tree_root.rglob('*.sql') if path.is_file()}
+        for directory in sorted(sql_directories,key=lambda value:value.as_posix()):
+            manifest=directory/'checksums.sha256'
+            relative_manifest=manifest.relative_to(root).as_posix()
+            if not manifest.is_file():
+                fail(f'checksum manifest missing: {relative_manifest}')
+                continue
+            entries={}
+            for number,line in enumerate(manifest.read_text(encoding='utf-8-sig').splitlines(),1):
+                if not line.strip():
+                    fail(f'empty checksum manifest line: {relative_manifest}:{number}')
+                    continue
+                match=CHECKSUM_LINE.fullmatch(line)
+                if not match:
+                    fail(f'invalid checksum manifest line: {relative_manifest}:{number}')
+                    continue
+                filename=match.group(3); relative=PurePosixPath(filename); version=VERSIONED_SQL.fullmatch(filename)
+                if ('\\' in filename or relative.is_absolute() or len(relative.parts)!=1 or
+                        relative.as_posix()!=filename or any(part in ('','.','..') for part in relative.parts) or not version):
+                    fail(f'unsafe/non-versioned checksum filename: {relative_manifest}:{filename}')
+                    continue
+                if filename in entries:
+                    fail(f'duplicate checksum filename: {relative_manifest}:{filename}')
+                    continue
+                entries[filename]=match.group(1).lower()
+            sql_names={path.name for path in directory.glob('*.sql') if path.is_file()}
+            for missing in sorted(sql_names-set(entries)):
+                fail(f'versioned file missing from checksum manifest: {directory.relative_to(root).as_posix()}/{missing}')
+            for stale in sorted(set(entries)-sql_names):
+                fail(f'checksum manifest points to missing versioned file: {directory.relative_to(root).as_posix()}/{stale}')
+            for filename in sorted(sql_names & set(entries)):
+                actual_hash=hashlib.sha256((directory/filename).read_bytes()).hexdigest()
+                if actual_hash!=entries[filename]:
+                    fail(f'versioned file checksum mismatch: {(directory/filename).relative_to(root).as_posix()}')
+
+
 def verify_immutable_migration_history(root:Path, checksum:dict, fail):
     """Verify the frozen baseline while permitting committed append-only migrations."""
     baseline=(checksum.get('baselineCommit') or '').strip()
     if not re.fullmatch(r'[0-9a-fA-F]{40}',baseline):
         fail('immutable migration baselineCommit must be a full Git SHA')
-        return
-    commit=subprocess.run(
-        ['git','-C',str(root),'cat-file','-e',f'{baseline}^{{commit}}'],
-        text=True,capture_output=True)
-    if commit.returncode:
-        fail(f'immutable migration baseline commit is unavailable: {baseline}')
-        return
+        return 'INVALID'
+    try:
+        commit=subprocess.run(
+            ['git','-C',str(root),'cat-file','-e',f'{baseline}^{{commit}}'],
+            text=True,capture_output=True)
+    except OSError:
+        commit=None
+    if commit is None or commit.returncode:
+        verify_canonical_immutable_digest_registry(root,checksum,fail)
+        return 'UNAVAILABLE'
     ancestor=subprocess.run(
         ['git','-C',str(root),'merge-base','--is-ancestor',baseline,'HEAD'],
         text=True,capture_output=True)
     if ancestor.returncode:
         fail(f'immutable migration baseline is not an ancestor of HEAD: {baseline}')
-        return
+        return 'INVALID'
     for tr in checksum.get('trees') or []:
         path=tr['path']; expected=tr['gitTreeSha']
         baseline_tree=subprocess.run(
@@ -146,6 +244,7 @@ def verify_immutable_migration_history(root:Path, checksum:dict, fail):
         elif dirty.stdout.strip():
             for line in dirty.stdout.splitlines():
                 fail(f'uncommitted historical migration modification: {line}')
+    return 'AVAILABLE'
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); args=ap.parse_args()
@@ -249,8 +348,7 @@ def main():
         packed=json.dumps(vp,ensure_ascii=False)
         if 'cpf-tools/db/generated/current/{vendor}' not in packed and 'generated/current' not in packed: fail('vendor-pack manifest does not declare generated current snapshot authority')
     # Historical migrations: freeze the declared baseline and permit only committed additions after it.
-    if (root/'.git').exists():
-        verify_immutable_migration_history(root,checksum,fail)
+    immutable_provenance=verify_immutable_migration_history(root,checksum,fail)
     # Runtime scenario parity contract.
     if set(scenarios.get('officialVendors') or [])!=OFFICIAL: fail('DB3 lifecycle vendor set mismatch')
     for s in scenarios.get('scenarios') or []:
@@ -276,6 +374,8 @@ def main():
         for i,e in enumerate(errs,1): print(f'{i:03d} {e}')
         raise SystemExit(1)
     print('CPF_DB_CANONICAL_RENDER_GATE=PASS')
+    print(f'IMMUTABLE_BASELINE_PROVENANCE={immutable_provenance}')
+    if immutable_provenance=='UNAVAILABLE': print('IMMUTABLE_CANONICAL_DIGEST_REGISTRY=PASS')
     print(f'tables={len(schema["tables"])} seeds={len(seed.get("statements") or [])} vendors={len(OFFICIAL)} overrides={len(overrides.get("overrides") or [])}')
 
 if __name__=='__main__': main()

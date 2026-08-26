@@ -531,7 +531,7 @@ if($python){
     $pytestRunner='.\cpf-tools\testing\tools\run-cpf-pytest.py'
     Invoke-CpfStage 'RESOURCE_POLICY' $python @('.\cpf-tools\verification\verify-cpf-resource-policy.py','--root','.')
     Invoke-CpfStage 'NXT3_22' $python @('.\cpf-tools\verification\nxt3\run_nxt3_final_all.py','--root','.', '--evidence',(Join-Path $evidenceDir 'nxt3.json'),'--log',(Join-Path $evidenceDir 'nxt3.log'))
-    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/deliverables','--expected-requirements','208','--expected-findings','63')
+    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-runtime-evidence-provenance.py','--root','.', '--evidence-dir',$evidenceDir,'--expected-source-sha256',$sourceContentSha256,'--expected-managed-sha256',$managedStateBefore.contentSha256)
     $inventory=Join-Path $evidenceDir 'inventory'
     Invoke-CpfStage 'ARCH_INVENTORY_GENERATE' $python @('.\cpf-tools\governance\tools\generate-cpf-project-inventory.py','--root','.', '--output-dir',$inventory)
     Invoke-CpfStage 'ARCH_INVENTORY_VERIFY' $python @('.\cpf-tools\governance\tools\verify-cpf-project-inventory.py','--inventory-dir',$inventory,'--policy','.\cpf-tools\governance\cpf-product-surface-policy.json','--waivers','.\cpf-tools\governance\cpf-project-inventory-waivers.csv','--release')

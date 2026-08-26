@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "startedAt": "2026-08-26T13:13:42.7373970+09:00",
+  "repositoryRoot": "C:/dev/projects/jck/202412_01_CPF",
+  "branch": "master",
+  "gitStatusEntryCount": 0,
+  "source": {
+    "sha256": "8bdbc30b532e48634b489507b423f1f6bc0f00bba1043e35372befd73bc61232",
+    "sha1": "807579045a4729f8ba3608b925442718d49fdf7b",
+    "fileCount": 8338,
+    "totalBytes": 43714498
+  },
+  "managed": {
+    "sha256": "d5e22161821465ebea4852e7c3a1ad6eb60d6ace17c0140a8e23636230663d87",
+    "sha1": "15255905622e8de82b991bd9e7df709efab85c7d",
+    "fileCount": 11516,
+    "totalBytes": 787706327
+  },
+  "environment": {
+    "java": "OpenJDK 25.0.3 LTS",
+    "python": "3.13.14",
+    "node": "24.11.0",
+    "powershell": "7.6.5",
+    "dockerClient": "29.7.2",
+    "dockerServer": "29.7.2"
+  },
+  "runtimeFailureInput": {
+    "path": "C:/Users/fly10/Downloads/CPF_FULL_RUNTIME_VALIDATION_20260826_121751.log",
+    "sha256": "FEC75DDF6B8B4639A6C24BBA97017CB8504877F8E249A063F573B589BDDB86A2",
+    "sourceIdentity": "c6d6980c6e2fdec552fde0d918aa48997cfbc2037d45339e7778621f7dd51948",
+    "classification": "STALE_REFERENCE_EVIDENCE_SOURCE_IDENTITY_DIFFERS"
+  },
+  "gitWrite": "NONE"
+}

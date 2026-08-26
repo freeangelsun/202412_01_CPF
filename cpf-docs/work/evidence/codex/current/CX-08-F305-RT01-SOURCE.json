@@ -1,0 +1,27 @@
+{
+  "findingId": "CX-F-305",
+  "status": "SOURCE_FIXED",
+  "recordedAt": "2026-08-26T13:42:00+09:00",
+  "sourceIdentitySha256": "9cb73fdbb1bb077cd81c1d7fe2eda76211247609648e3ba87f762b2d0dd8d0bb",
+  "sourceIdentitySha1": "de19cb7ad3aad875046aee1f8b2d4d36a6e8f2ac",
+  "sourceFiles": 8340,
+  "sourceBytes": 43720470,
+  "managedIdentitySha256": "a538fd40f0fbcc1563a7ce5fb07b283f47219fb3f3694d7c1505fb9a1f759d35",
+  "managedFiles": 11073,
+  "managedBytes": 556745948,
+  "sourceChanges": [
+    "cpf-tools/verification/tools/verify-cpf-runtime-evidence-provenance.py",
+    "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1",
+    "cpf-tools/verification/tests/test_runtime_evidence_provenance.py",
+    "cpf-tools/testing/tools/tests/test_cpf_local_full_validation_contract.py"
+  ],
+  "cleanup": {
+    "rawProcessLogsDeleted": 450,
+    "deleteManifests": [
+      "cpf-docs/work/evidence/codex/current/CX-08-F305-RT01-RAW-DELETE-MANIFEST.csv",
+      "cpf-docs/work/evidence/codex/current/CX-08-F305-RT01-RAW-DELETE-MANIFEST-2.csv"
+    ],
+    "canonicalWindowsPathBudgetChanged": false
+  },
+  "effect": "Full Runtime now validates the source/managed snapshots and environment of its own external evidence directory instead of treating stale Developer GPT package metadata as the current Runtime identity."
+}

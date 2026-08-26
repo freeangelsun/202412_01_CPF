@@ -135,9 +135,12 @@ foreach ($name in $baseRuntimeFiles) {
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
         throw "설치 묶음 파일이 없습니다: $source"
     }
-    if (-not (Test-Path -LiteralPath $destination -PathType Leaf)) {
-        Copy-Item -LiteralPath $source -Destination $destination
-    }
+    # DockerRoot is an installed projection of the current Workspace contract,
+    # not an independently maintained source.  Always refresh non-secret base
+    # runtime files so health/readiness and command fixes cannot remain stale
+    # after a Source update.  Secrets and persistent volumes are outside this
+    # owned file list and are never overwritten here.
+    Copy-Item -LiteralPath $source -Destination $destination -Force
 }
 
 $ownedFiles = @(

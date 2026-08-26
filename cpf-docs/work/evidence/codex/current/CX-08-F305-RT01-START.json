@@ -1,0 +1,23 @@
+{
+  "findingId": "CX-F-305",
+  "requirementId": "TEST-EVIDENCE",
+  "status": "IN_PROGRESS",
+  "startedAt": "2026-08-26T13:25:00+09:00",
+  "startingSourceIdentity": "8bdbc30b532e48634b489507b423f1f6bc0f00bba1043e35372befd73bc61232",
+  "rootCauseHypothesis": "The stale runtime used deliverable metadata whose provenance did not match its source tree, and the Windows path gate counted historical raw Codex runtime evidence as managed source. Runtime outputs must remain external and current cleanup must use the canonical ownership boundary without weakening the 200-character rule.",
+  "affectedConsumers": [
+    "verify-cpf-development-evidence-integrity.py",
+    "verify_windows_path_compatibility.py",
+    "run-cpf-local-full-validation.ps1",
+    "cpf-source-state.py",
+    "cpf-docs/deliverables metadata"
+  ],
+  "plannedVerification": [
+    "source state before/after",
+    "managed state before/after",
+    "evidence integrity",
+    "Windows path compatibility",
+    "repository raw-output regression"
+  ],
+  "completionCriteria": "Current evidence identity matches current source, source and managed states remain stable during validation, path failures are zero, and no new raw runtime output exists in the repository."
+}

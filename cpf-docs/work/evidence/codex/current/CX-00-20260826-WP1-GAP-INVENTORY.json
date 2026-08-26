@@ -1,0 +1,52 @@
+{
+  "runId": "WP1-20260826-CURRENT-GAP-INVENTORY",
+  "startedAt": "2026-08-26T13:15:31+09:00",
+  "completedAt": "2026-08-26T13:24:00+09:00",
+  "sourceIdentity": "8bdbc30b532e48634b489507b423f1f6bc0f00bba1043e35372befd73bc61232",
+  "rawRuntimeLog": {
+    "path": "C:/Users/fly10/Downloads/CPF_FULL_RUNTIME_VALIDATION_20260826_121751.log",
+    "sha256": "FEC75DDF6B8B4639A6C24BBA97017CB8504877F8E249A063F573B589BDDB86A2",
+    "sourceIdentity": "c6d6980c6e2fdec552fde0d918aa48997cfbc2037d45339e7778621f7dd51948",
+    "classification": "STALE_REFERENCE_EVIDENCE"
+  },
+  "confirmedGaps": [
+    {
+      "id": "PREV-01",
+      "scope": "Standalone developer/operator shell inventory and physical execution",
+      "fact": "Current Batch work package execution unit 4 remains PENDING; shared runtime scripts exist but the required standalone executable-by-executable contract is not yet closed.",
+      "route": "WP3"
+    },
+    {
+      "id": "PREV-02",
+      "scope": "Open Git actual release",
+      "fact": "Canonical PowerShell/Linux/Python release entrypoints exist; repository cpf-release output is absent, so no current physical package is inherited.",
+      "route": "WP3"
+    },
+    {
+      "id": "CX-F-255",
+      "scope": "BAT physical identifier case",
+      "fact": "Canonical finding remains VERIFICATION_PENDING and requires the actual manager path on fresh case-sensitive Linux MariaDB.",
+      "route": "WP3"
+    },
+    {
+      "id": "CX-F-256",
+      "scope": "Active runtime lifecycle schema",
+      "fact": "Canonical finding remains VERIFICATION_PENDING and requires fresh Linux MariaDB Control Plane plus two Workers.",
+      "route": "WP3"
+    },
+    {
+      "id": "RT-04",
+      "scope": "Generated Domain lifecycle",
+      "fact": "Latest current localqa lifecycle evidence failed resolving com.cpf:cpf-platform-bom:1.0.0-SNAPSHOT; no PASS is inherited.",
+      "route": "WP2"
+    }
+  ],
+  "workspacePolicy": {
+    "rawOutputRoot": "%TEMP%/cpf-codex-<run-id>",
+    "forbiddenNewRawLocations": [".vscode", "repository root", "cpf-docs"],
+    "currentSessionRootTempCreated": false,
+    "currentSessionVscodeFilesChanged": false,
+    "canonicalEvidenceOnly": "cpf-docs/work/evidence/codex/current"
+  },
+  "result": "WP1_COMPLETE_WITH_CONFIRMED_GAPS_ROUTED"
+}

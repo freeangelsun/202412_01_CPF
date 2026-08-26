@@ -177,18 +177,18 @@ if ($selectedVendor -in @('postgresql','oracle')) {
     if ($RequireRun) {
         $moduleArgs = @($selectedKeys)
         & $runner -Vendor $selectedVendor -Mode provision -ProfilePath $ProfilePath -Modules $moduleArgs
-        if ($LASTEXITCODE -ne 0) { throw "$selectedVendor provision 실패" }
+        if (-not $?) { throw "$selectedVendor provision 실패" }
         if (-not $ProvisionOnly) {
             & $runner -Vendor $selectedVendor -Mode install -ProfilePath $ProfilePath -Modules $moduleArgs
-            if ($LASTEXITCODE -ne 0) { throw "$selectedVendor install 실패" }
+            if (-not $?) { throw "$selectedVendor install 실패" }
             $effectiveSeedMode = $SeedMode
             if ($effectiveSeedMode -eq 'profile') { $effectiveSeedMode = 'product' }
-            if ($effectiveSeedMode -in @('product','all')) { & $runner -Vendor $selectedVendor -Mode productSeed -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor productSeed 실패" } }
+            if ($effectiveSeedMode -in @('product','all')) { & $runner -Vendor $selectedVendor -Mode productSeed -ProfilePath $ProfilePath -Modules $moduleArgs; if (-not $?) { throw "$selectedVendor productSeed 실패" } }
             if ($effectiveSeedMode -eq 'all') {
-                foreach ($mode in @('optionalSampleSeed','testSeed')) { & $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
+                foreach ($mode in @('optionalSampleSeed','testSeed')) { & $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if (-not $?) { throw "$selectedVendor $mode 실패" } }
             }
             & $runner -Vendor $selectedVendor -Mode verify -ProfilePath $ProfilePath -Modules $moduleArgs
-            if ($LASTEXITCODE -ne 0) { throw "$selectedVendor verify 실패" }
+            if (-not $?) { throw "$selectedVendor verify 실패" }
         }
     }
     $summary = [ordered]@{ baselineCommit = ''; vendor = $selectedVendor; modules = $selectedKeys; operationMode = if ($ProvisionOnly) { 'provision-only' } else { 'install' }; requireRun = [bool]$RequireRun; status = if ($RequireRun) { '완료' } else { '미검증' }; profile = [IO.Path]::GetFileName($ProfilePath); generatedAt = (Get-Date).ToString('o') }

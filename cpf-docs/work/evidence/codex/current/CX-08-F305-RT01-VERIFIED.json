@@ -1,0 +1,25 @@
+{
+  "findingId": "CX-F-305",
+  "status": "CLOSED",
+  "startedAt": "2026-08-26T13:25:00+09:00",
+  "completedAt": "2026-08-26T13:47:00+09:00",
+  "sourceIdentitySha256": "9cb73fdbb1bb077cd81c1d7fe2eda76211247609648e3ba87f762b2d0dd8d0bb",
+  "commands": [
+    "python cpf-tools/testing/tools/run-cpf-pytest.py cpf-tools/verification/tests/test_runtime_evidence_provenance.py cpf-tools/verification/tests/test_windows_path_compatibility.py cpf-tools/verification/tests/test_cpf_local_validation_orchestrator.py cpf-tools/testing/tools/tests/test_cpf_local_full_validation_contract.py -q -p no:cacheprovider",
+    "python cpf-tools/verification/verify_windows_path_compatibility.py --root . --target-root-text C:/dev/projects/jck/202412_01_CPF",
+    "python cpf-tools/verification/tools/cpf-source-state.py --root . --scope source",
+    "python cpf-tools/verification/tools/cpf-source-state.py --root . --scope managed"
+  ],
+  "results": {
+    "targetedTests": "PASS 24/24",
+    "windowsPath": "PASS failures=0 maxRelative=199 maxFull=233",
+    "rawProcessLogsRemaining": 0,
+    "sourceBeforeAfterStable": true,
+    "sourceBeforeAfterSha256": "9cb73fdbb1bb077cd81c1d7fe2eda76211247609648e3ba87f762b2d0dd8d0bb",
+    "managedBeforeAfterStable": true,
+    "managedBeforeAfterSha256": "c25bfee3fe7eac2e868521118bba004e4ea9f9a3d51a846704175c3fd022bd16",
+    "exitCode": 0
+  },
+  "rawLogLocation": "none; command output was not persisted",
+  "closure": "The Runtime Evidence stage now proves the current run's external snapshots. Stale Developer GPT package metadata is not rewritten or accepted as the Runtime identity."
+}

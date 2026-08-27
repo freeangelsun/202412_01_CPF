@@ -132,6 +132,14 @@ foreach ($vendor in $OfficialVendors) {
             @($RetiredCurrentNames | Where-Object { $verify -notmatch [regex]::Escape($_) }).Count -gt 0) {
         Add-Failure "Fail-closed Spring Batch sequence verification is incomplete: vendor=$vendor"
     }
+    $managedNamespaceFragment = switch ($vendor) {
+        "mariadb" { "LEFT(UPPER(table_name), 7) = 'BAT_SB_'" }
+        "postgresql" { "LEFT(UPPER(sequence_name), 7) = 'BAT_SB_'" }
+        "oracle" { "SUBSTR(sequence_name, 1, 7) = 'BAT_SB_'" }
+    }
+    if ($verify -notmatch [regex]::Escape($managedNamespaceFragment)) {
+        Add-Failure "Spring Batch sequence count is not scoped to its managed namespace: vendor=$vendor"
+    }
 
     $definition = $Contract.vendorDefinition.$vendor
     if ($vendor -ceq "mariadb") {

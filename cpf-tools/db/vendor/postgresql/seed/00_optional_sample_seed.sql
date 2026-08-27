@@ -43,7 +43,7 @@ INSERT INTO OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, routing_mode,
 VALUES (
     'EDU', 'EDU-EXTERNAL-SIMULATOR', 'PRIMARY', 'WEIGHT', 'N', 'N', 'Y', 100, 'SEED', 'SEED'
 )
-ON CONFLICT (service_id, endpoint_code, priority) DO UPDATE SET routing_mode=EXCLUDED.routing_mode, load_balance_type=EXCLUDED.load_balance_type, failover_enabled_yn=EXCLUDED.failover_enabled_yn, health_check_required_yn=EXCLUDED.health_check_required_yn, active_yn=EXCLUDED.active_yn, priority=EXCLUDED.priority, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (service_id, endpoint_code, priority) DO UPDATE SET routing_mode=EXCLUDED.routing_mode, load_balance_type=EXCLUDED.load_balance_type, failover_enabled_yn=EXCLUDED.failover_enabled_yn, health_check_required_yn=EXCLUDED.health_check_required_yn, active_yn=EXCLUDED.active_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 -- ===== END 58_reference_external_edu_seed.sql =====
 
 -- ===== BEGIN 58_reference_runtime_seed.sql =====
@@ -345,7 +345,7 @@ VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, 1, 'APPROVAL', 'ORG_MANAGER', 'SAMPLE_DEV',
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
-ON CONFLICT (policy_code, policy_version, step_no, target_type, target_code) DO UPDATE SET step_type=EXCLUDED.step_type, target_type=EXCLUDED.target_type, target_code=EXCLUDED.target_code, decision_rule=EXCLUDED.decision_rule, required_count=EXCLUDED.required_count, required_yn=EXCLUDED.required_yn, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (policy_code, policy_version, step_no, target_type, target_code) DO UPDATE SET step_type=EXCLUDED.step_type, decision_rule=EXCLUDED.decision_rule, required_count=EXCLUDED.required_count, required_yn=EXCLUDED.required_yn, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 -- ===== END 58_reference_runtime_seed.sql =====
 
 -- ===== BEGIN 59_adm_local_seed.sql =====

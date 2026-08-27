@@ -310,12 +310,12 @@ INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employe
 SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
        'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin'
-ON DUPLICATE KEY UPDATE admin_user_id=VALUES(admin_user_id), organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), employment_status=VALUES(employment_status), email=VALUES(email), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), employment_status=VALUES(employment_status), email=VALUES(email), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
 VALUES (
     'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
 )
-ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), primary_yn=VALUES(primary_yn), effective_to=NULL, updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), effective_to=NULL, updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
 SELECT 'mbw-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
        'APPROVAL', 'MBW-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'

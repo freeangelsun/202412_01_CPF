@@ -46,7 +46,7 @@ INSERT INTO OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, routing_mode,
 VALUES (
     'EDU', 'EDU-EXTERNAL-SIMULATOR', 'PRIMARY', 'WEIGHT', 'N', 'N', 'Y', 100, 'SEED', 'SEED'
 )
-ON DUPLICATE KEY UPDATE routing_mode=VALUES(routing_mode), load_balance_type=VALUES(load_balance_type), failover_enabled_yn=VALUES(failover_enabled_yn), health_check_required_yn=VALUES(health_check_required_yn), active_yn=VALUES(active_yn), priority=VALUES(priority), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE routing_mode=VALUES(routing_mode), load_balance_type=VALUES(load_balance_type), failover_enabled_yn=VALUES(failover_enabled_yn), health_check_required_yn=VALUES(health_check_required_yn), active_yn=VALUES(active_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 -- ===== END 58_reference_external_edu_seed.sql =====
 
 -- ===== BEGIN 58_reference_runtime_seed.sql =====
@@ -358,7 +358,7 @@ VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, 1, 'APPROVAL', 'ORG_MANAGER', 'SAMPLE_DEV',
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
-ON DUPLICATE KEY UPDATE step_type=VALUES(step_type), target_type=VALUES(target_type), target_code=VALUES(target_code), decision_rule=VALUES(decision_rule), required_count=VALUES(required_count), required_yn=VALUES(required_yn), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE step_type=VALUES(step_type), decision_rule=VALUES(decision_rule), required_count=VALUES(required_count), required_yn=VALUES(required_yn), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 -- ===== END 58_reference_runtime_seed.sql =====
 
 -- ===== BEGIN 59_adm_local_seed.sql =====

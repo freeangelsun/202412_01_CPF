@@ -1,0 +1,13 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_TARGETED_2",
+  "sourceIdentitySha256": "f40a3a5684667e2b517986a62b1900445d79827ae23df96934b5faf3fe7120e3",
+  "command": "python cpf-tools/testing/tools/run-cpf-pytest.py cpf-tools/db/tests/test_oracle_lifecycle_process_contract.py cpf-tools/db/tests/test_official_vendor_source_type_contract.py -q -p no:cacheprovider",
+  "exitCode": 1,
+  "result": "FAIL",
+  "testsPassed": 7,
+  "testsFailed": 1,
+  "productProjectionAssertions": "PASS",
+  "testHarnessRootCause": "The new generator assertion split at the first Oracle branch in the entire script rather than the Render-Table function and therefore inspected Check-For.",
+  "falseGreen": false
+}

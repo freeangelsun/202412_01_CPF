@@ -1,0 +1,20 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_TARGETED_CONTRACTS_7",
+  "sourceIdentitySha256": "4f6fc89748e49675c38de1c5dfa4706062374e005087fc5496e23a78192e476d",
+  "command": "python cpf-tools/testing/tools/run-cpf-pytest.py cpf-tools/db/tests/test_oracle_lifecycle_process_contract.py cpf-tools/db/tests/test_official_vendor_source_type_contract.py -q -p no:cacheprovider",
+  "result": "PASS",
+  "testsPassed": 14,
+  "testsFailed": 0,
+  "testsSkipped": 0,
+  "durationSeconds": 0.30,
+  "coverage": [
+    "Oracle SQLPlus process and diagnostic ownership",
+    "Oracle Current schema grammar and portable types",
+    "Oracle FK and ordered values seed rendering",
+    "Canonical update VALUES references are source-complete",
+    "Both renderers retain a fail-closed source-column diagnostic"
+  ],
+  "repositoryTestCacheCreated": false,
+  "status": "PASS"
+}

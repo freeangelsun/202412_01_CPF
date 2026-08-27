@@ -1707,20 +1707,12 @@
       ],
       "updates": [
         {
-          "column": "permission_type",
-          "expression": "VALUES(permission_type)"
-        },
-        {
           "column": "http_method",
           "expression": "VALUES(http_method)"
         },
         {
           "column": "api_pattern",
           "expression": "VALUES(api_pattern)"
-        },
-        {
-          "column": "environment_code",
-          "expression": "VALUES(environment_code)"
         },
         {
           "column": "data_scope",
@@ -1783,20 +1775,12 @@
       ],
       "updates": [
         {
-          "column": "permission_type",
-          "expression": "VALUES(permission_type)"
-        },
-        {
           "column": "http_method",
           "expression": "VALUES(http_method)"
         },
         {
           "column": "api_pattern",
           "expression": "VALUES(api_pattern)"
-        },
-        {
-          "column": "environment_code",
-          "expression": "VALUES(environment_code)"
         },
         {
           "column": "data_scope",
@@ -3945,10 +3929,6 @@
           "expression": "VALUES(active_yn)"
         },
         {
-          "column": "priority",
-          "expression": "VALUES(priority)"
-        },
-        {
           "column": "updated_by",
           "expression": "VALUES(updated_by)"
         },
@@ -5726,14 +5706,6 @@
           "expression": "VALUES(step_type)"
         },
         {
-          "column": "target_type",
-          "expression": "VALUES(target_type)"
-        },
-        {
-          "column": "target_code",
-          "expression": "VALUES(target_code)"
-        },
-        {
           "column": "decision_rule",
           "expression": "VALUES(decision_rule)"
         },
@@ -6933,10 +6905,6 @@
       ],
       "updates": [
         {
-          "column": "admin_user_id",
-          "expression": "VALUES(admin_user_id)"
-        },
-        {
           "column": "organization_code",
           "expression": "VALUES(organization_code)"
         },
@@ -7018,10 +6986,6 @@
         {
           "column": "job_title_code",
           "expression": "VALUES(job_title_code)"
-        },
-        {
-          "column": "primary_yn",
-          "expression": "VALUES(primary_yn)"
         },
         {
           "column": "effective_to",
@@ -7185,7 +7149,7 @@
         },
         {
           "column": "updated_at",
-          "expression": "VALUES(updated_at)"
+          "expression": "CURRENT_TIMESTAMP"
         }
       ],
       "currentLogicalDatabase": "admDB",
@@ -7236,7 +7200,7 @@
         },
         {
           "column": "updated_at",
-          "expression": "VALUES(updated_at)"
+          "expression": "CURRENT_TIMESTAMP"
         }
       ],
       "currentLogicalDatabase": "admDB",
@@ -7310,7 +7274,7 @@
         },
         {
           "column": "updated_at",
-          "expression": "VALUES(updated_at)"
+          "expression": "CURRENT_TIMESTAMP"
         }
       ],
       "currentLogicalDatabase": "admDB",
@@ -7351,7 +7315,7 @@
         },
         {
           "column": "updated_at",
-          "expression": "VALUES(updated_at)"
+          "expression": "CURRENT_TIMESTAMP"
         }
       ],
       "currentLogicalDatabase": "admDB",
@@ -7392,7 +7356,7 @@
         },
         {
           "column": "updated_at",
-          "expression": "VALUES(updated_at)"
+          "expression": "CURRENT_TIMESTAMP"
         }
       ],
       "currentLogicalDatabase": "admDB",

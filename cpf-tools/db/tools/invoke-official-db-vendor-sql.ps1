@@ -78,6 +78,12 @@ function Protect-CpfSecretText([string]$Text,[string[]]$Secrets) {
     foreach($secret in $orderedSecrets){$safe=$safe.Replace([string]$secret,'****')}
     return $safe
 }
+function Limit-CpfDiagnosticText([string]$Text,[int]$MaxChars=65536) {
+    if($null-eq$Text){return ''}
+    if($Text.Length-le$MaxChars){return $Text}
+    $omitted=$Text.Length-$MaxChars
+    return "[CPF SQL diagnostic truncated: omittedChars=$omitted; retained=tail]`n"+$Text.Substring($Text.Length-$MaxChars)
+}
 function Assert-CpfSqlPlusScalar([string]$Name,[string]$Value) {
     if([string]::IsNullOrWhiteSpace($Value)){throw "$Name is required for sqlplus"}
     if($Value -match '[\x00-\x1F\x7F]'){throw "$Name contains control characters"}
@@ -92,7 +98,7 @@ function Invoke-SqlPlusText($t,[string]$Username,[string]$Password,[string]$Sql,
     $passwordLiteral=$Password.Replace('"','""')
     $allSecrets=@($Password,$passwordLiteral)+@($SensitiveValues)
     $connect='CONNECT '+$Username+'/"'+$passwordLiteral+'"@//'+$t.host+':'+$t.port+'/'+$t.databaseName
-    $script="SET ECHO OFF`nSET VERIFY OFF`nSET DEFINE OFF`nWHENEVER SQLERROR EXIT SQL.SQLCODE`n"+$connect+"`n"+$Sql+"`nEXIT`n"
+    $script="SET ECHO OFF`nSET FEEDBACK OFF`nSET VERIFY OFF`nSET DEFINE OFF`nWHENEVER SQLERROR EXIT SQL.SQLCODE`n"+$connect+"`n"+$Sql+"`nEXIT`n"
 
     $psi=[Diagnostics.ProcessStartInfo]::new()
     $psi.FileName=$client
@@ -113,18 +119,30 @@ function Invoke-SqlPlusText($t,[string]$Username,[string]$Password,[string]$Sql,
     [void]$process.Start()
     $stdoutTask=$process.StandardOutput.ReadToEndAsync()
     $stderrTask=$process.StandardError.ReadToEndAsync()
-    try{$process.StandardInput.Write($script)}finally{$process.StandardInput.Close()}
+    $writeFailure=$null
+    try{
+        $process.StandardInput.Write($script)
+    }catch{
+        # SQL*Plus may close stdin as soon as a fail-closed SQL error exits the
+        # process.  Preserve that transport symptom, but always harvest the
+        # already-started output readers so the owning database error is not
+        # replaced by an opaque broken-pipe/timeout message.
+        $writeFailure=$_
+    }finally{
+        try{$process.StandardInput.Close()}catch{if($null-eq$writeFailure){$writeFailure=$_}}
+    }
     $process.WaitForExit()
     $stdout=$stdoutTask.GetAwaiter().GetResult()
     $stderr=$stderrTask.GetAwaiter().GetResult()
-    if($process.ExitCode -ne 0){
-        $safe=Protect-CpfSecretText (($stderr+"`n"+$stdout).Trim()) $allSecrets
-        throw "sqlplus failed module=$($t.moduleKey) exit=$($process.ExitCode) error=$safe"
+    if($process.ExitCode -ne 0 -or $null-ne$writeFailure){
+        $safe=Limit-CpfDiagnosticText (Protect-CpfSecretText (($stderr+"`n"+$stdout).Trim()) $allSecrets)
+        $safeTransport=if($null-ne$writeFailure){
+            Protect-CpfSecretText ([string]$writeFailure.Exception.Message) $allSecrets
+        }else{'NONE'}
+        throw "sqlplus failed module=$($t.moduleKey) exit=$($process.ExitCode) transport=$safeTransport error=$safe"
     }
     if($Verify){
         Assert-VerifyOutput @($stdout -split '\r?\n') $t.moduleKey
-    } elseif(-not [string]::IsNullOrWhiteSpace($stdout)) {
-        Write-Host (Protect-CpfSecretText $stdout $allSecrets)
     }
 }
 function Invoke-SqlPlus($t,[string]$Sql) {

@@ -1,0 +1,18 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_PHYSICAL_RERUN_11",
+  "sourceIdentitySha256": "6196925a9d1f50ddcd313d5cb841723bf4836c6edcb73bc7ab377935bbc4155e",
+  "sourceIdentitySha1": "46b17d8784c714c7dbe918fc3013ecd2da0a3f19",
+  "readiness": "PASS",
+  "provision": "PASS",
+  "freshSchemaInstall": "PASS",
+  "platformProductSeed": "PASS",
+  "backofficeProductSeed": "PASS",
+  "verify": "FAIL",
+  "cleanup": "PASS",
+  "failedCheck": "bat_spring_batch_6_sequence_contract",
+  "rootCause": "The Spring Batch Verify contract counts every USER_SEQUENCES row as if Spring Batch owned the whole schema. Oracle identity columns create system-owned ISEQ sequences, so the global count can never equal the three explicit BAT_SB sequences even though all three required names exist and retired names are absent.",
+  "owner": "Canonical non-table-object Verify generator; managed sequence namespace rather than global schema inventory",
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-r11/isolated-oracle/verifier-owned-lifecycle.json",
+  "status": "FAIL"
+}

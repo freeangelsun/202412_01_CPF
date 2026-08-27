@@ -1,0 +1,11 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_TARGETED_6",
+  "sourceIdentitySha256": "20860b1ba21ec0726ac2196dc4439227fcec5f2c5285d1f27eb0252fe04181ea",
+  "command": "python cpf-tools/testing/tools/run-cpf-pytest.py cpf-tools/db/tests/test_oracle_lifecycle_process_contract.py cpf-tools/db/tests/test_official_vendor_source_type_contract.py -q -p no:cacheprovider",
+  "result": "PASS",
+  "exitCode": 0,
+  "tests": 13,
+  "failures": 0,
+  "repositoryTestGarbage": 0
+}

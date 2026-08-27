@@ -77,3 +77,17 @@
 - `CODEX_FINDING_CLOSURE.csv`는 Codex carry-over 원장으로 유지하며 Developer GPT가 상태를 수정하지 않는다.
 - superseded narrative는 `DELETE_MANIFEST.csv`에서 대체 정본/참조 전환 조건을 갖춘 뒤 삭제한다.
 - transient cache/build/generated test output은 final product Source에 남기지 않는다.
+
+## 7. Codex / Claude LONG-TURN MODE 및 병행 세션 규칙
+
+- `CPF_EXTERNAL_AGENT_LONG_TURN_POLICY.md`를 Codex/Claude 요청서 최상단 비협상 규칙으로 항상 포함한다.
+- 외부 에이전트가 이미 하던 작업을 **먼저 완전히 종결**한 뒤 남은 크레딧으로 필수 독립검증만 수행한다.
+- 기존 미완료 Finding 전체/Repository 전체 전수 재검수 지시 금지.
+- 기본 추가 검증 우선순위는 Build/Compile → Logging 실제 추적 → DB3 → Batch → Generator → Performance/Open Git이다.
+- ADM/Backoffice/Frontend/Browser는 최후순위다.
+- 계획/중간보고/진행률은 중단점이 아니며 현재 WP 완결 전 자의로 turn을 종료하거나 다음 진행 여부를 묻지 않는다.
+- 같은 Root Cause/Build/DB Fresh/Runtime은 가능한 한 한 번의 연속 turn에서 묶어 처리한다.
+- 크레딧이 부족해지면 신규 범위를 열지 말고 진행 중 WP를 Source/Test/Runtime/Evidence/문서 현행화까지 먼저 완결한다.
+- Git/HEAD/전체 Local Working Tree/전체 Source Identity를 작업 시작·적용·완료 차단 Gate로 쓰지 않는다.
+- 다른 세션 변경을 조사·복구·초기화하지 않고 각 에이전트 자신의 변경 범위만 처리한다.
+- RT-02/Performance 제품 기능 자체의 provenance 검증은 해당 기능 계약 안에서만 수행한다.

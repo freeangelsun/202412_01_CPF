@@ -5904,7 +5904,7 @@ SELECT 'MBW_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
        NULL, environment_code, 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_MENU
 WHERE use_yn = 'Y'
-ON DUPLICATE KEY UPDATE permission_type=VALUES(permission_type), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), environment_code=VALUES(environment_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
 VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_OPERATOR', 'MBW_ORGANIZATION', 'READ', 'API', 'GET', '/api/v1/backoffice/organizations/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -5913,7 +5913,7 @@ VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffi
     ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_AUDIT', 'READ', 'API', 'GET', '/api/v1/backoffice/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE permission_type=VALUES(permission_type), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), environment_code=VALUES(environment_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 INSERT INTO MBW_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
 VALUES ('MBW.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW.APPROVAL.DEFAULT_DUE_HOURS', '24', '기본 결재 SLA 시간', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -6362,7 +6362,7 @@ VALUES ('GATEWAY_READ','GATEWAY_DASHBOARD','READ','Gateway 운영 조회','GET',
 ('GATEWAY_ROUTE_DELETE','GATEWAY_ROUTES','DELETE','Gateway Binding 폐기','DELETE','/adm/api/gateway-registry/bindings/*',60,'Y','SYSTEM','SYSTEM'),
 ('GATEWAY_CONNECTION_TEST','GATEWAY_HEALTH','TEST','Gateway 연결시험 요청','POST','/adm/api/gateway-registry/bindings/*/connection-tests',70,'Y','SYSTEM','SYSTEM'),
 ('GATEWAY_TEST_CONTROL','GATEWAY_HEALTH','CONTROL','Gateway 연결시험 취소·재검증','POST','/adm/api/gateway-registry/connection-test-operations/*/**',80,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE menu_id=VALUES(menu_id), action_code=VALUES(action_code), button_name=VALUES(button_name), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
+ON DUPLICATE KEY UPDATE menu_id=VALUES(menu_id), action_code=VALUES(action_code), button_name=VALUES(button_name), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_ROLE_MENU (role_id, menu_id, read_yn, write_yn, delete_yn, created_by, updated_by)
 VALUES ('ADM_ADMIN','GATEWAY_DASHBOARD','Y','Y','Y','SYSTEM','SYSTEM'),
 ('ADM_ADMIN','GATEWAY_SERVERS','Y','Y','Y','SYSTEM','SYSTEM'),
@@ -6400,7 +6400,7 @@ VALUES ('ADM_ADMIN','GATEWAY_DASHBOARD','Y','Y','Y','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_TRANSACTIONS','Y','N','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_LOG_POLICY','Y','N','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_APPLY_STATUS','Y','N','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE read_yn=VALUES(read_yn), write_yn=VALUES(write_yn), delete_yn=VALUES(delete_yn), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
+ON DUPLICATE KEY UPDATE read_yn=VALUES(read_yn), write_yn=VALUES(write_yn), delete_yn=VALUES(delete_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_API_PERMISSION (api_permission_id, api_group_code, http_method, api_path, api_name, permission_code, menu_id, button_id, use_yn, created_by, updated_by)
 VALUES ('API_GATEWAY_READ','GATEWAY','GET','/adm/api/gateway-registry/**','Gateway 운영 조회','READ','GATEWAY_DASHBOARD','GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('API_GATEWAY_GROUP_WRITE','GATEWAY','POST','/adm/api/gateway-registry/server-groups','Server Group 저장','WRITE','GATEWAY_GROUPS','GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),
@@ -6410,7 +6410,7 @@ VALUES ('API_GATEWAY_READ','GATEWAY','GET','/adm/api/gateway-registry/**','Gatew
 ('API_GATEWAY_ROUTE_DELETE','GATEWAY','DELETE','/adm/api/gateway-registry/bindings/*','Gateway Binding 폐기','DELETE','GATEWAY_ROUTES','GATEWAY_ROUTE_DELETE','Y','SYSTEM','SYSTEM'),
 ('API_GATEWAY_CONNECTION_TEST','GATEWAY','POST','/adm/api/gateway-registry/bindings/*/connection-tests','Gateway 연결시험 요청','TEST','GATEWAY_HEALTH','GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),
 ('API_GATEWAY_TEST_CONTROL','GATEWAY','POST','/adm/api/gateway-registry/connection-test-operations/*/**','Gateway 연결시험 취소·재검증','CONTROL','GATEWAY_HEALTH','GATEWAY_TEST_CONTROL','Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE api_group_code=VALUES(api_group_code), http_method=VALUES(http_method), api_path=VALUES(api_path), api_name=VALUES(api_name), permission_code=VALUES(permission_code), menu_id=VALUES(menu_id), button_id=VALUES(button_id), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
+ON DUPLICATE KEY UPDATE api_group_code=VALUES(api_group_code), http_method=VALUES(http_method), api_path=VALUES(api_path), api_name=VALUES(api_name), permission_code=VALUES(permission_code), menu_id=VALUES(menu_id), button_id=VALUES(button_id), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_ROLE_BUTTON (role_id, button_id, allow_yn, created_by, updated_by)
 VALUES ('ADM_ADMIN','GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('ADM_ADMIN','GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),
@@ -6444,7 +6444,7 @@ VALUES ('ADM_ADMIN','GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_CONNECTION_TEST','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
+ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_ROLE_API_PERMISSION (role_id, api_permission_id, allow_yn, created_by, updated_by)
 VALUES ('ADM_ADMIN','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('ADM_ADMIN','API_GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),
@@ -6478,7 +6478,7 @@ VALUES ('ADM_ADMIN','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','API_GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','API_GATEWAY_CONNECTION_TEST','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','API_GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
+ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql
 -- ============================================================================
@@ -6535,15 +6535,262 @@ WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';
 
 SELECT 'cpfDB.product_seed' AS check_name,
        IF(
-           (SELECT COUNT(*) FROM CMN_CODE WHERE (code_key = 'CODE_GROUP' AND code_value = 'MODULE') OR (code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') OR (code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') OR (code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') OR (code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') OR (code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') OR (code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') OR (code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') OR (code_key = 'CODE_GROUP' AND code_value = 'YN') OR (code_key = 'MODULE' AND code_value = 'CPF') OR (code_key = 'MODULE' AND code_value = 'CMN') OR (code_key = 'MODULE' AND code_value = 'ADM') OR (code_key = 'MODULE' AND code_value = 'MBW') OR (code_key = 'MODULE' AND code_value = 'BAT') OR (code_key = 'MODULE' AND code_value = 'EDU') OR (code_key = 'REQUEST_TYPE' AND code_value = 'NORMAL') OR (code_key = 'REQUEST_TYPE' AND code_value = 'COMPENSATION') OR (code_key = 'REQUEST_TYPE' AND code_value = 'RETRY') OR (code_key = 'CHANNEL_CODE' AND code_value = 'WEB') OR (code_key = 'CHANNEL_CODE' AND code_value = 'MOBILE') OR (code_key = 'CHANNEL_CODE' AND code_value = 'BATCH') OR (code_key = 'CHANNEL_CODE' AND code_value = 'ADM') OR (code_key = 'RESULT_TYPE' AND code_value = 'S') OR (code_key = 'RESULT_TYPE' AND code_value = 'E') OR (code_key = 'MESSAGE_FORMAT_TYPE' AND code_value = 'FIXED') OR (code_key = 'MESSAGE_FORMAT_TYPE' AND code_value = 'INDEXED') OR (code_key = 'LOG_LEVEL' AND code_value = 'TRACE') OR (code_key = 'LOG_LEVEL' AND code_value = 'DEBUG') OR (code_key = 'LOG_LEVEL' AND code_value = 'INFO') OR (code_key = 'LOG_LEVEL' AND code_value = 'WARN') OR (code_key = 'LOG_LEVEL' AND code_value = 'ERROR') OR (code_key = 'CACHE_NAME' AND code_value = 'ALL') OR (code_key = 'CACHE_NAME' AND code_value = 'CODE') OR (code_key = 'CACHE_NAME' AND code_value = 'MESSAGE') OR (code_key = 'CACHE_NAME' AND code_value = 'RESPONSE_CODE') OR (code_key = 'CACHE_NAME' AND code_value = 'CONFIG') OR (code_key = 'BATCH_JOB_TYPE' AND code_value = 'TASKLET') OR (code_key = 'BATCH_JOB_TYPE' AND code_value = 'CHUNK') OR (code_key = 'BATCH_JOB_TYPE' AND code_value = 'RETRY') OR (code_key = 'YN' AND code_value = 'Y') OR (code_key = 'YN' AND code_value = 'N') OR (code_key = 'CODE_GROUP' AND code_value = 'HTTP_METHOD') OR (code_key = 'CODE_GROUP' AND code_value = 'EXECUTION_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'ASYNC_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'RETRY_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'IDEMPOTENCY_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'HEALTH_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'CIRCUIT_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'FILE_SCAN_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'DATA_CLASSIFICATION') OR (code_key = 'CODE_GROUP' AND code_value = 'APPROVAL_STATUS') OR (code_key = 'CODE_GROUP' AND code_value = 'ERROR_CATEGORY') OR (code_key = 'CODE_GROUP' AND code_value = 'RETENTION_ACTION') OR (code_key = 'HTTP_METHOD' AND code_value = 'GET') OR (code_key = 'HTTP_METHOD' AND code_value = 'POST') OR (code_key = 'HTTP_METHOD' AND code_value = 'PUT') OR (code_key = 'HTTP_METHOD' AND code_value = 'PATCH') OR (code_key = 'HTTP_METHOD' AND code_value = 'DELETE') OR (code_key = 'EXECUTION_STATUS' AND code_value = 'READY') OR (code_key = 'EXECUTION_STATUS' AND code_value = 'RUNNING') OR (code_key = 'EXECUTION_STATUS' AND code_value = 'SUCCESS') OR (code_key = 'EXECUTION_STATUS' AND code_value = 'FAILED') OR (code_key = 'EXECUTION_STATUS' AND code_value = 'UNKNOWN_RESULT') OR (code_key = 'ASYNC_STATUS' AND code_value = 'WAITING') OR (code_key = 'ASYNC_STATUS' AND code_value = 'PROCESSING') OR (code_key = 'ASYNC_STATUS' AND code_value = 'COMPLETED') OR (code_key = 'ASYNC_STATUS' AND code_value = 'DLQ') OR (code_key = 'RETRY_STATUS' AND code_value = 'RETRYABLE') OR (code_key = 'RETRY_STATUS' AND code_value = 'NON_RETRYABLE') OR (code_key = 'RETRY_STATUS' AND code_value = 'EXHAUSTED') OR (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'PROCESSING') OR (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'COMPLETED') OR (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'FAILED') OR (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'UNKNOWN_RESULT') OR (code_key = 'HEALTH_STATUS' AND code_value = 'UP') OR (code_key = 'HEALTH_STATUS' AND code_value = 'DOWN') OR (code_key = 'HEALTH_STATUS' AND code_value = 'DEGRADED') OR (code_key = 'CIRCUIT_STATUS' AND code_value = 'CLOSED') OR (code_key = 'CIRCUIT_STATUS' AND code_value = 'OPEN') OR (code_key = 'CIRCUIT_STATUS' AND code_value = 'HALF_OPEN') OR (code_key = 'FILE_SCAN_STATUS' AND code_value = 'PENDING') OR (code_key = 'FILE_SCAN_STATUS' AND code_value = 'CLEAN') OR (code_key = 'FILE_SCAN_STATUS' AND code_value = 'INFECTED') OR (code_key = 'FILE_SCAN_STATUS' AND code_value = 'FAILED') OR (code_key = 'FILE_SCAN_STATUS' AND code_value = 'QUARANTINED') OR (code_key = 'DATA_CLASSIFICATION' AND code_value = 'PUBLIC') OR (code_key = 'DATA_CLASSIFICATION' AND code_value = 'INTERNAL') OR (code_key = 'DATA_CLASSIFICATION' AND code_value = 'CONFIDENTIAL') OR (code_key = 'DATA_CLASSIFICATION' AND code_value = 'RESTRICTED') OR (code_key = 'APPROVAL_STATUS' AND code_value = 'DRAFT') OR (code_key = 'APPROVAL_STATUS' AND code_value = 'IN_REVIEW') OR (code_key = 'APPROVAL_STATUS' AND code_value = 'APPROVED') OR (code_key = 'APPROVAL_STATUS' AND code_value = 'REJECTED') OR (code_key = 'APPROVAL_STATUS' AND code_value = 'WITHDRAWN') OR (code_key = 'APPROVAL_STATUS' AND code_value = 'CANCELED') OR (code_key = 'APPROVAL_STATUS' AND code_value = 'EXPIRED') OR (code_key = 'ERROR_CATEGORY' AND code_value = 'VALIDATION') OR (code_key = 'ERROR_CATEGORY' AND code_value = 'AUTHENTICATION') OR (code_key = 'ERROR_CATEGORY' AND code_value = 'AUTHORIZATION') OR (code_key = 'ERROR_CATEGORY' AND code_value = 'CONFLICT') OR (code_key = 'ERROR_CATEGORY' AND code_value = 'TIMEOUT') OR (code_key = 'ERROR_CATEGORY' AND code_value = 'TARGET_DOWN') OR (code_key = 'ERROR_CATEGORY' AND code_value = 'UNKNOWN_RESULT') OR (code_key = 'RETENTION_ACTION' AND code_value = 'ARCHIVE') OR (code_key = 'RETENTION_ACTION' AND code_value = 'PURGE') OR (code_key = 'RETENTION_ACTION' AND code_value = 'LEGAL_HOLD') OR (code_key = 'CODE_GROUP' AND code_value = 'SORT_DIRECTION') OR (code_key = 'SORT_DIRECTION' AND code_value = 'ASC') OR (code_key = 'SORT_DIRECTION' AND code_value = 'DESC') OR (code_key = 'REQUEST_TYPE' AND code_value = 'O') OR (code_key = 'REQUEST_TYPE' AND code_value = 'S') OR (code_key = 'REQUEST_TYPE' AND code_value = 'B') OR (code_key = 'CHANNEL_CODE' AND code_value = 'APP') OR (code_key = 'CHANNEL_CODE' AND code_value = 'JUT') OR (code_key = 'RESULT_TYPE' AND code_value = 'W') OR (code_key = 'MESSAGE_FORMAT_TYPE' AND code_value = 'PARAMETER') OR (code_key = 'ASYNC_STATUS' AND code_value = 'FAILED') OR (code_key = 'BATCH_JOB_TYPE' AND code_value = 'SPRING_BATCH') OR (code_key = 'BATCH_JOB_TYPE' AND code_value = 'WORKER') OR (code_key = 'BATCH_JOB_TYPE' AND code_value = 'SCHEDULER') OR (code_key = 'BATCH_JOB_TYPE' AND code_value = 'CENTER_CUT')) = 121
-           AND (SELECT COUNT(*) FROM CMN_MESSAGE WHERE (message_code = 'MCPF000000' AND locale = 'ko') OR (message_code = 'MCPF010001' AND locale = 'ko') OR (message_code = 'MCPF010002' AND locale = 'ko') OR (message_code = 'MCPF010003' AND locale = 'ko') OR (message_code = 'MCPF010004' AND locale = 'ko') OR (message_code = 'MCPF010005' AND locale = 'ko') OR (message_code = 'MCPF010006' AND locale = 'ko') OR (message_code = 'MCPF020001' AND locale = 'ko') OR (message_code = 'MCPF030001' AND locale = 'ko') OR (message_code = 'MCPF900001' AND locale = 'ko') OR (message_code = 'MCPF900002' AND locale = 'ko') OR (message_code = 'MCPF900003' AND locale = 'ko') OR (message_code = 'MCPF900004' AND locale = 'ko') OR (message_code = 'MCPF900005' AND locale = 'ko') OR (message_code = 'MCPF990000' AND locale = 'ko') OR (message_code = 'MCPF990001' AND locale = 'ko') OR (message_code = 'MMBW000000' AND locale = 'ko') OR (message_code = 'MMBW010001' AND locale = 'ko') OR (message_code = 'MMBW010002' AND locale = 'ko') OR (message_code = 'MEDU010001' AND locale = 'ko') OR (message_code = 'MCMN000001' AND locale = 'ko') OR (message_code = 'MCMN000001' AND locale = 'en') OR (message_code = 'MCPF030002' AND locale = 'ko') OR (message_code = 'MCPF030003' AND locale = 'ko') OR (message_code = 'MCPF030004' AND locale = 'ko') OR (message_code = 'MCPF020002' AND locale = 'ko') OR (message_code = 'MCPF020003' AND locale = 'ko') OR (message_code = 'MCPF040001' AND locale = 'ko') OR (message_code = 'MCPF040002' AND locale = 'ko') OR (message_code = 'MCPF020004' AND locale = 'ko') OR (message_code = 'MCPF020005' AND locale = 'ko') OR (message_code = 'MCPF020006' AND locale = 'ko') OR (message_code = 'MCPF020007' AND locale = 'ko') OR (message_code = 'MCPF040003' AND locale = 'ko') OR (message_code = 'MCPF040004' AND locale = 'ko') OR (message_code = 'MCPF050001' AND locale = 'ko') OR (message_code = 'MCPF050002' AND locale = 'ko')) = 37
-           AND (SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE (response_code = 'SCPF000000') OR (response_code = 'ECPF010001') OR (response_code = 'ECPF010002') OR (response_code = 'ECPF010003') OR (response_code = 'ECPF010004') OR (response_code = 'ECPF010005') OR (response_code = 'ECPF010006') OR (response_code = 'ECPF020001') OR (response_code = 'ECPF030001') OR (response_code = 'ECPF900001') OR (response_code = 'ECPF900002') OR (response_code = 'ECPF900003') OR (response_code = 'ECPF900004') OR (response_code = 'ECPF900005') OR (response_code = 'ECPF990000') OR (response_code = 'ECPF990001') OR (response_code = 'SMBW000000') OR (response_code = 'EMBW010001') OR (response_code = 'EMBW010002') OR (response_code = 'EEDU010001') OR (response_code = 'ECPF030002') OR (response_code = 'ECPF030003') OR (response_code = 'ECPF030004') OR (response_code = 'ECPF020002') OR (response_code = 'ECPF020003') OR (response_code = 'ECPF040001') OR (response_code = 'ECPF040002') OR (response_code = 'ECPF020004') OR (response_code = 'ECPF020005') OR (response_code = 'ECPF020006') OR (response_code = 'ECPF020007') OR (response_code = 'ECPF040003') OR (response_code = 'ECPF040004') OR (response_code = 'ECPF050001') OR (response_code = 'ECPF050002')) = 35
-           AND (SELECT COUNT(*) FROM CMN_PARAMETER WHERE (config_key = 'CPF.CMN.CACHE.PRELOAD_ENABLED') OR (config_key = 'CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP') OR (config_key = 'CPF.CMN.CACHE.REFRESH_POLL_MILLIS') OR (config_key = 'CPF.CMN.MESSAGING.BROKER') OR (config_key = 'CPF.HTTP.CONNECT_TIMEOUT_MS') OR (config_key = 'CPF.HTTP.READ_TIMEOUT_MS') OR (config_key = 'CPF.ADM.SESSION_TTL_SECONDS') OR (config_key = 'CPF.ADM.PASSWORD_EXPIRE_DAYS') OR (config_key = 'CPF.ADM.PASSWORD_MIN_LENGTH') OR (config_key = 'CPF.ADM.PASSWORD_MAX_FAIL_COUNT') OR (config_key = 'CPF.BATCH.DEFAULT_LOCK_SECONDS') OR (config_key = 'CPF.FEATURE.SAMPLE_ENABLED') OR (config_key = 'CPF.MBW.SECURITY.MAX_LOGIN_FAIL_COUNT') OR (config_key = 'CPF.MBW.SECURITY.ACCESS_TOKEN_TTL_SECONDS') OR (config_key = 'CPF.MBW.SECURITY.REFRESH_TOKEN_TTL_SECONDS') OR (config_key = 'CPF.RETENTION.EXECUTE_ENABLED') OR (config_key = 'CPF.FILE.DOWNLOAD_REQUIRE_CLEAN') OR (config_key = 'CPF.HEALTH.INSTANCE_ID_REQUIRED') OR (config_key = 'CPF.PAGING.DEFAULT_SIZE') OR (config_key = 'CPF.PAGING.MAX_SIZE') OR (config_key = 'CPF.RETENTION.DRY_RUN_DEFAULT') OR (config_key = 'CPF.SECRET.CACHE_TTL_SECONDS') OR (config_key = 'CPF.TENANT.ENABLED') OR (config_key = 'CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS')) = 24,
+           (SELECT COUNT(*) FROM CMN_CODE WHERE (code_key = 'CODE_GROUP' AND code_value = 'MODULE') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'YN') OR
+               (code_key = 'MODULE' AND code_value = 'CPF') OR
+               (code_key = 'MODULE' AND code_value = 'CMN') OR
+               (code_key = 'MODULE' AND code_value = 'ADM') OR
+               (code_key = 'MODULE' AND code_value = 'MBW') OR
+               (code_key = 'MODULE' AND code_value = 'BAT') OR
+               (code_key = 'MODULE' AND code_value = 'EDU') OR
+               (code_key = 'REQUEST_TYPE' AND code_value = 'NORMAL') OR
+               (code_key = 'REQUEST_TYPE' AND code_value = 'COMPENSATION') OR
+               (code_key = 'REQUEST_TYPE' AND code_value = 'RETRY') OR
+               (code_key = 'CHANNEL_CODE' AND code_value = 'WEB') OR
+               (code_key = 'CHANNEL_CODE' AND code_value = 'MOBILE') OR
+               (code_key = 'CHANNEL_CODE' AND code_value = 'BATCH') OR
+               (code_key = 'CHANNEL_CODE' AND code_value = 'ADM') OR
+               (code_key = 'RESULT_TYPE' AND code_value = 'S') OR
+               (code_key = 'RESULT_TYPE' AND code_value = 'E') OR
+               (code_key = 'MESSAGE_FORMAT_TYPE' AND code_value = 'FIXED') OR
+               (code_key = 'MESSAGE_FORMAT_TYPE' AND code_value = 'INDEXED') OR
+               (code_key = 'LOG_LEVEL' AND code_value = 'TRACE') OR
+               (code_key = 'LOG_LEVEL' AND code_value = 'DEBUG') OR
+               (code_key = 'LOG_LEVEL' AND code_value = 'INFO') OR
+               (code_key = 'LOG_LEVEL' AND code_value = 'WARN') OR
+               (code_key = 'LOG_LEVEL' AND code_value = 'ERROR') OR
+               (code_key = 'CACHE_NAME' AND code_value = 'ALL') OR
+               (code_key = 'CACHE_NAME' AND code_value = 'CODE') OR
+               (code_key = 'CACHE_NAME' AND code_value = 'MESSAGE') OR
+               (code_key = 'CACHE_NAME' AND code_value = 'RESPONSE_CODE') OR
+               (code_key = 'CACHE_NAME' AND code_value = 'CONFIG') OR
+               (code_key = 'BATCH_JOB_TYPE' AND code_value = 'TASKLET') OR
+               (code_key = 'BATCH_JOB_TYPE' AND code_value = 'CHUNK') OR
+               (code_key = 'BATCH_JOB_TYPE' AND code_value = 'RETRY') OR
+               (code_key = 'YN' AND code_value = 'Y') OR
+               (code_key = 'YN' AND code_value = 'N') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'HTTP_METHOD') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'EXECUTION_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'ASYNC_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'RETRY_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'IDEMPOTENCY_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'HEALTH_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'CIRCUIT_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'FILE_SCAN_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'DATA_CLASSIFICATION') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'APPROVAL_STATUS') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'ERROR_CATEGORY') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'RETENTION_ACTION') OR
+               (code_key = 'HTTP_METHOD' AND code_value = 'GET') OR
+               (code_key = 'HTTP_METHOD' AND code_value = 'POST') OR
+               (code_key = 'HTTP_METHOD' AND code_value = 'PUT') OR
+               (code_key = 'HTTP_METHOD' AND code_value = 'PATCH') OR
+               (code_key = 'HTTP_METHOD' AND code_value = 'DELETE') OR
+               (code_key = 'EXECUTION_STATUS' AND code_value = 'READY') OR
+               (code_key = 'EXECUTION_STATUS' AND code_value = 'RUNNING') OR
+               (code_key = 'EXECUTION_STATUS' AND code_value = 'SUCCESS') OR
+               (code_key = 'EXECUTION_STATUS' AND code_value = 'FAILED') OR
+               (code_key = 'EXECUTION_STATUS' AND code_value = 'UNKNOWN_RESULT') OR
+               (code_key = 'ASYNC_STATUS' AND code_value = 'WAITING') OR
+               (code_key = 'ASYNC_STATUS' AND code_value = 'PROCESSING') OR
+               (code_key = 'ASYNC_STATUS' AND code_value = 'COMPLETED') OR
+               (code_key = 'ASYNC_STATUS' AND code_value = 'DLQ') OR
+               (code_key = 'RETRY_STATUS' AND code_value = 'RETRYABLE') OR
+               (code_key = 'RETRY_STATUS' AND code_value = 'NON_RETRYABLE') OR
+               (code_key = 'RETRY_STATUS' AND code_value = 'EXHAUSTED') OR
+               (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'PROCESSING') OR
+               (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'COMPLETED') OR
+               (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'FAILED') OR
+               (code_key = 'IDEMPOTENCY_STATUS' AND code_value = 'UNKNOWN_RESULT') OR
+               (code_key = 'HEALTH_STATUS' AND code_value = 'UP') OR
+               (code_key = 'HEALTH_STATUS' AND code_value = 'DOWN') OR
+               (code_key = 'HEALTH_STATUS' AND code_value = 'DEGRADED') OR
+               (code_key = 'CIRCUIT_STATUS' AND code_value = 'CLOSED') OR
+               (code_key = 'CIRCUIT_STATUS' AND code_value = 'OPEN') OR
+               (code_key = 'CIRCUIT_STATUS' AND code_value = 'HALF_OPEN') OR
+               (code_key = 'FILE_SCAN_STATUS' AND code_value = 'PENDING') OR
+               (code_key = 'FILE_SCAN_STATUS' AND code_value = 'CLEAN') OR
+               (code_key = 'FILE_SCAN_STATUS' AND code_value = 'INFECTED') OR
+               (code_key = 'FILE_SCAN_STATUS' AND code_value = 'FAILED') OR
+               (code_key = 'FILE_SCAN_STATUS' AND code_value = 'QUARANTINED') OR
+               (code_key = 'DATA_CLASSIFICATION' AND code_value = 'PUBLIC') OR
+               (code_key = 'DATA_CLASSIFICATION' AND code_value = 'INTERNAL') OR
+               (code_key = 'DATA_CLASSIFICATION' AND code_value = 'CONFIDENTIAL') OR
+               (code_key = 'DATA_CLASSIFICATION' AND code_value = 'RESTRICTED') OR
+               (code_key = 'APPROVAL_STATUS' AND code_value = 'DRAFT') OR
+               (code_key = 'APPROVAL_STATUS' AND code_value = 'IN_REVIEW') OR
+               (code_key = 'APPROVAL_STATUS' AND code_value = 'APPROVED') OR
+               (code_key = 'APPROVAL_STATUS' AND code_value = 'REJECTED') OR
+               (code_key = 'APPROVAL_STATUS' AND code_value = 'WITHDRAWN') OR
+               (code_key = 'APPROVAL_STATUS' AND code_value = 'CANCELED') OR
+               (code_key = 'APPROVAL_STATUS' AND code_value = 'EXPIRED') OR
+               (code_key = 'ERROR_CATEGORY' AND code_value = 'VALIDATION') OR
+               (code_key = 'ERROR_CATEGORY' AND code_value = 'AUTHENTICATION') OR
+               (code_key = 'ERROR_CATEGORY' AND code_value = 'AUTHORIZATION') OR
+               (code_key = 'ERROR_CATEGORY' AND code_value = 'CONFLICT') OR
+               (code_key = 'ERROR_CATEGORY' AND code_value = 'TIMEOUT') OR
+               (code_key = 'ERROR_CATEGORY' AND code_value = 'TARGET_DOWN') OR
+               (code_key = 'ERROR_CATEGORY' AND code_value = 'UNKNOWN_RESULT') OR
+               (code_key = 'RETENTION_ACTION' AND code_value = 'ARCHIVE') OR
+               (code_key = 'RETENTION_ACTION' AND code_value = 'PURGE') OR
+               (code_key = 'RETENTION_ACTION' AND code_value = 'LEGAL_HOLD') OR
+               (code_key = 'CODE_GROUP' AND code_value = 'SORT_DIRECTION') OR
+               (code_key = 'SORT_DIRECTION' AND code_value = 'ASC') OR
+               (code_key = 'SORT_DIRECTION' AND code_value = 'DESC') OR
+               (code_key = 'REQUEST_TYPE' AND code_value = 'O') OR
+               (code_key = 'REQUEST_TYPE' AND code_value = 'S') OR
+               (code_key = 'REQUEST_TYPE' AND code_value = 'B') OR
+               (code_key = 'CHANNEL_CODE' AND code_value = 'APP') OR
+               (code_key = 'CHANNEL_CODE' AND code_value = 'JUT') OR
+               (code_key = 'RESULT_TYPE' AND code_value = 'W') OR
+               (code_key = 'MESSAGE_FORMAT_TYPE' AND code_value = 'PARAMETER') OR
+               (code_key = 'ASYNC_STATUS' AND code_value = 'FAILED') OR
+               (code_key = 'BATCH_JOB_TYPE' AND code_value = 'SPRING_BATCH') OR
+               (code_key = 'BATCH_JOB_TYPE' AND code_value = 'WORKER') OR
+               (code_key = 'BATCH_JOB_TYPE' AND code_value = 'SCHEDULER') OR
+               (code_key = 'BATCH_JOB_TYPE' AND code_value = 'CENTER_CUT')) = 121
+           AND (SELECT COUNT(*) FROM CMN_MESSAGE WHERE (message_code = 'MCPF000000' AND locale = 'ko') OR
+               (message_code = 'MCPF010001' AND locale = 'ko') OR
+               (message_code = 'MCPF010002' AND locale = 'ko') OR
+               (message_code = 'MCPF010003' AND locale = 'ko') OR
+               (message_code = 'MCPF010004' AND locale = 'ko') OR
+               (message_code = 'MCPF010005' AND locale = 'ko') OR
+               (message_code = 'MCPF010006' AND locale = 'ko') OR
+               (message_code = 'MCPF020001' AND locale = 'ko') OR
+               (message_code = 'MCPF030001' AND locale = 'ko') OR
+               (message_code = 'MCPF900001' AND locale = 'ko') OR
+               (message_code = 'MCPF900002' AND locale = 'ko') OR
+               (message_code = 'MCPF900003' AND locale = 'ko') OR
+               (message_code = 'MCPF900004' AND locale = 'ko') OR
+               (message_code = 'MCPF900005' AND locale = 'ko') OR
+               (message_code = 'MCPF990000' AND locale = 'ko') OR
+               (message_code = 'MCPF990001' AND locale = 'ko') OR
+               (message_code = 'MMBW000000' AND locale = 'ko') OR
+               (message_code = 'MMBW010001' AND locale = 'ko') OR
+               (message_code = 'MMBW010002' AND locale = 'ko') OR
+               (message_code = 'MEDU010001' AND locale = 'ko') OR
+               (message_code = 'MCMN000001' AND locale = 'ko') OR
+               (message_code = 'MCMN000001' AND locale = 'en') OR
+               (message_code = 'MCPF030002' AND locale = 'ko') OR
+               (message_code = 'MCPF030003' AND locale = 'ko') OR
+               (message_code = 'MCPF030004' AND locale = 'ko') OR
+               (message_code = 'MCPF020002' AND locale = 'ko') OR
+               (message_code = 'MCPF020003' AND locale = 'ko') OR
+               (message_code = 'MCPF040001' AND locale = 'ko') OR
+               (message_code = 'MCPF040002' AND locale = 'ko') OR
+               (message_code = 'MCPF020004' AND locale = 'ko') OR
+               (message_code = 'MCPF020005' AND locale = 'ko') OR
+               (message_code = 'MCPF020006' AND locale = 'ko') OR
+               (message_code = 'MCPF020007' AND locale = 'ko') OR
+               (message_code = 'MCPF040003' AND locale = 'ko') OR
+               (message_code = 'MCPF040004' AND locale = 'ko') OR
+               (message_code = 'MCPF050001' AND locale = 'ko') OR
+               (message_code = 'MCPF050002' AND locale = 'ko')) = 37
+           AND (SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE (response_code = 'SCPF000000') OR
+               (response_code = 'ECPF010001') OR
+               (response_code = 'ECPF010002') OR
+               (response_code = 'ECPF010003') OR
+               (response_code = 'ECPF010004') OR
+               (response_code = 'ECPF010005') OR
+               (response_code = 'ECPF010006') OR
+               (response_code = 'ECPF020001') OR
+               (response_code = 'ECPF030001') OR
+               (response_code = 'ECPF900001') OR
+               (response_code = 'ECPF900002') OR
+               (response_code = 'ECPF900003') OR
+               (response_code = 'ECPF900004') OR
+               (response_code = 'ECPF900005') OR
+               (response_code = 'ECPF990000') OR
+               (response_code = 'ECPF990001') OR
+               (response_code = 'SMBW000000') OR
+               (response_code = 'EMBW010001') OR
+               (response_code = 'EMBW010002') OR
+               (response_code = 'EEDU010001') OR
+               (response_code = 'ECPF030002') OR
+               (response_code = 'ECPF030003') OR
+               (response_code = 'ECPF030004') OR
+               (response_code = 'ECPF020002') OR
+               (response_code = 'ECPF020003') OR
+               (response_code = 'ECPF040001') OR
+               (response_code = 'ECPF040002') OR
+               (response_code = 'ECPF020004') OR
+               (response_code = 'ECPF020005') OR
+               (response_code = 'ECPF020006') OR
+               (response_code = 'ECPF020007') OR
+               (response_code = 'ECPF040003') OR
+               (response_code = 'ECPF040004') OR
+               (response_code = 'ECPF050001') OR
+               (response_code = 'ECPF050002')) = 35
+           AND (SELECT COUNT(*) FROM CMN_PARAMETER WHERE (config_key = 'CPF.CMN.CACHE.PRELOAD_ENABLED') OR
+               (config_key = 'CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP') OR
+               (config_key = 'CPF.CMN.CACHE.REFRESH_POLL_MILLIS') OR
+               (config_key = 'CPF.CMN.MESSAGING.BROKER') OR
+               (config_key = 'CPF.HTTP.CONNECT_TIMEOUT_MS') OR
+               (config_key = 'CPF.HTTP.READ_TIMEOUT_MS') OR
+               (config_key = 'CPF.ADM.SESSION_TTL_SECONDS') OR
+               (config_key = 'CPF.ADM.PASSWORD_EXPIRE_DAYS') OR
+               (config_key = 'CPF.ADM.PASSWORD_MIN_LENGTH') OR
+               (config_key = 'CPF.ADM.PASSWORD_MAX_FAIL_COUNT') OR
+               (config_key = 'CPF.BATCH.DEFAULT_LOCK_SECONDS') OR
+               (config_key = 'CPF.FEATURE.SAMPLE_ENABLED') OR
+               (config_key = 'CPF.MBW.SECURITY.MAX_LOGIN_FAIL_COUNT') OR
+               (config_key = 'CPF.MBW.SECURITY.ACCESS_TOKEN_TTL_SECONDS') OR
+               (config_key = 'CPF.MBW.SECURITY.REFRESH_TOKEN_TTL_SECONDS') OR
+               (config_key = 'CPF.RETENTION.EXECUTE_ENABLED') OR
+               (config_key = 'CPF.FILE.DOWNLOAD_REQUIRE_CLEAN') OR
+               (config_key = 'CPF.HEALTH.INSTANCE_ID_REQUIRED') OR
+               (config_key = 'CPF.PAGING.DEFAULT_SIZE') OR
+               (config_key = 'CPF.PAGING.MAX_SIZE') OR
+               (config_key = 'CPF.RETENTION.DRY_RUN_DEFAULT') OR
+               (config_key = 'CPF.SECRET.CACHE_TTL_SECONDS') OR
+               (config_key = 'CPF.TENANT.ENABLED') OR
+               (config_key = 'CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS')) = 24,
            1, 0
        ) AS passed;
 
 SELECT 'cpfDB.response_code_http_status' AS check_name,
-       IF((SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE (response_code = 'SCPF000000') OR (response_code = 'ECPF010001') OR (response_code = 'ECPF010002') OR (response_code = 'ECPF010003') OR (response_code = 'ECPF010004') OR (response_code = 'ECPF010005') OR (response_code = 'ECPF010006') OR (response_code = 'ECPF020001') OR (response_code = 'ECPF030001') OR (response_code = 'ECPF900001') OR (response_code = 'ECPF900002') OR (response_code = 'ECPF900003') OR (response_code = 'ECPF900004') OR (response_code = 'ECPF900005') OR (response_code = 'ECPF990000') OR (response_code = 'ECPF990001') OR (response_code = 'SMBW000000') OR (response_code = 'EMBW010001') OR (response_code = 'EMBW010002') OR (response_code = 'EEDU010001') OR (response_code = 'ECPF030002') OR (response_code = 'ECPF030003') OR (response_code = 'ECPF030004') OR (response_code = 'ECPF020002') OR (response_code = 'ECPF020003') OR (response_code = 'ECPF040001') OR (response_code = 'ECPF040002') OR (response_code = 'ECPF020004') OR (response_code = 'ECPF020005') OR (response_code = 'ECPF020006') OR (response_code = 'ECPF020007') OR (response_code = 'ECPF040003') OR (response_code = 'ECPF040004') OR (response_code = 'ECPF050001') OR (response_code = 'ECPF050002')) = 35
+       IF((SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE (response_code = 'SCPF000000') OR
+               (response_code = 'ECPF010001') OR
+               (response_code = 'ECPF010002') OR
+               (response_code = 'ECPF010003') OR
+               (response_code = 'ECPF010004') OR
+               (response_code = 'ECPF010005') OR
+               (response_code = 'ECPF010006') OR
+               (response_code = 'ECPF020001') OR
+               (response_code = 'ECPF030001') OR
+               (response_code = 'ECPF900001') OR
+               (response_code = 'ECPF900002') OR
+               (response_code = 'ECPF900003') OR
+               (response_code = 'ECPF900004') OR
+               (response_code = 'ECPF900005') OR
+               (response_code = 'ECPF990000') OR
+               (response_code = 'ECPF990001') OR
+               (response_code = 'SMBW000000') OR
+               (response_code = 'EMBW010001') OR
+               (response_code = 'EMBW010002') OR
+               (response_code = 'EEDU010001') OR
+               (response_code = 'ECPF030002') OR
+               (response_code = 'ECPF030003') OR
+               (response_code = 'ECPF030004') OR
+               (response_code = 'ECPF020002') OR
+               (response_code = 'ECPF020003') OR
+               (response_code = 'ECPF040001') OR
+               (response_code = 'ECPF040002') OR
+               (response_code = 'ECPF020004') OR
+               (response_code = 'ECPF020005') OR
+               (response_code = 'ECPF020006') OR
+               (response_code = 'ECPF020007') OR
+               (response_code = 'ECPF040003') OR
+               (response_code = 'ECPF040004') OR
+               (response_code = 'ECPF050001') OR
+               (response_code = 'ECPF050002')) = 35
           AND NOT EXISTS (SELECT 1 FROM CMN_RESPONSE_CODE WHERE http_status NOT BETWEEN 100 AND 599), 1, 0) AS passed;
 
 SELECT 'cpfDB.admin_product_seed' AS check_name,

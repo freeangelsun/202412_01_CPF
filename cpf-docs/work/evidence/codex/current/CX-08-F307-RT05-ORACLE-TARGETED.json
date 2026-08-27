@@ -1,0 +1,19 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_TARGETED",
+  "startedAt": "2026-08-27T10:33:00+09:00",
+  "completedAt": "2026-08-27T10:33:02+09:00",
+  "sourceIdentitySha256": "0c795232fe16f681c16d0b648e5ee6b53f3acc13c132cfa28e1fe21642208339",
+  "command": "python cpf-tools/testing/tools/run-cpf-pytest.py cpf-tools/db/tests/test_oracle_lifecycle_process_contract.py cpf-tools/environment/docker-development-test/tests/test_docker_installer_config_sync.py -q -p no:cacheprovider",
+  "exitCode": 0,
+  "result": "PASS",
+  "tests": 4,
+  "failures": 0,
+  "contract": [
+    "Official in-process Vendor runner calls use immediate PowerShell success state and do not read LASTEXITCODE",
+    "SQLPlus redirected stdin uses explicit BOM-free UTF-8",
+    "Docker installer refreshes all non-secret base runtime projections",
+    "Oracle Compose inherits the installed image healthcheck"
+  ],
+  "repositoryTestGarbage": 0
+}

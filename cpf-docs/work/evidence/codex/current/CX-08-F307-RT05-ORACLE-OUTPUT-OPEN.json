@@ -1,0 +1,11 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_OUTPUT_OWNERSHIP",
+  "sourceIdentitySha256": "9f71239562e963cc445b77773f452ffe40f208a655f0476aad585f39a2634955",
+  "observedRuntimeOutputBytes": 4257408,
+  "observedRuntimeOutputTokensApprox": 1326496,
+  "rootCause": "SQLPlus normal DDL feedback is captured for failure diagnostics and then replayed in full through Write-Host on successful statements; an eventual error also embeds the complete preceding output in its exception.",
+  "risk": "Terminal/VS Code memory amplification obscures the exact error and can destabilize the developer workspace.",
+  "owner": "cpf-tools/db/tools/invoke-official-db-vendor-sql.ps1",
+  "status": "OPEN"
+}

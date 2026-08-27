@@ -306,4 +306,4 @@ VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, 1, 'APPROVAL', 'ORG_MANAGER', 'SAMPLE_DEV',
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
-ON DUPLICATE KEY UPDATE step_type=VALUES(step_type), target_type=VALUES(target_type), target_code=VALUES(target_code), decision_rule=VALUES(decision_rule), required_count=VALUES(required_count), required_yn=VALUES(required_yn), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE step_type=VALUES(step_type), decision_rule=VALUES(decision_rule), required_count=VALUES(required_count), required_yn=VALUES(required_yn), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);

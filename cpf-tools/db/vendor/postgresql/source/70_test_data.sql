@@ -295,12 +295,12 @@ INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employe
 SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
        'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin'
-ON CONFLICT (admin_user_id) DO UPDATE SET admin_user_id=EXCLUDED.admin_user_id, organization_code=EXCLUDED.organization_code, employee_name=EXCLUDED.employee_name, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, employment_status=EXCLUDED.employment_status, email=EXCLUDED.email, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
+ON CONFLICT (admin_user_id) DO UPDATE SET organization_code=EXCLUDED.organization_code, employee_name=EXCLUDED.employee_name, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, employment_status=EXCLUDED.employment_status, email=EXCLUDED.email, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
 VALUES (
     'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP, NULL, 'SYSTEM', 'SYSTEM'
 )
-ON CONFLICT (employee_no, assignment_type, primary_yn) DO UPDATE SET organization_code=EXCLUDED.organization_code, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, primary_yn=EXCLUDED.primary_yn, effective_to=NULL, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (employee_no, assignment_type, primary_yn) DO UPDATE SET organization_code=EXCLUDED.organization_code, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, effective_to=NULL, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
 SELECT 'mbw-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
        'APPROVAL', 'MBW-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'

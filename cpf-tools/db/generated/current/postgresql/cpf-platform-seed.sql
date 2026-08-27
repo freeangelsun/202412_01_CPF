@@ -1101,7 +1101,7 @@ INSERT INTO OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, routing_mode,
 VALUES (
     'EDU', 'EDU-EXTERNAL-SIMULATOR', 'PRIMARY', 'WEIGHT', 'N', 'N', 'Y', 100, 'SEED', 'SEED'
 )
-ON CONFLICT (service_id, endpoint_code, priority) DO UPDATE SET routing_mode=EXCLUDED.routing_mode, load_balance_type=EXCLUDED.load_balance_type, failover_enabled_yn=EXCLUDED.failover_enabled_yn, health_check_required_yn=EXCLUDED.health_check_required_yn, active_yn=EXCLUDED.active_yn, priority=EXCLUDED.priority, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (service_id, endpoint_code, priority) DO UPDATE SET routing_mode=EXCLUDED.routing_mode, load_balance_type=EXCLUDED.load_balance_type, failover_enabled_yn=EXCLUDED.failover_enabled_yn, health_check_required_yn=EXCLUDED.health_check_required_yn, active_yn=EXCLUDED.active_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO BAT_INSTANCE (instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by)
 VALUES (
@@ -1603,7 +1603,7 @@ VALUES ('GATEWAY_READ','GATEWAY_DASHBOARD','READ','Gateway 운영 조회','GET',
 ('GATEWAY_ROUTE_DELETE','GATEWAY_ROUTES','DELETE','Gateway Binding 폐기','DELETE','/adm/api/gateway-registry/bindings/*',60,'Y','SYSTEM','SYSTEM'),
 ('GATEWAY_CONNECTION_TEST','GATEWAY_HEALTH','TEST','Gateway 연결시험 요청','POST','/adm/api/gateway-registry/bindings/*/connection-tests',70,'Y','SYSTEM','SYSTEM'),
 ('GATEWAY_TEST_CONTROL','GATEWAY_HEALTH','CONTROL','Gateway 연결시험 취소·재검증','POST','/adm/api/gateway-registry/connection-test-operations/*/**',80,'Y','SYSTEM','SYSTEM')
-ON CONFLICT (button_id) DO UPDATE SET menu_id=EXCLUDED.menu_id, action_code=EXCLUDED.action_code, button_name=EXCLUDED.button_name, http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, sort_order=EXCLUDED.sort_order, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=EXCLUDED.updated_at;
+ON CONFLICT (button_id) DO UPDATE SET menu_id=EXCLUDED.menu_id, action_code=EXCLUDED.action_code, button_name=EXCLUDED.button_name, http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, sort_order=EXCLUDED.sort_order, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_ROLE_MENU (role_id, menu_id, read_yn, write_yn, delete_yn, created_by, updated_by)
 VALUES ('ADM_ADMIN','GATEWAY_DASHBOARD','Y','Y','Y','SYSTEM','SYSTEM'),
@@ -1642,7 +1642,7 @@ VALUES ('ADM_ADMIN','GATEWAY_DASHBOARD','Y','Y','Y','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_TRANSACTIONS','Y','N','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_LOG_POLICY','Y','N','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_APPLY_STATUS','Y','N','N','SYSTEM','SYSTEM')
-ON CONFLICT (role_id, menu_id) DO UPDATE SET read_yn=EXCLUDED.read_yn, write_yn=EXCLUDED.write_yn, delete_yn=EXCLUDED.delete_yn, updated_by=EXCLUDED.updated_by, updated_at=EXCLUDED.updated_at;
+ON CONFLICT (role_id, menu_id) DO UPDATE SET read_yn=EXCLUDED.read_yn, write_yn=EXCLUDED.write_yn, delete_yn=EXCLUDED.delete_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_API_PERMISSION (api_permission_id, api_group_code, http_method, api_path, api_name, permission_code, menu_id, button_id, use_yn, created_by, updated_by)
 VALUES ('API_GATEWAY_READ','GATEWAY','GET','/adm/api/gateway-registry/**','Gateway 운영 조회','READ','GATEWAY_DASHBOARD','GATEWAY_READ','Y','SYSTEM','SYSTEM'),
@@ -1653,7 +1653,7 @@ VALUES ('API_GATEWAY_READ','GATEWAY','GET','/adm/api/gateway-registry/**','Gatew
 ('API_GATEWAY_ROUTE_DELETE','GATEWAY','DELETE','/adm/api/gateway-registry/bindings/*','Gateway Binding 폐기','DELETE','GATEWAY_ROUTES','GATEWAY_ROUTE_DELETE','Y','SYSTEM','SYSTEM'),
 ('API_GATEWAY_CONNECTION_TEST','GATEWAY','POST','/adm/api/gateway-registry/bindings/*/connection-tests','Gateway 연결시험 요청','TEST','GATEWAY_HEALTH','GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),
 ('API_GATEWAY_TEST_CONTROL','GATEWAY','POST','/adm/api/gateway-registry/connection-test-operations/*/**','Gateway 연결시험 취소·재검증','CONTROL','GATEWAY_HEALTH','GATEWAY_TEST_CONTROL','Y','SYSTEM','SYSTEM')
-ON CONFLICT (api_permission_id) DO UPDATE SET api_group_code=EXCLUDED.api_group_code, http_method=EXCLUDED.http_method, api_path=EXCLUDED.api_path, api_name=EXCLUDED.api_name, permission_code=EXCLUDED.permission_code, menu_id=EXCLUDED.menu_id, button_id=EXCLUDED.button_id, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=EXCLUDED.updated_at;
+ON CONFLICT (api_permission_id) DO UPDATE SET api_group_code=EXCLUDED.api_group_code, http_method=EXCLUDED.http_method, api_path=EXCLUDED.api_path, api_name=EXCLUDED.api_name, permission_code=EXCLUDED.permission_code, menu_id=EXCLUDED.menu_id, button_id=EXCLUDED.button_id, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_ROLE_BUTTON (role_id, button_id, allow_yn, created_by, updated_by)
 VALUES ('ADM_ADMIN','GATEWAY_READ','Y','SYSTEM','SYSTEM'),
@@ -1688,7 +1688,7 @@ VALUES ('ADM_ADMIN','GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_CONNECTION_TEST','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')
-ON CONFLICT (role_id, button_id) DO UPDATE SET allow_yn=EXCLUDED.allow_yn, updated_by=EXCLUDED.updated_by, updated_at=EXCLUDED.updated_at;
+ON CONFLICT (role_id, button_id) DO UPDATE SET allow_yn=EXCLUDED.allow_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_ROLE_API_PERMISSION (role_id, api_permission_id, allow_yn, created_by, updated_by)
 VALUES ('ADM_ADMIN','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),
@@ -1723,4 +1723,4 @@ VALUES ('ADM_ADMIN','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','API_GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','API_GATEWAY_CONNECTION_TEST','N','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','API_GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')
-ON CONFLICT (role_id, api_permission_id) DO UPDATE SET allow_yn=EXCLUDED.allow_yn, updated_by=EXCLUDED.updated_by, updated_at=EXCLUDED.updated_at;
+ON CONFLICT (role_id, api_permission_id) DO UPDATE SET allow_yn=EXCLUDED.allow_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;

@@ -25,7 +25,7 @@ SELECT 'MBW_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
        NULL, environment_code, 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_MENU
 WHERE use_yn = 'Y'
-ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET permission_type=EXCLUDED.permission_type, http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, environment_code=EXCLUDED.environment_code, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
 VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_OPERATOR', 'MBW_ORGANIZATION', 'READ', 'API', 'GET', '/api/v1/backoffice/organizations/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -34,7 +34,7 @@ VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffi
     ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_AUDIT', 'READ', 'API', 'GET', '/api/v1/backoffice/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
-ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET permission_type=EXCLUDED.permission_type, http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, environment_code=EXCLUDED.environment_code, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 INSERT INTO MBW_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
 VALUES ('MBW.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW.APPROVAL.DEFAULT_DUE_HOURS', '24', '기본 결재 SLA 시간', 'Y', 'SYSTEM', 'SYSTEM'),

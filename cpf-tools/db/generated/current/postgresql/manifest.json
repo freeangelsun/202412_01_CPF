@@ -10,11 +10,11 @@
   },
   "artifacts": {
     "cpf-platform-schema.sql": "f3d52f163d8b0fe708b0f0eb93ee76c86654b5abc751726b8e3089266125b629",
-    "cpf-platform-seed.sql": "1c4b2c7832ec21afd2ff57f6fb36b4c15a5eaa84759596af2715def0f94ac53a",
+    "cpf-platform-seed.sql": "88814dda31e87fe498d481e1117f2ded074c74b13d6f3c0eb09d58cbdd2b54fe",
     "cpf-platform-verify.sql": "998b09e80988073d20f95bd5b481674dddfd9d4edcf90493ec30f568935b1ae6",
     "cpf-platform-rollback.sql": "0741aeca3a9a3367ec4bd69f89365232790b4689846c23dddd9ee09d83dc8bb4",
     "backoffice-schema.sql": "e68a1c0b233b53ba1ddfff32e39c327325b094df7a660f361b5cb60589a72594",
-    "backoffice-seed.sql": "fdd2a70bb94ed042fd6d0bcead46e08ae0b9215d92d578d348611f22b3b586e5",
+    "backoffice-seed.sql": "0351c73735bfac6470b0c74ea3bb53eca614db376a2241c9cfbf4ed909dfea48",
     "backoffice-verify.sql": "0175be0c0405eda43ef40e55a6a3f3942335ec443fc2ab7f96f8218e3121fcc5",
     "backoffice-rollback.sql": "8226fd98250e0769119038780796133013ef610f230de09e3d090831218b44d0",
     "reference-fixture-schema.sql": "f506a5eaee5b2295ee0a5c2ef24459c8543f9faeae9ef40fe22cd36fa3955f4a",

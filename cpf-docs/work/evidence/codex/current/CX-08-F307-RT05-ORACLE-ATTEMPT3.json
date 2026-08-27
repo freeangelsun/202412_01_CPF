@@ -1,0 +1,21 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_PHYSICAL_RERUN_3",
+  "sourceIdentitySha256": "4c83eab1d6dbff1f822d5a7477fa9422c548dc5f390f1757d844326727832bb9",
+  "sourceIdentitySha1": "0588116b931f05e399e0bb203048cb47c7814930",
+  "readiness": "PASS",
+  "provision": "PASS",
+  "freshInstall": "FAIL",
+  "cleanup": "PASS",
+  "exitCode": 1,
+  "exactDatabaseError": "ORA-03076: unexpected item DEFAULT in a column definition or inline constraint",
+  "failingContract": "Oracle current Fresh schema renders NOT NULL before DEFAULT while Oracle requires DEFAULT before NOT NULL",
+  "canonicalOwner": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+  "projectionOwners": [
+    "cpf-tools/db/vendor/oracle/source/10_cpf_schema.sql",
+    "cpf-tools/db/vendor/oracle/install/00_empty_install.sql"
+  ],
+  "immutableMigrationEditAllowed": false,
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-r3/isolated-oracle/verifier-owned-lifecycle.json",
+  "status": "FAIL"
+}

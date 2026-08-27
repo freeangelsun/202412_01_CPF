@@ -26,7 +26,7 @@ SELECT 'MBW_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
        NULL, environment_code, 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_MENU
 WHERE use_yn = 'Y'
-ON DUPLICATE KEY UPDATE permission_type=VALUES(permission_type), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), environment_code=VALUES(environment_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
 VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -36,7 +36,7 @@ VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffi
     ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_AUDIT', 'READ', 'API', 'GET', '/api/v1/backoffice/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE permission_type=VALUES(permission_type), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), environment_code=VALUES(environment_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
 VALUES ('MBW.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -110,7 +110,7 @@ VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, 1, 'APPROVAL', 'ORG_MANAGER', 'SAMPLE_DEV',
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
-ON DUPLICATE KEY UPDATE step_type=VALUES(step_type), target_type=VALUES(target_type), target_code=VALUES(target_code), decision_rule=VALUES(decision_rule), required_count=VALUES(required_count), required_yn=VALUES(required_yn), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE step_type=VALUES(step_type), decision_rule=VALUES(decision_rule), required_count=VALUES(required_count), required_yn=VALUES(required_yn), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_ADMIN_USER (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by)
 VALUES (
@@ -212,13 +212,13 @@ INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employe
 SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
        'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin'
-ON DUPLICATE KEY UPDATE admin_user_id=VALUES(admin_user_id), organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), employment_status=VALUES(employment_status), email=VALUES(email), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), employment_status=VALUES(employment_status), email=VALUES(email), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
 VALUES (
     'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
 )
-ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), primary_yn=VALUES(primary_yn), effective_to=NULL, updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), effective_to=NULL, updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
 SELECT 'mbw-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',

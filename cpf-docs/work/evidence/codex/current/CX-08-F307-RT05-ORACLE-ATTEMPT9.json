@@ -1,0 +1,18 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_PHYSICAL_RERUN_9",
+  "sourceIdentitySha256": "4f6fc89748e49675c38de1c5dfa4706062374e005087fc5496e23a78192e476d",
+  "sourceIdentitySha1": "ac3275d37d55f39548ef98d7c676f62a76163b1d",
+  "readiness": "PASS",
+  "provision": "PASS",
+  "freshSchemaInstall": "PASS",
+  "platformProductSeed": "PASS",
+  "backofficeProductSeed": "FAIL",
+  "cleanup": "PASS",
+  "exactDatabaseError": "ORA-38104 columns referenced in the ON clause cannot be updated: TGT.PERMISSION_TYPE",
+  "rootCause": "Nine Canonical upsert update entries redundantly update one of their own conflict-key columns. MariaDB/PostgreSQL accept that no-op, while Oracle correctly rejects changes to MERGE ON columns.",
+  "affectedCanonicalEntries": 9,
+  "owner": "Canonical seed-model conflict/update invariants plus both renderer validation boundaries",
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-r9/isolated-oracle/verifier-owned-lifecycle.json",
+  "status": "FAIL"
+}

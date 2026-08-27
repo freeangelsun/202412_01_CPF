@@ -24,6 +24,27 @@ class OracleLifecycleProcessContractTest(unittest.TestCase):
         self.assertNotIn("$psi.StandardInputEncoding=[Text.Encoding]::UTF8", source)
         self.assertIn("SP2-0734", source)
 
+    def test_sqlplus_pipe_failure_still_harvests_database_diagnostics(self) -> None:
+        source = VENDOR_RUNNER.read_text(encoding="utf-8-sig")
+        write_failure = source.index("$writeFailure=$null")
+        wait_for_exit = source.index("$process.WaitForExit()", write_failure)
+        stdout_harvest = source.index("$stdout=$stdoutTask.GetAwaiter().GetResult()", wait_for_exit)
+        failure_gate = source.index(
+            "if($process.ExitCode -ne 0 -or $null-ne$writeFailure)", stdout_harvest
+        )
+
+        self.assertIn("$writeFailure=$_", source[write_failure:wait_for_exit])
+        self.assertIn("$stderr=$stderrTask.GetAwaiter().GetResult()", source[wait_for_exit:failure_gate])
+        self.assertIn("transport=$safeTransport error=$safe", source[failure_gate:])
+
+    def test_sqlplus_output_is_bounded_without_hiding_terminal_failure(self) -> None:
+        source = VENDOR_RUNNER.read_text(encoding="utf-8-sig")
+        self.assertIn("SET FEEDBACK OFF", source)
+        self.assertIn("function Limit-CpfDiagnosticText", source)
+        self.assertIn("[CPF SQL diagnostic truncated:", source)
+        self.assertIn("$safe=Limit-CpfDiagnosticText (Protect-CpfSecretText", source)
+        self.assertNotIn("Write-Host (Protect-CpfSecretText $stdout", source)
+
 
 if __name__ == "__main__":
     unittest.main()

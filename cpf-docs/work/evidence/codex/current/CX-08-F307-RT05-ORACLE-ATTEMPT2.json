@@ -1,0 +1,19 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_PHYSICAL_RERUN_2",
+  "startedAt": "2026-08-27T10:34:59+09:00",
+  "completedAt": "2026-08-27T10:35:06+09:00",
+  "sourceIdentitySha256": "0c795232fe16f681c16d0b648e5ee6b53f3acc13c132cfa28e1fe21642208339",
+  "sourceIdentitySha1": "8b9ec933cab97ca93fa6ea52c113f66a299b2e2d",
+  "image": "container-registry.oracle.com/database/free:26ai-free-23.26.2.0.0",
+  "imageInstallOrPull": false,
+  "readiness": "PASS",
+  "provision": "PASS",
+  "freshInstall": "FAIL",
+  "cleanup": "PASS",
+  "exitCode": 1,
+  "error": "SQLPlus StandardInput.Write terminated with Connection timed out before the runner harvested redirected stdout/stderr and process exit details",
+  "rootCause": "The BOM correction exposes a separate fail-closed diagnostic gap: an early-closing SQLPlus pipe throws during the write, and the current runner abandons its already-started asynchronous stdout/stderr reads before reporting the database-side error. The underlying SQL failure is therefore hidden.",
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-r2/isolated-oracle/verifier-owned-lifecycle.json",
+  "status": "FAIL"
+}

@@ -1,0 +1,19 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_PHYSICAL_RERUN_5",
+  "sourceIdentitySha256": "df00b7d118af3b74fda56fdcff3f6d7638c1188e8b2401a5d8d585a275f4495c",
+  "sourceIdentitySha1": "1cc994b173feaa43d8496d86defe1f0a7fda5971",
+  "readiness": "PASS",
+  "provision": "PASS",
+  "freshInstall": "FAIL",
+  "cleanup": "PASS",
+  "exactDatabaseError": "ORA-00902: invalid datatype",
+  "staticOwnerTrace": "Oracle lifecycle source/install contains exactly two TIME columns; generated/current already maps the same Canonical TIME type to VARCHAR2(15 CHAR)",
+  "affectedColumns": [
+    "CPF_EXTERNAL_WORK_CALENDAR.available_start_time",
+    "CPF_EXTERNAL_WORK_CALENDAR.available_end_time"
+  ],
+  "rootCause": "The lifecycle Source generator Type-For function omits the existing Canonical current renderer's Oracle TIME conversion.",
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-r5/isolated-oracle/verifier-owned-lifecycle.json",
+  "status": "FAIL"
+}

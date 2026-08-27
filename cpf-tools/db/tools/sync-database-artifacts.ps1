@@ -39,7 +39,9 @@ function Invoke-CpfPythonArtifactStep {
         throw "DB artifact Python step script is missing: $absoluteScriptPath"
     }
 
-    & python $absoluteScriptPath --root $Root @ExtraArgs
+    # Artifact synchronization must not materialize import bytecode inside the
+    # developer-facing Source tree (for example render_vendor_pack.__pycache__).
+    & python -B $absoluteScriptPath --root $Root @ExtraArgs
     if ($LASTEXITCODE -ne 0) {
         throw "$FailureMessage exitCode=$LASTEXITCODE script=$ScriptPath"
     }

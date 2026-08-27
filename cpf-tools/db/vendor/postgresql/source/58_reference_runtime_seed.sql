@@ -296,4 +296,4 @@ VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, 1, 'APPROVAL', 'ORG_MANAGER', 'SAMPLE_DEV',
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
-ON CONFLICT (policy_code, policy_version, step_no, target_type, target_code) DO UPDATE SET step_type=EXCLUDED.step_type, target_type=EXCLUDED.target_type, target_code=EXCLUDED.target_code, decision_rule=EXCLUDED.decision_rule, required_count=EXCLUDED.required_count, required_yn=EXCLUDED.required_yn, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (policy_code, policy_version, step_no, target_type, target_code) DO UPDATE SET step_type=EXCLUDED.step_type, decision_rule=EXCLUDED.decision_rule, required_count=EXCLUDED.required_count, required_yn=EXCLUDED.required_yn, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);

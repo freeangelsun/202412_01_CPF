@@ -156,6 +156,17 @@ function Get-VerifySql([string] $Vendor, [string[]] $ExpectedNames, [string[]] $
     $nameList = ($ExpectedNames | ForEach-Object { "'$($_.ToUpperInvariant())'" }) -join ", "
     $legacyList = ($LegacyNames | ForEach-Object { "'$($_.ToUpperInvariant())'" }) -join ", "
     $expectedCount = $ExpectedNames.Count
+    $managedPrefix = $ExpectedNames[0].ToUpperInvariant()
+    foreach ($expectedName in $ExpectedNames) {
+        $upperName = $expectedName.ToUpperInvariant()
+        while ($managedPrefix.Length -gt 0 -and -not $upperName.StartsWith($managedPrefix, [StringComparison]::Ordinal)) {
+            $managedPrefix = $managedPrefix.Substring(0, $managedPrefix.Length - 1)
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($managedPrefix)) {
+        throw "Canonical non-table objects do not share a managed sequence namespace."
+    }
+    $managedPrefixLength = $managedPrefix.Length
     if ($Vendor -ceq "mariadb") {
         return @"
 -- CPF_LOGICAL_DATABASE=$($Contract.canonicalPolicy.currentLogicalDatabase)
@@ -165,7 +176,8 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
            (SELECT COUNT(*)
               FROM information_schema.tables
              WHERE table_schema = DATABASE()
-               AND table_type = 'SEQUENCE') = $expectedCount
+               AND table_type = 'SEQUENCE'
+               AND LEFT(UPPER(table_name), $managedPrefixLength) = '$managedPrefix') = $expectedCount
            AND
            (SELECT COUNT(*)
               FROM information_schema.tables
@@ -188,7 +200,8 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
 SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        CASE WHEN
            (SELECT COUNT(*) FROM information_schema.sequences
-             WHERE sequence_schema = current_schema()) = $expectedCount
+             WHERE sequence_schema = current_schema()
+               AND LEFT(UPPER(sequence_name), $managedPrefixLength) = '$managedPrefix') = $expectedCount
            AND
            (SELECT COUNT(*) FROM information_schema.sequences
              WHERE sequence_schema = current_schema()
@@ -205,7 +218,8 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
 -- Fail-closed Spring Batch 6.0.4 sequence name/count verification.
 SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        CASE WHEN
-           (SELECT COUNT(*) FROM user_sequences) = $expectedCount
+           (SELECT COUNT(*) FROM user_sequences
+             WHERE SUBSTR(sequence_name, 1, $managedPrefixLength) = '$managedPrefix') = $expectedCount
            AND
            (SELECT COUNT(*) FROM user_sequences
              WHERE sequence_name IN ($nameList)) = $expectedCount

@@ -164,7 +164,11 @@ def render_table(vendor, table):
         line = "    CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)" % (
             q_ident(vendor, fk["name"]), ", ".join(fk["columns"]), q_ident(vendor, fk["refTable"]), ", ".join(fk["refColumns"])
         )
-        if fk.get("onDelete"): line += " ON DELETE " + fk["onDelete"]
+        on_delete = str(fk.get("onDelete") or "").strip().upper()
+        # Oracle implements RESTRICT/NO ACTION as the implicit default and
+        # rejects both spellings in an explicit ON DELETE clause.
+        if on_delete and not (vendor == "oracle" and on_delete in {"RESTRICT", "NO ACTION"}):
+            line += " ON DELETE " + on_delete
         clauses.append(line)
     ddl = f"CREATE TABLE {name} (\n" + ",\n".join(clauses) + "\n)"
     if vendor == "mariadb": ddl += " ENGINE=InnoDB"
@@ -457,7 +461,6 @@ def _oracle_merge_from_values(table: str, columns: list[str], source: str, confl
         if len(row)!=len(columns): raise ValueError(f'{table}: VALUES width {len(row)} != columns {len(columns)}')
         selects.append('SELECT '+', '.join(f'{expr} AS {col}' for expr,col in zip(row,columns))+' FROM dual')
     if not selects: raise ValueError(f'{table}: canonical VALUES seed is empty')
-    using='\nUNION ALL\n'.join(selects)
     on=' AND '.join(f'tgt.{c}=src.{c}' for c in conflict)
     pairs=[]
     for u in updates:
@@ -465,10 +468,13 @@ def _oracle_merge_from_values(table: str, columns: list[str], source: str, confl
         expr=re.sub(r'VALUES\(([^)]+)\)',r'src.\1',expr,flags=re.I)
         pairs.append(f'tgt.{u["column"]}={expr}')
     insert_cols=', '.join(columns); insert_vals=', '.join('src.'+c for c in columns)
-    stmt=f'MERGE INTO {table} tgt\nUSING ({using}) src\nON ({on})'
-    if pairs: stmt+='\nWHEN MATCHED THEN UPDATE SET '+', '.join(pairs)
-    stmt+=f'\nWHEN NOT MATCHED THEN INSERT ({insert_cols}) VALUES ({insert_vals});'
-    return stmt
+    statements=[]
+    for using in selects:
+        stmt=f'MERGE INTO {table} tgt\nUSING ({using}) src\nON ({on})'
+        if pairs: stmt+='\nWHEN MATCHED THEN UPDATE SET '+', '.join(pairs)
+        stmt+=f'\nWHEN NOT MATCHED THEN INSERT ({insert_cols}) VALUES ({insert_vals});'
+        statements.append(stmt)
+    return '\n'.join(statements)
 
 
 def _oracle_merge_from_select(table: str, columns: list[str], source: str, conflict: list[str], updates: list[dict], name_map: dict[str,str]) -> str:
@@ -516,6 +522,16 @@ def render_seed_statement(vendor, st, name_map, variables):
     source=convert_time_expr(vendor,source)
     updates=st.get('updates') or []
     conflict=st.get('conflictColumns') or []
+    source_columns={column.lower() for column in columns}
+    conflict_columns={column.lower() for column in conflict}
+    for update in updates:
+        for referenced in re.findall(r'VALUES\(([A-Za-z0-9_]+)\)', update['expression'], flags=re.I):
+            if referenced.lower() not in source_columns:
+                raise ValueError(
+                    f'{table} update references VALUES({referenced}) but the source column is absent'
+                )
+        if update['column'].lower() in conflict_columns:
+            raise ValueError(f'{table} update column {update["column"]} is also a conflict column')
     if vendor=='oracle':
         if st.get('sourceKind')=='values':
             return _oracle_merge_from_values(table,columns,source,conflict,updates,name_map)

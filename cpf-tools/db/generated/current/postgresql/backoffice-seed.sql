@@ -26,7 +26,7 @@ SELECT 'MBW_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
        NULL, environment_code, 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_MENU
 WHERE use_yn = 'Y'
-ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET permission_type=EXCLUDED.permission_type, http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, environment_code=EXCLUDED.environment_code, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
 VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -36,7 +36,7 @@ VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffi
     ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_VIEWER', 'MBW_AUDIT', 'READ', 'API', 'GET', '/api/v1/backoffice/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
-ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET permission_type=EXCLUDED.permission_type, http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, environment_code=EXCLUDED.environment_code, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET http_method=EXCLUDED.http_method, api_pattern=EXCLUDED.api_pattern, data_scope=EXCLUDED.data_scope, allow_yn=EXCLUDED.allow_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
 VALUES ('MBW.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -110,7 +110,7 @@ VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, 1, 'APPROVAL', 'ORG_MANAGER', 'SAMPLE_DEV',
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
-ON CONFLICT (policy_code, policy_version, step_no, target_type, target_code) DO UPDATE SET step_type=EXCLUDED.step_type, target_type=EXCLUDED.target_type, target_code=EXCLUDED.target_code, decision_rule=EXCLUDED.decision_rule, required_count=EXCLUDED.required_count, required_yn=EXCLUDED.required_yn, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (policy_code, policy_version, step_no, target_type, target_code) DO UPDATE SET step_type=EXCLUDED.step_type, decision_rule=EXCLUDED.decision_rule, required_count=EXCLUDED.required_count, required_yn=EXCLUDED.required_yn, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_ADMIN_USER (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by)
 VALUES (
@@ -212,13 +212,13 @@ INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employe
 SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
        'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin'
-ON CONFLICT (admin_user_id) DO UPDATE SET admin_user_id=EXCLUDED.admin_user_id, organization_code=EXCLUDED.organization_code, employee_name=EXCLUDED.employee_name, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, employment_status=EXCLUDED.employment_status, email=EXCLUDED.email, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
+ON CONFLICT (admin_user_id) DO UPDATE SET organization_code=EXCLUDED.organization_code, employee_name=EXCLUDED.employee_name, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, employment_status=EXCLUDED.employment_status, email=EXCLUDED.email, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
 VALUES (
     'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP, NULL, 'SYSTEM', 'SYSTEM'
 )
-ON CONFLICT (employee_no, assignment_type, primary_yn) DO UPDATE SET organization_code=EXCLUDED.organization_code, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, primary_yn=EXCLUDED.primary_yn, effective_to=NULL, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
+ON CONFLICT (employee_no, assignment_type, primary_yn) DO UPDATE SET organization_code=EXCLUDED.organization_code, position_code=EXCLUDED.position_code, job_title_code=EXCLUDED.job_title_code, effective_to=NULL, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
 SELECT 'mbw-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',

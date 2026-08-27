@@ -382,7 +382,10 @@
       "checks": [
         {
           "name": "ck_adm_approval_cap_nonce_hash",
-          "expression": "CHAR_LENGTH(NONCE_HASH) = 64"
+          "expression": "CHAR_LENGTH(NONCE_HASH) = 64",
+          "vendorExpressions": {
+            "oracle": "LENGTH(NONCE_HASH) = 64"
+          }
         }
       ],
       "comment": "ADM 승인 실행 HMAC capability cluster-safe single-use nonce ledger",
@@ -1681,7 +1684,10 @@
         },
         {
           "name": "ck_adm_approval_request_hash",
-          "expression": "CHAR_LENGTH(COMMAND_PAYLOAD_HASH) = 64"
+          "expression": "CHAR_LENGTH(COMMAND_PAYLOAD_HASH) = 64",
+          "vendorExpressions": {
+            "oracle": "LENGTH(COMMAND_PAYLOAD_HASH) = 64"
+          }
         }
       ],
       "comment": "ADM 위험조치 승인 요청",
@@ -14575,7 +14581,10 @@
         },
         {
           "name": "ck_bat_operation_request_hash",
-          "expression": "CHAR_LENGTH(request_hash) = 64"
+          "expression": "CHAR_LENGTH(request_hash) = 64",
+          "vendorExpressions": {
+            "oracle": "LENGTH(request_hash) = 64"
+          }
         }
       ],
       "comment": "BAT 위험조치 승인·멱등·UNKNOWN 복구 Ledger",
@@ -25676,7 +25685,10 @@
       "checks": [
         {
           "name": "CK_CPF_DQ_OPERATION_HASH",
-          "expression": "CHAR_LENGTH(COMMAND_FINGERPRINT) = 64"
+          "expression": "CHAR_LENGTH(COMMAND_FINGERPRINT) = 64",
+          "vendorExpressions": {
+            "oracle": "LENGTH(COMMAND_FINGERPRINT) = 64"
+          }
         }
       ],
       "comment": "Persistent DQ replay/reconcile idempotency ledger",

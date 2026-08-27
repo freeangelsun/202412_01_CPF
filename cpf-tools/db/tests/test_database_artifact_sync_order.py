@@ -52,6 +52,7 @@ class DatabaseArtifactSyncOrderTest(unittest.TestCase):
         self.assertIn("function Invoke-CpfPythonArtifactStep", source)
         self.assertIn("if ($LASTEXITCODE -ne 0)", source)
         self.assertIn("throw \"$FailureMessage exitCode=$LASTEXITCODE", source)
+        self.assertIn("& python -B $absoluteScriptPath --root $Root @ExtraArgs", source)
 
     def test_seed_bundles_have_one_writer_and_downstream_builders_check_only(self) -> None:
         official = (

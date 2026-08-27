@@ -1,0 +1,16 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_DIAGNOSTIC_TARGETED",
+  "sourceIdentitySha256": "4c83eab1d6dbff1f822d5a7477fa9422c548dc5f390f1757d844326727832bb9",
+  "command": "python cpf-tools/testing/tools/run-cpf-pytest.py cpf-tools/db/tests/test_oracle_lifecycle_process_contract.py -q -p no:cacheprovider",
+  "exitCode": 0,
+  "result": "PASS",
+  "tests": 3,
+  "failures": 0,
+  "assertions": [
+    "PowerShell runner success ownership",
+    "BOM-free SQLPlus stdin",
+    "Pipe failure still harvests stdout stderr process exit and sanitized transport detail"
+  ],
+  "repositoryTestGarbage": 0
+}

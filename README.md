@@ -140,4 +140,4 @@ CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다
 
 ---
 
-<sub>Documentation baseline: Harness v2.2.0 · Source snapshot: supplied ZIP SHA-256 `B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D` · 2026-08-26</sub>
+<sub>Documentation baseline: Harness v2.3.0 · Source snapshot: supplied ZIP SHA-256 `A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07` · 2026-08-27</sub>

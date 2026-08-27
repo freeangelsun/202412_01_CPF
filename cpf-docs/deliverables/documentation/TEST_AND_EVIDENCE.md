@@ -1,48 +1,42 @@
-# CPF Documentation Test and Evidence
+# TEST AND EVIDENCE
 
-## 1. Source Identity
-- User-supplied final source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip`
-- SHA-256: `B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D`
-- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP`; `.git` 없는 전달 ZIP이므로 과거 master SHA를 현재 성공 Evidence로 승계하지 않음
-- Harness: `v2.2.0`
+## Source Identity
+- Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip`
+- SHA-256: `A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07`
+- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP`
+- Working Source authority: user-provided final Source ZIP
+- Harness: `v2.3.0` current-only
+- Verified at KST: `2026-08-27T04:11:47+09:00`
 
-## 2. Harness-first 재발 방지
-- Reader-first / audience need / task-first composition을 모든 공식 Profile에 반영
-- Framework/Batch Developer Guide: Public API → 옵션/기본값 → 선택 시점 → 실패/복구 → 최소 예 → 검증/Source Content Model 강제
-- 정보 밀도가 높은 개발자 Matrix는 landscape 허용
-- `그림 해석`/`그림 설명` visible label 금지
-- User navigation PDF-only, DOCX link forbidden / packaging required
-- Visual Geometry: safe-area, explicit no-overlap, min vertical gap, frame/object boundary를 PowerShell + Python executable gate로 검증
-- README Host background와 CPF-owned dark brochure surface를 구분; GitHub host theme 자체는 README가 강제할 수 없음을 Harness에 명시하고 CPF-owned Hero/Visual은 dark brochure surface로 유지
-- current-only Harness; CHANGELOG/old/backup/versioned history artifact 금지
+## Actual executed gates
+- Harness Python validator: **PASS** — VERSION=2.3.0, ARTIFACTS=12, COVERAGE_ITEMS=57, PROFILES=12, TABLE_PRESETS=23, FIGURE_PRESETS=23.
+- README Python validator: **PASS** — VISUALS=8, user DOCX link=0.
+- Visual geometry validator: **PASS** — ASSETS=8.
+- DOCX final render: **PASS** — 11 documents, 71 pages total; all document contact sheets reviewed and changed pages re-opened at full render.
+- DOCX accessibility: **PASS** — 11/11, High=0, Medium=0, Low=0.
+- PDF fresh export from final DOCX: **PASS** — 11 PDFs, 71 pages.
+- PDFium render: **PASS** — 71 pages.
+- Poppler render: **PASS** — 71 pages; page counts match PDFium for all 11 PDFs.
+- PDF preflight: **PASS** — warnings 0 for 11/11 PDFs.
+- PDF font embedding: **PASS** — non-embedded font 0.
+- Public API/source semantic check: **PASS** — 36 referenced `Cpf*` symbols, missing 0 in supplied Source.
+- Stale user-document terms: **PASS** — old Harness 2.2 baseline, old source digest, `cpf-reference`, `cpf-biz-admin`, generic Figure labels in product artifacts = 0.
+- Documentation artifact path gate: **PASS** — generated/modified README, Harness, Visual, DOCX/PDF and delivery metadata are <=150 characters for both supported home/company repository roots.
+- Fresh Source Clean Replay: **PASS** — source ZIP fresh extract + exact Delete Manifest (0 entries) + 109-file overlay; overlay byte diff=0.
+- Clean Replay package integrity: **PASS** — `PACKAGE_MANIFEST.json` and `SHA256SUMS.txt` hashes verified from the replayed tree.
 
-## 3. Automated Harness/README/Visual Gate
-- `validate_harness.py`: PASS — VERSION=2.2.0, ARTIFACTS=12, COVERAGE_ITEMS=57, PROFILES=12, TABLE_PRESETS=23, FIGURE_PRESETS=23
-- `validate_readme.py`: PASS — VISUALS=8
-- `validate_visual_assets.py`: PASS — ASSETS=8
-- PowerShell counterparts are included; current Linux environment has no pwsh, execution status `미검증`
+## Manual visual QA focus
+- Tables are used only for genuinely tabular/comparative data. TOC/navigation, chapter reason, Golden Path and simple sequences are not forced into fake tables.
+- Table headers remain one visual line in reviewed final renders. Equal-width columns are used only where semantically symmetric; other tables use content/role-weighted widths.
+- H1 major-section spacing and title single-line preference applied; section transitions use visible breathing room without blank-paragraph padding.
+- Transaction visual has an explicit `RESULT STATE` center hub; no empty implied junction.
+- Invocation/System6, Architecture DB3 band, Figure titles/notes stay inside safe margins.
+- Batch/Gateway sparse tail pages were improved with task-relevant pre-execution/recovery check tables instead of decorative filler.
+- User navigation exposes PDF only; DOCX files remain packaged editable artifacts and are not user-facing links.
 
-## 4. DOCX final render
-- 11/11 final DOCX를 `render_docx.py --emit_pdf`로 Fresh Render
-- Pages: 15 + 8 + 5 + 6 + 6 + 6 + 7 + 5 + 4 + 5 + 3 = 70
-- 모든 final page contact-sheet/manual visual review: clipping/overlap/table break/broken glyph/figure boundary 배포 차단 결함 0
-- Accessibility audit: 11/11 High=0, Medium=0, Low=0
+## Baseline issue kept separate from Documentation result
+- The supplied Source already contains long paths under `cpf-docs/work/evidence/codex/current/**`. A repository-wide absolute-path scan therefore is **not claimed as PASS**.
+- These existing evidence files are outside this Documentation patch and were not modified/deleted. The delivery verifier intentionally gates only files generated or modified by this Documentation cycle.
 
-## 5. PDF final export / cross-render
-- 최종 PDF는 위 final DOCX에서 Fresh Export
-- PDF preflight warning: 0 / 11
-- PDFium pages: 70; Poppler pages: 70; document-by-document page count parity PASS
-- `pdffonts`: embedded-font 누락 0
-- extracted text replacement glyph/tofu check: 0
-- PDF annotation DOCX links: 0
-
-## 6. Semantic / navigation / stale QA
-- README `[PDF]` links actual `.pdf` target 존재; user-facing `.docx` links 0
-- generic `그림 해석`/`그림 설명` 제거
-- 내부 Domain→Domain 호출을 Gateway로 우회시키지 않음
-- 공식 DB Vendor: Oracle/PostgreSQL/MariaDB
-- Source identity stale historical master SHA 제거; supplied ZIP digest로 currentize
-- Harness history stale target: CHANGELOG + V1.2.5 apply/delete scripts exact Delete Manifest
-
-## 7. 범위 밖
-CPF 전체 제품 Build/Test와 Oracle/PostgreSQL/MariaDB 실제 Runtime lifecycle은 Documentation 작업에서 새로 실행했다고 주장하지 않는다. 제품 Runtime QA Evidence와 분리한다.
+## Not executed in this container
+- Windows PowerShell validators were **not executed** because `pwsh`/Windows PowerShell is unavailable in this Linux container. They are packaged in `VERIFY.ps1` and Harness validators for local/company replay. This is recorded as `미검증`, not PASS.

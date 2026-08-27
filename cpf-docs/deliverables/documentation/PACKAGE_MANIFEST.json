@@ -1,652 +1,547 @@
 {
-  "schemaVersion": "2.1",
-  "packageType": "ROOT_RELATIVE_OVERLAY_WITH_COMPLETE_HARNESS",
-  "harnessVersion": "2.2.0",
-  "sourceZipSha256": "B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D",
+  "schemaVersion": "2.0",
+  "packageType": "CPF_DOCUMENTATION_V2_3_0_FINAL_OVERLAY",
+  "generatedAtKst": "2026-08-27T04:15:13+09:00",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip",
+  "sourceZipSha256": "A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07",
   "gitExactSha": "UNAVAILABLE_IN_SUPPLIED_ZIP",
-  "completeHarnessIncluded": true,
-  "harnessFileCount": 57,
-  "deletePaths": [
-    "cpf-docs/deliverables/documentation/APPLY_V125.ps1",
-    "cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1",
-    "cpf-docs/governance/documentation-harness/CHANGELOG.md"
-  ],
+  "harnessVersion": "2.3.0",
+  "deleteManifestEntries": 0,
   "files": [
     {
       "path": "README.md",
-      "status": "MODIFIED",
-      "size": 9668,
-      "sha256": "365705D31F9C1285A602EC00B964F5AC4552BBC1637DA2317F450CC8DC6C623F"
+      "size": 9656,
+      "sha256": "84D32CC604BF4DA2D0851C2C97E1E97E5EBD414FCC5B792FEEB95C1AF23788CA"
     },
     {
       "path": "cpf-docs/assets/product-docs/architecture.png",
-      "status": "MODIFIED",
-      "size": 94594,
-      "sha256": "0229EB3EEC3849800EDE4B03AEE97C6244DCD3C29315617C05533E4F0F330FAE"
+      "size": 67651,
+      "sha256": "3D1AC5F252CA7729DC87A2BB8B3BCDA931E13017E068CB7FC89AC4E548647CAD"
     },
     {
       "path": "cpf-docs/assets/product-docs/batch.png",
-      "status": "MODIFIED",
-      "size": 53778,
-      "sha256": "960EDF32D0AA9BAF9E54F4536A754BFF0DDEED57B5FED9AF51A1F69D65C524C9"
+      "size": 48279,
+      "sha256": "04ACD7460286A6DCBA0F1EC975FE54F86B4FE75101BDBEB032AE1B6A5AA1BA00"
     },
     {
       "path": "cpf-docs/assets/product-docs/capabilities.png",
-      "status": "MODIFIED",
-      "size": 63126,
-      "sha256": "C98770EB05C96F8B08B8C7ECED99CAD4AA42D449F88EC41A2CEBA151FFD7AB74"
+      "size": 49169,
+      "sha256": "0C86E9A554DB0ADA82BF6238C6C2850E2B721BA074E4B2F98105CF6390432F22"
     },
     {
       "path": "cpf-docs/assets/product-docs/gateway.png",
-      "status": "MODIFIED",
-      "size": 66661,
-      "sha256": "9D17D9B299D32724917CF4987E9A73CBDCA98045DE2E169E66FB9579A5E05818"
+      "size": 59738,
+      "sha256": "7CDF8AD410B51C7A7F5758375A9A27E478B804F3FDBD4E04DE73AC1BE6A54D20"
     },
     {
       "path": "cpf-docs/assets/product-docs/hero.png",
-      "status": "MODIFIED",
-      "size": 87070,
-      "sha256": "F6C4B056C362A6EF9FCA1C4613F4C038E465C8E0A418895A68CC553EE02FDA2F"
+      "size": 52970,
+      "sha256": "3788D0B0A357B1577F3EF584E73A4AC7F0AA6117EE143CF3063745FFA5AF84BF"
     },
     {
       "path": "cpf-docs/assets/product-docs/invoke.png",
-      "status": "MODIFIED",
-      "size": 63837,
-      "sha256": "A90D226F9DAF87331A8BA4D2C9152FAF139274464BD7B38B37E61C62A68937B0"
+      "size": 57200,
+      "sha256": "FB45C35AFA2950C506FBFD28D6B44C7B6BA82222E3ED54B351124C88584279F5"
     },
     {
       "path": "cpf-docs/assets/product-docs/ops.png",
-      "status": "MODIFIED",
-      "size": 46865,
-      "sha256": "B9677324D877F30E1A08D61D9D42B23E6B6754B368A3E10A837D070A525627B5"
+      "size": 45305,
+      "sha256": "87B9222F73C7D07801CA619A184F6E3C2CB9C54655898C783CE4B90B82EB3A23"
     },
     {
       "path": "cpf-docs/assets/product-docs/tx.png",
-      "status": "MODIFIED",
-      "size": 70718,
-      "sha256": "E80BF52D79A3976FE4503E19F6AF32EE602750BD8C9ADFDA2441BADE82ABEB33"
+      "size": 52618,
+      "sha256": "F29990702E8CBA670FFD1C6BACEDB791CDDBC2AF9CBB693194BE8D1D37E22020"
     },
     {
       "path": "cpf-docs/assets/product-docs/visual-geometry.json",
-      "status": "ADDED",
-      "size": 9485,
-      "sha256": "197FFF1EEF7782491BE03073895CBAFCCE84567624E8A532E99D3D2C4FFD94CF"
+      "size": 6653,
+      "sha256": "0B43A88C2A56ECF67B38B55A48477843D25E9177E8C042EC1F0238E1B57D118F"
+    },
+    {
+      "path": "cpf-docs/deliverables/documentation/APPLY.ps1",
+      "size": 1923,
+      "sha256": "6166531BD32CB4EADFC49BDD9A37846F390E04A4804615F9A785939CCFA725E0"
     },
     {
       "path": "cpf-docs/deliverables/documentation/CHANGE_MANIFEST.csv",
-      "status": "MODIFIED",
-      "size": 10199,
-      "sha256": "0FAF38F80F5E8A47AD3B582B5CF82ADFE2B81AB6E2EB10054BAE09E983BF55DE"
+      "size": 21099,
+      "sha256": "0A5E965A496A61952EA0ECCE709323F1E64D1A6AD123B2E5ADE012629AAC9D47"
     },
     {
       "path": "cpf-docs/deliverables/documentation/CODEX_REVALIDATION_REQUEST.md",
-      "status": "MODIFIED",
-      "size": 990,
-      "sha256": "34737C4D7326A8607F34861A589C16D9997987CAF3C1DC187F54C3C20DBEE8F5"
+      "size": 1058,
+      "sha256": "93F8ED07B4AE37D41F4BA4797C071FF788C90E44A7B699186278B9EF173A706D"
     },
     {
       "path": "cpf-docs/deliverables/documentation/CONTINUITY.md",
-      "status": "MODIFIED",
-      "size": 537,
-      "sha256": "551FF0F3EAB62AF906DA4C51B0782F140A29A77DF50D249702E8801D46BFB9CC"
+      "size": 1499,
+      "sha256": "1A23E991C94AE78DC5504CFB55A411532A7870AF18A45F283CF4AF27403FCA27"
     },
     {
       "path": "cpf-docs/deliverables/documentation/DELETE_EMPTY_DIRS.txt",
-      "status": "MODIFIED",
-      "size": 39,
-      "sha256": "D012967A24932D979CEFB0CE62FDD7FE5E68506F1AD909F298872F314756549E"
+      "size": 41,
+      "sha256": "D2CCD1705F8DE67447002B954FBB4D686329758830178548F9BD3294BD9E5371"
     },
     {
       "path": "cpf-docs/deliverables/documentation/DELETE_MANIFEST.txt",
-      "status": "MODIFIED",
-      "size": 212,
-      "sha256": "A577CB19B55F9A7ED9B2A0EFAE9AA058D783F94ADF9E1937F882E0627C4DB035"
+      "size": 158,
+      "sha256": "9B78BDFBEC7D19F8EE60F89A6BE1D8034555193CA961652D6FB676D7C6DE6039"
     },
     {
       "path": "cpf-docs/deliverables/documentation/DELETE_ONLY.ps1",
-      "status": "MODIFIED",
-      "size": 979,
-      "sha256": "83917605926E4EBB394B8D5096768426598EC6027BD0F64CF8438FEE4A815DC3"
+      "size": 911,
+      "sha256": "CB587707EAC0104CDFA5E1E681A8BFD1C72834177DFD0DA3C4B3E56B22994088"
     },
     {
       "path": "cpf-docs/deliverables/documentation/FINAL_DELIVERY_SUMMARY.md",
-      "status": "MODIFIED",
-      "size": 1024,
-      "sha256": "B09345BC1121F170814E496A4382A5D2745042F13BA263A2EB1590A086EEC629"
+      "size": 1140,
+      "sha256": "BAECA9E9A2972F02B17550D3574189237D8A56F475020590F7680715D6932B1D"
     },
     {
       "path": "cpf-docs/deliverables/documentation/GIT_STATUS_COMMAND.txt",
-      "status": "MODIFIED",
       "size": 19,
       "sha256": "344FC453349A52A32CE664B388C923AC1B8975BE439F1BFACC005457301275D3"
     },
     {
       "path": "cpf-docs/deliverables/documentation/HANDOVER.md",
-      "status": "MODIFIED",
-      "size": 884,
-      "sha256": "978AF35599BA8CAA237F14B349CB1BD24078D052F5F00084AA2E8E400641CB19"
+      "size": 1480,
+      "sha256": "F942231F5750D5B19D5EDC0B704D2FB7D35694B844A2BA724939B53FEF2F344E"
     },
     {
       "path": "cpf-docs/deliverables/documentation/LOW_COST_VERIFY_COMMAND.txt",
-      "status": "MODIFIED",
       "size": 95,
       "sha256": "EC34B6D870A5A2530EF49476CC25A7CDF6BEAED386AF1CF4ECF1AF33C8A1ECD1"
     },
     {
       "path": "cpf-docs/deliverables/documentation/OPEN_ISSUES.md",
-      "status": "MODIFIED",
-      "size": 579,
-      "sha256": "CF9B7B17E79409ADF388623E7F1BC7A022560F06E0F819B051C7F7D17D7C7C7A"
+      "size": 931,
+      "sha256": "8B447F2222CBD7B95E85D509F8E96AE180F18E5C65E848B971F2008F7CD2F414"
     },
     {
       "path": "cpf-docs/deliverables/documentation/QA_REWORK_REQUEST.md",
-      "status": "MODIFIED",
-      "size": 176,
-      "sha256": "D506F74140A181E72C61A4281E04EB9682256D7B996BBE0D493F88B6D90D59C9"
+      "size": 223,
+      "sha256": "1094890865D5F35E7F52540483D5015A516380D01B158E7E4553CE64FD17649B"
     },
     {
       "path": "cpf-docs/deliverables/documentation/REQUIREMENT_STATUS.csv",
-      "status": "MODIFIED",
-      "size": 1021,
-      "sha256": "DD955847F9C3E2BD9222E16C090271562097E9D6A715DA289746B2492AF25E53"
+      "size": 919,
+      "sha256": "FAB4FCF4A116094C7505A993C3CB8A6535359B78394BC86B39ECE26703BF3E5C"
     },
     {
       "path": "cpf-docs/deliverables/documentation/SOURCE_IDENTITY.json",
-      "status": "MODIFIED",
-      "size": 506,
-      "sha256": "8F28721094B8990FAE4153ECFD671C46205FE2FFDAE35C6179A88AB13D605AA4"
+      "size": 364,
+      "sha256": "FC45D67031C42753F51C17A4B357A1D87B437891FB46C1C833191BD6ED6499E0"
     },
     {
       "path": "cpf-docs/deliverables/documentation/TEST_AND_EVIDENCE.md",
-      "status": "MODIFIED",
-      "size": 3013,
-      "sha256": "12DFF5D00DE95599C5CE39899F8CDD25BC4C4954964BF2A83E682BFFF53BFB06"
+      "size": 3583,
+      "sha256": "48B440F5F5C9958ED81FF77EDF25B1B116B11F584F004EFB711958C931D37045"
     },
     {
       "path": "cpf-docs/deliverables/documentation/VERIFY.ps1",
-      "status": "MODIFIED",
-      "size": 3517,
-      "sha256": "E89FE1EC2E10941EB37E5FE180E31BB87C339A5269995A370C6A662F26BF0BE6"
+      "size": 2371,
+      "sha256": "4A2DB26D162CC4F76E11C2B8A0A02C1938C5F61B388FF1C8DA3B7487A16F5065"
     },
     {
       "path": "cpf-docs/deliverables/documentation/verify_documentation_delivery.py",
-      "status": "MODIFIED",
-      "size": 3772,
-      "sha256": "8623A23D0025D54DBACD006906AC5B2FC3880EAB79F972AF4995274BA0A5322E"
+      "size": 3750,
+      "sha256": "D9CAE1CC3300AB924EA7D1AF769DA2486EA2004A096FDFC1C5C717E5A55EF8C5"
     },
     {
       "path": "cpf-docs/deliverables/기술사양서.docx",
-      "status": "ADDED",
-      "size": 42937,
-      "sha256": "813DC59BDA6531D471F5D90D3BA24FA568989F82B71F44D14693DBEC0792CA5D"
+      "size": 42730,
+      "sha256": "411535D7E84F48399BDFEDCA91D6CFE46ACA41B6062FB1FD292963C2D28B7788"
     },
     {
       "path": "cpf-docs/deliverables/기술사양서.pdf",
-      "status": "ADDED",
-      "size": 208915,
-      "sha256": "FA108FAD775D72B492100D52BEE345BA075C5C4FBF4962A91A3F5FC1233CD9E0"
+      "size": 197736,
+      "sha256": "70141C9C9E07E22223B5760AD8450B2FC32583E8BE70E1768E4235FEB4F30645"
     },
     {
       "path": "cpf-docs/deliverables/기술표준서.docx",
-      "status": "ADDED",
-      "size": 41301,
-      "sha256": "5AECBBFF34C2AFFBB75A82D72DF3A7548600BE529DE5564B0AE6DEB17E8985C5"
+      "size": 41073,
+      "sha256": "F9C8E270E410FCA0EB188A2FE018276123566CC0A8F470CE378578FFBB5D3413"
     },
     {
       "path": "cpf-docs/deliverables/기술표준서.pdf",
-      "status": "ADDED",
-      "size": 161421,
-      "sha256": "766223AC531DFB5D02DE8924F4865AA7FC67A1307FC5D8BC854B2A1F348920BB"
+      "size": 146274,
+      "sha256": "36DB5DF7BC51ECF1BEE33BEBAB8A79B0E261F1FFF50489B2014098F9E3981730"
     },
     {
       "path": "cpf-docs/deliverables/데이터베이스표준서.docx",
-      "status": "ADDED",
-      "size": 41656,
-      "sha256": "3C566E7DB1D5C324836BE08B1E867143C04AD9E4149AB82A5FBFC879ADDD1B1B"
+      "size": 41395,
+      "sha256": "0272CC685C0A1A9B637FE49F1D50ADA0F424447B8E39F94A44FB6170A1A0D29F"
     },
     {
       "path": "cpf-docs/deliverables/데이터베이스표준서.pdf",
-      "status": "ADDED",
-      "size": 183468,
-      "sha256": "3D1FE187A35BC390455E0D63684A6E86CA3D42B79D1011DC05B6496FCA39C09B"
+      "size": 166998,
+      "sha256": "0B696584B9571E03732E1F7D43FC305F46D610888AF62A8600A15D0B9DE6E888"
     },
     {
       "path": "cpf-docs/deliverables/산출물목록.docx",
-      "status": "ADDED",
-      "size": 40911,
-      "sha256": "A7392911B78B49C49E8318626064626983C93BBF107D47AA67852A473A2BF5BF"
+      "size": 40767,
+      "sha256": "F09D1DCFED9CAC8472DC388E1482C77ADC914D2D67CA0B0E69B1D340274B3884"
     },
     {
       "path": "cpf-docs/deliverables/산출물목록.pdf",
-      "status": "ADDED",
-      "size": 142908,
-      "sha256": "33694836854FF31D4AC323C00F8041B9C5373CEF350434C1F3D33380B37D2621"
+      "size": 136390,
+      "sha256": "AC7193A282030CFC6FB635F7E6310B7BFE767ECC2C97ACE8F9C225BF4537DC9F"
     },
     {
       "path": "cpf-docs/deliverables/아키텍처설계서.docx",
-      "status": "ADDED",
-      "size": 225409,
-      "sha256": "AF8F7311B608C3262938DD0D936E746BC100F1138ED605A507196486355606AC"
+      "size": 193012,
+      "sha256": "CAB2245C0B54E568049BD39377805D0C1420FF71C6EB1AC0A385A8152C2F83F7"
     },
     {
       "path": "cpf-docs/deliverables/아키텍처설계서.pdf",
-      "status": "ADDED",
-      "size": 366295,
-      "sha256": "0C070958FB92607D2CE28F693350E12BEF8D4EE15F4EA6E50209D9350E521104"
+      "size": 315177,
+      "sha256": "1157760047DD1B9F3279E8EC0E3423E1859E1BB009B1FFA7B8CCFCEBB0D4FE05"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/CONTENT_COMPRESSION_STANDARD.md",
-      "status": "MODIFIED",
       "size": 3331,
-      "sha256": "49E9D2E542F83E71956F3F6F1DA9A6D967965B61DFA6358D77CC18682E35A1E3"
+      "sha256": "3E206A27E1DDCDB56878BE5424C1C2EBFAD0636847A9F5C802EC118D3025F471"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/CPF_DOCUMENTATION_HARNESS.md",
-      "status": "MODIFIED",
-      "size": 11560,
-      "sha256": "F710D4982B87A9D34E8629F478E2C3ACCBDDBB716BD50CE08B8991DCDD6FC886"
+      "size": 12298,
+      "sha256": "FC7672EB20033454BBE7417AA49171A0797ACCF27F79D2933253EC8FC9C99249"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/DELETE_MANIFEST.json",
-      "status": "MODIFIED",
-      "size": 282,
-      "sha256": "F2BB7AFC5D5EB67D13DC7B8C9966027585293C497FA925ECF60F56735167FD29"
+      "size": 320,
+      "sha256": "A10CAF05DF58C8BAC98311568850131DBE0833C39C63D812E326749566E0625C"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/DELETE_MANIFEST.txt",
-      "status": "MODIFIED",
-      "size": 225,
-      "sha256": "86B468CD4449A7756BC636EC021C57CFDC5FC9A4CC9A5A3E9AE56D67A2ED8FDA"
+      "size": 118,
+      "sha256": "C2662FB802CCF3057895CC78049A28D15FA9124DC8DE0FD3C4A467B7D5A67E37"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/DOCUMENT_PROFILE_CATALOG.md",
-      "status": "MODIFIED",
       "size": 13836,
-      "sha256": "AEB8121DD311033E415948D95A614A5DFB09FECAF44B0D05499B287685FB2AD4"
+      "sha256": "498DF7F31658C9E8850C7D8205311C17B26CA89A78C94213D1B1FC96E8A5814E"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/FINAL_GATE_CHECKLIST.md",
-      "status": "MODIFIED",
-      "size": 3067,
-      "sha256": "6441798CD68B983ACF3B76FD1F32F6FD9F807518AFDA4BDF8478D49AF9A3B94C"
+      "size": 3718,
+      "sha256": "26A7A515A6DD22596BC5FB7A1B155D028BC293A73E5908039C29893323022E93"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/GOLDEN_REFERENCE_STANDARD.md",
-      "status": "MODIFIED",
       "size": 2264,
-      "sha256": "037687B6C7790F7FBCDC2B29972B4F6209C6034607DA78B2344A74CEBDBEF703"
+      "sha256": "D289346484F065BDFCA5956C24840CE12869418877B057DA079B3B0908ECEFA9"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/HARNESS_LOCK.json",
-      "status": "MODIFIED",
       "size": 5799,
-      "sha256": "B8A1916CFEBCA977F8C80E7F408DAEA00FE6E8C616C0C05F840B528E75BB861C"
+      "sha256": "F1006D43E1CC87F6F0A95AC308ACB6927A8AC349147F3DBC18E455BCE022B87F"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/PACKAGE_MANIFEST.json",
-      "status": "MODIFIED",
-      "size": 8916,
-      "sha256": "E8485C4ED1799783A3D10C7CC3ACF9A8DD0A4D52DD5329B1693928FCB360C4FD"
+      "size": 8918,
+      "sha256": "43B8CA8B0E414C82DD548261BACEB0D00AB7F8025A2309E1FF6EEC877B260F9C"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/PRODUCT_COVERAGE_MATRIX.md",
-      "status": "UNCHANGED_INCLUDED_FINAL_HARNESS",
       "size": 9262,
       "sha256": "7152908573BD3CB7062C76E29553A3216DFA4839EF1F94AC4E91865AF9BD05BD"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/README.md",
-      "status": "MODIFIED",
-      "size": 2455,
-      "sha256": "5AA8EE475178670CA2F6019EEAFBB175F693E5F94E77BD1AC1F3F2E5E9039EF1"
+      "size": 2928,
+      "sha256": "6F44B41E3EC8E31A11ECCD3EEFB7A9764CE466DAE99DC769382E1201B0742A68"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/README_VISUAL_STORYBOARD.md",
-      "status": "MODIFIED",
       "size": 3024,
-      "sha256": "FD528AF92FE34195FDA07786BEE5606042BAF39D9E56C5A44DE70E68C635603E"
+      "sha256": "F94D401DE5E927FE030A43E18F7FF7DF0F9E82474B41821F8414FB82FC676B4A"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/REFERENCE_BASIS.md",
-      "status": "UNCHANGED_INCLUDED_FINAL_HARNESS",
       "size": 816,
       "sha256": "61D9AD2D821EFC295698DE11A172471A49C2A8E8590456B2CBF88CA0FF8A1A42"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/SOURCE_BASELINE.json",
-      "status": "MODIFIED",
-      "size": 8038,
-      "sha256": "A5922B5E81E9B553E774C6EF726D8E4F89814A916721A558457F5BCE87E989E5"
+      "size": 8055,
+      "sha256": "2B2981873EDF37BFFE8CF8C784404069B8826E288EBCB4B3EFC48CFB37068705"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/SOURCE_CAPABILITY_INVENTORY.json",
-      "status": "MODIFIED",
       "size": 37704,
-      "sha256": "15EE60FF9876585D9773F4A2F8BABBA7D8C521F460DC653C1EFF9B4DD6D90488"
+      "sha256": "F11B92985BB6CAE681568AB6A8F74BF080B5439764D42FA1FAE29651321BB5E2"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/VISUAL_AND_LAYOUT_STANDARD.md",
-      "status": "MODIFIED",
-      "size": 12345,
-      "sha256": "C18D0EA616F08B2C669A444336E0609FD7F136F3A80C864755B1A00871ED80FE"
+      "size": 14498,
+      "sha256": "1799D3FDDB5B46EA6ADFA107F1EC8F26133CDC765F8CD10D7560B69AE3791942"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/component-system.json",
-      "status": "MODIFIED",
-      "size": 5120,
-      "sha256": "EF03C6534C770663F460C3A4C082EF78054C84DCD690EAB4732D7B6BE5756190"
+      "size": 6598,
+      "sha256": "47A5BFEC0C81290031438A01A8621962244D12BD66377319F6ADB14A4701C063"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/content-density.json",
-      "status": "MODIFIED",
-      "size": 4818,
-      "sha256": "7E2F93F4B9AAEBD4933870CB37E5BBEF0EA847E584FDA85F0B06C30848259622"
+      "size": 5355,
+      "sha256": "CF2799131ED69B7CA2CB499197908DFF5DBD79AA8449FC4E8A885923F1E70FE8"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/content-models.json",
-      "status": "MODIFIED",
-      "size": 7382,
-      "sha256": "F3C74CD653A4C2DD641141C2AB3CF31DBAC5344CA641EDE4CA7DCDD66FCB8C42"
+      "size": 8852,
+      "sha256": "2069B39AAA65C6C7228974918A5ECD9FCEC17E8352A78023F63BC22C7384686C"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/design-tokens.json",
-      "status": "MODIFIED",
-      "size": 15568,
-      "sha256": "87AFA589BC8B8847C9AB10B261D7B60DB784C0B9DD8C85A880B1333DB2629DB3"
+      "size": 18350,
+      "sha256": "FC55DFA2B043FD20AB76A25523F8225E9B51706E02E219C3944FD4F9CFB614BD"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/document-output-rules.json",
-      "status": "MODIFIED",
-      "size": 7028,
-      "sha256": "645D29ADD5245DB941B522B9BD8879CFECC243849D5B7D7E4256802F7B420367"
+      "size": 7553,
+      "sha256": "C2F7D64A826CFB5C0DEBF058F99D51FEB6ACF3D9499086E20E1CF15363F79284"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/document-shell.json",
-      "status": "MODIFIED",
-      "size": 2787,
-      "sha256": "254082C230C74529D6050C1450E230461C537E5CED66B69875D8B3BC01BA5843"
+      "size": 3094,
+      "sha256": "1029590093C623D81345530210E7C5B8208D490244298F84382B4C795D5E4861"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/figure-presets.json",
-      "status": "MODIFIED",
-      "size": 9454,
-      "sha256": "F7ADF5BBF387E6DEB0E4BE8F18605911833AFEA5A1724C812A1FF79C6ECC1074"
+      "size": 9799,
+      "sha256": "3E7435C0375F89B3F9678083DFACF77E699D0F13781E1FB24625A494C003590F"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/golden-reference.json",
-      "status": "MODIFIED",
-      "size": 551,
-      "sha256": "5565A1AC50CE0C3C2A7BBC0C821AB3CDEE0EA3D00F364C1E2AFA4DB14D43688B"
+      "size": 667,
+      "sha256": "306290FC34AA1360D902823CAFEEC1C9C738C42DCACE6D088E2BC59DD4CC3878"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/harness.json",
-      "status": "MODIFIED",
-      "size": 17824,
-      "sha256": "FDEB7BE67F6D3ACD0EE7E014D1E25E989DB351EA7C435E08B5C353F65FFD54C4"
+      "size": 20800,
+      "sha256": "BF6A88CAF6EF2986E1C55B6D9D3702AEE34D7249E1170725A32D522E806BA624"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/product-coverage.json",
-      "status": "MODIFIED",
       "size": 21241,
-      "sha256": "F4EEF73275AE57365BD7BD543EF18E577A2784A35DB2B49FC4EFD0B2E8A506A8"
+      "sha256": "E645C2C87259F18318EFE5DC06234EBF262FB8190276779F11984A75CD5A9C63"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/ARCHITECTURE_DESIGN.json",
-      "status": "MODIFIED",
-      "size": 7828,
-      "sha256": "2EBE0B21E7784D430970D5F253E4E85CB94EA998A85A97409F59E8358DD4FAD2"
+      "size": 8369,
+      "sha256": "1DFDAE65E6307D2ED66C64E3FBC9D47DA1AAC0E36C3578E58CB3F5A5E8110BD9"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/BATCH_DEVELOPER_GUIDE.json",
-      "status": "MODIFIED",
-      "size": 8986,
-      "sha256": "705AF6847A0F1B73794603A165A4573B7EFE2C5561455B9B893829ECCC8E739D"
+      "size": 9527,
+      "sha256": "505882B480804D5C4A13DDAFD5CC005A4F54E9838E245BCA95B179ABEA10B4C8"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/BATCH_OPERATOR_GUIDE.json",
-      "status": "MODIFIED",
-      "size": 6627,
-      "sha256": "FFA0AA0CE1601CB62B500D5760F090D40ED57740A1853CF3F0A8617F91006542"
+      "size": 7168,
+      "sha256": "3826EC0C5FF17CB5E9F13D88717B0802B1F7EA3FD0E0DDAD87B0F51F424B9D48"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/DATABASE_STANDARD.json",
-      "status": "MODIFIED",
-      "size": 7964,
-      "sha256": "D5B8AEC0BFF9B21A50A5F67376FD75063690515B8FDE95C79BB4F530BC33FBA7"
+      "size": 8505,
+      "sha256": "98ADDF12FE594180A28FC63612E26BEBE6579ED359B6B9E79BF36853019AE57A"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/DELIVERABLE_INDEX.json",
-      "status": "MODIFIED",
-      "size": 4492,
-      "sha256": "CD742797A40013A9742FB0E7D81D7D7A8EB6CB377ED784A834AC4D4664587E49"
+      "size": 5246,
+      "sha256": "2497268A02648E4D30109CBE3DCC604A1ED36E6EDDC655F7519582F16EAD138B"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/FRAMEWORK_DEVELOPER_GUIDE.json",
-      "status": "MODIFIED",
-      "size": 12169,
-      "sha256": "7C6CFB8682BBFC0001D836A00F08C32D8AD74265D617BCF83EC21A6D1967670D"
+      "size": 13199,
+      "sha256": "ADCFBB8C5E13C75476E41C6C508A8062814AD441D5EEFB1213000445D080CAB8"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/GATEWAY_GUIDE.json",
-      "status": "MODIFIED",
-      "size": 6671,
-      "sha256": "205C737F89E075A4AB16A06BFC646BCA88ACC99D9FC0BD2CF255BB8954132A5C"
+      "size": 7212,
+      "sha256": "189EA8DFD7BDF51D87225C8AB02D6D1E350BDE84F6444011CBF48940E6EB61ED"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/OPERATOR_MANUAL.json",
-      "status": "MODIFIED",
-      "size": 6690,
-      "sha256": "8591CF9C55F1AFC774FE7AF729E260A3C853BE2A92A17B6799266140EE64EC54"
+      "size": 7231,
+      "sha256": "281162C6961C7B2554B6CBDE3A110CDDC6392E0EB8725ED882562AD52EA420F2"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/README.json",
-      "status": "MODIFIED",
-      "size": 15164,
-      "sha256": "B05AD7CB4CE0CD28B13FE4F11CB0A5D636D9247AA2A9F5F3E14F5BFD0AEBA74E"
+      "size": 15705,
+      "sha256": "046FDF5537D8B376F3564704B47F5B9685B8E40468A76F23AAA606AD64298E43"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/SPECIFICATION.json",
-      "status": "MODIFIED",
-      "size": 9444,
-      "sha256": "A52F28BAF69003FDF2CAC0C6B344A14EC8A58BCE97078A54761BCD9FC608FB88"
+      "size": 9985,
+      "sha256": "2369D24CC7B9AA076FA4E71A8196F16D4338502FEB1A440692F9755AAF73FF13"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/TECHNICAL_SPECIFICATION.json",
-      "status": "MODIFIED",
-      "size": 7580,
-      "sha256": "A65525E509DD8FD40F6E6CB365AE5A488895ECE6B3A26109AED28002685DC45D"
+      "size": 8121,
+      "sha256": "3C3B2F139D6E63176DFE30B219192C1DDF260FC09903A413AE27B037E0626A1C"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/profiles/TECHNICAL_STANDARD.json",
-      "status": "MODIFIED",
-      "size": 7454,
-      "sha256": "E389337FBFDD510B532DED759E9FF0EA75AB96F11979ACEFC0CEC58338E9D859"
+      "size": 7995,
+      "sha256": "01208A247F3E762D28B2A3D02B480C7B010A6AFCC394D64F120DC68F9F0DC6FF"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/quality-acceptance.json",
-      "status": "MODIFIED",
-      "size": 5007,
-      "sha256": "6CDE3E363211B33EF9A1EAEDFC66B40D1F374D68C930136BB44018F0676AA3AF"
+      "size": 6091,
+      "sha256": "E057B46AED15F2E5C8E265D665CAB512A0A804524162712F5351A5A97B588D1E"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/readme-value-inventory.json",
-      "status": "MODIFIED",
       "size": 4592,
-      "sha256": "C4B9456CDF88C3E83DA100016C24E11FF3532D157F009C7CAF343805D5C12990"
+      "sha256": "F5A3B18E01251E7D86219F84C3AD296FAFEED46CCA11A27F31DE6D4C2D418618"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/schemas/document-profile.schema.json",
-      "status": "UNCHANGED_INCLUDED_FINAL_HARNESS",
       "size": 1291,
       "sha256": "B9C671C28521A5928ACED9CEE9F3AA0C6179F464779AD3FFCB6DEA5A300507BE"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/schemas/scope.schema.json",
-      "status": "UNCHANGED_INCLUDED_FINAL_HARNESS",
       "size": 381,
       "sha256": "243431800C288DA9110C51FFDD70092CC5D158005D6F8428C203449C9E0A776F"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/schemas/visual-geometry.schema.json",
-      "status": "ADDED",
       "size": 452,
-      "sha256": "28AF13203F87D2D16C5FF8ADB472E70D36D720FE006975B10D157F2BF94085AF"
+      "sha256": "DCE5BA5BCB2B20919328A339AA9236AA73736C702D0D999605F5310AF5D04A17"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/scope.json",
-      "status": "MODIFIED",
       "size": 3964,
-      "sha256": "029C57425F29C5E005A2CC7C58637482BEFFD9ED62BC1B871668618DFF73ECF2"
+      "sha256": "955302F7E7F28591B2162BED461D6F40B000B602E92DD24CB43CF08A0022DAB0"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/table-presets.json",
-      "status": "MODIFIED",
-      "size": 7470,
-      "sha256": "97E32552A329739C5C9717C0E7EC4BE97A8679C6EFAD21CCF0C7E709C8B63195"
+      "size": 14297,
+      "sha256": "8CFAC52BEFEC112C5AA6D6EC25A78C67C3C0158448EA0C7E2EF66BCC9435B75C"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/templates/ARTIFACT_REVIEW.template.json",
-      "status": "MODIFIED",
-      "size": 773,
-      "sha256": "66738B404E6FDAE99BD228E92A478A86F8100A32C6D4AAAF0C9BF8FE44FFDFC2"
+      "size": 1182,
+      "sha256": "337CA849FB9EE523037923D5D4F13F6F2ACFBAE94AB3A5C5AD2DC2D6CA564233"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/templates/SESSION_RUN_MANIFEST.template.json",
-      "status": "MODIFIED",
-      "size": 689,
-      "sha256": "7C081210FBAF682A729899A2F9241699FCBC22CEDD5E4BB137A1414096D169A6"
+      "size": 895,
+      "sha256": "2C88217C0C5B91AAE578B40975A8EE5847AA4FB17E9126FB7400EE9EB7BA3CDF"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/terminology.json",
-      "status": "MODIFIED",
       "size": 3908,
-      "sha256": "1A092FC18AF1B618009A9F67BDBED11551378B3485A2CD1B01C3DD625667CF4D"
+      "sha256": "BF7FC4595AE751BEA675A27330D44C6FA4914BD16432FEE9006A73DFEF444145"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/validators/validate_harness.ps1",
-      "status": "MODIFIED",
-      "size": 14849,
-      "sha256": "3C39F88134DCDB64D44BAA8848144AD040E2A547F6ED3B08ACDA7FF2DCA9AA4A"
+      "size": 17150,
+      "sha256": "0315FB44AC8C9912A86FACBDC309CD6E60F08DA801A065CDDA455E99FD73A09F"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/validators/validate_harness.py",
-      "status": "MODIFIED",
-      "size": 12533,
-      "sha256": "E8C1D47000458304D37DBCF7309B07A153E5FD06F3E4D1EF78F5A8C5831EA244"
+      "size": 14799,
+      "sha256": "D2278C4BF532F3618E503FE15E07D8FC5D8CAFB08A5C856ABC9A9BB5AE00F708"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/validators/validate_readme.ps1",
-      "status": "MODIFIED",
       "size": 2723,
       "sha256": "8F0452AADAEB77A1C648385F06CEECF8FC43708D540695C5E8B6EE55C60BF18C"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/validators/validate_readme.py",
-      "status": "MODIFIED",
       "size": 2359,
       "sha256": "1FDB9BE94D1BEFB895C3405C0EEBF762E1E5ACB2DB2C88ACE8F9C9B7D9D89550"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/validators/validate_visual_assets.ps1",
-      "status": "ADDED",
       "size": 2959,
-      "sha256": "A278648787E9E900F70DD86D9C5876C9B5AA1EFEADE12FF07F309CF48AF21F35"
+      "sha256": "4FEE0C53B17DA0363B40476245E2289029FE52B6E0597AAB926AEE85B9EFCA8F"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/validators/validate_visual_assets.py",
-      "status": "ADDED",
       "size": 2282,
-      "sha256": "2A55511585014F7F4100CD0B95B3A69E244C2E4EAF0BD8778E0406B5D3E500AB"
+      "sha256": "0675CC44A546D55BA33930D64E9F23438AFD2C4E98A853E04E8B2BC02FDAD337"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/visual-qa.json",
-      "status": "MODIFIED",
-      "size": 10069,
-      "sha256": "6A6CDAE3AE39D0F0C18C026D1BA4576F2DAFCBAD6D7EF8BCF9209F8A33EBF871"
+      "size": 11842,
+      "sha256": "92F213D3FF48F3808F71557E8E4AA1BA8D636DB9D5C673774E8118B4AB825107"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/visual-system.json",
-      "status": "MODIFIED",
       "size": 11953,
-      "sha256": "B5E51E7F8A9478D3613BC372929E6DF0EC27A4A9FF10D282EB424CC0847F8376"
+      "sha256": "7AD7D03DEF7B1815A9B1AA8C5BECC22EF9E24A304344F80B69804601CDE1921A"
     },
     {
       "path": "cpf-docs/governance/documentation-harness/writing-style.json",
-      "status": "MODIFIED",
-      "size": 8229,
-      "sha256": "038BCD343A2B9707F2CDA6C6E7555D78FEE57AC40A8DE66DD94D1C157BD70A85"
+      "size": 7512,
+      "sha256": "7F374C4A91A4D9065C9CF3BBF8675CDF5E22D17907AEFF7292B9CDBBC32BFBEC"
     },
     {
       "path": "cpf-docs/guides/02_프레임워크_개발자_가이드.docx",
-      "status": "ADDED",
-      "size": 216520,
-      "sha256": "A96759CABFCE60C3BAEBCFF699E3210662FF95D0D4A07966B0EBAAABC8ED88DF"
+      "size": 194247,
+      "sha256": "E3EAE163E4CDA159EE397F40C2FEAC5922C09C2BCDD57AA67B7D2391C14534DE"
     },
     {
       "path": "cpf-docs/guides/02_프레임워크_개발자_가이드.pdf",
-      "status": "ADDED",
-      "size": 708822,
-      "sha256": "63745FF086C21292DBA3853A63E527C391F9CB652215839688C69FE4B25B1E36"
+      "size": 653839,
+      "sha256": "26F28B3AD13D15B551EC887986C916AB1ECA9945C76DA50007A5B1769D7961FE"
     },
     {
       "path": "cpf-docs/guides/03_배치_개발자_가이드.docx",
-      "status": "ADDED",
-      "size": 92558,
-      "sha256": "C5024C34AC412C2E5A475711736963D74C04CFEBB3AA3AC725B26DFEF461BB22"
+      "size": 90015,
+      "sha256": "043220461D3A2CB65BD6C69957FE2A9A133DD7650EA6E36958F84767B9FA15A0"
     },
     {
       "path": "cpf-docs/guides/03_배치_개발자_가이드.pdf",
-      "status": "ADDED",
-      "size": 383549,
-      "sha256": "727CFD6B5D4A444527C4667A2AB029DAFEFD3AA7298D960B48CD1BA5BE876825"
+      "size": 371005,
+      "sha256": "2BB6EAF16154FFB9B0AD330FFB7010A3268D8B64C7CF356B02BEDCF43ABA71A3"
     },
     {
       "path": "cpf-docs/guides/04_운영자_매뉴얼.docx",
-      "status": "ADDED",
-      "size": 82607,
-      "sha256": "AEE8A1EA8A55AB25865738498837E6CA07DA0A740BD12225B00AAFFC930D5E29"
+      "size": 82092,
+      "sha256": "210DC8CB8A83CCE1AB29A8452CD32BF7B5A4737C9682B89A9D09CD8CDF3765D7"
     },
     {
       "path": "cpf-docs/guides/04_운영자_매뉴얼.pdf",
-      "status": "ADDED",
-      "size": 262415,
-      "sha256": "BFC46A411531B719AC869AB4FB936DFAD5FAB40E5D8BD249A9D661C70E1A6AD2"
+      "size": 245597,
+      "sha256": "0BB0381F80ECD5D4D39B94C14C22DDD45C9E72AF046656707D565F1476964E18"
     },
     {
       "path": "cpf-docs/guides/05_배치_운영_가이드.docx",
-      "status": "ADDED",
-      "size": 88047,
-      "sha256": "C127A184D34BCFB5420FFABCF4387D6D0C2133BA25B4AF93A99C901FAB53DD05"
+      "size": 85090,
+      "sha256": "411BFAEE723949EF1A4D9EDDE9C10C78D0F9DDCF8F2337D88BC0B55A7E9AC96C"
     },
     {
       "path": "cpf-docs/guides/05_배치_운영_가이드.pdf",
-      "status": "ADDED",
-      "size": 235294,
-      "sha256": "A69A778A28FBC442D181C5764D638511DD046C80BB7090544ADB03DB914B4BB8"
+      "size": 213871,
+      "sha256": "95E3E532EED231190F12EDC05BA6AECF925A618324AA2CC96B54664E82797F8F"
     },
     {
       "path": "cpf-docs/guides/06_Gateway_개발_사용_가이드.docx",
-      "status": "ADDED",
-      "size": 100541,
-      "sha256": "8FEEECEDDB855DBE16B542EEB271C6C2A2B7BBE6339194B738EB2FCEE5C4AD7C"
+      "size": 96729,
+      "sha256": "32D4D4D2DD2CA3B8F96E631948AC953EB603CA6D7343633C727516E96D2DA546"
     },
     {
       "path": "cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf",
-      "status": "ADDED",
-      "size": 230521,
-      "sha256": "24971A6F7E2B618954BCD29B422D0582824C434ACEAC8FDD94171F16F1A31D8A"
+      "size": 223431,
+      "sha256": "F29D83C7679EFBA56392B10EDA804F47B4E2F1C69B38303D512917606B5E2176"
     },
     {
       "path": "cpf-docs/guides/07_Specification_기술_명세.docx",
-      "status": "ADDED",
-      "size": 129430,
-      "sha256": "6FB4556A35DCC4775FB0671794BCED9901391C2156B328A5015EB9FBAC33DB91"
+      "size": 103306,
+      "sha256": "25AACD8E38AA8BDCA3BECFA20186422CF8971469AFA582D2111B7467C08C5D73"
     },
     {
       "path": "cpf-docs/guides/07_Specification_기술_명세.pdf",
-      "status": "ADDED",
-      "size": 272103,
-      "sha256": "FED8B254B7241F6048D75E83DD28F4ADA8FC48776AD50E8744948A1009C401BE"
+      "size": 234192,
+      "sha256": "FA05D29931F162AF1B167F0501D82E0E250AB3E7E7FCA617E44BD96865FF5A2A"
     }
   ]
 }

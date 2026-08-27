@@ -1,12 +1,14 @@
 $ErrorActionPreference='Stop'
-$root=(git rev-parse --show-toplevel 2>$null).Trim(); if($LASTEXITCODE-ne0-or[string]::IsNullOrWhiteSpace($root)){throw 'CPF GIT ROOT NOT FOUND'}
-$root=[IO.Path]::GetFullPath($root)
+$root=[IO.Path]::GetFullPath((git rev-parse --show-toplevel).Trim())
 $m=Join-Path $root 'cpf-docs\deliverables\documentation\DELETE_MANIFEST.txt'
+if(!(Test-Path -LiteralPath $m)){throw "DELETE MANIFEST NOT FOUND: $m"}
 Get-Content -LiteralPath $m -Encoding UTF8 | ForEach-Object {
-  $s=$_.Trim(); if(!$s -or $s.StartsWith('#')){return}
-  if([IO.Path]::IsPathRooted($s)-or$s.Contains('..')-or[Management.Automation.WildcardPattern]::ContainsWildcardCharacters($s)){throw "UNSAFE DELETE PATH: $s"}
-  $p=[IO.Path]::GetFullPath((Join-Path $root ($s -replace '/','\')))
-  if(!$p.StartsWith($root.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw "OUTSIDE ROOT: $s"}
-  if(Test-Path -LiteralPath $p){$i=Get-Item -LiteralPath $p -Force;if($i.PSIsContainer){throw "DIRECTORY DELETE FORBIDDEN: $s"};Remove-Item -LiteralPath $p -Force;Write-Host "DELETED=$s"}
+  $r=$_.Trim()
+  if($r -and -not $r.StartsWith('#')){
+    if([IO.Path]::IsPathRooted($r)-or$r.Contains('..')-or[Management.Automation.WildcardPattern]::ContainsWildcardCharacters($r)){throw "UNSAFE DELETE: $r"}
+    $p=[IO.Path]::GetFullPath((Join-Path $root ($r-replace '/','\')))
+    if(!$p.StartsWith($root.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw "OUTSIDE ROOT: $r"}
+    if(Test-Path -LiteralPath $p){if((Get-Item -LiteralPath $p).PSIsContainer){throw "DIRECTORY DELETE FORBIDDEN: $r"};Remove-Item -LiteralPath $p -Force}
+  }
 }
-Write-Host '[CPF][DOC] DELETE_MANIFEST PASS'
+Write-Host '[CPF][DOC] DELETE_MANIFEST_APPLIED'

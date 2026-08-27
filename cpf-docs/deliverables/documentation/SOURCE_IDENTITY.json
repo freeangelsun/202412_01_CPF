@@ -1,10 +1,9 @@
 {
   "schemaVersion": "1.0",
-  "sourceType": "USER_SUPPLIED_FINAL_SOURCE_ZIP",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip",
-  "sourceZipSha256": "B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip",
+  "sourceZipSha256": "A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07",
+  "sourceAuthority": "USER_PROVIDED_FINAL_SOURCE_ZIP",
   "gitExactSha": "UNAVAILABLE_IN_SUPPLIED_ZIP",
-  "gitHistoryUsedForSourceSelection": false,
-  "harnessVersion": "2.2.0",
-  "note": "Supplied ZIP contains no .git provenance. Documentation is anchored to the immutable ZIP digest; historical master SHA is not inherited."
+  "harnessVersion": "2.3.0",
+  "verifiedAtKst": "2026-08-27T04:11:47+09:00"
 }

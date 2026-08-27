@@ -1,10 +1,19 @@
-# CPF Documentation Handover
+# HANDOVER
 
-- Canonical Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip` SHA-256 `B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D`
-- Harness: `cpf-docs/governance/documentation-harness/` v2.2.0, current-only
-- 공식 산출물: README 1 + DOCX/PDF 11 Pair
-- 사용자 Navigation: PDF-only; DOCX는 ZIP 내부 편집/보관용
-- Developer Guide: 독자 작업 기준의 API/옵션/기본값/선택/실패·복구/최소예/검증/Source 구조
-- 문서 Orientation: 정보 밀도에 따라 landscape 허용(Framework/Batch Developer Guide 적용)
-- Git exact SHA는 전달 ZIP에서 확인할 수 없어 과거 SHA를 승계하지 않았고 immutable Source ZIP digest를 기준선으로 사용한다.
-- 다음 수정은 Harness-first → PATCH_FIRST. 사용자 지적 유형은 Harness Common Rule/Profile/Validator에 먼저 반영한다.
+- Canonical working Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip`
+- Source SHA-256: `A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07`
+- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP`
+- Harness: `cpf-docs/governance/documentation-harness/` v2.3.0 current-only
+- Evolution rule: `PATCH_FIRST`; good sections/pages/visuals are preserved unless an actual finding or dependency requires change.
+- Official artifacts: README + 11 DOCX + 11 PDF
+- Visual assets: 8 + geometry manifest; geometry gate PASS
+- DOCX/PDF final page count: 71
+- PDFium/Poppler: 11/11 page-count parity
+- A11y: 11/11 High/Medium/Low 0
+- User navigation: PDF-only; DOCX packaged only
+- Tables: only genuinely tabular/comparative data; equal widths only when semantically symmetric, otherwise content/role-weighted; header one-line hard gate.
+- Titles/layout: H1 single-line preferred, major-section top breathing room, semantic vertical rhythm.
+- Visuals: embedded safe-area/crop/overlap and semantic completeness are hard gates; Transaction has explicit RESULT STATE hub.
+- Supplied Source has pre-existing long paths under `cpf-docs/work/evidence/codex/current/**`; this Documentation patch does not modify/delete them.
+- Windows PowerShell verifier is packaged but was not executable in this Linux container.
+- Cross-environment commands: auto-detect repository root with `git rev-parse --show-toplevel`; use `$HOME\Downloads`; do not hard-code home/company drive paths.

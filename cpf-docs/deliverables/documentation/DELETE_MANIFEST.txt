@@ -1,4 +1,2 @@
-# CPF Documentation v2.2.0 exact delete manifest
-cpf-docs/governance/documentation-harness/CHANGELOG.md
-cpf-docs/deliverables/documentation/APPLY_V125.ps1
-cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1
+# CPF Documentation v2.3.0 exact delete manifest
+# No deletions required for source baseline A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07

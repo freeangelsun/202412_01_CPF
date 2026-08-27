@@ -222,8 +222,8 @@
     ],
     "linkInspection": [
       "[PDF] target exists and extension is .pdf",
-      "[DOCX] target exists and extension is .docx",
-      "when both formats exist, links are separately labeled and never cross-targeted",
+      "user navigation DOCX link count = 0",
+      "DOCX files remain packaged as editable artifacts but are not direct-open links",
       "link label and actual target file signature/extension agree"
     ],
     "regressionInspection": [

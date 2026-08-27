@@ -61,8 +61,8 @@
     },
     {
       "path": "SOURCE_BASELINE.json",
-      "sha256": "50662c833c309cf352fb1aa3d33b8ffd22958d488947dd4c5dac4328276f5b7d",
-      "size": 8038
+      "sha256": "2b2981873edf37bffe8cf8c784404069b8826e288ebcb4b3efc48cfb37068705",
+      "size": 8055
     },
     {
       "path": "SOURCE_CAPABILITY_INVENTORY.json",
@@ -266,8 +266,8 @@
     },
     {
       "path": "visual-qa.json",
-      "sha256": "eab1ac7fe8a6b0de5e095576eda5848ff0efacf4c35f5e5050acf47c9a5b86f9",
-      "size": 11850
+      "sha256": "92f213d3ff48f3808f71557e8e4aa1ba8d636db9d5c673774e8118b4ab825107",
+      "size": 11842
     },
     {
       "path": "visual-system.json",
@@ -276,8 +276,8 @@
     },
     {
       "path": "writing-style.json",
-      "sha256": "99265988e11355f1f0e7af68496edba74d3b072cde046f830a496db143ec05e9",
-      "size": 7476
+      "sha256": "7f374c4a91a4d9065c9cf3bbf8675cdf5e22d17907aeff7292b9cdbbc32bfbec",
+      "size": 7512
     }
   ]
 }

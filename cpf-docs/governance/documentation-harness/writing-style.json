@@ -110,7 +110,7 @@
     "relative_repo_links_required": true,
     "broken_link": "hard_fail",
     "pdf_label_target": "[PDF]는 반드시 .pdf 파일을 직접 가리킨다.",
-    "docx_label_target": "[DOCX]는 반드시 .docx 파일을 직접 가리킨다.",
+    "docx_label_target": "forbidden in user navigation; DOCX는 ZIP 내부 편집/보관 산출물로만 유지한다.",
     "paired_document_link": "사용자 Navigation은 문서명 뒤 [PDF]만 표기한다. DOCX는 링크하지 않는다.",
     "link_label_extension_mismatch": "hard_fail",
     "docx_user_navigation": "forbidden; DOCX는 ZIP 내부 편집/보관 산출물로만 유지한다."

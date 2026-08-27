@@ -1,12 +1,18 @@
 # CPF Documentation Final Delivery Summary
 
-- Source 기준: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip`
-- Source SHA-256: `B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D`
-- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP` (전달 ZIP에 `.git` 미포함)
-- Harness: v2.2.0, current-only
-- 공식 Artifact: README 1 + DOCX 11 + PDF 11 = 23 files
-- DOCX final render: 70 pages, 11/11 accessibility High/Medium/Low 0
-- PDF final render: PDFium 70 / Poppler 70, page parity PASS, preflight warning 0, embedded-font 누락 0, replacement glyph 0
-- README: 8 visuals, PDF-only user navigation, DOCX user links 0
-- User findings closed: visual overlap/boundary/spacing/text overflow, generic figure labels, reader-first developer guide, API/option decision matrices, current-only harness
-- PowerShell-only validators: final package includes them; this Linux execution environment has no `pwsh`, so Windows execution result is `미검증` and Python/cross-render results are not substituted as PowerShell PASS.
+- Source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip`
+- Source SHA-256: `A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07`
+- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP`
+- Harness: `v2.3.0`, current-only, `PATCH_FIRST`
+- Product artifacts: README 1 + DOCX 11 + PDF 11
+- Visual assets: 8 + geometry manifest
+- Final DOCX/PDF pages: 71
+- User navigation: PDF-only; DOCX is packaged as editable source but not exposed as a user link.
+- Harness/README/Visual/Python delivery gates: PASS
+- Fresh Source Clean Replay: PASS — 109 overlay files, byte diff 0, package hashes PASS
+- DOCX A11y: 11/11 High=0, Medium=0, Low=0
+- PDFium/Poppler: 11/11 page-count parity, 71 pages
+- PDF preflight/font embedding: PASS
+- Generated/modified Documentation artifact absolute path >150: 0 for supported home/company roots.
+- Supplied Source baseline has pre-existing long Codex evidence paths outside this Documentation patch; they were not modified or deleted.
+- Windows PowerShell replay: 미검증 in this Linux container; `VERIFY.ps1` is packaged for post-apply Windows verification.

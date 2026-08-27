@@ -1,1 +1,1 @@
-# no empty-directory deletion required
+# No empty-directory deletions required.

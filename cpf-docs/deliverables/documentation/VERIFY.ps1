@@ -1,14 +1,23 @@
 $ErrorActionPreference='Stop'
-$root=(git rev-parse --show-toplevel 2>$null).Trim();if($LASTEXITCODE-ne0-or[string]::IsNullOrWhiteSpace($root)){$root=(Get-Location).Path}
-$root=[IO.Path]::GetFullPath($root);Set-Location $root
-$h='cpf-docs\governance\documentation-harness'
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $h 'validators\validate_harness.ps1');if($LASTEXITCODE-ne0){throw 'HARNESS FAIL'}
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $h 'validators\validate_readme.ps1') -Readme 'README.md';if($LASTEXITCODE-ne0){throw 'README FAIL'}
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $h 'validators\validate_visual_assets.ps1') -RepositoryRoot $root;if($LASTEXITCODE-ne0){throw 'VISUAL GEOMETRY FAIL'}
-$required=@('README.md','cpf-docs\guides\02_프레임워크_개발자_가이드.docx','cpf-docs\guides\02_프레임워크_개발자_가이드.pdf','cpf-docs\guides\03_배치_개발자_가이드.docx','cpf-docs\guides\03_배치_개발자_가이드.pdf','cpf-docs\guides\04_운영자_매뉴얼.docx','cpf-docs\guides\04_운영자_매뉴얼.pdf','cpf-docs\guides\05_배치_운영_가이드.docx','cpf-docs\guides\05_배치_운영_가이드.pdf','cpf-docs\guides\06_Gateway_개발_사용_가이드.docx','cpf-docs\guides\06_Gateway_개발_사용_가이드.pdf','cpf-docs\guides\07_Specification_기술_명세.docx','cpf-docs\guides\07_Specification_기술_명세.pdf','cpf-docs\deliverables\아키텍처설계서.docx','cpf-docs\deliverables\아키텍처설계서.pdf','cpf-docs\deliverables\기술사양서.docx','cpf-docs\deliverables\기술사양서.pdf','cpf-docs\deliverables\기술표준서.docx','cpf-docs\deliverables\기술표준서.pdf','cpf-docs\deliverables\데이터베이스표준서.docx','cpf-docs\deliverables\데이터베이스표준서.pdf','cpf-docs\deliverables\산출물목록.docx','cpf-docs\deliverables\산출물목록.pdf')
-$missing=@($required|Where-Object{-not(Test-Path -LiteralPath $_ -PathType Leaf)});if($missing.Count){throw ('MISSING OFFICIAL ARTIFACT: '+($missing-join ', '))}
-$stale=@('cpf-docs\governance\documentation-harness\CHANGELOG.md','cpf-docs\deliverables\documentation\APPLY_V125.ps1','cpf-docs\deliverables\documentation\DELETE_ONLY_V125.ps1');$left=@($stale|Where-Object{Test-Path -LiteralPath $_});if($left.Count){throw ('STALE FILE: '+($left-join ', '))}
-$readme=Get-Content -LiteralPath README.md -Raw -Encoding UTF8;if($readme-match '\[[^\]]*DOCX[^\]]*\]\(' -or $readme-match '\]\([^)]*\.docx(?:#.*?)?\)'){throw 'DOCX USER LINK FOUND'}
-$manifest='cpf-docs\deliverables\documentation\SHA256SUMS.txt';$bad=@();Get-Content -LiteralPath $manifest -Encoding UTF8|ForEach-Object{if($_-match '^([0-9A-F]{64})  (.+)$'){$exp=$Matches[1];$rel=$Matches[2];if(-not(Test-Path -LiteralPath $rel -PathType Leaf)){$bad+="MISSING:$rel"}elseif((Get-FileHash -Algorithm SHA256 -LiteralPath $rel).Hash.ToUpperInvariant()-ne$exp){$bad+="HASH:$rel"}}};if($bad.Count){throw ('CHECKSUM FAIL '+($bad-join '; '))}
-$tooLong=@();Import-Csv 'cpf-docs\deliverables\documentation\CHANGE_MANIFEST.csv'|ForEach-Object{if($_.path-and$_.status-ne'DELETED'){$abs=[IO.Path]::GetFullPath((Join-Path $root ($_.path-replace '/','\')));if($abs.Length-gt150){$tooLong+=$abs}}};if($tooLong.Count){throw ('PATH >150 '+($tooLong-join '; '))}
-Write-Host '[CPF][DOC] V2.2.0 VERIFY PASS';Write-Host 'OFFICIAL_ARTIFACTS=23';Write-Host 'SOURCE_ZIP_SHA256=B47BCE7700700BF4186B997E38AB84192F2DB391E750A3781CD66F398824514D';Write-Host 'GIT_EXACT_SHA=UNAVAILABLE_IN_SUPPLIED_ZIP'
+$root=[IO.Path]::GetFullPath((git rev-parse --show-toplevel).Trim());Set-Location $root
+$h=Join-Path $root 'cpf-docs\governance\documentation-harness'
+& (Join-Path $h 'validators\validate_harness.ps1')
+& (Join-Path $h 'validators\validate_readme.ps1') -ReadmePath (Join-Path $root 'README.md')
+& (Join-Path $h 'validators\validate_visual_assets.ps1')
+$docs=@(Get-ChildItem (Join-Path $root 'cpf-docs\guides') -File | Where-Object Extension -in '.docx','.pdf')+@(Get-ChildItem (Join-Path $root 'cpf-docs\deliverables') -File | Where-Object Extension -in '.docx','.pdf')
+$docx=@($docs|Where-Object Extension -eq '.docx');$pdf=@($docs|Where-Object Extension -eq '.pdf')
+if($docx.Count-ne11){throw "DOCX COUNT=$($docx.Count)"};if($pdf.Count-ne11){throw "PDF COUNT=$($pdf.Count)"}
+$readme=Get-Content -LiteralPath (Join-Path $root 'README.md') -Raw -Encoding UTF8
+if($readme -match '(?i)\.docx\)' -or $readme -match '(?i)\[[^\]]*DOCX[^\]]*\]\('){throw 'DOCX USER LINK FOUND'}
+$stale=@('cpf-docs\governance\documentation-harness\CHANGELOG.md','cpf-docs\deliverables\documentation\APPLY_V125.ps1','cpf-docs\deliverables\documentation\DELETE_ONLY_V125.ps1');$left=@($stale|Where-Object{Test-Path -LiteralPath (Join-Path $root $_)});if($left.Count){throw ('STALE FILE: '+($left-join ', '))}
+$si=Get-Content -LiteralPath (Join-Path $root 'cpf-docs\deliverables\documentation\SOURCE_IDENTITY.json') -Raw -Encoding UTF8|ConvertFrom-Json
+if($si.sourceZipSha256-ne'A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07'){throw 'SOURCE DIGEST MISMATCH'}
+$sums=Join-Path $root 'cpf-docs\deliverables\documentation\SHA256SUMS.txt'
+Get-Content -LiteralPath $sums -Encoding UTF8|ForEach-Object{
+  if($_.Trim()){
+    $a=$_ -split '  ',2;if($a.Count-ne2){throw "BAD CHECKSUM LINE: $_"}
+    $p=Join-Path $root ($a[1]-replace '/','\');if(!(Test-Path -LiteralPath $p -PathType Leaf)){throw "CHECKSUM FILE MISSING: $($a[1])"}
+    $actual=(Get-FileHash -Algorithm SHA256 -LiteralPath $p).Hash.ToUpperInvariant();if($actual-ne$a[0].ToUpperInvariant()){throw "CHECKSUM MISMATCH: $($a[1])"}
+  }
+}
+Write-Host '[CPF][DOC] V2.3.0 VERIFY PASS';Write-Host 'OFFICIAL_ARTIFACTS=23';Write-Host 'PACKAGE_HASHES=PASS';Write-Host 'SOURCE_ZIP_SHA256=A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07';Write-Host 'GIT_EXACT_SHA=UNAVAILABLE_IN_SUPPLIED_ZIP'

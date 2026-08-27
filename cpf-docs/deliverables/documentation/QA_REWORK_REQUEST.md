@@ -1,3 +1,3 @@
-# CPF Documentation QA Rework Request
+# QA REWORK REQUEST
 
-개발 GPT Documentation 자체검수 기준 추가 재개발 요청 없음. QA 최종 판정은 QA 역할에서 별도로 수행한다.
+개발 GPT 자체검수 기준으로 신규 QA 재개발 요청을 임의 생성하지 않는다. QA가 동일 Requirement ID를 재개방하면 해당 ID와 QA Finding을 기준으로 재개발한다.

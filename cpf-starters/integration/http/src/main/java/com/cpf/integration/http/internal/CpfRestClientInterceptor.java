@@ -9,6 +9,8 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -105,7 +107,16 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
                         "endpointCode", request.getURI().getHost() + ":" + request.getURI().getPort(),
                         "timeoutYn", "N",
                         "retryCount", 0,
-                        "requestHeadersMasked", headerSanitizer.sanitize(request.getHeaders())));
+                        "requestHeadersMasked", headerSanitizer.sanitize(headerSnapshot(request.getHeaders()))));
+    }
+
+    private static Map<String, List<String>> headerSnapshot(HttpHeaders headers) {
+        if (headers == null || headers.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, List<String>> snapshot = new LinkedHashMap<>();
+        headers.forEach((name, values) -> snapshot.put(name, values == null ? List.of() : List.copyOf(values)));
+        return Map.copyOf(snapshot);
     }
 
 }

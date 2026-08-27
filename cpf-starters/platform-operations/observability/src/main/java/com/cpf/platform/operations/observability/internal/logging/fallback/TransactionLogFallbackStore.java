@@ -173,7 +173,7 @@ public final class TransactionLogFallbackStore implements CpfTransactionLogFallb
         }
         return eligible.stream()
                 .sorted(Comparator
-                        .comparing(FallbackSnapshot::firstFailedAt, Comparator.nullsFirst(Comparator.naturalOrder()))
+                        .comparing(EligibleFile::firstFailedAt, Comparator.nullsFirst(Comparator.naturalOrder()))
                         .thenComparing(value -> value.recoveryEventId(), Comparator.nullsFirst((left, right) -> left.compareTo(right))))
                 .limit(Math.max(1, limit))
                 .map(value -> value.path())

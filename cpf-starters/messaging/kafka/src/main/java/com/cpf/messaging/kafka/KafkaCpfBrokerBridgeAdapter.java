@@ -80,7 +80,7 @@ public final class KafkaCpfBrokerBridgeAdapter implements CpfBrokerBridgePort, A
             for(CpfBrokerBridgeHandler h:handlers.getOrDefault(subscription,List.of()))contextSupport.consume(bundle,()->h.handle(message));
         }catch(Exception e){throw new IllegalStateException("Kafka bridge consumer rejected message",e);}
     }
-    @Override public List<CpfBrokerBridgeMessage> findRecent(String destination,int limit){String topic=hasText(destination)?destination:null;int bounded=Math.max(1,Math.min(limit<=0?50:limit,RECENT_LIMIT));return recent.stream().filter(m->topic==null||topic.equals(m.destination())).sorted(Comparator.comparing(CpfBrokerBridgeMessage::createdAt).reversed()).limit(bounded).toList();}
+    @Override public List<CpfBrokerBridgeMessage> findRecent(String destination,int limit){String topic=hasText(destination)?destination:null;int bounded=Math.max(1,Math.min(limit<=0?50:limit,RECENT_LIMIT));return recent.stream().filter(m->topic==null||topic.equals(m.destination())).sorted(Comparator.comparing((CpfBrokerBridgeMessage value) -> value.createdAt()).reversed()).limit(bounded).toList();}
     private static void addHeader(ProducerRecord<String,byte[]> r,String n,String v){if(!hasText(v))return;validateName(n);r.headers().add(new RecordHeader(n,v.getBytes(StandardCharsets.UTF_8)));}
     private static void validateName(String n){if(!n.matches("[A-Za-z0-9._-]{1,128}"))throw new IllegalArgumentException("Invalid Kafka header name: "+n);}
     private void remember(CpfBrokerBridgeMessage m){recent.addFirst(m);while(recent.size()>RECENT_LIMIT)recent.pollLast();}

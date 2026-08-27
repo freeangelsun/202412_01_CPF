@@ -1,0 +1,28 @@
+{
+  "findingId": "CX-F-026",
+  "status": "FAIL",
+  "recordedAt": "2026-08-27T18:46:00+09:00",
+  "sourceIdentitySha256": "437b9487d41e5c64d56251cdb3d9e199e87dcbc26c8b05a464656b42c3c1c926",
+  "command": "gradlew.bat --no-daemon clean cpfBuild --continue --stacktrace -PcpfIncludeGeneratedDomains=true --console=plain",
+  "exitCode": 1,
+  "duration": "7m43s",
+  "actionableTasks": 680,
+  "executedTasks": 679,
+  "upToDateTasks": 1,
+  "failedTasks": [
+    ":nxt3GeneratorGate"
+  ],
+  "generatorGate": {
+    "passedChecks": 28,
+    "failedChecks": 2,
+    "memberChanged": ["online/src/test/java/member/sample/controller/SampleTransactionControllerContractTest.java"],
+    "externalChanged": ["online/src/test/java/external/sample/controller/SampleTransactionControllerContractTest.java"]
+  },
+  "compileOrTestTaskFailures": 0,
+  "oomOrNativeCrash": false,
+  "rawLogs": [
+    "C:/Users/fly10/Downloads/CPF_CX09_F026_ROOT_BUILD.out.log",
+    "C:/Users/fly10/Downloads/CPF_CX09_F026_ROOT_BUILD.err.log"
+  ],
+  "nextAction": "Compare both Generated files with the current Generator owner and repair/regenerate at the Generator boundary before an exact gate rerun"
+}

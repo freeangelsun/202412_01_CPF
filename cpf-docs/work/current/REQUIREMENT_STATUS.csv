@@ -1,128 +1,170 @@
-work_item_id,source_requirement_ids,work_package,development_status,verification_status,overall_status,source_identity
-WP-R00.01,REOPEN-16,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R00.02,REOPEN-17,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R00.03,GOV-CURRENT-REQUEST,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R00.04,GOV-CLOSURE-INVENTORY,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R00.05,GOV-DOC-SYNC,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R00.06,GOV-GARBAGE-ZERO,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R00.07,GOV-TEST-STRENGTH;REOPEN-14;REOPEN-15,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.01,RT-91;RT-92;RT-94;RT-95;RT-96;RT-106;RT-109;RT-140;IDE-CPFATTR,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.02,IDE-BUILD-PATH,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.03,IDE-BATCH-RETENTION,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.04,IDE-BATCH-NOTIFICATION,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.05,IDE-FILE-SFTP,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.06,IDE-FILE-ARCHIVE,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.07,IDE-DATA-JPA,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.08,IDE-DATA-MYBATIS,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.09,IDE-GENERIC-LAMBDA,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R01.10,RT-97,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.01,REOPEN-12;REOPEN-13,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.02,IDE-TYPE-RESOLUTION,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.03,IDE-GENERICS,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.04,IDE-TEST-CLASSPATH,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.05,IDE-DEPRECATION-UNUSED,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.06,IDE-NULL-RESOURCE,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.07,IDE-BUILD-PATH-CYCLE,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R02.08,IDE-WARNING-POLICY;REOPEN-12,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R03.01,RT-79,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R03.02,RT-06,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R03.03,HARNESS-FAIL-CASCADE;REOPEN-13,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R03.04,HARNESS-MANDATORY-SKIP;REOPEN-15,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R03.05,HARNESS-EVIDENCE-IDENTITY;RT-155,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R03.06,HARNESS-HIGH-INTENSITY;REOPEN-14;REOPEN-15,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R04.01,RT-109;GEN-DOMAIN,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R04.02,GEN-IDEMP-MBR,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R04.03,GEN-IDEMP-EXS,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R04.04,REOPEN-03,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R04.05,REOPEN-04,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R04.06,GEN-PUBLIC-BOUNDARY;GEN-DOMAIN;GEN-SETUP,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R04.07,GEN-DB3;DB-BINDING,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.01,REOPEN-07;REOPEN-08,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.02,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.03,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.04,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.05,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.06,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.07,SHELL-WIN-LINUX-PARITY;REOPEN-07,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R05.08,SHELL-GARBAGE;GOV-GARBAGE-ZERO,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R06.01,REOPEN-09,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R06.02,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R06.03,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R06.04,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R06.05,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R06.06,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R06.07,BATCH-PROFILE-ZERO-IMPACT;REOPEN-09,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.01,REOPEN-01;REL-PUBLIC-WORKSPACE,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.02,REOPEN-02;DEVEX-BOOTSTRAP,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.03,REL-PUBLIC-BINARY,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.04,OPEN-GIT-GRADLE;REOPEN-02,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.05,OPEN-GIT-SOURCE-ALLOWLIST;REOPEN-01,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.06,OPEN-GIT-FRESH-GENERATION;REOPEN-01,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.07,OPEN-GIT-EDU-BACKOFFICE;REOPEN-01,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.08,OPEN-GIT-RESET-RERUN;REOPEN-02,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.09,OPEN-GIT-WIN-LINUX;REOPEN-02,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R07.10,OPEN-GIT-GARBAGE;GOV-GARBAGE-ZERO,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.01,REOPEN-03;REOPEN-04,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.02,REOPEN-05;REOPEN-06,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.03,OPTIONAL-BATCH;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.04,OPTIONAL-BACKOFFICE;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.05,OPTIONAL-PERSISTENCE;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.06,OPTIONAL-CACHE;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.07,OPTIONAL-MESSAGING;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R08.08,OPTIONAL-ZERO-FOOTPRINT;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R09.01,RT-39;RT-44;CPF-CONTEXT,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R09.02,CPF-SYSTEM6;CPF-TXID;CPF-OPERATION,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R09.03,SEC-AUTHZ;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R09.04,SEC-SECRET-MASK;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R09.05,SEC-SESSION-BFF;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R09.06,SEC-AUDIT-TAMPER;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.01,RT-125;DB3-RUNTIME,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.02,DB3;DB-BINDING,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.03,DB3;DB-BINDING,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.04,DB3;DB-BINDING,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.05,DB3-IMMUTABLE-RT02;RT-02,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.06,DB3-GENERATED;GEN-DB3,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.07,DB3-FAILURE-RECOVERY;REOPEN-15,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R10.08,DB3-GARBAGE;GOV-GARBAGE-ZERO,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.01,RT-134;REOPEN-15,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.02,BAT-NO-REMOTE-KAFKA,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.03,BATCH-CLAIM-FENCE,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.04,BATCH-UNKNOWN-RECONCILE,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.05,BATCH-CENTER-CUT,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.06,BATCH-GATEWAY-ADM,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.07,BATCH-PROFILES-SHELLS;REOPEN-09;REOPEN-10,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.08,BATCH-DB3;DB3;BATCH-RUNTIME,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.09,BATCH-CONTEXT-TRACE;CPF-CONTEXT;CPF-INSTANCE,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R11.10,BATCH-CLEAN-RERUN;REOPEN-15,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.01,RT-140,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.02,RT-141,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.03,RT-142,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.04,RT-143,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.05,RT-144;RT-145,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.06,RT-146,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.07,RT-147,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R12.08,ONEWAS-MULTIINSTANCE;CPF-INSTANCE;ARCH-MSA,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R13.01,RT-100,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R13.02,ADM-FRONTEND-FULL;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R13.03,BACKOFFICE-FRONTEND-FULL;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R13.04,FRONTEND-GENERATED-CLIENT;API-OPENAPI,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R13.05,FRONTEND-ERROR-STATUS;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R13.06,FRONTEND-A11Y-RESPONSIVE;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R13.07,FRONTEND-GARBAGE;GOV-GARBAGE-ZERO,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R14.01,REOPEN-11,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R14.02,UTF8-ERROR-PATH;REOPEN-11,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R14.03,DEVEX-WINDOWS-PATH,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R14.04,RT-155,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R14.05,GARBAGE-CURRENT-DOCS;GOV-GARBAGE-ZERO,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R14.06,GARBAGE-BUILD-TEMP;GOV-GARBAGE-ZERO,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R14.07,GARBAGE-DELETE-SAFETY;GOV-GARBAGE-ZERO,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.01,REOPEN-14;REOPEN-15,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,완료,완료,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.02,REL-BUILD,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.03,FULL-RUNTIME;REOPEN-15,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.04,FRESH-REPLAY;REOPEN-15,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.05,EVIDENCE-CURRENT;GOV-EVIDENCE,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.06,CODEX-MID,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.07,CODEX-SOURCE-DOC-SYNC,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.08,CODEX-CARRYOVER;CODEX_FINDING_CLOSURE,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.09,FINAL-GARBAGE-ZERO;GOV-GARBAGE-ZERO,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
-WP-R15.10,FINAL-GATE;REOPEN-16,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb
+﻿work_item_id,source_requirement_ids,work_package,development_status,verification_status,overall_status,source_identity
+WP-R00.01,REOPEN-16,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.02,REOPEN-17,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.03,GOV-CURRENT-REQUEST,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.04,GOV-CLOSURE-INVENTORY,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.05,GOV-DOC-SYNC,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.06,GOV-GARBAGE-ZERO,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,완료,완료,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.07,GOV-TEST-STRENGTH;REOPEN-14;REOPEN-15,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.01,RT-91;RT-92;RT-94;RT-95;RT-96;RT-106;RT-109;RT-140;IDE-CPFATTR,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.02,IDE-BUILD-PATH,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.03,IDE-BATCH-RETENTION,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.04,IDE-BATCH-NOTIFICATION,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.05,IDE-FILE-SFTP,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.06,IDE-FILE-ARCHIVE,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.07,IDE-DATA-JPA,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.08,IDE-DATA-MYBATIS,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.09,IDE-GENERIC-LAMBDA,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.10,RT-97,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.01,REOPEN-12;REOPEN-13,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.02,IDE-TYPE-RESOLUTION,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.03,IDE-GENERICS,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.04,IDE-TEST-CLASSPATH,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.05,IDE-DEPRECATION-UNUSED,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.06,IDE-NULL-RESOURCE,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.07,IDE-BUILD-PATH-CYCLE,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.08,IDE-WARNING-POLICY;REOPEN-12,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.01,RT-79,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.02,RT-06,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.03,HARNESS-FAIL-CASCADE;REOPEN-13,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.04,HARNESS-MANDATORY-SKIP;REOPEN-15,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.05,HARNESS-EVIDENCE-IDENTITY;RT-155,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.06,HARNESS-HIGH-INTENSITY;REOPEN-14;REOPEN-15,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.01,RT-109;GEN-DOMAIN,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.02,GEN-IDEMP-MBR,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.03,GEN-IDEMP-EXS,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.04,REOPEN-03,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.05,REOPEN-04,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.06,GEN-PUBLIC-BOUNDARY;GEN-DOMAIN;GEN-SETUP,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.07,GEN-DB3;DB-BINDING,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.01,REOPEN-07;REOPEN-08,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.02,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.03,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.04,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.05,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.06,REOPEN-07;REOPEN-10,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.07,SHELL-WIN-LINUX-PARITY;REOPEN-07,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.08,SHELL-GARBAGE;GOV-GARBAGE-ZERO,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R06.01,REOPEN-09,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R06.02,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R06.03,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R06.04,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R06.05,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R06.06,REOPEN-09;REOPEN-10,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R06.07,BATCH-PROFILE-ZERO-IMPACT;REOPEN-09,WP-R06 Batch Dev/Test/Prod Profile & Effective Configuration,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.01,REOPEN-01;REL-PUBLIC-WORKSPACE,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.02,REOPEN-02;DEVEX-BOOTSTRAP,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.03,REL-PUBLIC-BINARY,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.04,OPEN-GIT-GRADLE;REOPEN-02,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.05,OPEN-GIT-SOURCE-ALLOWLIST;REOPEN-01,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.06,OPEN-GIT-FRESH-GENERATION;REOPEN-01,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.07,OPEN-GIT-EDU-BACKOFFICE;REOPEN-01,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.08,OPEN-GIT-RESET-RERUN;REOPEN-02,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.09,OPEN-GIT-WIN-LINUX;REOPEN-02,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R07.10,OPEN-GIT-GARBAGE;GOV-GARBAGE-ZERO,WP-R07 Open Git Actual Fresh Release / Public Developer Workspace,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.01,REOPEN-03;REOPEN-04,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.02,REOPEN-05;REOPEN-06,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.03,OPTIONAL-BATCH;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.04,OPTIONAL-BACKOFFICE;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.05,OPTIONAL-PERSISTENCE;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.06,OPTIONAL-CACHE;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.07,OPTIONAL-MESSAGING;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R08.08,OPTIONAL-ZERO-FOOTPRINT;REOPEN-05,WP-R08 Domain / Optional Capability Zero-Impact Mutation,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R09.01,RT-39;RT-44;CPF-CONTEXT,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R09.02,CPF-SYSTEM6;CPF-TXID;CPF-OPERATION,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R09.03,SEC-AUTHZ;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R09.04,SEC-SECRET-MASK;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R09.05,SEC-SESSION-BFF;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R09.06,SEC-AUDIT-TAMPER;REOPEN-14,WP-R09 Security Context / Session / System6 / Auth-Audit Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.01,RT-125;DB3-RUNTIME,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.02,DB3;DB-BINDING,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.03,DB3;DB-BINDING,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.04,DB3;DB-BINDING,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.05,DB3-IMMUTABLE-RT02;RT-02,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.06,DB3-GENERATED;GEN-DB3,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.07,DB3-FAILURE-RECOVERY;REOPEN-15,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.08,DB3-GARBAGE;GOV-GARBAGE-ZERO,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.01,RT-134;REOPEN-15,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.02,BAT-NO-REMOTE-KAFKA,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.03,BATCH-CLAIM-FENCE,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.04,BATCH-UNKNOWN-RECONCILE,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.05,BATCH-CENTER-CUT,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.06,BATCH-GATEWAY-ADM,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.07,BATCH-PROFILES-SHELLS;REOPEN-09;REOPEN-10,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.08,BATCH-DB3;DB3;BATCH-RUNTIME,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.09,BATCH-CONTEXT-TRACE;CPF-CONTEXT;CPF-INSTANCE,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R11.10,BATCH-CLEAN-RERUN;REOPEN-15,WP-R11 Kafka-free Batch Maximum Runtime / Two Worker / Kill / UNKNOWN,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.01,RT-140,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.02,RT-141,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.03,RT-142,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.04,RT-143,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.05,RT-144;RT-145,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.06,RT-146,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.07,RT-147,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R12.08,ONEWAS-MULTIINSTANCE;CPF-INSTANCE;ARCH-MSA,WP-R12 One-WAS / Logging / Runtime OpenAPI / Browser / Performance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R13.01,RT-100,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R13.02,ADM-FRONTEND-FULL;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R13.03,BACKOFFICE-FRONTEND-FULL;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R13.04,FRONTEND-GENERATED-CLIENT;API-OPENAPI,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R13.05,FRONTEND-ERROR-STATUS;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R13.06,FRONTEND-A11Y-RESPONSIVE;REOPEN-14,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R13.07,FRONTEND-GARBAGE;GOV-GARBAGE-ZERO,WP-R13 ADM / Backoffice Frontend Build & Runtime Quality,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R14.01,REOPEN-11,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R14.02,UTF8-ERROR-PATH;REOPEN-11,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R14.03,DEVEX-WINDOWS-PATH,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R14.04,RT-155,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R14.05,GARBAGE-CURRENT-DOCS;GOV-GARBAGE-ZERO,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R14.06,GARBAGE-BUILD-TEMP;GOV-GARBAGE-ZERO,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R14.07,GARBAGE-DELETE-SAFETY;GOV-GARBAGE-ZERO,WP-R14 Windows UTF-8 / Path / Managed State / Garbage Zero,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.01,REOPEN-14;REOPEN-15,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,완료,완료,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.02,REL-BUILD,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.03,FULL-RUNTIME;REOPEN-15,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.04,FRESH-REPLAY;REOPEN-15,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.05,EVIDENCE-CURRENT;GOV-EVIDENCE,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.06,CODEX-MID,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.07,CODEX-SOURCE-DOC-SYNC,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.08,CODEX-CARRYOVER;CODEX_FINDING_CLOSURE,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.09,FINAL-GARBAGE-ZERO;GOV-GARBAGE-ZERO,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.10,FINAL-GATE;REOPEN-16,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.08,SRC-ID-RUNTIME-SPLIT,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.09,RUNTIME-20260827-ALL,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.10,DEV-REVIEW-209,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.11,COVERAGE-PHASE-GATE,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.12,OPEN-ISSUES-CURRENT,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.13,PACKAGE-EVIDENCE-ID,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R00.14,ROLE-OWNER-PROTECT,WP-R00 Source Identity / Reopen Ledger / Current-only Governance,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.11,IDE-ADM-COMPARATOR,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.12,IDE-POLICY-VERSION-INFERENCE,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.13,IDE-BATCH-MAP,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.14,IDE-LOGGING-MAPENTRY,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.15,IDE-HTTP-SANITIZER,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.16,IDE-FALLBACK-COMPARATOR,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.17,IDE-LOGGING-ASPECT-CONSTRUCTOR,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.18,IDE-VALKEY-BUILDPATH,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.19,WIN-GRADLE-CLEAN-LOCK,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R01.20,ROOT-BUILD-CASCADE,WP-R01 Immediate Build / Dependency / Runtime Cascade Blockers,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.09,VSCODE-FRESH-RELOAD,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.10,VSCODE-FRESH-CLONE,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R02.11,VSCODE-ZERO-ZERO,WP-R02 VSCode Java25 Fresh Import — Error 0 / Warning 0,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.07,FULL-RUNTIME-CONTRACT-COMPLETE,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.08,FULL-RUNTIME-VSCODE,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.09,FULL-RUNTIME-PERF-LOAD,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.10,FULL-RUNTIME-OPEN-GIT,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.11,FULL-RUNTIME-FRESH-REPLAY,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.12,FULL-RUNTIME-MANDATORY-MISSING,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.13,FULL-RUNTIME-RESULT-ZIP,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R03.14,MANAGED-STATE-DIFF,WP-R03 Verification Harness / False-Green / Evidence Path Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.08,GEN-TEMPLATE-OWNER-REGEN,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.09,GEN-IDEMPOTENT-RERUN,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.10,GEN-MULTI-FEATURE-BATCH,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.11,GEN-USER-OWNED-PROTECT,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.12,GEN-JAVA25-BUILD-RUNTIME,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R04.13,GEN-ROOT-PREFIX-REGRESSION,WP-R04 Generator / Generated Domain / Idempotency / Consumer Closure,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.09,DB-ORACLE-SQLPLUS-SECRET,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.10,DB-ORACLE-SEED-SEMANTIC,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R10.11,DB-ORACLE-BATCH-SEQUENCE,WP-R10 DB3 Oracle/PostgreSQL/MariaDB Physical Lifecycle,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R05.09,SHELL-GIT-TRACKABILITY;GOV-GARBAGE-ZERO,WP-R05 Standalone Runtime Shell — Every Executable Role,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.26,FINAL-DELIVERY-COMPLETE,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.27,FINAL-LOCAL-RUNTIME-COMMAND,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.28,FINAL-SESSION-HANDOVER,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af
+WP-R15.29,CODEX-CONTINUATION-PACKAGE,WP-R15 Final Maximum-Intensity Validation / Codex Mid-Review / Fresh Replay,완료,미검증,미검증,b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af

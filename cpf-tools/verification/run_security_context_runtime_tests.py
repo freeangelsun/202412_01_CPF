@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Security Owner Context의 credential 차단과 실제 request-boundary consumer wiring을 검증합니다."""
 from pathlib import Path
+import re
 import shutil, subprocess, tempfile, textwrap, sys
 ROOT=Path(__file__).resolve().parents[2]
 
@@ -18,9 +19,13 @@ def main():
             fail.append('SECURITY_CONTEXT_AUTHORIZATION_SOURCE')
     if session.is_file():
         s=session.read_text(encoding='utf-8',errors='ignore')
-        for token in ('new CpfSessionContext(','CpfHashes.sha256(session.getId())','request.setAttribute(CpfSessionContext.REQUEST_ATTRIBUTE','request.removeAttribute(CpfSessionContext.REQUEST_ATTRIBUTE','finally'):
+        for token in ('new CpfSessionContext(','request.setAttribute(CpfSessionContext.REQUEST_ATTRIBUTE','request.removeAttribute(CpfSessionContext.REQUEST_ATTRIBUTE','finally'):
             if token not in s: fail.append('SESSION_REQUEST_SCOPE_MISSING:'+token)
-        if 'new CpfSessionContext(\n                session.getId()' in s: fail.append('RAW_SESSION_ID_IN_CONTEXT')
+        # Variable names are implementation detail. Require SHA-256 of the active HttpSession id semantically.
+        if not re.search(r'CpfHashes\.sha256\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.getId\(\)\s*\)', s):
+            fail.append('SESSION_REQUEST_SCOPE_MISSING:hashed-session-id')
+        if re.search(r'new\s+CpfSessionContext\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.getId\(\)', s):
+            fail.append('RAW_SESSION_ID_IN_CONTEXT')
         for old in ('CpfContextComponentRegistry','CpfSecurityContextComponents'):
             if old in s: fail.append('SESSION_LEGACY_CONTEXT_MECHANISM:'+old)
     if fail:

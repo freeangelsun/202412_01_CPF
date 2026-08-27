@@ -19,7 +19,7 @@ public record CmnTemplateRecord(
         Instant updatedAt) {
     /** Template lifecycle의 사용 가능 상태를 나타내는 Canonical 상태값입니다. */
     @Deprecated
-    public enum Status { DRAFT, APPROVED, RETIRED }
+    public enum Status { @Deprecated DRAFT, @Deprecated APPROVED, @Deprecated RETIRED }
 
     @Deprecated
     public CmnTemplateRecord {

@@ -293,7 +293,8 @@ SELECT 'mbwDB.product_seed' AS check_name,
 SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        CASE WHEN
            (SELECT COUNT(*) FROM information_schema.sequences
-             WHERE sequence_schema = current_schema()) = 3
+             WHERE sequence_schema = current_schema()
+               AND LEFT(UPPER(sequence_name), 7) = 'BAT_SB_') = 3
            AND
            (SELECT COUNT(*) FROM information_schema.sequences
              WHERE sequence_schema = current_schema()

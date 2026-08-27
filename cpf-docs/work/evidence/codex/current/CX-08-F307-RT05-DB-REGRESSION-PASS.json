@@ -1,0 +1,17 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "BROAD_DB_PYTHON_REGRESSION",
+  "status": "PASS",
+  "recordedAt": "2026-08-27T18:31:00+09:00",
+  "sourceIdentitySha256": "437b9487d41e5c64d56251cdb3d9e199e87dcbc26c8b05a464656b42c3c1c926",
+  "runtime": "canonical external Python 3.13 validation environment",
+  "pytestVersion": "9.1.1",
+  "cryptographyVersion": "46.0.7",
+  "passed": 230,
+  "failed": 0,
+  "skipped": 1,
+  "skipClassification": "NON_APPLICABLE_WINDOWS_POSIX_FILE_MODE_ASSERTION",
+  "durationSeconds": 47.38,
+  "repositoryTestCache": false,
+  "nextGate": "Local One-WAS DB preparation and cleanup"
+}

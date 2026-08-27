@@ -1,0 +1,41 @@
+{
+  "findingId": "CX-F-307",
+  "status": "CLOSED",
+  "recordedAt": "2026-08-27T18:35:00+09:00",
+  "sourceIdentitySha256": "437b9487d41e5c64d56251cdb3d9e199e87dcbc26c8b05a464656b42c3c1c926",
+  "sourceIdentitySha1": "0e9b34631dafe677f1170574f8154b6523cfd6da",
+  "sourceFiles": 8444,
+  "sourceBytes": 45441043,
+  "physicalLifecycle": {
+    "mariadb": "PASS",
+    "postgresql": "PASS",
+    "oracle": "PASS",
+    "oracleFaultUnknownRecovery": "PASS",
+    "localOneWasMariaDbPreparation": "PASS",
+    "localOneWasRequireRunModules": 5,
+    "localOneWasPlatformTables": 201,
+    "localOneWasBackofficeTables": 30,
+    "localOneWasCanonicalChecks": 20,
+    "cleanup": "PASS"
+  },
+  "regression": {
+    "targetedPassed": 30,
+    "broadDbPassed": 230,
+    "broadDbFailed": 0,
+    "broadDbSkipped": 1,
+    "skipClassification": "NON_APPLICABLE_WINDOWS_POSIX_FILE_MODE_ASSERTION"
+  },
+  "immutableR140Sha256": "d644d262458956aa035d537c2788388f41bf12ab61757937201e0144942c07d6",
+  "garbageCleanup": {
+    "deleted": [
+      "build/ (9 generated files; 298719 bytes)",
+      ".gradle/ (11 generated files; 115159 bytes)"
+    ],
+    "rootGarbageRemaining": 0,
+    "dbPycacheRemaining": 0,
+    "runningContainersRemaining": 0,
+    "recoverable": false
+  },
+  "rawEvidencePolicy": "Raw runtime output remains outside the repository under C:/Users/fly10/Downloads/CPF_RT05_20260826",
+  "closureBasis": "All three physical vendors, Oracle failure semantics and recovery, Canonical broad regression, Local One-WAS DB readiness, cleanup, immutable digest and Source Identity stability pass on the current Working Tree."
+}

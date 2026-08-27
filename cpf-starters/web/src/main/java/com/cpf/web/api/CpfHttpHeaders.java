@@ -317,7 +317,7 @@ public final class CpfHttpHeaders {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("rawtypes")
     private static Object enumValue(Class<?> type, String value) {
         Class<? extends Enum> enumType = type.asSubclass(Enum.class);
         for (Object constant : enumType.getEnumConstants()) {

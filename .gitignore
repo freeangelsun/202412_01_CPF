@@ -35,6 +35,9 @@ HELP.md
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+# CPF Batch 독립 실행 Shell은 제품 Source이며 전역 STS bin/ ignore에서 제외합니다.
+!cpf-batch/*/bin/
+!cpf-batch/*/bin/**
 
 ### IntelliJ IDEA ###
 .idea

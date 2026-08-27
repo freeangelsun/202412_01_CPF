@@ -78,7 +78,7 @@ public final class CpfRuntimeCapabilityInventory {
         try {
             Enumeration<URL> resources = loader.getResources(RESOURCE);
             List<URL> urls = Collections.list(resources);
-            urls.sort(java.util.Comparator.comparing(URL::toString));
+            urls.sort(java.util.Comparator.comparing((URL value) -> value.toString()));
             for (URL url : urls) load(url);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to discover CPF runtime capability metadata", e);

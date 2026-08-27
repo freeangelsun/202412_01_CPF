@@ -1,11 +1,11 @@
 {
   "findingId": "CX-F-307",
   "status": "SOURCE_FIXED",
-  "recordedAt": "2026-08-27T11:05:00+09:00",
-  "sourceIdentitySha256": "b9aac7877adce6b7cce5a0ae556fcaa0b9f775a1f11c8268cebd9533244c9c09",
-  "sourceIdentitySha1": "8685b82fd3d3cb76a8f16fdabf1a7afa747e9cbd",
-  "sourceFiles": 8435,
-  "sourceBytes": 45718059,
+  "recordedAt": "2026-08-27T18:20:01+09:00",
+  "sourceIdentitySha256": "437b9487d41e5c64d56251cdb3d9e199e87dcbc26c8b05a464656b42c3c1c926",
+  "sourceIdentitySha1": "0e9b34631dafe677f1170574f8154b6523cfd6da",
+  "sourceFiles": 8444,
+  "sourceBytes": 45441043,
   "rootCause": "Canonical cpfDB has 201 current tables and the Fresh install/schema manifest already installed exactly 201, but stale generated Vendor verify projections still required 202. This produced the same table_count false failure in MariaDB, PostgreSQL, and Local One-WAS DB preparation.",
   "ownerAction": "Executed the canonical cpf-tools/db/tools/sync-database-artifacts.ps1 pipeline so generator-owned source, install, verify, and aggregate projections are current in one dependency-ordered pass.",
   "oracleRootCause": "The installed DockerRoot Compose stayed stale because the canonical installer copied base runtime files only when the destination was absent; Oracle was recreated with retired healthcheck.sh even though current Workspace Compose correctly inherits image health.",
@@ -23,8 +23,9 @@
   "oracleSeedSourceColumnOwnerAction": "The five Gateway ADM seed updates now use the intended CURRENT_TIMESTAMP instead of referencing an updated_at value absent from their source projection. Both renderers fail closed for any VALUES(column) update reference not supplied by the Canonical statement columns.",
   "oracleSeedConflictKeyOwnerAction": "Nine redundant updates of conflict-key columns were removed from the Canonical seed model. Both renderers reject any recurrence uniformly instead of applying an Oracle-only filter.",
   "oracleVerifyLineOwnerAction": "Canonical product-seed key predicates render one deterministic predicate per physical line for every Vendor. The Oracle lifecycle contract scans every SQL line and rejects any line over SQLPlus's 4,999-character input limit.",
-  "artifactSyncGarbageOwnerAction": "All Python artifact steps run with -B so renderer imports cannot create __pycache__ in the developer-facing Source tree. The one cache observed from the prior synchronization was removed immediately.",
+  "artifactSyncGarbageOwnerAction": "All Python artifact steps and both downstream Seed bundle check consumers run with -B so renderer imports cannot create __pycache__ in the developer-facing Source tree. Each cache observed from an earlier execution was removed immediately.",
   "oracleSequenceVerifyOwnerAction": "The three-Vendor Spring Batch Verify generator derives the common BAT_SB_ namespace from the exact expected names, counts exactly three objects inside that namespace, verifies every exact name, and rejects every retired name. Oracle identity ISEQ objects and unrelated future providers remain outside this Owner's count.",
+  "oracleImmutableExecutionOwnerAction": "The platform migration runner sends BOM-free UTF-8 to SQLPlus and applies one digest-pinned, replacement-count-pinned Oracle grammar compatibility rule in memory only to released R140. Unknown legacy grammar, digest drift, or replacement-count drift fails closed; the immutable file and its canonical SHA-256 registry remain byte-identical.",
   "changedProjectionFiles": [
     "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql",
     "cpf-tools/db/vendor/mariadb/source/00_all_install.sql",
@@ -58,7 +59,9 @@
     "cpf-tools/db/vendor/oracle/source/60_adm_seed_data.sql",
     "cpf-tools/db/vendor/oracle/seed/00_product_seed.sql",
     "cpf-tools/db/render_vendor_pack.py",
-    "cpf-tools/db/canonical/seed-model.json"
+    "cpf-tools/db/canonical/seed-model.json",
+    "cpf-tools/db/tools/invoke-platform-database-migration.ps1",
+    "cpf-tools/db/verification/tests/test_platform_migration_safety_contract.py"
   ],
   "canonicalCpfDbTableCount": 201,
   "previousGeneratedVerifyTableCount": 202,

@@ -63,6 +63,54 @@ function Get-CpfFileSha256 {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 
+function Convert-CpfOracleImmutableExecutionSql {
+    param(
+        [Parameter(Mandatory = $true)][string] $Sql,
+        [Parameter(Mandatory = $true)][string] $SelectedPath,
+        [Parameter(Mandatory = $true)][string] $SelectedSha256
+    )
+
+    # Released migration/rollback bytes remain immutable. A compatibility rule
+    # is allowed only for an exact path+digest whose Oracle grammar defect is
+    # semantically equivalent after deterministic in-memory normalization.
+    $contracts = @{
+        'cpf-tools/db/vendor/oracle/rollback/cpfDB/R140__remove_batch_remote_kafka_execution.sql' = @{
+            sha256 = 'd644d262458956aa035d537c2788388f41bf12ab61757937201e0144942c07d6'
+            rule = 'ORACLE_COLUMN_DEFAULT_BEFORE_NOT_NULL_V1'
+            replacements = 2
+        }
+    }
+    $legacyPattern = '(?im)^(?<prefix>[ \t]*[A-Za-z][A-Za-z0-9_$#]*[ \t]+[A-Za-z][A-Za-z0-9_]*(?:[ \t]*\([^\r\n)]*\))?)[ \t]+NOT[ \t]+NULL[ \t]+DEFAULT[ \t]+(?<default>(?:''(?:''''|[^''])*''|[-+]?[0-9]+(?:\.[0-9]+)?|[A-Za-z][A-Za-z0-9_]*(?:\([^\r\n)]*\))?))(?<suffix>[ \t]*(?:,|$))'
+    $matches = [regex]::Matches($Sql, $legacyPattern)
+    if (-not $contracts.ContainsKey($SelectedPath)) {
+        if ($matches.Count -gt 0) {
+            throw "Unregistered Oracle immutable execution grammar requires an explicit path+digest contract: path=$SelectedPath count=$($matches.Count)"
+        }
+        return [pscustomobject]@{ sql = $Sql; rule = 'NONE'; replacements = 0 }
+    }
+
+    $contract = $contracts[$SelectedPath]
+    if ($SelectedSha256 -cne [string]$contract.sha256) {
+        throw "Oracle immutable execution compatibility digest mismatch: path=$SelectedPath expected=$($contract.sha256) actual=$SelectedSha256"
+    }
+    if ($matches.Count -ne [int]$contract.replacements) {
+        throw "Oracle immutable execution compatibility match count mismatch: path=$SelectedPath expected=$($contract.replacements) actual=$($matches.Count)"
+    }
+    $rendered = [regex]::Replace($Sql, $legacyPattern, {
+            param($match)
+            return $match.Groups['prefix'].Value + ' DEFAULT ' +
+                $match.Groups['default'].Value + ' NOT NULL' + $match.Groups['suffix'].Value
+        })
+    if ([regex]::IsMatch($rendered, $legacyPattern)) {
+        throw "Oracle immutable execution compatibility left unsupported grammar: path=$SelectedPath"
+    }
+    return [pscustomobject]@{
+        sql = $rendered
+        rule = [string]$contract.rule
+        replacements = $matches.Count
+    }
+}
+
 function Get-CpfMigrationVersion {
     param([Parameter(Mandatory = $true)][string] $Name)
     if ($Name -notmatch "^V([0-9]+)__.+\.sql$") {
@@ -455,6 +503,8 @@ function Get-CpfPlanPayload {
                     selectedPath = $_.selectedPath
                     selectedSha256 = $_.selectedSha256
                     renderedSha256 = $_.renderedSha256
+                    executionCompatibilityRule = $_.executionCompatibilityRule
+                    executionCompatibilityReplacements = $_.executionCompatibilityReplacements
                 }
             })
     }
@@ -606,7 +656,7 @@ function Invoke-CpfSqlProcess {
     $psi.RedirectStandardInput = $true
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
-    $psi.StandardInputEncoding = [Text.Encoding]::UTF8
+    $psi.StandardInputEncoding = [Text.UTF8Encoding]::new($false)
     $psi.StandardOutputEncoding = [Text.Encoding]::UTF8
     $psi.StandardErrorEncoding = [Text.Encoding]::UTF8
 
@@ -1000,6 +1050,8 @@ try {
                             selectedPath = Get-CpfRelativePath $selectedFile.FullName
                             selectedSha256 = if ($Direction -eq "upgrade") { $migrationHash } else { $rollbackHash }
                             renderedSha256 = Get-CpfSha256 $selectedSql
+                            executionCompatibilityRule = 'NONE'
+                            executionCompatibilityReplacements = 0
                             sql = $selectedSql
                         })
                 }
@@ -1025,6 +1077,14 @@ try {
                 $selectedSql = if ($Direction -eq "upgrade") { $migrationSql } else { $rollbackSql }
                 $migrationHash = Get-CpfFileSha256 $migrationFile.FullName
                 $rollbackHash = Get-CpfFileSha256 $rollbackFile.FullName
+                $selectedPath = Get-CpfRelativePath $selectedFile.FullName
+                $selectedHash = if ($Direction -eq "upgrade") { $migrationHash } else { $rollbackHash }
+                $compatibility = if ($vendor -eq 'oracle') {
+                    Convert-CpfOracleImmutableExecutionSql $selectedSql $selectedPath $selectedHash
+                } else {
+                    [pscustomobject]@{ sql = $selectedSql; rule = 'NONE'; replacements = 0 }
+                }
+                $selectedSql = [string]$compatibility.sql
                 $order++
                 $operations.Add([pscustomobject]@{
                         order = $order
@@ -1034,9 +1094,11 @@ try {
                         migrationSha256 = $migrationHash
                         rollbackPath = Get-CpfRelativePath $rollbackFile.FullName
                         rollbackSha256 = $rollbackHash
-                        selectedPath = Get-CpfRelativePath $selectedFile.FullName
-                        selectedSha256 = if ($Direction -eq "upgrade") { $migrationHash } else { $rollbackHash }
+                        selectedPath = $selectedPath
+                        selectedSha256 = $selectedHash
                         renderedSha256 = Get-CpfSha256 $selectedSql
+                        executionCompatibilityRule = [string]$compatibility.rule
+                        executionCompatibilityReplacements = [int]$compatibility.replacements
                         sql = $selectedSql
                     })
             }

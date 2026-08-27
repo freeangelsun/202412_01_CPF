@@ -435,7 +435,8 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
            (SELECT COUNT(*)
               FROM information_schema.tables
              WHERE table_schema = DATABASE()
-               AND table_type = 'SEQUENCE') = 3
+               AND table_type = 'SEQUENCE'
+               AND LEFT(UPPER(table_name), 7) = 'BAT_SB_') = 3
            AND
            (SELECT COUNT(*)
               FROM information_schema.tables

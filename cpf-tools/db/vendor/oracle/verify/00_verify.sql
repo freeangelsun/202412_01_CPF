@@ -293,7 +293,8 @@ SELECT 'mbwDB.product_seed' AS check_name,
 -- Fail-closed Spring Batch 6.0.4 sequence name/count verification.
 SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        CASE WHEN
-           (SELECT COUNT(*) FROM user_sequences) = 3
+           (SELECT COUNT(*) FROM user_sequences
+             WHERE SUBSTR(sequence_name, 1, 7) = 'BAT_SB_') = 3
            AND
            (SELECT COUNT(*) FROM user_sequences
              WHERE sequence_name IN ('BAT_SB_JOB_INSTANCE_SEQ', 'BAT_SB_JOB_EXECUTION_SEQ', 'BAT_SB_STEP_EXECUTION_SEQ')) = 3

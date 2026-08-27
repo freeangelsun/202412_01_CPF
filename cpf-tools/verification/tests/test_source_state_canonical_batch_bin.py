@@ -10,3 +10,8 @@ def test_batch_standalone_shells_are_product_source():
             assert f'cpf-batch/{role}/bin/{name}' in paths
 def test_noncanonical_compiled_bin_is_still_excluded():
     assert mod._is_generated('cpf-random/bin/com/acme/Foo.class')
+
+def test_gitignore_keeps_canonical_batch_shells_trackable():
+    text=(ROOT/'.gitignore').read_text(encoding='utf-8')
+    assert '!cpf-batch/*/bin/' in text
+    assert '!cpf-batch/*/bin/**' in text

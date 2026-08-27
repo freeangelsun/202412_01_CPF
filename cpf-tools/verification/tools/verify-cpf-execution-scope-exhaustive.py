@@ -27,6 +27,22 @@ EXECUTION_RE = re.compile(r"^(?:\d{2}-\d{8}|\d{2}-99999999)$")
 REQ_RE = re.compile(r"^CPF-(?:FR-\d{6}|GATE-\d{2})$")
 SC_RE = re.compile(r"^CPF-SC-\d{6}$")
 
+def evidence_path_identity(root: Path, path: Path) -> str:
+    """Return a repository-relative path or a non-reversible external evidence identity."""
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(root.resolve()).as_posix()
+    except ValueError:
+        digest = hashlib.sha256()
+        digest.update(b"CPF_EXTERNAL_EVIDENCE_V1\0")
+        if resolved.is_file():
+            with resolved.open("rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    digest.update(chunk)
+        else:
+            digest.update(resolved.name.encode("utf-8", errors="replace"))
+        return f"external-evidence/sha256/{digest.hexdigest()}"
+
 REQ_REQUIRED = (
     "requirement", "priority", "owner_module", "source_basis", "change_target",
     "actual_consumer", "acceptance_criteria", "verification_method",
@@ -392,8 +408,8 @@ def verify(args: argparse.Namespace) -> dict:
         "counts": dict(counters),
         "requirementStatus": {"complete": 0, "incomplete": len(audit_rows), "runtimeUnverified": len(audit_rows)},
         "inputPartHashes": {**execution_hashes, **requirement_hashes, **scenario_hashes},
-        "auditCsv": audit_path.relative_to(root).as_posix(),
-        "workPackageCsv": wp_path.relative_to(root).as_posix(),
+        "auditCsv": evidence_path_identity(root, audit_path),
+        "workPackageCsv": evidence_path_identity(root, wp_path),
     }
 
 

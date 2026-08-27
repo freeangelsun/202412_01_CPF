@@ -80,7 +80,7 @@ public final class CpfRuntimeLoggingLifecycle implements SmartLifecycle {
             log.info("CPF_RUNTIME_LOGGING_READY application={} instance={} path={} files={}",
                     policy.applicationName(), policy.instanceId(), directory,
                     policy.files().entrySet().stream().filter(entry -> entry.getValue().enabled())
-                            .map(value -> java.util.Map.Entry.getKey(value)).toList());
+                            .map(java.util.Map.Entry::getKey).toList());
         } catch (Exception failure) {
             stop();
             throw new IllegalStateException("CPF Runtime 로그 초기화에 실패했습니다. cpf.logging.root/files와 "

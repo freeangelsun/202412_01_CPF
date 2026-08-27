@@ -60,6 +60,42 @@ def split_sql(text: str) -> list[str]:
     return statements
 
 
+def canonical_physical_mutation_count(row: dict, vendor: str) -> int:
+    if row.get("statementKind") != "insert":
+        return 0
+    if vendor != "oracle" or row.get("sourceKind") != "values":
+        return 1
+    source = str(row.get("source") or "")
+    count = 0
+    depth = 0
+    quote = None
+    i = 0
+    while i < len(source):
+        ch = source[i]
+        if quote is not None:
+            if ch == quote:
+                if i + 1 < len(source) and source[i + 1] == quote:
+                    i += 2
+                    continue
+                quote = None
+            i += 1
+            continue
+        if ch in ("'", '"'):
+            quote = ch
+        elif ch == "(":
+            if depth == 0:
+                count += 1
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth < 0:
+                raise AssertionError("unbalanced canonical VALUES source")
+        i += 1
+    if depth != 0 or count < 1:
+        raise AssertionError("invalid canonical VALUES source")
+    return count
+
+
 class SeedBundleSemanticClosureTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -83,8 +119,11 @@ class SeedBundleSemanticClosureTest(unittest.TestCase):
                 self.assertEqual(self.plan[vendor][plan_key], actual, f"{vendor}/{bundle}")
 
     def test_per_source_statement_counts_match_canonical_model(self) -> None:
-        expected = Counter(row["sourceFile"] for row in self.model["statements"] if row["statementKind"] == "insert")
         for vendor in VENDORS:
+            expected: Counter[str] = Counter()
+            for row in self.model["statements"]:
+                if row.get("statementKind") == "insert":
+                    expected[row["sourceFile"]] += canonical_physical_mutation_count(row, vendor)
             actual: Counter[str] = Counter()
             for bundle in BUNDLES:
                 text = (ROOT / f"cpf-tools/db/vendor/{vendor}/source/00_{bundle}_seed.sql").read_text(encoding="utf-8")

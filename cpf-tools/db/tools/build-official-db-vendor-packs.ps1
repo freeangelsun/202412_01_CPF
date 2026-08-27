@@ -30,7 +30,7 @@ $qualifiedDatabasePattern = '(?i)\b(?:' +
 # Seed aggregate source/lifecycle files have one canonical writer. This builder
 # consumes those files but must never rewrite them with a second formatter.
 $seedSync = Join-Path $Root 'cpf-tools/db/tools/sync-canonical-seed-bundles.py'
-& python $seedSync --root $Root --check
+& python -B $seedSync --root $Root --check
 if ($LASTEXITCODE -ne 0) {
     throw 'Canonical Seed bundles are missing or stale. Run sync-database-artifacts.ps1 before assembling vendor packs.'
 }

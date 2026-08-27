@@ -1,54 +1,70 @@
-# CPF Development Handover — C 개발/QA 관리_1_7 — 2026-08-27
+# CPF Development Handover — C 개발/QA 관리_1_8 — 2026-08-27
 
 ## 현재 상태
 
-- Baseline ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_195052.zip`
-- Baseline ZIP SHA-256: `00abb643557a9562ff3aa40f088c8791af4e01d0cfb056e5509f70d146b90ec0`
-- Current Product Source SHA-256: `79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb`
-- Product Source: `8,334` files / `38,599,665` bytes
+- Input ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_121653.zip`
+- Input ZIP SHA-256: `59297cc5afa5d8b1eb217332dfa3a205ceb5bbe24e6f20eef92b1b01c3d247f8`
+- Input Product Source Identity: `7d25511f04c49952709489499ed637661649fe8673983302f088efc97f5c8304`
+- User Runtime Source Identity: `b9aac7877adce6b7cce5a0ae556fcaa0b9f775a1f11c8268cebd9533244c9c09` / 8,435 files
+- Current DevGPT Product Source Identity: `b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af`
+- Product Source: `8,340` files / `40,742,487` bytes
 - Canonical Requirements: `208`
-- Developer Closure: **127/127 완료**
-- Verification: **7 완료 / 120 미검증**
+- Developer Closure Inventory: **169행**
+- DevGPT Static/Contract/NXT3: 현재 재현 FAIL 0
+- Physical Verification: **미완료**
 - QA 최종 완료: **아님**
 
-## 이번 개발 핵심
+## 이번 세션 핵심 변경
 
-- Compile/JDT Root Cause 보정.
-- Logging canonical lineage + 실제 EDU probe currentization.
-- Security Context/Execution Scope False Red 제거.
-- Generator MBR/EXS idempotency owner fix.
-- Batch 5-role standalone Shell 20 + profile 15.
-- DB lifecycle Working Tree SHA-256 provenance.
-- Performance Live 64-hex signed source identity trust.
-- ADM/Backoffice route/consumer/approval static closure.
-- generated cache/.class garbage 정리 및 Delete Manifest 보강.
+- Runtime 전체 18 FAIL/1 SKIP/7 NOT_EXECUTED와 최신 VSCode 50 diagnostics를 과거 완료상태보다 우선하여 재개방.
+- Java/JDT Comparator/generic/import/API/constructor root cause 보정.
+- Security Context literal verifier False Red 및 Execution Scope external Temp path 결함 보정.
+- DB Oracle SQLPlus/Seed/Spring Batch sequence Closure 보정.
+- 입력 ZIP에서 누락된 Batch 5-role Shell 20개 재구현 + Source-state regression.
+- Frontend 1GB ceiling 내 1000MB budget + Node/npm toolchain fail-closed.
+- Required Full Runtime의 VSCode 0/0, Performance load/soak, Actual Open Git Fresh Release, mandatory stage completeness, managed diff, Fresh Replay 누락 보정.
+- transient generated Evidence/cache/pyc를 최종 Source에서 제거.
+- VSCode 과거 29 Warning의 method-reference/nullness/unused/suppression/deprecation 패턴을 Source에서 추가 보정하고 재발방지 Test를 추가.
+- stale `developer-rework` Evidence 6건을 Current-only 정본에서 제거할 수 있도록 승인 Delete Manifest에 추가하고 isolated delete replay를 PASS.
 
-## 실환경 필수 재검증
+## 현재 검증
 
-Java25/Gradle9.1/VSCode, DB3, Batch 2-worker kill/UNKNOWN/reconcile, One-WAS, File↔DB↔ADM logging, Runtime OpenAPI, Node22.18+ Browser/a11y, Performance Live, Actual Open Git Fresh Release, Full Runtime/Fresh Replay.
+- NXT3 23/23 PASS.
+- DB 228 passed / 2 env skipped.
+- Testing Tools 404 passed / 22 env skipped / 2 subtests.
+- Generator 47 passed / 10 env skipped / 6 subtests.
+- Release 53 passed.
+- Runtime Tools 72 passed / 2 env skipped / 7 subtests.
+- Current Final/Hygiene/Garbage/Security Context/Execution Scope PASS.
+- Java25/Windows/Docker/Browser physical acceptance는 BLOCKED_EXTERNAL/NOT_EXECUTED이며 PASS가 아니다.
 
-## 다음 순서 — 최신 고정
+## 다음 순서
 
-1. 현재 진행 중인 Codex/Claude 작업이 있으면 **그 작업을 먼저 완전히 종결**한다.
-2. 현재 작업 종결 후 남은 크레딧으로 필수 독립검증만 수행한다.
-3. 신규 독립검증 기본 우선순위는 Logging 실제 추적 → DB3 → Batch → Generator → Performance/Open Git이다. Build/Compile 문제가 남아 있으면 가장 먼저 해결한다.
-4. ADM/Backoffice/Frontend/Browser는 가장 마지막이며, 크레딧이 부족하면 해당 외부 에이전트 세션에서는 수행하지 않는다.
-5. 외부 에이전트가 수정한 Source + Consumer/Test + Runtime + Evidence + 관련 문서 + 개발요청 정본 + Delete Manifest를 같은 변경에서 현행화한다.
-6. **외부 에이전트 작업이 완전히 끝난 뒤** 사용자 Local에서 Java25/Windows 최대강도 Full Runtime을 최종 1회 수행한다.
-7. Runtime FAIL은 전체를 Root Cause별로 묶어 보정하고 동일 기능 Targeted Gate → Full Runtime/Fresh Replay 순으로 재검증한다.
-8. 모든 mandatory PASS 후 QA 재검수 요청한다.
+1. 이번 Overlay를 사용자 최신 Local Working Tree에 적용하고 Overlay 자체 hash/target만 검증한다.
+2. Windows Java25에서 강화된 `run-cpf-required-full-runtime-validation.ps1`을 실행한다.
+3. FAIL/SKIP_ENV/NOT_EXECUTED/UNKNOWN/Source·Managed drift를 Root Cause별로 재개방한다.
+4. Full Runtime가 PASS하면 동일 Source Fresh Replay까지 실행한다.
+5. Codex는 `CODEX_NEXT_WORK_INSTRUCTION_20260827.md`로 **기존 Active WP부터 종결**하고 이번 DevGPT 고위험 변경만 독립검증한다.
+6. Codex가 Source를 수정하면 이전 Runtime PASS를 승계하지 말고 다시 Final Runtime/Fresh Replay한다.
+7. mandatory PASS 후에만 QA 재검수 요청한다.
 
-## 다음 세션 필수 승계 — LONG-TURN MODE
+## LONG-TURN / 병행 Local Working Tree
 
-다음 세션은 Codex/Claude 요청서를 생성할 때 반드시 `CPF_EXTERNAL_AGENT_LONG_TURN_POLICY.md`를 최상단에 포함한다.
+- Codex/Claude는 현재 하던 작업을 먼저 Source/Consumer/Test/Runtime/Evidence/문서까지 완결한다.
+- 계획/중간보고는 중단점이 아니며 같은 turn에서 계속 실행한다.
+- 기존 미완료 전체/Repository 전체 전수 재검수 금지.
+- 같은 Root Cause/Build/DB/Batch Runtime을 묶어서 재작업을 최소화한다.
+- Build/Logging/DB3/Batch/Generator/Performance/Open Git 우선, ADM/Frontend/Browser 최후순위.
+- Git/HEAD/전체 Local Working Tree를 차단 Gate로 쓰지 않고 다른 세션 변경을 건드리지 않는다.
+- 사용자 승인 없이 Git 쓰기/삭제/history 변경을 하지 않는다.
 
-- 현재 에이전트 작업을 먼저 종결하고 새 업무로 넘어간다.
-- 현재 작업 종결 후 남은 크레딧으로 필수 고위험 독립검증만 진행한다.
-- 기존 미완료 전체나 Repository 전체 전수 재검수 지시를 하지 않는다.
-- 계획/중간보고는 중단점이 아니며 현재 WP 완결 전 자의적 turn 종료를 금지한다.
-- 같은 Root Cause/Build/DB Fresh/Batch Runtime은 묶어서 실행한다.
-- 크레딧이 부족해지면 신규 범위를 열지 말고 현재 WP를 완결한다.
-- ADM/Backoffice/Frontend/Browser는 항상 최후순위다.
-- Git/HEAD/전체 Local Working Tree/전체 Source Identity를 작업 Gate로 쓰지 않는다.
-- 다른 세션 변경을 조사·복구·초기화하지 않는다.
-- 서버 측 제한을 변경/우회하지 않으며 플랫폼 강제 종료 시에만 정확한 Checkpoint/Handover를 남긴다.
+
+## 최종 전달 인덱스
+
+- 전체 완료 리뷰: `CPF_DEVELOPMENT_COMPLETION_REVIEW_20260827.md`
+- Local 적용/삭제/검증/Full Runtime: `CPF_FINAL_LOCAL_APPLY_RUNTIME_COMMANDS_20260827.md`
+- 다음 DevGPT 세션 상세 인수인계: `CPF_NEXT_SESSION_HANDOVER_C_DEV_QA_1_8_20260827.md`
+- LONG-TURN 공통 인수인계: `CPF_NEXT_SESSION_HANDOVER_LONG_TURN_20260827.md`
+- Codex 현재 turn 연속 지침: `CODEX_NEXT_WORK_INSTRUCTION_20260827.md`
+- Codex 결과 Trace: `CODEX_RESULT_TO_NEXT_WORK_TRACE_20260827.md`
+- 전체 전달 파일 목록/실행 순서: `CPF_FINAL_DELIVERY_INDEX_20260827.md`

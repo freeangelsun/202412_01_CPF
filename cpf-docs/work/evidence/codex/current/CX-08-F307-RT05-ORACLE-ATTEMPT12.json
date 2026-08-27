@@ -1,0 +1,25 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "RT-05_ORACLE_PHYSICAL_RERUN_12",
+  "sourceIdentitySha256": "1fc11895147a2d1898aedf90e1a552c2deb6dac9d79a2abab5bed69efef20978",
+  "sourceIdentitySha1": "5f10d1b34e697954a09e976455aec6fd7e2821fa",
+  "readiness": "PASS",
+  "provision": "PASS",
+  "freshSchemaInstall": "PASS",
+  "platformProductSeed": "PASS",
+  "backofficeProductSeed": "PASS",
+  "verify": "PASS",
+  "verifyChecks": 6,
+  "preCurrentRollback": "FAIL",
+  "cleanup": "PASS",
+  "exactErrors": [
+    "SP2-0734 BOM-prefixed SET command",
+    "ORA-03076 NOT NULL DEFAULT order in immutable Oracle R140"
+  ],
+  "rootCause": "The separate migration/rollback SQLPlus process still uses BOM-emitting UTF-8 stdin. After that protocol defect, immutable released R140 also exposes historical Oracle column-order syntax that cannot be edited or re-anchored.",
+  "immutableArtifact": "cpf-tools/db/vendor/oracle/rollback/cpfDB/R140__remove_batch_remote_kafka_execution.sql",
+  "immutableByteEdit": false,
+  "owner": "Platform migration SQLPlus transport plus a digest-preserving Oracle legacy execution-compatibility boundary if and only if semantic equivalence is proven",
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-r12/isolated-oracle/verifier-owned-lifecycle.json",
+  "status": "FAIL"
+}

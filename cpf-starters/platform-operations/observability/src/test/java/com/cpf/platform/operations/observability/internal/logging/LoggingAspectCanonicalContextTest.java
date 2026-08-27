@@ -110,7 +110,6 @@ class LoggingAspectCanonicalContextTest {
                 new MockEnvironment().withProperty("spring.application.name", "cpf-member-online"),
                 new DynamicTransactionLogLevelService(),
                 providers.getBeanProvider(CpfTraceSamplingPolicy.class),
-                providers.getBeanProvider(com.cpf.core.api.error.CpfMessageResolver.class),
                 providers.getBeanProvider(com.cpf.core.api.error.CpfResponseCodeResolver.class),
                 providers.getBeanProvider(LogPolicyResolver.class),
                 segments,

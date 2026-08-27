@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json, re, sys
+import argparse, json, re, shutil, subprocess, sys
 from pathlib import Path
 try:
     import yaml
@@ -44,6 +44,18 @@ def main():
                         find.append(f'PROD_LITERAL_SECRET:{role}:{key}')
                 # non-control roles require explicit control-plane endpoint in prod
                 if role!='control-plane' and '${CPF_BATCH_CONTROL_BASE_URL}' not in text: find.append(f'PROD_CONTROL_URL_NOT_REQUIRED:{role}')
+    # Canonical Batch Shells are checked-in product source. If a real Git working tree is
+    # available, fail closed when the repository ignore rules would hide any shell from git add.
+    if (root/'.git').exists() and shutil.which('git'):
+        for role in ROLES:
+            for shell in ('run.ps1','stop.ps1','run.sh','stop.sh'):
+                rel=f'cpf-batch/{role}/bin/{shell}'
+                proc=subprocess.run(['git','-C',str(root),'check-ignore','--quiet','--no-index',rel],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if proc.returncode == 0:
+                    find.append(f'GIT_IGNORED_SHELL:{rel}')
+                elif proc.returncode not in (1,):
+                    find.append(f'GIT_IGNORE_CHECK_FAILED:{rel}:rc={proc.returncode}')
     # no profile should silently alias local as prod
     for p in root.glob('cpf-batch/*/src/main/resources/application-prod.yml'):
         if '${SPRING_PROFILES_ACTIVE:local}' in p.read_text(encoding='utf-8'): find.append(f'PROD_LOCAL_PROFILE_FALLBACK:{p.relative_to(root)}')

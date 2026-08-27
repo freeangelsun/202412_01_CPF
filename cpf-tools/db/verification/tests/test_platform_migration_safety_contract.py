@@ -43,6 +43,36 @@ class PlatformMigrationSafetyContractTest(unittest.TestCase):
         self.assertIn("$migrationPassword.Replace", self.text)
         self.assertIn("Sort-Object { $_.Length } -Descending -Unique", self.text)
         self.assertNotIn('ArgumentList.Add($connect)', self.text)
+        self.assertIn(
+            "$psi.StandardInputEncoding = [Text.UTF8Encoding]::new($false)", self.text
+        )
+        self.assertNotIn("$psi.StandardInputEncoding = [Text.Encoding]::UTF8", self.text)
+
+    def test_immutable_oracle_compatibility_is_exact_digest_and_evidenced(self):
+        for token in [
+            "Convert-CpfOracleImmutableExecutionSql",
+            "R140__remove_batch_remote_kafka_execution.sql",
+            "d644d262458956aa035d537c2788388f41bf12ab61757937201e0144942c07d6",
+            "ORACLE_COLUMN_DEFAULT_BEFORE_NOT_NULL_V1",
+            "executionCompatibilityRule",
+            "executionCompatibilityReplacements",
+            "Unregistered Oracle immutable execution grammar",
+            "compatibility digest mismatch",
+            "compatibility match count mismatch",
+        ]:
+            self.assertIn(token, self.text)
+
+        immutable = (
+            ROOT
+            / "cpf-tools/db/vendor/oracle/rollback/cpfDB/R140__remove_batch_remote_kafka_execution.sql"
+        )
+        import hashlib
+
+        self.assertEqual(
+            "d644d262458956aa035d537c2788388f41bf12ab61757937201e0144942c07d6",
+            hashlib.sha256(immutable.read_bytes()).hexdigest(),
+        )
+        self.assertEqual(2, immutable.read_text(encoding="utf-8-sig").count("NOT NULL DEFAULT"))
 
     def test_control_character_injection_is_rejected(self):
         self.assertIn("Assert-CpfProcessScalar", self.text)

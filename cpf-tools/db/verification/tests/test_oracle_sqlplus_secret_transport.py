@@ -26,7 +26,7 @@ class OracleSqlPlusSecretTransportTest(unittest.TestCase):
 
     def test_failure_output_is_secret_masked_and_fail_closed(self) -> None:
         self.assertIn("Protect-CpfSecretText", self.text)
-        self.assertIn("if($process.ExitCode -ne 0)", self.text)
+        self.assertIn("if($process.ExitCode -ne 0 -or $null-ne$writeFailure)", self.text)
         self.assertIn("$allSecrets", self.text)
         self.assertIn("throw \"sqlplus failed", self.text)
         self.assertIn("WHENEVER SQLERROR EXIT SQL.SQLCODE", self.text)
@@ -39,7 +39,8 @@ class OracleSqlPlusSecretTransportTest(unittest.TestCase):
         self.assertIn("[string[]]$SensitiveValues", self.text)
         self.assertIn("$allSecrets=@($Password,$passwordLiteral)+@($SensitiveValues)", self.text)
         self.assertIn('Protect-CpfSecretText (($stderr+"`n"+$stdout).Trim()) $allSecrets', self.text)
-        self.assertIn("Protect-CpfSecretText $stdout $allSecrets", self.text)
+        self.assertIn('Protect-CpfSecretText (($stderr+"`n"+$stdout).Trim()) $allSecrets', self.text)
+        self.assertIn("$safeTransport=if($null-ne$writeFailure)", self.text)
         self.assertIn("-SensitiveValues @($t.migrationPassword,$t.runtimePassword", self.text)
 
     def test_sqlplus_stdin_rejects_control_character_injection(self) -> None:

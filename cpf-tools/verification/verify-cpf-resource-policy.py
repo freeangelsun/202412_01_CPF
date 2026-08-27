@@ -106,6 +106,9 @@ def verify(root: Path) -> dict[str, object]:
                 value = memory_mb(merged[key])
                 if value < step or value > ceiling or value % step != 0:
                     errors.append(f"{profile} {key}={merged[key]} violates {step}MB step/{ceiling}MB ceiling")
+            frontend_mb = int(merged.get("frontend.node.maxOldSpace.mb", "0"))
+            if frontend_mb < step or frontend_mb > ceiling or frontend_mb % step != 0:
+                errors.append(f"{profile} frontend.node.maxOldSpace.mb={frontend_mb} violates {step}MB step/{ceiling}MB ceiling")
             for xms_key, xmx_key in (("gradle.jvm.xms","gradle.jvm.xmx"),("test.xms","test.xmx"),("runtime.web.xms","runtime.web.xmx"),("runtime.batch.xms","runtime.batch.xmx")):
                 if memory_mb(merged[xms_key]) > memory_mb(merged[xmx_key]):
                     errors.append(f"{profile} {xms_key} must be <= {xmx_key}")
@@ -177,6 +180,7 @@ def verify(root: Path) -> dict[str, object]:
             "batchXmx": local.get("runtime.batch.xmx"),
             "batchDefault": local.get("runtime.batch.enabledByDefault"),
             "singleWebDefault": local.get("runtime.local.singleWebDefault"),
+            "frontendNodeMaxOldSpaceMb": local.get("frontend.node.maxOldSpace.mb"),
         },
         "errors": errors,
         "warnings": warnings,

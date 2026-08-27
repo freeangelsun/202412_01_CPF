@@ -1,0 +1,13 @@
+server:
+  ssl:
+    enabled: true
+    client-auth: need
+    key-store: ${CPF_AGENT_KEYSTORE}
+    key-store-password: ${CPF_AGENT_KEYSTORE_PASSWORD}
+    trust-store: ${CPF_AGENT_TRUSTSTORE}
+    trust-store-password: ${CPF_AGENT_TRUSTSTORE_PASSWORD}
+cpf:
+  agent:
+    require-signature: true
+    allowed-client-subjects: ${CPF_AGENT_ALLOWED_CLIENT_SUBJECTS}
+

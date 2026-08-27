@@ -67,7 +67,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
                 .filter(v->matches(v.instanceId(),instanceId))
                 .filter(v->matches(v.version(),version))
                 .filter(v->v.capabilities().stream().anyMatch(c->matchesCapability(c,starterId,capabilityId,provider)))
-                .sorted(Comparator.comparing(InstanceView::systemId).thenComparing(InstanceView::instanceId)).toList();
+                .sorted(Comparator.comparing((InstanceView value) -> value.systemId()).thenComparing(value -> value.instanceId())).toList();
         long total=filtered.size();
         List<InstanceView> items=filtered.stream().skip((long)safePage*safeSize).limit(safeSize).toList();
         long issueCount=filtered.stream().mapToLong(v->v.issues().size()).sum();
@@ -92,7 +92,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
             out.addAll(v.issues());
             if(entry.stale()) out.add(new IssueView(v.systemId(),v.domainCode(),v.instanceId(),"runtime-report","UNKNOWN","STALE_RUNTIME_REPORT",0,entry.reportedAt()));
         }
-        out.sort(Comparator.comparing(InstanceView::systemId).thenComparing(InstanceView::instanceId).thenComparing(value -> value.dependency()));
+        out.sort(Comparator.comparing((IssueView value) -> value.systemId()).thenComparing(value -> value.instanceId()).thenComparing(value -> value.dependency()));
         return ResponseEntity.ok(List.copyOf(out));
     }
 
@@ -120,7 +120,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
                     bool(details,p+"dedicatedWorkflow"),operatorVisible,bool(details,p+"automaticRegistration"),
                     value(details,p+"managementScope"),csv(details,p+"commonAreas"),support(details,p+"supports")));
         }
-        return out.stream().sorted(Comparator.comparing(CapabilityView::starterArtifactId).thenComparing(CapabilityView::id)).toList();
+        return out.stream().sorted(Comparator.comparing((CapabilityView value) -> value.starterArtifactId()).thenComparing(value -> value.id())).toList();
     }
     private static SupportView support(Map<String,String> details,String key){
         Map<String,String> values=new LinkedHashMap<>();

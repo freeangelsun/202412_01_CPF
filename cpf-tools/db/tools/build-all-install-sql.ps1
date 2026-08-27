@@ -129,7 +129,7 @@ foreach ($forbiddenFixedGeneratedSource in @("45_external_schema.sql", "57_exter
 }
 
 $seedSync = Join-Path $Root 'cpf-tools/db/tools/sync-canonical-seed-bundles.py'
-& python $seedSync --root $Root --vendor mariadb --check
+& python -B $seedSync --root $Root --vendor mariadb --check
 if ($LASTEXITCODE -ne 0) {
     throw 'Canonical MariaDB Seed bundles are missing or stale. Run sync-database-artifacts.ps1 before assembling aggregate SQL.'
 }

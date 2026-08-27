@@ -1,6 +1,5 @@
 package com.cpf.starter.platform.operations.observability;
 
-import com.cpf.core.api.error.CpfMessageResolver;
 import com.cpf.core.api.error.CpfResponseCodeResolver;
 import com.cpf.platform.operations.api.state.CpfStateOperations;
 import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegmentPort;
@@ -125,13 +124,12 @@ public class CpfPersistedTransactionObservabilityAutoConfiguration {
             Environment environment,
             DynamicTransactionLogLevelService dynamicLevels,
             ObjectProvider<CpfTraceSamplingPolicy> sampling,
-            ObjectProvider<CpfMessageResolver> messages,
             ObjectProvider<CpfResponseCodeResolver> responseCodes,
             ObjectProvider<LogPolicyResolver> logPolicies,
             CpfTransactionSegmentPort transactionSegments,
             ObjectProvider<Clock> clocks) {
         return new LoggingAspect(
-                publisher, environment, dynamicLevels, sampling, messages, responseCodes, logPolicies,
+                publisher, environment, dynamicLevels, sampling, responseCodes, logPolicies,
                 transactionSegments, clocks);
     }
 

@@ -253,7 +253,7 @@ public final class JdbcCpfLogPolicyVersionStoreHarness {
                 LogPolicyTargetType type, String targetHash, String targetId, int limit) {
             read();
             return versions.getOrDefault(key(type, targetHash), new TreeMap<>()).values().stream()
-                    .sorted(Comparator.comparingLong(value -> value.version()).reversed())
+                    .sorted(Comparator.comparingLong(CpfLogPolicyVersionSnapshot::version).reversed())
                     .limit(limit).toList();
         }
 

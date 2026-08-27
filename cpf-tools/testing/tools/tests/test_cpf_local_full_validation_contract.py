@@ -122,6 +122,18 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertNotIn("Stop-CpfDockerTargetIfOwned 'kafka'", batch)
         self.assertNotIn('batchKafkaState', batch)
 
+    def test_frontend_toolchain_memory_and_managed_drift_are_fail_closed(self):
+        self.assertIn("FRONTEND_TOOLCHAIN", self.text)
+        self.assertIn("npm=10.9.2", self.text)
+        self.assertIn("major -lt 25", self.text)
+        self.assertIn("--max-old-space-size=1000", self.text)
+        self.assertIn("managed-state-diff.json", self.text)
+        self.assertIn("beforeSha256", self.text)
+        self.assertIn("afterSha256", self.text)
+        self.assertIn("[Console]::OutputEncoding", self.text)
+        self.assertIn("OPEN_GIT_ACTUAL_FRESH_RELEASE", self.text)
+        self.assertIn("CPF_OPEN_GIT_REMOTE", self.text)
+
 
 if __name__ == "__main__":
     unittest.main()

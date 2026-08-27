@@ -65,6 +65,7 @@ class DatabaseArtifactSyncOrderTest(unittest.TestCase):
         for source in (official, mariadb):
             self.assertIn("sync-canonical-seed-bundles.py", source)
             self.assertIn("--check", source)
+            self.assertIn("& python -B $seedSync", source)
         for bundle_key in (
             "$maria.productSeedFiles",
             "$maria.optionalSampleSeedFiles",

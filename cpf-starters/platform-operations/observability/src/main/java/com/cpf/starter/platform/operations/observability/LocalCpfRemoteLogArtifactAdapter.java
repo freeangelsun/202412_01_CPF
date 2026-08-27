@@ -93,7 +93,7 @@ public final class LocalCpfRemoteLogArtifactAdapter implements CpfRemoteLogArtif
                     if (matches(artifact, candidate, search)) result.add(artifact);
                 }
             }
-            result.sort(Comparator.comparing(CpfRemoteLogArtifact::modifiedAt).reversed()
+            result.sort(Comparator.comparing((CpfRemoteLogArtifact value) -> value.modifiedAt()).reversed()
                     .thenComparing(value -> value.relativePath()));
             return List.copyOf(result);
         } catch (IOException | RuntimeException failure) {

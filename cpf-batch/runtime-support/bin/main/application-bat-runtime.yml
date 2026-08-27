@@ -1,0 +1,14 @@
+cpf:
+  db:
+    vendor: ${CPF_DB_VENDOR:mariadb}
+  data:
+    persistence:
+      jdbc:
+        role-datasources:
+          cpf-platform-db:
+            enabled: true
+            url: ${CPF_PLATFORM_DB_URL:jdbc:mariadb://127.0.0.1:3306/cpfDB}
+            username: ${CPF_PLATFORM_DB_USERNAME:cpf_app}
+            password: ${CPF_PLATFORM_DB_PASSWORD:}
+            driver-class-name: ${CPF_PLATFORM_DB_DRIVER:org.mariadb.jdbc.Driver}
+            pool-name: ${CPF_PLATFORM_DB_POOL_NAME:cpf-platform}

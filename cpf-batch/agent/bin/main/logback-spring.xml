@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+ <property name="LOG_ROOT" value="${CPF_LOG_ROOT:-./logs}"/><property name="SERVICE" value="${spring.application.name:-cpf-runtime}"/><property name="INSTANCE" value="${CPF_RUNTIME_INSTANCE_ID:-${HOSTNAME}}"/><property name="DIR" value="${LOG_ROOT}/${SERVICE}/${INSTANCE}"/>
+ <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender"><file>${DIR}/runtime.log</file><encoder><pattern>%d{ISO8601} level=%level service=${SERVICE} instance=${INSTANCE} env=%X{cpfEnvironment} cell=%X{cpfCellId} tx=%X{transactionId} segment=%X{segmentId} execution=%X{executionId} job=%X{jobId} logger=%logger{36} msg="%replace(%msg){'[\r\n]+',' '}"%n</pattern></encoder><rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy"><fileNamePattern>${DIR}/archive/runtime.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern><maxFileSize>${CPF_LOG_MAX_FILE_SIZE:-100MB}</maxFileSize><maxHistory>${CPF_LOG_MAX_HISTORY_DAYS:-30}</maxHistory><totalSizeCap>${CPF_LOG_TOTAL_SIZE_CAP:-10GB}</totalSizeCap><cleanHistoryOnStart>true</cleanHistoryOnStart></rollingPolicy></appender>
+ <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender"><encoder><pattern>%d{HH:mm:ss.SSS} %-5level ${SERVICE}/${INSTANCE} [%X{transactionId}] %logger{36} - %msg%n</pattern></encoder></appender>
+ <root level="${CPF_LOG_LEVEL:-INFO}"><appender-ref ref="FILE"/><appender-ref ref="CONSOLE"/></root>
+</configuration>

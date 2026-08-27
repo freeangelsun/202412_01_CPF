@@ -65,6 +65,11 @@ $env:PYTHONDONTWRITEBYTECODE = '1'
 $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
 $env:CPF_RESOURCE_PROFILE = $ResourceProfile
+try {
+    [Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+    [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+    $global:OutputEncoding = [Text.UTF8Encoding]::new($false)
+} catch { Write-Warning "UTF-8 console initialization failed: $($_.Exception.Message)" }
 
 # FullLocal은 사용자가 로컬 검증을 여러 번 반복하지 않도록 비파괴 검증 범위를 최대화합니다.
 # 기존 사용자 DB의 destructive rollback과 장시간 HTTP load/soak는 별도 opt-in입니다. 검증기가 직접 띄운 격리 DB는 rollback/reapply까지 자동 검증합니다.
@@ -429,11 +434,11 @@ function Get-CpfTreeState([string]$Scope,[string]$InventoryOutput='') {
 }
 
 function Get-CpfNodeOptions([string]$ModuleDir) {
-    if(-not(Test-Path -LiteralPath $resourceHelper -PathType Leaf)){return '--max-old-space-size=750'}
+    if(-not(Test-Path -LiteralPath $resourceHelper -PathType Leaf)){return '--max-old-space-size=1000'}
     . $resourceHelper
     $resolved=Resolve-CpfResourcePolicy -RepoRoot $RepoRoot -Profile $ResourceProfile -ModuleDir (Join-Path $RepoRoot $ModuleDir)
     $mb=[string]$resolved.Values['frontend.node.maxOldSpace.mb']
-    if([string]::IsNullOrWhiteSpace($mb)){$mb='750'}
+    if([string]::IsNullOrWhiteSpace($mb)){$mb='1000'}
     return "--max-old-space-size=$mb"
 }
 
@@ -675,8 +680,21 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
 }else{Skip-CpfStage 'GRADLE_JAVA_TEST_QUALITY' $(if(-not $java25Ready){'Java 25 unavailable'}else{'gradlew.bat missing'})}
 
 # 3. ADM/BACKOFFICE Frontend를 Java와 겹치지 않게 순차 실행한다.
+function Test-CpfFrontendToolchain {
+    if(-not $node -or -not $npm){return [pscustomobject]@{ready=$false;detail='node/npm missing'}}
+    $nodeText=(& $node --version 2>&1 | Out-String).Trim()
+    $npmText=(& $npm --version 2>&1 | Out-String).Trim()
+    $nodeMatch=[regex]::Match($nodeText,'^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$')
+    if(-not $nodeMatch.Success){return [pscustomobject]@{ready=$false;detail="Node version parse failed: $nodeText"}}
+    $major=[int]$nodeMatch.Groups['major'].Value;$minor=[int]$nodeMatch.Groups['minor'].Value
+    $nodeOk=($major -gt 22 -or ($major -eq 22 -and $minor -ge 18)) -and $major -lt 25
+    $npmOk=($npmText -eq '10.9.2')
+    return [pscustomobject]@{ready=($nodeOk -and $npmOk);detail="node=$nodeText npm=$npmText required=node>=22.18.0<25 npm=10.9.2"}
+}
+$frontendToolchain=Test-CpfFrontendToolchain
+Add-CpfTextResult 'FRONTEND_TOOLCHAIN' $(if($frontendToolchain.ready){'PASS'}else{'FAIL'}) $frontendToolchain.detail 'package.json engines/packageManager contract is fail-closed'
 $frontendSandboxes=@{}
-if(-not $SkipFrontend -and $npm){
+if(-not $SkipFrontend -and $npm -and $frontendToolchain.ready){
     foreach($frontend in @('cpf-admin\frontend','cpf-backoffice-web/frontend')){
         $name=if($frontend.StartsWith('cpf-admin')){'ADM'}else{'BACKOFFICE'}
         $moduleDir=if($name -eq 'ADM'){'cpf-admin'}else{'cpf-backoffice-web/frontend'}
@@ -692,7 +710,7 @@ if(-not $SkipFrontend -and $npm){
         Invoke-CpfStage "${name}_FRONTEND_VERIFY" $npm @('run','verify') $frontendSandbox @{NODE_OPTIONS=$nodeOptions;CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA}
         Invoke-CpfStage "${name}_OPENAPI_SOURCE_VALIDATE" $npm @('run','validate:openapi:source') $frontendSandbox @{NODE_OPTIONS=$nodeOptions;CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA}
     }
-}elseif($SkipFrontend){Skip-CpfStage 'FRONTEND' 'SkipFrontend requested'}else{Skip-CpfStage 'FRONTEND' 'npm missing'}
+}elseif($SkipFrontend){Skip-CpfStage 'FRONTEND' 'SkipFrontend requested'}elseif(-not $frontendToolchain.ready){Add-CpfTextResult 'FRONTEND' 'NOT_EXECUTED' $frontendToolchain.detail 'frontend toolchain contract failed'}else{Skip-CpfStage 'FRONTEND' 'npm missing'}
 
 # Frontend 산출물이 준비된 뒤 Java assemble/SBOM만 다시 수행한다. Frontend를 재실행하지 않는다.
 if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
@@ -1004,12 +1022,38 @@ if(-not $SkipOneWas -and $pwsh){
 
 if($python){Invoke-CpfStage 'SUPPLY_CHAIN' $python @('.\cpf-tools\supply-chain\tools\verify-cpf-supply-chain.py','--root','.')}
 
+# Required FullLocal은 실제 공개 Release까지 검증한다. Remote가 없으면 성공으로 대체하지 않는다.
+if($FullLocal -and $python){
+    $openGitRemote=[Environment]::GetEnvironmentVariable('CPF_OPEN_GIT_REMOTE','Process')
+    if([string]::IsNullOrWhiteSpace($openGitRemote)){
+        Add-CpfTextResult 'OPEN_GIT_ACTUAL_FRESH_RELEASE' 'NOT_EXECUTED' 'CPF_OPEN_GIT_REMOTE is not configured' 'Actual fresh Open Git clone/release is mandatory for FullLocal closure'
+    }else{
+        Invoke-CpfStage 'OPEN_GIT_ACTUAL_FRESH_RELEASE' $python @('.\cpf-tools\release\open-git\cpf_open_git.py','build','--root',$RepoRoot,'--remote',$openGitRemote) $RepoRoot
+    }
+}
+
 $sourceStateAfter=Get-CpfTreeState 'source' (Join-Path $evidenceDir 'source-state-after.json')
 $sourceStable=$sourceStateReady -and ([string]$sourceStateAfter.contentSha256 -eq $sourceContentSha256)
 Add-CpfTextResult 'SOURCE_STATE_AFTER' $(if($sourceStable){'PASS'}else{'FAIL'}) "AFTER_SHA256=$($sourceStateAfter.contentSha256)`nBEFORE_SHA256=$sourceContentSha256`nSOURCE_FILES=$($sourceStateAfter.fileCount)" $(if($sourceStable){'validation did not change product source bytes'}else{'validation changed product source bytes'})
 $managedStateAfter=Get-CpfTreeState 'managed' (Join-Path $evidenceDir 'managed-state-after.json')
 $stable=$managedStateReady -and ([string]$managedStateBefore.contentSha256 -eq [string]$managedStateAfter.contentSha256)
-Add-CpfTextResult 'MANAGED_STATE_AFTER' $(if($stable){'PASS'}else{'FAIL'}) "AFTER_SHA256=$($managedStateAfter.contentSha256)`nBEFORE_SHA256=$($managedStateBefore.contentSha256)`nMANAGED_FILES=$($managedStateAfter.fileCount)" $(if($stable){'validation did not change managed repository files'}else{'validation changed managed repository files'})
+$managedDiffPath=Join-Path $evidenceDir 'managed-state-diff.json'
+$managedDiffNote='validation did not change managed repository files'
+if(-not $stable){
+    try{
+        $beforeInventory=Get-Content -LiteralPath (Join-Path $evidenceDir 'managed-state-before.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        $afterInventory=Get-Content -LiteralPath (Join-Path $evidenceDir 'managed-state-after.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        $beforeMap=@{};foreach($row in @($beforeInventory.files)){$beforeMap[[string]$row.path]=$row}
+        $afterMap=@{};foreach($row in @($afterInventory.files)){$afterMap[[string]$row.path]=$row}
+        $added=@();$removed=@();$changed=@()
+        foreach($path in $afterMap.Keys){if(-not $beforeMap.ContainsKey($path)){$added+=$path}elseif([string]$beforeMap[$path].sha256 -ne [string]$afterMap[$path].sha256){$changed+=[pscustomobject]@{path=$path;beforeSha256=[string]$beforeMap[$path].sha256;afterSha256=[string]$afterMap[$path].sha256}}}
+        foreach($path in $beforeMap.Keys){if(-not $afterMap.ContainsKey($path)){$removed+=$path}}
+        $diff=[ordered]@{status='FAIL';added=@($added|Sort-Object);removed=@($removed|Sort-Object);changed=@($changed|Sort-Object path)}
+        [IO.File]::WriteAllText($managedDiffPath,($diff|ConvertTo-Json -Depth 8)+"`n",$utf8)
+        $managedDiffNote="validation changed managed repository files: added=$($added.Count) removed=$($removed.Count) changed=$($changed.Count); see managed-state-diff.json"
+    }catch{$managedDiffNote="managed drift detected; diff generation failed: $($_.Exception.Message)"}
+}
+Add-CpfTextResult 'MANAGED_STATE_AFTER' $(if($stable){'PASS'}else{'FAIL'}) "AFTER_SHA256=$($managedStateAfter.contentSha256)`nBEFORE_SHA256=$($managedStateBefore.contentSha256)`nMANAGED_FILES=$($managedStateAfter.fileCount)" $managedDiffNote
 
 $summaryCsv=Join-Path $resultDir 'SUMMARY.csv'
 $summaryJson=Join-Path $resultDir 'SUMMARY.json'

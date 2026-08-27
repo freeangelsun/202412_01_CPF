@@ -1,0 +1,26 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "ORACLE_PHYSICAL_FRESH_LIFECYCLE_R13",
+  "status": "PASS",
+  "recordedAt": "2026-08-27T18:22:10+09:00",
+  "sourceIdentitySha256": "437b9487d41e5c64d56251cdb3d9e199e87dcbc26c8b05a464656b42c3c1c926",
+  "sourceIdentitySha1": "0e9b34631dafe677f1170574f8154b6523cfd6da",
+  "vendor": "oracle",
+  "flow": [
+    "verifier-owned provision",
+    "Fresh Platform and Backoffice schema install",
+    "Platform and Backoffice product seed",
+    "Platform 4 checks and Backoffice 2 checks",
+    "prepare pre-current with R140",
+    "V140 upgrade",
+    "R140 rollback",
+    "V140 reapply",
+    "verifier-owned cleanup"
+  ],
+  "executionCompatibilityRule": "ORACLE_COLUMN_DEFAULT_BEFORE_NOT_NULL_V1",
+  "executionCompatibilityReplacements": 2,
+  "selectedR140Sha256": "d644d262458956aa035d537c2788388f41bf12ab61757937201e0144942c07d6",
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-r13/db-runtime-matrix.json",
+  "repositoryRawRuntimeLogs": 0,
+  "nextGate": "Oracle physical fault/UNKNOWN/restart/cleanup"
+}

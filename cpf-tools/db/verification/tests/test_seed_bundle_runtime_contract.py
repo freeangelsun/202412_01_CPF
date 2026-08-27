@@ -55,6 +55,42 @@ def is_retry_safe(vendor: str, statement: str) -> bool:
     return re.search(r"(?im)^\s*MERGE\s+INTO", statement) is not None or "NOT EXISTS" in normalized
 
 
+def canonical_physical_mutation_count(row: dict, vendor: str) -> int:
+    if row.get("statementKind") != "insert":
+        return 0
+    if vendor != "oracle" or row.get("sourceKind") != "values":
+        return 1
+    source = str(row.get("source") or "")
+    count = 0
+    depth = 0
+    quote = None
+    i = 0
+    while i < len(source):
+        ch = source[i]
+        if quote is not None:
+            if ch == quote:
+                if i + 1 < len(source) and source[i + 1] == quote:
+                    i += 2
+                    continue
+                quote = None
+            i += 1
+            continue
+        if ch in ("'", '"'):
+            quote = ch
+        elif ch == "(":
+            if depth == 0:
+                count += 1
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth < 0:
+                raise AssertionError("unbalanced canonical VALUES source")
+        i += 1
+    if depth != 0 or count < 1:
+        raise AssertionError("invalid canonical VALUES source")
+    return count
+
+
 class SeedBundleRuntimeContractTest(unittest.TestCase):
     def setUp(self) -> None:
         self.seed_model = json.loads(
@@ -71,18 +107,18 @@ class SeedBundleRuntimeContractTest(unittest.TestCase):
             1 for row in self.seed_model["statements"] if row["statementKind"] == "insert"
         )
         self.assertGreater(canonical_insert_count, 0)
-        self.assertEqual(
-            canonical_insert_count,
-            sum(1 for row in self.seed_model["statements"] if row.get("statementKind") == "insert"),
-        )
         for vendor in OFFICIAL:
+            expected_physical = sum(
+                canonical_physical_mutation_count(row, vendor)
+                for row in self.seed_model["statements"]
+            )
             mutation_count = 0
             for kind in SEED_KINDS:
                 mutation_count += sum(
                     1 for statement in split_sql(self._bundle(vendor, kind))
                     if is_seed_mutation(statement)
                 )
-            self.assertEqual(canonical_insert_count, mutation_count, vendor)
+            self.assertEqual(expected_physical, mutation_count, vendor)
 
     def test_every_bundled_seed_mutation_is_retry_safe(self) -> None:
         for vendor in OFFICIAL:
@@ -225,7 +261,7 @@ class SeedBundleRuntimeContractTest(unittest.TestCase):
         self.assertIn('00_product_seed.sql', initializer)
         self.assertIn('Mode productSeed', initializer)
         self.assertIn('if (-not $?) { throw "$selectedVendor productSeed 실패" }', initializer)
-        self.assertIn('if($process.ExitCode -ne 0)', runner)
+        self.assertIn('if($process.ExitCode -ne 0 -or $null-ne$writeFailure)', runner)
         self.assertIn('부분 설치 DB를 감지했습니다', initializer)
         self.assertIn("productSeed='productSeed'", runner)
         self.assertIn('\\set ON_ERROR_STOP on', runner)

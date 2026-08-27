@@ -124,9 +124,9 @@ public class AdmOperationPermissionProjectionService {
             }
         }
         return routes.stream()
-                .sorted(Comparator.comparing(OperationRoute::operationId)
-                        .thenComparing(OperationRoute::httpMethod)
-                        .thenComparing(OperationRoute::path))
+                .sorted(Comparator.comparing((OperationRoute value) -> value.operationId())
+                        .thenComparing(value -> value.httpMethod())
+                        .thenComparing(value -> value.path()))
                 .toList();
     }
 

@@ -1,0 +1,22 @@
+{
+  "findingId": "CX-F-307",
+  "stage": "ORACLE_PHYSICAL_FAULT_UNKNOWN_RECOVERY",
+  "status": "PASS",
+  "recordedAt": "2026-08-27T18:27:00+09:00",
+  "sourceIdentitySha256": "437b9487d41e5c64d56251cdb3d9e199e87dcbc26c8b05a464656b42c3c1c926",
+  "fault": "Oracle downstream container stopped after reviewed rollback dry-run and before verifier-owned disposable apply",
+  "expectedFailureExitCode": 1,
+  "databaseError": "ORA-12262",
+  "resultStatus": "실패",
+  "reconcileRequired": true,
+  "unknownOperations": 1,
+  "failureVersion": 140,
+  "failureModule": "core",
+  "recovery": {
+    "oracleRestartHealth": "healthy",
+    "verifierOwnedCleanup": "PASS"
+  },
+  "externalSanitizedEvidence": "C:/Users/fly10/Downloads/CPF_RT05_20260826/oracle-fault-r2/fault-apply.json",
+  "repositoryRawRuntimeLogs": 0,
+  "nextGate": "Broad DB regression and Local One-WAS preparation"
+}

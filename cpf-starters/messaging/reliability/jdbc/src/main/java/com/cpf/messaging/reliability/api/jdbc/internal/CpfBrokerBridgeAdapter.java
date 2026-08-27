@@ -101,7 +101,7 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
         return recentMessages.stream()
                 .filter(message -> resolvedDestination == null
                         || resolvedDestination.equals(message.destination()))
-                .sorted(Comparator.comparing(CpfBrokerBridgeMessage::createdAt).reversed())
+                .sorted(Comparator.comparing((CpfBrokerBridgeMessage value) -> value.createdAt()).reversed())
                 .limit(resolvedLimit)
                 .toList();
     }

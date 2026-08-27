@@ -19,6 +19,7 @@ class CpfResourcePolicyTest(unittest.TestCase):
         self.assertEqual("1000", result["local"]["heapCeilingMb"])
         self.assertEqual("false", result["local"]["batchDefault"])
         self.assertEqual("true", result["local"]["singleWebDefault"])
+        self.assertEqual("1000", result["local"]["frontendNodeMaxOldSpaceMb"])
 
     def test_memory_parser(self):
         self.assertEqual(250, MOD.memory_mb("250m"))

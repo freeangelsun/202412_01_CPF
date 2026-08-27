@@ -12,7 +12,7 @@ cpf open-git check
 cpf open-git status
 ```
 
-Codex와의 병행개발 충돌을 피하기 위해 현재 Overlay는 기존 Runtime CLI를 직접 수정하지 않습니다. 통합 전에는 아래 전용 진입점을 사용하며, Codex 종료 후 `cpf open-git` alias만 얇게 연결합니다.
+Runtime CLI에 `cpf open-git`이 이미 통합되어 있으며 아래 전용 진입점은 동일 계약의 호환 Wrapper입니다. 두 경로는 동일 Release Owner를 호출해야 하며 서로 다른 구현을 갖지 않습니다.
 
 ```powershell
 .\cpf-tools\release\open-git\cpf-open-git.ps1
@@ -20,7 +20,7 @@ Codex와의 병행개발 충돌을 피하기 위해 현재 Overlay는 기존 Run
 .\cpf-tools\release\open-git\cpf-open-git.ps1 status
 ```
 
-최초 한 번, Codex 작업 종료 후 Canonical integration을 적용합니다.
+기존 설치본에서 `/cpf-release/` 제외 또는 Canonical integration이 누락된 경우에만 호환 `setup`을 1회 실행합니다. 신규 Current Source는 integration 완료 상태가 정본입니다.
 
 ```powershell
 .\cpf-tools\release\open-git\cpf-open-git.ps1 setup

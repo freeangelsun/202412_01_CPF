@@ -61,7 +61,7 @@ def release_stage(index: int, label: str, detail: str = "") -> None:
 def recovery_hint(message: str) -> str:
     lower = message.lower()
     if "cpf-release" in lower and ("gitignore" in lower or "tracked" in lower or "symlink" in lower):
-        return "Codex 종료 후 'cpf open-git setup'을 1회 적용하고 /cpf-release/ 제외 상태를 확인하세요."
+        return "/cpf-release/ 제외와 Canonical integration 상태를 확인하세요. 필요할 때만 호환 setup을 1회 실행합니다."
     if "working tree must be clean" in lower:
         return "Private Working Tree 변경을 검토/정리한 뒤 다시 실행하세요. Tool은 commit/reset/clean을 자동 수행하지 않습니다."
     if "remote" in lower:

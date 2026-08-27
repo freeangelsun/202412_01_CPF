@@ -1,7 +1,7 @@
 package com.cpf.file.common.filetransfer;
 
 import com.cpf.file.api.filetransfer.CpfRemoteCommandPlan;
-import com.cpf.foundation.api.DefaultCpfTransactionIdGenerator;
+import com.cpf.foundation.id.DefaultCpfTransactionIdGenerator;
 import java.time.Clock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

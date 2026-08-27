@@ -252,7 +252,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
     private List<String> splitRoles(String value) {
         if (value == null || value.isBlank()) return List.of();
         return java.util.Arrays.stream(value.split(","))
-                .map(value -> value.trim()).filter(role -> !role.isBlank()).distinct().sorted().toList();
+                .map(role -> role.trim()).filter(role -> !role.isBlank()).distinct().sorted().toList();
     }
 
     private LocalDateTime localDateTime(java.sql.Timestamp value) {

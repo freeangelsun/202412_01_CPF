@@ -83,6 +83,15 @@ public final class TransactionContext {
     private static final String MDC_STANDARD_EXECUTION_ID = "standardExecutionId";
     private static final String MDC_STANDARD_EXECUTION_NAME = "standardExecutionName";
     private static final String MDC_DYNAMIC_LOG_LEVEL = "dynamicLogLevel";
+    private static final String MDC_CORRELATION_ID = "correlationId";
+    private static final String MDC_EXECUTION_ID = "executionId";
+    private static final String MDC_SEGMENT_ID = "segmentId";
+    private static final String MDC_ORIGINAL_SYSTEM_CODE = "originalSystemCode";
+    private static final String MDC_SYSTEM_CODE = "systemCode";
+    private static final String MDC_CALLER_SYSTEM_CODE = "callerSystemCode";
+    private static final String MDC_TARGET_SYSTEM_CODE = "targetSystemCode";
+    private static final String MDC_OPERATION_ID = "operationId";
+    private static final String MDC_TENANT_ID = "tenantId";
     private static final DateTimeFormatter FALLBACK_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     private static final AtomicLong FALLBACK_SEQUENCE = new AtomicLong();
     private static final ThreadLocal<Map<String, Object>> FALLBACK_ATTRIBUTES =
@@ -119,6 +128,7 @@ public final class TransactionContext {
         setAttribute(ATTR_BUSINESS_DATE, resolveBusinessDate(resolvedTransactionId));
 
         putMdc(resolvedTransactionId, resolvedTraceId, resolvedSpanId);
+        refreshCanonicalMdc();
     }
 
     public static String getOrCreateTransactionId() {
@@ -366,6 +376,15 @@ public final class TransactionContext {
         MDC.remove(MDC_STANDARD_EXECUTION_ID);
         MDC.remove(MDC_STANDARD_EXECUTION_NAME);
         MDC.remove(MDC_DYNAMIC_LOG_LEVEL);
+        MDC.remove(MDC_CORRELATION_ID);
+        MDC.remove(MDC_EXECUTION_ID);
+        MDC.remove(MDC_SEGMENT_ID);
+        MDC.remove(MDC_ORIGINAL_SYSTEM_CODE);
+        MDC.remove(MDC_SYSTEM_CODE);
+        MDC.remove(MDC_CALLER_SYSTEM_CODE);
+        MDC.remove(MDC_TARGET_SYSTEM_CODE);
+        MDC.remove(MDC_OPERATION_ID);
+        MDC.remove(MDC_TENANT_ID);
         TransactionSegmentContext.clear();
         FALLBACK_ATTRIBUTES.remove();
     }
@@ -433,6 +452,27 @@ public final class TransactionContext {
      */
     public static String currentDynamicLogLevel() {
         return MDC.get(MDC_DYNAMIC_LOG_LEVEL);
+    }
+
+    /** 현재 Canonical Context의 추적 lineage를 SLF4J MDC에 동기화합니다. */
+    public static void refreshCanonicalMdc() {
+        putOrRemove(MDC_TRANSACTION_ID, currentTransactionId());
+        putOrRemove(MDC_TRACE_ID, currentTraceId());
+        putOrRemove(MDC_SPAN_ID, currentSpanId());
+        putOrRemove(MDC_CORRELATION_ID, correlationId());
+        putOrRemove(MDC_EXECUTION_ID, com.cpf.core.api.context.CpfContexts.currentExecutionId());
+        putOrRemove(MDC_SEGMENT_ID, firstText(TransactionSegmentContext.currentSegmentId(), com.cpf.core.api.context.CpfContexts.currentSegmentId()));
+        putOrRemove(MDC_ORIGINAL_SYSTEM_CODE, originalSystemCode());
+        putOrRemove(MDC_SYSTEM_CODE, currentSystemCode());
+        putOrRemove(MDC_CALLER_SYSTEM_CODE, callerSystemCode());
+        putOrRemove(MDC_TARGET_SYSTEM_CODE, targetSystemCode());
+        putOrRemove(MDC_OPERATION_ID, observedOperationId());
+        putOrRemove(MDC_TENANT_ID, tenantId());
+    }
+
+    private static void putOrRemove(String key, String value) {
+        if (hasText(value)) MDC.put(key, value);
+        else MDC.remove(key);
     }
 
     private static void putMdc(String transactionId, String traceId, String spanId) {

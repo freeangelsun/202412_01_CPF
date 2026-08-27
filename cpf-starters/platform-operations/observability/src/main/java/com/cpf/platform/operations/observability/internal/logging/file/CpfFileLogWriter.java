@@ -475,8 +475,19 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
         event.put("appVersion", environment.getProperty("cpf.app.version", "local"));
         event.put("buildVersion", environment.getProperty("cpf.build.version", "local"));
         event.put("jvmName", ManagementFactory.getRuntimeMXBean().getName());
+        // 거래 추적 lineage는 runtime metadata가 아니라 현재 Canonical Context를 우선 정본으로 사용합니다.
+        event.put("transactionId", TransactionContext.currentTransactionId());
+        event.put("traceId", TransactionContext.currentTraceId());
+        event.put("correlationId", TransactionContext.correlationId());
+        event.put("executionId", com.cpf.core.api.context.CpfContexts.currentExecutionId());
+        event.put("segmentId", firstText(TransactionSegmentContext.currentSegmentId(), TransactionContext.currentSpanId()));
+        event.put("originalSystemCode", TransactionContext.originalSystemCode());
+        event.put("systemCode", firstText(TransactionContext.currentSystemCode(), detail(details, "runtime.systemCode")));
+        event.put("callerSystemCode", TransactionContext.callerSystemCode());
+        event.put("targetSystemCode", TransactionContext.targetSystemCode());
+        event.put("operationId", TransactionContext.observedOperationId());
+        event.put("tenantId", TransactionContext.tenantId());
         // Runtime/System/Capability metadata is produced automatically by the CPF runtime usage/context bridge.
-        event.put("systemCode", detail(details, "runtime.systemCode"));
         event.put("domainCode", detail(details, "runtime.domainCode"));
         event.put("application", detail(details, "runtime.application"));
         event.put("module", detail(details, "runtime.module"));

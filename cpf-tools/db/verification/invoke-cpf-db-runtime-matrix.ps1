@@ -2,6 +2,7 @@
 param(
     [string]$Root=(Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [string]$SourceSha='',
+    [string]$SourceIdentitySha256='',
     [string]$EvidenceRoot='build/cpf-db-runtime-matrix',
     [string]$RuntimeManifestPath=$env:CPF_DB_RUNTIME_MANIFEST,
     [ValidateSet('all','mariadb','postgresql','oracle')]
@@ -17,13 +18,14 @@ Set-StrictMode -Version Latest
 $rootPath=(Resolve-Path -LiteralPath $Root).Path
 $evidence=if([IO.Path]::IsPathRooted($EvidenceRoot)){[IO.Path]::GetFullPath($EvidenceRoot)}else{[IO.Path]::GetFullPath((Join-Path $rootPath $EvidenceRoot))}
 New-Item -ItemType Directory -Force -Path $evidence | Out-Null
-if([string]::IsNullOrWhiteSpace($SourceSha)){
-    $candidate=(git -C $rootPath rev-parse HEAD 2>$null)
-    if($candidate){$SourceSha=([string]$candidate).Trim()}
+if([string]::IsNullOrWhiteSpace($SourceIdentitySha256)){
+    $sourceStateJson=& python (Join-Path $rootPath 'cpf-tools/verification/tools/cpf-source-state.py') --root $rootPath --scope source
+    if($LASTEXITCODE-ne0){throw 'CPF canonical Working Tree Source Identity calculation failed.'}
+    $sourceState=$sourceStateJson|ConvertFrom-Json; $SourceIdentitySha256=[string]$sourceState.contentSha256
 }
-if($SourceSha -notmatch '^[0-9a-f]{40}$'){throw 'Exact source SHA is required for DB runtime matrix.'}
+if($SourceIdentitySha256-notmatch'^[0-9a-f]{64}$'){throw 'Canonical Working Tree SHA-256 is required for DB runtime matrix.'}
 $staticReport=Join-Path $evidence 'migration-lifecycle-static.json'
-& python (Join-Path $rootPath 'cpf-tools/db/verify_migration_lifecycle.py') --root $rootPath --source-sha $SourceSha --report $staticReport
+& python (Join-Path $rootPath 'cpf-tools/db/verify_migration_lifecycle.py') --root $rootPath --source-identity-sha256 $SourceIdentitySha256 --report $staticReport
 if($LASTEXITCODE -ne 0){throw "DB lifecycle static contract failed: $LASTEXITCODE"}
 $officialVendors=@('mariadb','postgresql','oracle')
 $vendors=if($Vendor -eq 'all'){$officialVendors}else{@($Vendor)}
@@ -61,7 +63,7 @@ if(-not [string]::IsNullOrWhiteSpace($RuntimeManifestPath)){
     }
     $runtimeManifestSha256=(Get-FileHash -LiteralPath $manifestCandidate -Algorithm SHA256).Hash.ToLowerInvariant()
 }
-$result=[ordered]@{schemaVersion=1;sourceSha=$SourceSha;startedAt=([DateTimeOffset]::UtcNow.ToString('o'));runtimeManifest=[ordered]@{configured=($null-ne$runtimeManifest);sha256=$runtimeManifestSha256};vendors=@();sanitized=$true}
+$result=[ordered]@{schemaVersion=1;sourceSha=$(if($SourceSha){$SourceSha}else{'UNAVAILABLE'});sourceIdentitySha256=$SourceIdentitySha256;startedAt=([DateTimeOffset]::UtcNow.ToString('o'));runtimeManifest=[ordered]@{configured=($null-ne$runtimeManifest);sha256=$runtimeManifestSha256};vendors=@();sanitized=$true}
 foreach($vendor in $vendors){
     $previousEnvironment=@{}
     try{

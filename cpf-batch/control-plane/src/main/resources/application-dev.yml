@@ -1,0 +1,7 @@
+server:
+  port: ${CPF_PORT:8180}
+cpf:
+  framework:
+    was-id: ${CPF_WAS_ID:cpf-batch-control-plane-dev-1}
+  runtime:
+    role: CONTROL_PLANE

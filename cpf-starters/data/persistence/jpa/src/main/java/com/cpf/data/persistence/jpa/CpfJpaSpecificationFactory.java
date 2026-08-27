@@ -2,6 +2,7 @@ package com.cpf.data.persistence.jpa;
 
 import com.cpf.data.persistence.api.CpfPersistencePolicy;
 import com.cpf.data.persistence.api.CpfSearchSpec;
+import com.cpf.data.persistence.api.CpfFilterOperator;
 import jakarta.persistence.criteria.Path;
 import java.util.Map;
 import java.util.Objects;
@@ -20,10 +21,10 @@ public final class CpfJpaSpecificationFactory {
                 return switch (c.operator()) {
                     case EQ -> cb.equal(path, value);
                     case NE -> cb.notEqual(path, value);
-                    case GT -> compare(cb, path, value, CpfSearchSpec.Operator.GT);
-                    case GE -> compare(cb, path, value, CpfSearchSpec.Operator.GE);
-                    case LT -> compare(cb, path, value, CpfSearchSpec.Operator.LT);
-                    case LE -> compare(cb, path, value, CpfSearchSpec.Operator.LE);
+                    case GT -> compare(cb, path, value, CpfFilterOperator.GT);
+                    case GE -> compare(cb, path, value, CpfFilterOperator.GE);
+                    case LT -> compare(cb, path, value, CpfFilterOperator.LT);
+                    case LE -> compare(cb, path, value, CpfFilterOperator.LE);
                     case LIKE -> cb.like(path.as(String.class), "%" + escapeLike(String.valueOf(value)) + "%", '\\');
                     case PREFIX -> cb.like(path.as(String.class), escapeLike(String.valueOf(value)) + "%", '\\');
                     case IN -> path.in(c.values());
@@ -36,7 +37,7 @@ public final class CpfJpaSpecificationFactory {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static jakarta.persistence.criteria.Predicate compare(jakarta.persistence.criteria.CriteriaBuilder cb, Path<?> path, Object value, CpfSearchSpec.Operator operator) {
+    private static jakarta.persistence.criteria.Predicate compare(jakarta.persistence.criteria.CriteriaBuilder cb, Path<?> path, Object value, CpfFilterOperator operator) {
         if (!(value instanceof Comparable comparable)) throw new IllegalArgumentException("Comparable filter value is required");
         Class<? extends Comparable> valueType = comparable.getClass().asSubclass(Comparable.class);
         jakarta.persistence.criteria.Expression<? extends Comparable> expression = path.as(valueType);

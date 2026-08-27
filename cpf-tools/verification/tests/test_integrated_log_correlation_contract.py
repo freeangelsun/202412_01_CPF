@@ -7,7 +7,7 @@ SCRIPT = ROOT / 'cpf-tools/runtime/tools/smoke-integrated-log-correlation.ps1'
 def test_integrated_log_correlation_is_fail_closed_and_secret_safe():
     text = SCRIPT.read_text(encoding='utf-8')
     for token in (
-        'X-Transaction-Id', 'X-Trace-Id', '/api/education/query/headers',
+        'X-Transaction-Id', 'X-Trace-Id', '/edu/online/member-processing',
         '/adm/api/logs?transactionId=', '/adm/api/observability/transactions/',
         '/adm/api/transaction-groups/', '/adm/api/observability/file-log-recovery',
         'rawSecretLeakCount', 'terminalLoss', 'quarantined', 'transactionLogs',

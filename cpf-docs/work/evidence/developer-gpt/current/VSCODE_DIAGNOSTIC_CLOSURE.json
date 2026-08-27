@@ -1,11 +1,11 @@
 {
-  "inputDiagnosticCount": 923,
-  "inputDiagnosticFiles": 371,
-  "sourceConditionResidual": 0,
+  "inputDiagnosticCount": 271,
+  "inputDiagnosticFiles": 57,
+  "sourceModelStatus": "PASS",
   "actualJdtFreshSync": "NOT_EXECUTED_ENVIRONMENT",
-  "policy": "No IDE warning suppression; source/API/null/resource fixes only",
+  "policy": "No IDE warning suppression; source/API/generic/dependency/null/resource fixes only",
   "notes": [
-    "4 heuristic residuals were false positives after current API/chained Mockito conversion; actual original diagnostic conditions removed",
-    "Final JDT 0/0 must be measured on user Java25 VSCode environment"
+    "Physical Error 0 / Warning 0 requires user Java25 + Gradle9.1 Fresh VSCode/JDT import",
+    "Build-path cascade findings were separated from real Source root causes"
   ]
 }

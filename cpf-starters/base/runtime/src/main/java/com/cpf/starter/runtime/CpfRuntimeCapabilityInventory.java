@@ -78,7 +78,7 @@ public final class CpfRuntimeCapabilityInventory {
         try {
             Enumeration<URL> resources = loader.getResources(RESOURCE);
             List<URL> urls = Collections.list(resources);
-            urls.sort(java.util.Comparator.comparing(value -> value.toString()));
+            urls.sort(java.util.Comparator.comparing(URL::toString));
             for (URL url : urls) load(url);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to discover CPF runtime capability metadata", e);
@@ -103,7 +103,7 @@ public final class CpfRuntimeCapabilityInventory {
                         flag(p,"runtimeControl"),flag(p,"recovery")), metadata));
     }
     private static boolean flag(Properties p, String name) { return Boolean.parseBoolean(p.getProperty("supports." + name, "false")); }
-    private static List<String> splitCsv(String value) { return Arrays.stream(value.split(",")).map(value -> value.trim()).filter(v -> !v.isEmpty()).toList(); }
+    private static List<String> splitCsv(String value) { return Arrays.stream(value.split(",")).map(token -> token.trim()).filter(v -> !v.isEmpty()).toList(); }
     private static String supportText(CpfRuntimeCapabilityDescriptor.Support s) {
         return String.join(",",
                 "health=" + s.health(), "metrics=" + s.metrics(), "logs=" + s.logs(), "trace=" + s.trace(),

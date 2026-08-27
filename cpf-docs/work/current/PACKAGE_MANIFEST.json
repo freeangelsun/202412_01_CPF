@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-27T09:43:00+09:00",
+  "baselineZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_195052.zip",
+  "baselineZipSha256": "00abb643557a9562ff3aa40f088c8791af4e01d0cfb056e5509f70d146b90ec0",
+  "sourceIdentityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+  "sourceIdentitySha256": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "productSourceFiles": 8334,
+  "productSourceBytes": 38599665,
+  "canonicalRequirementCount": 208,
+  "developerClosure": {
+    "total": 127,
+    "developmentComplete": 127,
+    "verificationComplete": 7,
+    "verificationUnverified": 120
+  },
+  "changes": {
+    "total": 144,
+    "modified": 76,
+    "added": 53,
+    "deleted": 15
+  },
+  "mandatoryRuntimeStatus": "UNVERIFIED",
+  "qaFinalStatus": "NOT_COMPLETE",
+  "gitWritesPerformed": false,
+  "deletePerformed": false,
+  "overlaySemantics": "copy ADD/MODIFY files then execute only DELETE_MANIFEST rows approved=true,user_approved=true,precondition=SATISFIED",
+  "currentDocs": [
+    "CPF_CURRENT_WORK_REQUEST.md",
+    "CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv",
+    "REQUIREMENT_STATUS.csv",
+    "CHANGE_MANIFEST.csv",
+    "TEST_AND_EVIDENCE.md",
+    "OPEN_ISSUES.md",
+    "CODEX_MID_REVIEW_INSTRUCTION.md",
+    "CPF_REQUIRED_FULL_RUNTIME_REQUEST.md",
+    "CPF_DEVELOPMENT_HANDOVER.md",
+    "DELETE_MANIFEST.csv",
+    "PACKAGE_MANIFEST.json",
+    "SHA256SUMS.txt"
+  ],
+  "overlay": {
+    "name": "CPF_C_DEV_QA_1_7_DEVELOPMENT_OVERLAY_20260827.zip",
+    "fileCount": 132,
+    "rootRelative": true
+  },
+  "freshReplay": {
+    "baseline": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_195052.zip",
+    "deleteManifestExecutedRows": 15,
+    "sourceIdentitySha256": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+    "sourceFiles": 8334,
+    "sourceBytes": 38599665,
+    "configContract": "PASS",
+    "hygiene": "PASS",
+    "batchNoRemoteKafka": "PASS",
+    "batchAgentFailClosed": "PASS"
+  }
+}

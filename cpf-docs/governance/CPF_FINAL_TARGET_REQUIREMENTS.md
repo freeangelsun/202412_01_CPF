@@ -946,49 +946,21 @@ repository URL/version은 중앙 설정으로 관리한다.
 
 Open Git 릴리즈는 Private CPF Source에서 생성하는 **검증된 Projection**이며 독립 개발 정본이 아니다.
 
-#### 21.3.1 Owner와 생성 Lifecycle
-
-- Private master가 유일한 개발 정본이며 생성/정책/검증 Owner는 `cpf-tools/release/open-git/**`다. 기존 `cpf-tools/release/public/**`은 검증된 공통 구현으로 재사용할 수 있지만 Consumer 0과 완전 대체가 입증되기 전에는 삭제하거나 이중 정본으로 복제하지 않는다.
-- Private Repository Root의 생성 전용 디렉터리는 정확히 `cpf-release/`로 고정하고 Private Git 및 Source Identity에서 제외한다. 최종 구조는 `cpf-release/open-git`, `cpf-release/binary-repository`, `cpf-release/reports`, `cpf-release/logs`다.
-- 매 실행은 Root/ignore/tracked-file/symlink 보호 검사를 먼저 수행하고 기존 `cpf-release/`만 안전 제거한 뒤 신규 생성한다. Open Git Working Repository도 지정 Remote에서 fresh clone하며 이전 Projection, Binary 또는 `.git`을 재사용하지 않는다.
-- Release Tool이 수행할 수 있는 Git write의 최종선은 `cpf-release/open-git/.git`에 대한 `git add -A`, `git diff --cached --check`, `READY_TO_COMMIT`이다. Private master를 포함한 어느 저장소에도 commit/push/branch/tag/reset/clean을 자동 실행하지 않는다.
-
-#### 21.3.2 Source/Binary 공개 경계
-
-- Open Git Source는 Generated Customer Domain, Backoffice 고객 개발 Surface, Backoffice Web Channel/BFF, EDU 35 Example, Developer Command 및 필요한 공개 계약·설정만 포함한다.
-- `cpf-core`, `cpf-common`, ADM, Gateway, Batch Runtime/Worker/Scheduler/Agent, Starter/Internal Provider, Private release engine, governance/QA/evidence/work, secret/credential의 구현 Source Tree는 포함하지 않는다.
-- Open Git Source Workspace에는 누적 CPF JAR/WAR를 포함하지 않는다. Framework 소비 Binary는 별도 형제 `binary-repository`에 Maven-compatible 구조로 제공한다.
-- Binary Repository는 실제 공개 Catalog가 허용한 BOM/API/SPI/Starter/Runtime/Generator만 제공한다. 임의 Group/Artifact/Version 또는 Private Source 복사로 누락을 우회하지 않는다.
-- `sources.jar`/`javadoc.jar`도 Source 공개로 취급해 Default-Deny한다. Common/Public Starter/Public API·SPI 중 Catalog가 명시 허용한 항목만 제공하며 Core/ADM/Gateway/Batch/Internal Runtime 및 Provider는 binary-only다.
-- Surface와 Artifact 모두 미분류 1건, Private Source/경로 1건, 금지 sources/javadoc 1건, secret/credential 1건, POM의 미제공 CPF dependency 1건이라도 Release Blocker다.
-
-#### 21.3.3 사용자 명령과 실행 UX
-
-- Release 담당자 Canonical UX는 `cpf open-git`, `cpf open-git check`, `cpf open-git status`다.
-- Open Git 개발자 Golden Path는 `cpf bootstrap`, `cpf build`, `cpf test`, `cpf verify`, `cpf domain new`, `cpf domain sync`, `cpf status`, `cpf stop`, `cpf reset --confirm`이다. 실제 Package의 Help/Dispatcher/Wrapper가 공개하는 **모든 명령과 옵션**을 Inventory 정본으로 추출하고 Golden Path뿐 아니라 전수 실행한다.
-- 기존 개별 Script는 단일 Dispatcher를 호출하는 호환 Wrapper로만 유지할 수 있다. PowerShell과 POSIX Shell은 명령·옵션·기본값·ExitCode·안전 계약이 같아야 한다.
-- 장시간 명령은 현재/전체 Stage와 실제 하위 실행 출력을 콘솔에 계속 표시하고 Timestamp 로그를 동시에 남긴다. 종료 시 명령 목적의 최종 상태, PASS/FAIL, ExitCode, 시작/완료 시각, 절대 로그 경로, 실패 원인과 다음 행동을 표시한다.
-- `stop`은 Runtime만 안전하게 종료하며 Source/개발 Data를 삭제하지 않는다. `reset`은 명시적 `--confirm` 또는 동등 승인 없이는 어떠한 destructive action도 시작하지 않는다.
-
-#### 21.3.4 Fresh 개발자 Acceptance
-
-다음 흐름을 **생성된 Open Git fresh checkout과 별도 isolated Gradle/Maven cache만으로** 끝까지 실제 실행한다. Private CPF Source, Private 경로, `mavenLocal()` 또는 과거 CPF Artifact가 성공에 기여하면 False Green이다.
-
-```text
-Fresh checkout → 초기 설정 → cpf bootstrap → 기존 Domain build/test
-→ 신규 Domain 생성 → domain sync/bootstrap → 생성 Domain compile/test
-→ Runtime 기동 → Health/대표 업무 호출 → cpf stop
-```
-
-- `cpf bootstrap`은 Java 25, Git/Docker/필요 시 Node, CPF Version/Binary Repository, Container/DB, Migration/Seed, Domain 인식, Build/Test, Runtime/Health를 실제 준비하고 성공 시 정확히 `CPF LOCAL DEVELOPMENT READY`를 출력한다.
-- 신규 Domain은 ExitCode만 보지 않고 Developer Contract, Directory IA, Java Package, Starter dependency, DB 설정, Build registration과 생성물을 검증하고 생성 직후 compile/test한다. 지원 옵션 조합은 fresh generate로 검증하고 sync/bootstrap 재실행은 멱등 또는 안전 복구돼야 한다. Generator 입력/상태 metadata가 결과 Root에 남으면 실패다.
-- EDU/Backoffice/Generated Domain의 대표 Public API/Starter Consumer를 실제 compile/run해 Binary 존재만으로 PASS하지 않는다.
-- Java 버전 오류, Docker 미기동, Binary Repository 불가, 잘못된 CPF Version, 잘못되거나 중복된 Domain identity, 필수 옵션 누락, DB 연결 실패, Build/Test 실패, bootstrap 중간 실패 후 재실행, reset 확인 누락, 존재하지 않는 명령/옵션을 실제 실패경로로 검증한다.
-- 환경 때문에 실행할 수 없는 항목은 PASS가 아니라 `미검증/BLOCKED_EXTERNAL`로 남기고 환경, 명령, 실제 오류와 재실행 조건을 기록한다.
-
-#### 21.3.5 READY Gate
-
-Source/Artifact 정책, Generator/Catalog parity, Open Git build/test, Fresh Consumer, Manifest/SHA, secret/leakage, staged diff가 모두 통과하고 모든 공개 개발자 명령이 목적을 수행한 경우에만 `READY_TO_COMMIT`이다. 명령/Help/Mock 파일만 존재하거나 Private Source/Maven Local에 의존하거나 Domain compile/test, Runtime/Health, 실패경로를 실행하지 않은 상태는 PASS가 아니다. 필수 사용자 명령 하나라도 사용 불가하거나 필수 검증 하나라도 미실행이면 Open Git Release 전체를 READY로 판정하지 않는다.
+- Private Repository Root의 생성 전용 디렉터리는 `cpf-release/`로 고정하고 Private Git 및 Source Identity에서 제외한다.
+- 실행할 때마다 기존 `cpf-release/`를 안전하게 전체 제거한 뒤 신규 생성한다. 이전 실행의 stale 파일을 재사용하지 않는다.
+- 최종 로컬 구조는 `cpf-release/open-git`, `cpf-release/binary-repository`, `cpf-release/reports`, `cpf-release/logs`를 기본으로 한다.
+- `open-git`은 Generated Customer Domain, Backoffice 고객 개발 Source, EDU Source, Developer Setup/Bootstrap/Build/Test/Domain 명령, 공개 문서·설정만 포함한다.
+- `cpf-core`, `cpf-common`, ADM, Gateway, Batch Runtime, Starter/Internal Provider 등 Framework 내부 구현 Source Tree는 Open Git에 포함하지 않는다.
+- Binary Repository는 Framework 사용에 필요한 Public BOM/API/SPI/Starter/Runtime/Generator artifact를 Maven-compatible 구조로 제공한다.
+- `sources.jar`/`javadoc.jar`도 Source 공개로 간주한다. 기본은 DENY이며 Common과 Public Starter 계열처럼 명시적으로 허용된 개발 계약만 공개한다. ADM/Gateway/Batch/Internal Runtime 계열은 binary-only다.
+- Open Git Source Workspace에는 누적 CPF JAR/WAR를 포함하지 않는다. Binary Repository는 별도 형제 Deliverable로 생성한다.
+- 공개 Surface와 Artifact는 Default-Deny 정책으로 분류하며 Private Source, internal/provider, governance/QA/evidence, secret/credential leakage를 Release Blocker로 처리한다.
+- Open Git Working Repository는 매 Release마다 Remote에서 fresh clone하고 검증된 Projection으로 동기화한다.
+- Release Tool은 `git add -A`, `git diff --cached --check`, `READY_TO_COMMIT`까지만 수행한다. commit/push는 자동 실행하지 않고 사용자가 최종 확인 후 직접 수행한다.
+- Release 담당자 명령은 짧고 일관되게 `cpf open-git`, `cpf open-git check`, `cpf open-git status`를 Canonical UX로 한다. 내부 구현 파일명은 Owner와 역할을 명확히 드러내되 사용자에게 장황한 경로 호출을 요구하지 않는다.
+- Open Git 개발자 Workspace는 `cpf bootstrap`, `cpf build`, `cpf test`, `cpf verify`, `cpf domain new`, `cpf domain sync`, `cpf status`, `cpf stop`, `cpf reset`을 Canonical 개발 명령으로 제공한다. 기존 개별 Script는 호환 Wrapper로만 둘 수 있으며 서로 다른 실행 계약을 중복 구현하지 않는다.
+- 개발자 명령은 장시간 실행 중 현재 단계/전체 단계와 실제 하위 실행 로그를 콘솔에 계속 표시하고 Timestamp 로그를 동시에 남긴다. 종료 시 PASS/FAIL, ExitCode, 시작/완료 시각, 로그 전체 경로, 실패 원인과 다음 행동을 표시한다.
+- `cpf bootstrap`은 Fresh Clone 개발자가 한 번에 환경 구성과 Build/Test/Runtime Health까지 진행할 수 있어야 하며 기본 성공 기준은 `CPF LOCAL DEVELOPMENT READY`다. `cpf reset`은 명시적 사용자 확인 없이는 Local Data 삭제를 시작하지 않는다.
 
 ## 22. EDU Canonical 35
 

@@ -98,7 +98,7 @@ public class DynamicTransactionLogLevelService implements CpfDynamicLogLevelOper
 
         return rules.values().stream()
                 .filter(rule -> matches(rule, normalizedTransactionId, normalizedBusinessTransactionId, normalizedModuleId))
-                .max(Comparator.comparing(value -> value.createdAt()));
+                .max(Comparator.comparing(DynamicLogLevelRule::createdAt));
     }
 
     /**
@@ -107,7 +107,7 @@ public class DynamicTransactionLogLevelService implements CpfDynamicLogLevelOper
     public List<DynamicLogLevelRule> findActiveRules() {
         cleanupExpired();
         return rules.values().stream()
-                .sorted(Comparator.comparing(value -> value.createdAt()).reversed())
+                .sorted(Comparator.comparing(DynamicLogLevelRule::createdAt).reversed())
                 .toList();
     }
 

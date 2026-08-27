@@ -47,13 +47,13 @@ public final class CpfAnnotatedBatchStepHandler implements BatchStepHandler {
                 steps.add(new StepDescriptor(stepId, step.order(), step.idempotent(), reference));
             }
             if (steps.isEmpty()) throw new IllegalStateException("CPF_BATCH_ANNOTATION_NO_STEP:" + jobId);
-            steps.sort(Comparator.comparingInt(value -> value.order()).thenComparing(value -> value.stepId()));
+            steps.sort(Comparator.comparingInt(StepDescriptor::order).thenComparing(StepDescriptor::stepId));
             if (descriptors.stream().anyMatch(existing -> existing.jobId().equals(jobId))) {
                 throw new IllegalStateException("CPF_BATCH_ANNOTATION_DUPLICATE_JOB:" + jobId);
             }
             descriptors.add(new JobDescriptor(jobId, job.restartable(), job.maxConcurrentExecutions(), List.copyOf(steps)));
         }
-        descriptors.sort(Comparator.comparing(value -> value.jobId()));
+        descriptors.sort(Comparator.comparing(JobDescriptor::jobId));
         this.invokers = Map.copyOf(found);
         this.jobs = List.copyOf(descriptors);
     }

@@ -1,0 +1,7 @@
+server:
+  port: ${CPF_PORT}
+cpf:
+  framework:
+    was-id: ${CPF_WAS_ID}
+  runtime:
+    role: CONTROL_PLANE

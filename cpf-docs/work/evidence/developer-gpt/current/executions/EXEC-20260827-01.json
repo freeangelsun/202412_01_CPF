@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260827-EXEC-01",
+  "evidenceType": "execution",
+  "sourceSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "resultSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "command": "NXT3 stage-equivalent + layout + garbage + hygiene + cpf verify all + clean source + Windows path + Spring Java hygiene + VSCode source model",
+  "startedAt": "2026-08-27T09:34:30+09:00",
+  "endedAt": "2026-08-27T09:34:30+09:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-R15.01"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-20260827-EXEC-01-S01",
+      "precondition": "Current Working Tree Source Identity is fixed",
+      "action": "NXT3 stage-equivalent + layout + garbage + hygiene + cpf verify all + clean source + Windows path + Spring Java hygiene + VSCode source model",
+      "expectedResult": "All invoked fail-closed static/contract commands exit 0; environment skips remain non-PASS",
+      "actualResult": "23 NXT3 stages individually PASS; layout 87 checks PASS; garbage/hygiene PASS; cpf verify all PASS; clean source garbage=0; path failures=0; Spring main Java 2449 PASS; VSCode source model PASS"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allObservedCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "environmentSkipsNotCountedAsPass",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-20260827-01.log",
+      "sha256": "8b095ef227125f61304fc7310cf0a6f32f05cf040676a94c8ebed918becbdd05"
+    }
+  ]
+}

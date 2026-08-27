@@ -28,7 +28,7 @@ public final class BackofficeOperationRouteCatalog {
                     loaded.add(Route.of(parts[0], parts[1], parts[2]));
                 }
             }
-            loaded.sort(Comparator.comparingInt(value -> value.staticSegments()).reversed().thenComparingInt(r -> -r.template().length()));
+            loaded.sort(Comparator.comparingInt(Route::staticSegments).reversed().thenComparingInt(r -> -r.template().length()));
             routes = List.copyOf(loaded);
             if (routes.isEmpty()) throw new IllegalStateException("Backoffice route catalog is empty");
         } catch (java.io.IOException e) {

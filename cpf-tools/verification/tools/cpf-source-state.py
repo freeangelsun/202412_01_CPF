@@ -30,6 +30,10 @@ GENERATED_FILE_PATTERNS = (
 )
 GENERATED_PATH_MARKERS = ("/cpf-docs/work/evidence/generated/",)
 GENERATED_ROOT_PREFIXES = {".vscode/"}
+CANONICAL_PRODUCT_BIN_PREFIXES = (
+    "cpf-batch/control-plane/bin/", "cpf-batch/scheduler/bin/", "cpf-batch/worker/bin/",
+    "cpf-batch/agent/bin/", "cpf-batch/center-cut/bin/",
+)
 
 
 def _relative(path: Path, root: Path) -> str:
@@ -57,7 +61,7 @@ def _is_generated(rel: str) -> bool:
     # Eclipse/IDE module-root compiled output is generated, but a literal "bin" segment under a
     # "templates" directory is checked-in product source (customer-facing CLI template scripts
     # meant to be installed into an end user's own bin/ folder, e.g. cpf-tools/release/*/templates/bin/).
-    if "bin" in parts and "templates" not in parts:
+    if "bin" in parts and "templates" not in parts and not any(rel.startswith(prefix) for prefix in CANONICAL_PRODUCT_BIN_PREFIXES):
         return True
     return False
 

@@ -93,6 +93,7 @@ ROLLBACK_PATTERNS = (
 )
 CHECKSUM_RE = re.compile(r"^(?P<hash>[0-9a-fA-F]{64})\s+\*?(?P<name>V\d+__.+\.sql)$")
 SHA_RE = re.compile(r"[0-9a-f]{40}")
+SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 
 class ContractError(RuntimeError):
@@ -197,25 +198,30 @@ def require_policy_file(root: Path, path: Path) -> Path:
     return candidate
 
 
-def resolve_git_sha(root: Path, supplied: str) -> str:
-    if supplied:
-        if not SHA_RE.fullmatch(supplied):
-            raise ContractError("--source-sha must be an exact 40-character lowercase SHA")
-        return supplied
+def resolve_source_provenance(root: Path, supplied_sha: str, supplied_identity: str) -> tuple[str, str, str]:
+    """Resolve evidence provenance without making Git the Source authority.
+
+    Current Working Tree SHA-256 is authoritative when explicitly supplied. A local Git
+    SHA is retained only as optional read-only provenance/legacy compatibility.
+    """
+    identity=(supplied_identity or "").strip().lower()
+    sha=(supplied_sha or "").strip().lower()
+    if identity and not SHA256_RE.fullmatch(identity):
+        raise ContractError("--source-identity-sha256 must be an exact 64-character lowercase SHA-256")
+    if sha and not SHA_RE.fullmatch(sha):
+        raise ContractError("--source-sha must be an exact 40-character lowercase SHA")
+    if identity:
+        return (sha or "UNAVAILABLE", identity, "CANONICAL_WORKING_TREE_SHA256")
+    if sha:
+        return (sha, "", "EXPLICIT_LOCAL_GIT_SHA_COMPATIBILITY")
     try:
-        result = subprocess.run(
-            ["git", "-C", str(root), "rev-parse", "HEAD"],
-            check=True,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    except (OSError, subprocess.CalledProcessError) as exc:
-        raise ContractError("exact source SHA unavailable; pass --source-sha") from exc
-    value = result.stdout.strip().lower()
-    if not SHA_RE.fullmatch(value):
-        raise ContractError(f"git returned invalid source SHA: {value!r}")
-    return value
+        result=subprocess.run(["git","-C",str(root),"rev-parse","HEAD"],check=True,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        value=result.stdout.strip().lower()
+        if SHA_RE.fullmatch(value):
+            return (value,"","LOCAL_GIT_READ_ONLY_PROVENANCE")
+    except (OSError,subprocess.CalledProcessError):
+        pass
+    raise ContractError("canonical Working Tree source identity unavailable; pass --source-identity-sha256 (Git recovery is not attempted)")
 
 
 def parse_checksum_manifest(pack_dir: Path) -> dict[str, str]:
@@ -684,10 +690,10 @@ def validate_vendor_context(root: Path, vendor: str, entry: Mapping[str, Any], c
     )
 
 
-def verify(root: Path, policy_path: Path, source_sha: str) -> dict[str, Any]:
+def verify(root: Path, policy_path: Path, source_sha: str, source_identity_sha256: str = "") -> dict[str, Any]:
     started_at = utc_now()
     root = root.resolve()
-    source_sha = resolve_git_sha(root, source_sha)
+    source_sha, source_identity_sha256, source_authority = resolve_source_provenance(root, source_sha, source_identity_sha256)
     manifest = load_json(require_file(root, "cpf-tools/db/vendor-pack-manifest.json", "vendor pack manifest"))
     contract = load_json(require_file(root, "cpf-tools/db/cpf-db-lifecycle-contract.json", "DB lifecycle contract"))
     policy_path = require_policy_file(root, policy_path)
@@ -749,6 +755,8 @@ def verify(root: Path, policy_path: Path, source_sha: str) -> dict[str, Any]:
         "result": "PASS",
         "exitCode": 0,
         "sourceSha": source_sha,
+        "sourceIdentitySha256": source_identity_sha256,
+        "sourceAuthority": source_authority,
         "startedAt": started_at,
         "endedAt": ended_at,
         "officialVendors": list(OFFICIAL_VENDORS),
@@ -783,13 +791,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="CPF repository root")
     parser.add_argument(
-        "--policy",
-        type=Path,
-        default=Path("cpf-tools/db/migration-lifecycle-policy.json"),
+        "--policy", type=Path, default=Path("cpf-tools/db/migration-lifecycle-policy.json"),
         help="policy path, absolute or relative to repository root",
     )
     parser.add_argument("--report", type=Path, help="write sanitized JSON evidence")
-    parser.add_argument("--source-sha", default="", help="exact 40-character baseline SHA")
+    parser.add_argument("--source-sha", default="", help="optional exact 40-character local Git provenance SHA")
+    parser.add_argument("--source-identity-sha256", default="", help="authoritative current Working Tree 64-character SHA-256")
     return parser.parse_args(argv)
 
 
@@ -798,7 +805,7 @@ def main(argv: list[str] | None = None) -> int:
     root = args.root.resolve()
     policy = args.policy if args.policy.is_absolute() else root / args.policy
     try:
-        report = verify(root, policy, args.source_sha)
+        report = verify(root, policy, args.source_sha, args.source_identity_sha256)
     except ContractError as exc:
         failure = {
             "schemaVersion": 2,

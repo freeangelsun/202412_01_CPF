@@ -210,7 +210,7 @@ public final class JmsCpfBrokerBridgeAdapter implements CpfBrokerBridgePort, Aut
         int bounded = Math.max(1, Math.min(limit <= 0 ? 50 : limit, RECENT_LIMIT));
         return recent.stream()
                 .filter(message -> selected == null || selected.equals(message.destination()))
-                .sorted(Comparator.comparing(value -> value.createdAt()).reversed())
+                .sorted(Comparator.comparing(CpfBrokerBridgeMessage::createdAt).reversed())
                 .limit(bounded)
                 .toList();
     }

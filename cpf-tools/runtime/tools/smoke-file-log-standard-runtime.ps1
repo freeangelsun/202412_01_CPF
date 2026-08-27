@@ -47,7 +47,7 @@ $result = [ordered]@{
     runtimeProbe = [ordered]@{ status = $StatusNotVerified }
     transactionId = $null
     files = @()
-    requiredFields = @("timestamp", "level", "logType", "eventType", "moduleCode", "transactionId", "serverId", "instanceId", "hostName", "hostIp", "processId", "profile", "appVersion", "buildVersion")
+    requiredFields = @("timestamp", "level", "logType", "eventType", "moduleCode", "transactionId", "traceId", "executionId", "segmentId", "originalSystemCode", "systemCode", "callerSystemCode", "targetSystemCode", "operationId", "serverId", "instanceId", "hostName", "hostIp", "processId", "profile", "appVersion", "buildVersion")
 }
 
 function Save-Result {
@@ -57,13 +57,21 @@ function Save-Result {
 
 function New-SmokeHeaders {
     $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
+    $traceId = [guid]::NewGuid().ToString("N")
+    $spanId = [guid]::NewGuid().ToString("N").Substring(0,16)
     return @{
         "X-Transaction-Id" = "$timestamp" + "EDU" + "flog001" + "0000001"
-        "X-Trace-Id" = [guid]::NewGuid().ToString("N")
-        "X-Request-Type" = "SMOKE"
-        "X-Client-Id" = "cpf-file-log-smoke"
+        "X-Original-System-Code" = "EDU"
+        "X-System-Code" = "EDU"
+        "X-Caller-System-Code" = "EDU"
+        "X-Target-System-Code" = "EDU"
+        "X-Target-Operation-Id" = "EDU_LOCAL_MEMBER_PROCESS"
+        "traceparent" = "00-$traceId-$spanId-01"
+        "X-Correlation-Id" = "file-log-$timestamp"
+        "X-Request-Type" = "RUNTIME_VALIDATION"
+        "X-Client-Id" = "cpf-file-log-runtime"
         "X-Client-Version" = "1.0.0"
-        "X-User-Id" = "runtime-smoke"
+        "X-User-Id" = "runtime-validation"
     }
 }
 
@@ -176,9 +184,11 @@ try {
             throw "EDU runtime port is not listening. baseUrl=$EducationBaseUrl"
         }
         $response = Invoke-WebRequest `
-            -Method Get `
-            -Uri "$EducationBaseUrl/api/education/query/headers" `
+            -Method Post `
+            -Uri "$EducationBaseUrl/edu/online/member-processing" `
             -Headers (New-SmokeHeaders) `
+            -ContentType 'application/json' `
+            -Body '"runtime-log-probe"' `
             -TimeoutSec $TimeoutSec `
             -UseBasicParsing
         $body = $response.Content | ConvertFrom-Json
@@ -191,7 +201,7 @@ try {
         } elseif ($null -ne $legacyProperty) {
             [string] $legacyProperty.Value
         } else {
-            throw '헤더 조회 응답에 transactionId 또는 transactionId가 없습니다.'
+            throw 'EDU 거래 응답에 transactionId가 없습니다.'
         }
         Start-Sleep -Seconds 2
     } catch {

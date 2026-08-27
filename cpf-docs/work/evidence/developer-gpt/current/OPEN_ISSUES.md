@@ -1,12 +1,24 @@
-# OPEN ISSUES
+# CPF Open Issues — 2026-08-27
 
-제품 Source 보정 관점의 알려진 미처리 defect는 현재 정적/계약 Gate에서 발견되지 않았다. 다만 아래는 **검증 미완료**이며 QA 최종 PASS 조건이다.
+현재 컨테이너에서 재현 가능한 Source/Static/Contract FAIL은 0건이다. 아래는 제품 최종 완료에 필요한 **실환경 Acceptance 미검증**이다.
 
-1. Java25 + Gradle9.1 Root Build / Test / Publication actual execution.
-2. DB3 physical runtime Fresh → Upgrade → Rollback/Reapply.
-3. Kafka-free Batch two-worker/process-kill/UNKNOWN/reconcile + Gateway/Center-Cut E2E.
-4. One-WAS 이후 Logging/OpenAPI/Browser/Performance 전체 Runtime.
-5. VSCode Fresh JDT Problems 0 Error / 0 Warning 실측.
-6. ADM npm lint/typecheck/test/build actual execution.
+## BE-01 — Java25 / Gradle9.1 / VSCode Fresh Sync
 
-위 항목은 `PASS`로 기록하지 않았으며 완료 전 QA 최종 제출 상태로 간주하지 않는다.
+- 상태: `미검증`
+- 현재 환경: Java21, Gradle9.1 distribution cache 없음, Windows VSCode 없음.
+- 재실행: Java25 Root clean build/test/publication/SBOM + Generated Domain build 후 VSCode Java/Gradle clean reload.
+- 성공 기준: mandatory Gradle/Test FAIL 0, VSCode Problems **Error 0 / Warning 0**, warning disable/suppression false green 0.
+
+## BE-02 — DB3 / Batch / One-WAS / Logging / Browser / Performance
+
+- 상태: `미검증`
+- 필수: Oracle/PostgreSQL/MariaDB Fresh→Upgrade→Rollback/Reapply, Batch 5-role + Worker×2 + kill/takeover/fencing/UNKNOWN/reconcile, One-WAS, real File↔DB↔Trace↔ADM logging correlation, Runtime OpenAPI, ADM/Backoffice Browser, signed Performance Live, Fresh Replay.
+- 성공 기준: `FAIL=0 / mandatory SKIP_ENV=0 / mandatory NOT_EXECUTED=0 / unresolved UNKNOWN=0 / Source drift=0 / Managed drift=0 / ExitCode=0`.
+
+## BE-03 — Open Git Actual Fresh Binary Release / Golden Path
+
+- 상태: `미검증`
+- Projection/Default-Deny/Source leak/CLI contract 회귀는 PASS.
+- 필수: Java25 Fresh framework publication, Maven-folder repository, JAR/POM/sources/javadoc/checksum/SBOM, fresh generated domains, EDU/Backoffice, fresh remote clone-equivalent workspace에서 bootstrap/build/test/start/health/operation/stop/reset/rerun.
+
+위 미검증 중 하나라도 남으면 전체 QA 완료가 아니다.

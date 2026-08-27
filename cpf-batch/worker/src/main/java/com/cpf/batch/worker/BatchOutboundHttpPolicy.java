@@ -80,7 +80,7 @@ final class BatchOutboundHttpPolicy {
     private Set<String> normalizedPins(String host) {
         List<String> configured = policy.getHostPins().entrySet().stream()
                 .filter(e -> canonicalHost(e.getKey()).equals(host))
-                .map(value -> java.util.Map.Entry.getValue(value))
+                .map(Map.Entry::getValue)
                 .findFirst().orElse(List.of());
         Set<String> pins = new LinkedHashSet<>();
         configured.forEach(value -> pins.add(normalize(value)));

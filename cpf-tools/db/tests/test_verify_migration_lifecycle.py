@@ -575,6 +575,13 @@ class VerifyMigrationLifecycleTest(unittest.TestCase):
 
 
 
+    def test_working_tree_identity_is_authoritative_without_git(self):
+        report = MOD.verify(self.root, self.fixture.policy, "", "b" * 64)
+        self.assertEqual("UNAVAILABLE", report["sourceSha"])
+        self.assertEqual("b" * 64, report["sourceIdentitySha256"])
+        self.assertEqual("CANONICAL_WORKING_TREE_SHA256", report["sourceAuthority"])
+
+
 class RepositoryIntegrationContractTest(unittest.TestCase):
     def test_existing_gradle_db_readiness_consumer_invokes_lifecycle_verifier(self):
         repo_root = Path(__file__).resolve().parents[3]
@@ -587,13 +594,14 @@ class RepositoryIntegrationContractTest(unittest.TestCase):
             "cpf-tools/db/verification/verify-cpf-db-development-contract.py",
             "cpf-tools/db/verification/verify-cpf-db-schema-governance.py",
             "cpf-tools/db/verification/verify-cpf-db-vendor-semantic-parity.py",
-            "--source-sha",
+            "--source-identity-sha256",
             "--report",
             "$LASTEXITCODE -ne 0",
             "build/reports/cpf-db",
         ):
             self.assertIn(token, body)
-        self.assertIn("git -C $Root rev-parse HEAD", body)
+        self.assertIn("cpf-source-state.py", body)
+        self.assertNotIn("git -C $Root rev-parse HEAD", body)
 
     def test_runtime_matrix_is_source_bound_vendor3_and_fail_closed(self):
         repo_root = Path(__file__).resolve().parents[3]

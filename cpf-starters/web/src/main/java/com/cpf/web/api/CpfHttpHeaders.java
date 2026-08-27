@@ -317,6 +317,16 @@ public final class CpfHttpHeaders {
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object enumValue(Class<?> type, String value) {
+        Class<? extends Enum> enumType = type.asSubclass(Enum.class);
+        for (Object constant : enumType.getEnumConstants()) {
+            Enum<?> candidate = (Enum<?>) constant;
+            if (candidate.name().equalsIgnoreCase(value)) return candidate;
+        }
+        throw new IllegalArgumentException("지원하지 않는 enum Header 값입니다: " + value);
+    }
+
     private static CpfHeaderValidationException missing(String name) {
         return new CpfHeaderValidationException(CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER, name,
                 "필수 Header가 없습니다: " + name, 400, "HEADER_REQUIRED");

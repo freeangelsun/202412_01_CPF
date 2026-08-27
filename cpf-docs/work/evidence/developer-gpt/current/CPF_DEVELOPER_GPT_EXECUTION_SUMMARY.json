@@ -1,51 +1,39 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "summaryType": "DEVELOPER_EXECUTION_SUMMARY",
+  "generatedAt": "2026-08-27T09:34:30+09:00",
   "sourceIdentity": {
-    "sha256": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
-    "sha1": "c1c89d455cf5b198090f483e28dbb576b539897c",
-    "fileCount": 8439,
-    "totalBytes": 49349580
+    "sha256": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+    "fileCount": 8334,
+    "totalBytes": 38599665
   },
   "baseline": {
-    "name": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_000733.zip",
-    "sha256": "17778ece0bd2b816f55b0a3140bfb004399bfb9801768e21f28a3fcb300bca16"
+    "name": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_195052.zip",
+    "sha256": "00abb643557a9562ff3aa40f088c8791af4e01d0cfb056e5509f70d146b90ec0"
   },
-  "canonicalDevelopmentFinalGate": {
-    "status": "PASS",
-    "canonicalStatic": "25/25",
-    "cleanSource": "PASS",
-    "evidenceSemantics": "45/45 direct rows / 9 execution documents",
-    "failed": 0
+  "canonicalRequirements": 208,
+  "developerClosure": {
+    "total": 127,
+    "developmentComplete": 127,
+    "verificationComplete": 7,
+    "verificationUnverified": 120
   },
-  "inventory": {
-    "total": 47,
-    "closed": 45,
-    "blockedExternal": 2
+  "staticAndContract": {
+    "status": "PASS_WITH_ENVIRONMENT_SKIPS",
+    "reproducibleFailureCount": 0
   },
   "blockedExternal": [
-    "WP-10.01 Java25/Gradle9.1/VSCode Fresh Sync",
-    "WP-11.01 DB3/Kafka-free Batch Full Runtime/Browser/Fresh Runtime Replay"
+    "BE-01 Java25/Gradle9.1/VSCode Fresh Sync",
+    "BE-02 DB3/Batch/One-WAS/Logging/Browser/Performance physical Runtime",
+    "BE-03 Open Git Actual Fresh Binary Release/Golden Path"
   ],
   "overall": "NOT_COMPLETE_RUNTIME_PENDING",
   "directExecutionEvidence": [
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-01.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-02.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-03.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-04.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-05.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-06.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-07.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-08.json",
-    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-09.json"
-  ],
-  "freshReplay": {
-    "status": "PASS",
-    "canonicalFiles": 10234,
-    "missing": 0,
-    "extra": 0,
-    "hashMismatch": 0,
-    "sourceSha256": "3154fbdb54eb32a191df4abf394099550d346338f7bdd6a77a4246329114dd4d",
-    "developmentFinalGateRc": 0
-  }
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-20260827-01.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-20260827-02.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-20260827-03.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-20260827-04.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-20260827-05.json",
+    "cpf-docs/work/evidence/developer-gpt/current/executions/EXEC-20260827-06.json"
+  ]
 }

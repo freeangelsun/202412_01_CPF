@@ -274,7 +274,7 @@ final class CpfGeneratedDomainPolicySupport {
         }
         return value.lines()
                 .flatMap(line -> java.util.Arrays.stream(line.split(";")))
-                .map(value -> value.trim())
+                .map(token -> token.trim())
                 .filter(item -> !item.isBlank())
                 .distinct()
                 .sorted()

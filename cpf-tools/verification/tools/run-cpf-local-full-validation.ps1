@@ -638,7 +638,7 @@ if($python){
 }else{Skip-CpfStage 'PYTHON_SUITE' 'python missing'}
 
 # 2. Java/Gradle. Frontend는 이 단계에서 제외하고 순차 실행해 노트북 OOM을 피한다.
-# Codex T1-01(CODEX_REVALIDATION_REQUEST.md)은 -PcpfIncludeGeneratedDomains=true Root Build를 Tier-1
+# Codex current mid-review(CODEX_MID_REVIEW_INSTRUCTION.md)은 -PcpfIncludeGeneratedDomains=true Root Build를 Tier-1
 # 필수 승인 기준으로 요구한다. Generated Domain의 batch Sub-project(cpf.domain.batch=true)는 자체
 # build.gradle이 -PcpfDbVendor를 fail-closed로 요구하므로 함께 지정해야 DEPLOYMENT_FULL_DISTRIBUTED_
 # ARTIFACT_PACK이 필요로 하는 cpf-<domain>-batch Artifact까지 이 단계에서 실제로 생성된다.
@@ -973,7 +973,7 @@ if(-not $SkipOneWas -and $pwsh){
             $probe=[Environment]::GetEnvironmentVariable([string]$item.env,'Process')
             $stage="PERFORMANCE_"+([string]$item.id).ToUpperInvariant().Replace('-','_')+"_LIVE"
             if([string]::IsNullOrWhiteSpace($probe)){Skip-CpfStage $stage ("live product probe is not configured: "+$item.env)}
-            else{Invoke-CpfStage $stage $python @('.\cpf-tools\testing\tools\run-cpf-performance-contract.py','--profile',$perfProfile,'--workload',[string]$item.id,'--output-json',(Join-Path $evidenceDir ("performance-"+$item.id+"-live.json"))) $RepoRoot @{CPF_EXPECTED_HEAD=$sourceIdentity}}
+            else{Invoke-CpfStage $stage $python @('.\cpf-tools\testing\tools\run-cpf-performance-contract.py','--profile',$perfProfile,'--workload',[string]$item.id,'--output-json',(Join-Path $evidenceDir ("performance-"+$item.id+"-live.json"))) $RepoRoot @{CPF_EXPECTED_SOURCE_IDENTITY=$sourceIdentity;CPF_EXPECTED_HEAD=$sourceIdentity}}
         }
         if($IncludePerformanceLoad){
             $admHealth=[Environment]::GetEnvironmentVariable('CPF_PERF_ADM_HEALTH_URL','Process')

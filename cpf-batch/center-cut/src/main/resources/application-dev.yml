@@ -1,0 +1,10 @@
+server:
+  port: ${CPF_PORT:8183}
+cpf:
+  framework:
+    was-id: ${CPF_WAS_ID:cpf-batch-center-cut-dev-1}
+  runtime:
+    role: CENTER_CUT_RUNNER
+  batch:
+    control:
+      base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}

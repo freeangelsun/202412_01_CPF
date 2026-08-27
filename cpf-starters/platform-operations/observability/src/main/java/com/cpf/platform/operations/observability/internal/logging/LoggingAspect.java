@@ -111,6 +111,7 @@ public class LoggingAspect {
         String transactionId = TransactionContext.getOrCreateTransactionId();
         String traceId = TransactionContext.getOrCreateTraceId();
         String spanId = TransactionContext.getOrCreateSpanId();
+        TransactionContext.refreshCanonicalMdc();
         String parentSpanId = TransactionContext.currentParentSpanId();
         int sequenceNo = TransactionContext.nextSequenceNo();
         TransactionHeader transactionHeader = TransactionContext.currentHeader();

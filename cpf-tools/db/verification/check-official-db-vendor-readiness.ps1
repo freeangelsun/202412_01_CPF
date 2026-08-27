@@ -106,21 +106,22 @@ if ($null -eq $pythonCommand) {
 if ($null -eq $pythonCommand) {
     throw 'Python 3 executable is required for CPF DB migration lifecycle verification.'
 }
-$sourceSha = (& git -C $Root rev-parse HEAD 2>&1 | Select-Object -First 1).ToString().Trim().ToLowerInvariant()
-if ($sourceSha -notmatch '^[0-9a-f]{40}$') {
-    throw "Exact Git source SHA is unavailable for DB lifecycle evidence: $sourceSha"
-}
+$sourceStateJson = & $pythonCommand.Source (Join-Path $Root 'cpf-tools/verification/tools/cpf-source-state.py') --root $Root --scope source
+if ($LASTEXITCODE -ne 0) { throw 'CPF canonical Working Tree Source Identity calculation failed.' }
+$sourceState = $sourceStateJson | ConvertFrom-Json
+$sourceIdentitySha256 = [string]$sourceState.contentSha256
+if ($sourceIdentitySha256 -notmatch '^[0-9a-f]{64}$') { throw 'Canonical Working Tree SHA-256 is unavailable for DB lifecycle evidence.' }
 $reportDirectory = Join-Path $Root 'build/reports/cpf-db'
 New-Item -ItemType Directory -Force -Path $reportDirectory | Out-Null
 $reportPath = Join-Path $reportDirectory 'migration-lifecycle.json'
 & $pythonCommand.Source (Join-Path $Root 'cpf-tools/db/verify_migration_lifecycle.py') `
     --root $Root `
-    --source-sha $sourceSha `
+    --source-identity-sha256 $sourceIdentitySha256 `
     --report $reportPath
 if ($LASTEXITCODE -ne 0) {
     throw "CPF DB migration lifecycle verification failed with exit code $LASTEXITCODE. report=$reportPath"
 }
-Write-Host "CPF DB migration lifecycle verification passed. report=$reportPath sourceSha=$sourceSha"
+Write-Host "CPF DB migration lifecycle verification passed. report=$reportPath sourceIdentitySha256=$sourceIdentitySha256"
 
 # Execute the existing CPF DB static contracts from the same Gradle consumer so
 # DB-INSTALL/OWNERSHIP/MULTI-VENDOR/SQL/PERF/MULTI/LINEAGE/RETENTION cannot pass

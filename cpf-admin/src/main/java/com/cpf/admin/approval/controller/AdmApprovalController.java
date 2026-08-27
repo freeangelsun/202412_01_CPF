@@ -22,7 +22,6 @@ import java.util.Map;
 @Tag(name="ADM-Approval",description="위험조치 정책·승인·Owner Command 실행·UNKNOWN Reconcile API")
 @SecurityRequirement(name = "admSessionCookie")
 @Validated
-@SuppressWarnings("removal")
 public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmApprovalService service;
     public AdmApprovalController(AdmApprovalService service){this.service=service;}

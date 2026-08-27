@@ -21,7 +21,7 @@ $sourceFiles = @(
     "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
     "cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv",
     "cpf-docs/deliverables/OPEN_ISSUES.md",
-    "cpf-docs/work/current/CPF_CODEX_REVALIDATION_SCOPE.md"
+    "cpf-docs/work/current/CODEX_MID_REVIEW_INSTRUCTION.md"
 )
 
 $failures = [System.Collections.Generic.List[string]]::new()

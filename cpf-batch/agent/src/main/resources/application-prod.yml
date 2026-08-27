@@ -1,4 +1,5 @@
 server:
+  port: ${CPF_PORT}
   ssl:
     enabled: true
     client-auth: need
@@ -7,7 +8,13 @@ server:
     trust-store: ${CPF_AGENT_TRUSTSTORE}
     trust-store-password: ${CPF_AGENT_TRUSTSTORE_PASSWORD}
 cpf:
+  framework:
+    was-id: ${CPF_WAS_ID}
+  runtime:
+    role: AGENT
+  batch:
+    control:
+      base-url: ${CPF_BATCH_CONTROL_BASE_URL}
   agent:
     require-signature: true
     allowed-client-subjects: ${CPF_AGENT_ALLOWED_CLIENT_SUBJECTS}
-

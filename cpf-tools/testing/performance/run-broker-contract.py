@@ -53,16 +53,16 @@ def self_test():
  validate_payload(good,'r');print('[CPF][BROKER][PASS] selfTest=true idsOffsets=true reconnect=true retryDlq=true backpressure=true');return 0
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--self-test',action='store_true');ap.add_argument('--expected-head',default=os.environ.get('CPF_EXPECTED_HEAD',''));a=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--self-test',action='store_true');ap.add_argument('--expected-source-identity','--expected-head',dest='expected_source_identity',default=os.environ.get('CPF_EXPECTED_SOURCE_IDENTITY',os.environ.get('CPF_EXPECTED_HEAD','')));a=ap.parse_args()
  if a.self_test:
   trust_self_test();return self_test()
  url=os.environ.get('CPF_PERF_BROKER_PROBE_URL','').strip()
- if len(a.expected_head.strip())!=40:return fail('expected checkout HEAD is required')
+ if len(a.expected_source_identity.strip()) not in {40,64}:return fail('expected source identity is required (64-hex Working Tree SHA-256; 40-hex Git SHA only for explicit legacy compatibility)')
  if not url:return fail('CPF_PERF_BROKER_PROBE_URL is required')
  u=urlparse(url)
  if u.scheme not in {'http','https'} or not u.hostname:return fail('broker probe URL must be http/https')
  if u.scheme!='https' and u.hostname not in {'127.0.0.1','localhost','::1'}:return fail('non-local broker probe must use https')
- verify_release_target(url,a.expected_head)
+ verify_release_target(url,a.expected_source_identity)
  rid=str(uuid.uuid4());body=json.dumps({'requestId':rid,'scenario':'produce-consume-fault-reconnect-retry-dlq-backpressure'}).encode();req=urllib.request.Request(url,data=body,headers={'Content-Type':'application/json','X-Cpf-Request-Id':rid},method='POST');token=os.environ.get('CPF_PERF_BROKER_PROBE_TOKEN','').strip()
  if token:req.add_header('Authorization','Bearer '+token)
  try:

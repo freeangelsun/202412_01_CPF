@@ -43,6 +43,9 @@ function Read-JsonIfPresent([string]$Path) {
 function Invoke-CpfJsonGet([string]$Uri,[hashtable]$Headers) {
     return Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -TimeoutSec $TimeoutSec
 }
+function Invoke-CpfJsonPost([string]$Uri,[hashtable]$Headers,[object]$Body) {
+    return Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -ContentType 'application/json' -Body ($Body | ConvertTo-Json -Compress) -TimeoutSec $TimeoutSec
+}
 function Find-TextFiles([string[]]$Roots) {
     $files = New-Object Collections.Generic.List[IO.FileInfo]
     foreach ($candidate in $Roots) {
@@ -140,11 +143,15 @@ try {
     $traceId=[guid]::NewGuid().ToString('N')
     $result.transactionId=$transactionId
     $result.traceId=$traceId
+    $spanId=[guid]::NewGuid().ToString('N').Substring(0,16)
     $requestHeaders=@{
-        'X-Transaction-Id'=$transactionId; 'X-Trace-Id'=$traceId; 'X-Request-Type'='SMOKE';
-        'X-Client-Version'='1.0.0'; 'X-User-Id'='runtime-smoke'
+        'X-Transaction-Id'=$transactionId;
+        'X-Original-System-Code'='EDU'; 'X-System-Code'='EDU'; 'X-Caller-System-Code'='EDU'; 'X-Target-System-Code'='EDU';
+        'X-Target-Operation-Id'='EDU_LOCAL_MEMBER_PROCESS';
+        'X-Trace-Id'=$traceId; 'traceparent'="00-$traceId-$spanId-01"; 'X-Correlation-Id'="integrated-log-$stamp"; 'X-Request-Type'='RUNTIME_VALIDATION';
+        'X-Client-Version'='1.0.0'; 'X-User-Id'='runtime-validation'
     }
-    $probe=Invoke-CpfJsonGet "$BaseUrl/api/education/query/headers" $requestHeaders
+    $probe=Invoke-CpfJsonPost "$BaseUrl/edu/online/member-processing" $requestHeaders 'runtime-log-correlation'
     $actualTx=[string](Get-SafeProperty $probe 'transactionId' '')
     $actualTrace=[string](Get-SafeProperty $probe 'traceId' $traceId)
     if ($actualTx -ne $transactionId) { throw "transaction header propagation mismatch. expected=$transactionId actual=$actualTx" }

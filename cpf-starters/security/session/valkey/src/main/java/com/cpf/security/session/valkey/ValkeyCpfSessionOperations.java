@@ -104,7 +104,7 @@ public final class ValkeyCpfSessionOperations implements CpfSessionOperations {
         return ids.stream()
                 .map(this::find)
                 .flatMap(value -> value.stream())
-                .sorted(Comparator.comparing(value -> value.lastAccessedAt()).reversed())
+                .sorted(Comparator.comparing(CpfSessionSnapshot::lastAccessedAt).reversed())
                 .toList();
     }
 

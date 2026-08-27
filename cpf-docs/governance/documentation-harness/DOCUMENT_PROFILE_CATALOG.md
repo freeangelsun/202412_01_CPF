@@ -1,4 +1,4 @@
-# CPF 공식 문서 Profile Catalog — Harness v2.3.0
+# CPF 공식 문서 Profile Catalog — Harness v2.4.0
 
 > 작성자가 임의 목차를 만들지 않도록 아래 H1/H2 구조를 고정한다. README를 제외한 11개 문서는 목차가 필수다.
 

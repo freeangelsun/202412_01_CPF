@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.4.0",
+  "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
+  "fixtures": [
+    {
+      "id": "OPENING_METADATA_TABLE",
+      "category": "opening",
+      "expect": "FAIL",
+      "input": {
+        "presentation": "table",
+        "rows": [
+          "누가 보는가",
+          "이 문서로 끝낼 일",
+          "기준"
+        ]
+      },
+      "mustTrigger": "readerOpeningEncodedAsTable"
+    },
+    {
+      "id": "USER_BODY_HARNESS_VERSION",
+      "category": "provenance",
+      "expect": "FAIL",
+      "input": {
+        "text": "Harness 2.x · Source SHA ..."
+      },
+      "mustTrigger": "userFacingHarnessVersion"
+    },
+    {
+      "id": "USER_BODY_SOURCE_SHA",
+      "category": "provenance",
+      "expect": "FAIL",
+      "input": {
+        "text": "Source 0123456789ABCDEF0123456789ABCDEF"
+      },
+      "mustTrigger": "userFacingSourceSha"
+    },
+    {
+      "id": "TABLE_HEADER_WRAP",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "headerVisualLines": 2
+      },
+      "mustTrigger": "tableHeaderWrap"
+    },
+    {
+      "id": "NON_TABULAR_READER_NEED",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "rows": 1,
+        "dimensions": 1,
+        "purpose": "reader metadata"
+      },
+      "mustTrigger": "nonTabularContentEncodedAsTable"
+    },
+    {
+      "id": "CONNECTOR_TARGET_INTRUSION",
+      "category": "figure",
+      "expect": "FAIL",
+      "input": {
+        "endpointBoundaryDistancePx": 0,
+        "targetInteriorPenetrationPx": 9
+      },
+      "mustTrigger": "connectorTargetNodeIntrusion"
+    },
+    {
+      "id": "ARROWHEAD_INSIDE_TARGET",
+      "category": "figure",
+      "expect": "FAIL",
+      "input": {
+        "arrowheadBodyInsideTargetPx": 6
+      },
+      "mustTrigger": "connectorArrowheadInsideTargetNode"
+    },
+    {
+      "id": "CONNECTOR_EMPTY_END",
+      "category": "figure",
+      "expect": "FAIL",
+      "input": {
+        "to": "EMPTY",
+        "junctionLabel": null
+      },
+      "mustTrigger": "connectorEndsInUnlabeledEmptySpace"
+    },
+    {
+      "id": "GRAPHIC_LOW_CONTRAST",
+      "category": "accessibility",
+      "expect": "FAIL",
+      "input": {
+        "graphicalObjectContrast": 2.2
+      },
+      "mustTrigger": "graphicalObjectContrastBelow3to1"
+    },
+    {
+      "id": "COLOR_ONLY_STATE",
+      "category": "accessibility",
+      "expect": "FAIL",
+      "input": {
+        "meaningEncodedBy": [
+          "color"
+        ]
+      },
+      "mustTrigger": "colorOnlyMeaning"
+    },
+    {
+      "id": "EMBEDDED_TEXT_TOO_SMALL",
+      "category": "embedded",
+      "expect": "FAIL",
+      "input": {
+        "effectiveMinTextPt": 8.5
+      },
+      "mustTrigger": "embeddedEffectiveTextTooSmall"
+    },
+    {
+      "id": "COARSE_GEOMETRY_ONLY",
+      "category": "figure",
+      "expect": "FAIL",
+      "input": {
+        "objects": [
+          "group rectangles"
+        ],
+        "connectors": [],
+        "meaningfulNodesDetailed": false
+      },
+      "mustTrigger": "coarseGeometryManifestAcceptedAsPass"
+    },
+    {
+      "id": "TABLE_LOW_CONTRAST_TEXT",
+      "category": "accessibility",
+      "expect": "FAIL",
+      "input": {
+        "tableTextContrast": 2.1
+      },
+      "mustTrigger": "tableTextContrastBelow4to5to1"
+    }
+  ]
+}

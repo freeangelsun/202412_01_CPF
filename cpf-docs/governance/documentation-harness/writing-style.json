@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "language": {
     "primary": "ko-KR",
@@ -164,5 +164,26 @@
     "goldenPath": "한 메시지 강조는 compact callout/lead 사용, 50:50 표 금지",
     "toc": "찾아보기/목차는 번호형 navigation list 기본",
     "table": "실제 비교/선택 데이터만 사용"
+  },
+  "scannability": {
+    "firstSentenceCarriesKeyPoint": true,
+    "shortParagraphsPreferred": true,
+    "paragraphSentencesPreferred": [
+      1,
+      3
+    ],
+    "parallelListStructure": true,
+    "numberedListForSequence": true,
+    "bulletListForNonSequence": true,
+    "leftAlignBody": true,
+    "fullJustification": "forbidden",
+    "denseWallOfText": "hard_fail"
+  },
+  "userFacingMetadata": {
+    "harnessVersion": "forbidden",
+    "sourceSha": "forbidden",
+    "sourceZip": "forbidden",
+    "buildBaseline": "forbidden",
+    "evidenceOnly": true
   }
 }

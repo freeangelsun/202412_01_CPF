@@ -1,2 +1,7 @@
-# CPF Documentation Harness v2.3.0 exact stale delete manifest
+# CPF Documentation Harness exact stale delete manifest
 cpf-docs/governance/documentation-harness/CHANGELOG.md
+cpf-docs/governance/documentation-harness/_backup
+cpf-docs/governance/documentation-harness/_history
+cpf-docs/governance/documentation-harness/_session
+cpf-docs/governance/documentation-harness-old
+cpf-docs/governance/documentation-harness-v2.3.0

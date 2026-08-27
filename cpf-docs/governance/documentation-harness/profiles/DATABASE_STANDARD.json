@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "documentId": "DATABASE_STANDARD",
   "title": "CPF 데이터베이스표준서",
   "locked": true,
@@ -237,7 +237,10 @@
     "mergeAdjacentSectionsAllowed": true,
     "splitSectionAllowed": "only when scanability improves and total density does not increase",
     "headingText": "may be shortened for readability without changing meaning",
-    "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it"
+    "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it",
+    "openingSummary": "TITLE_SUBTITLE_PLUS_1_TO_2_SENTENCE_LEAD",
+    "readerMetadataTable": "forbidden",
+    "userFacingProvenance": "forbidden"
   },
   "readerFirst": {
     "required": true,

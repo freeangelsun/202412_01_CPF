@@ -1,10 +1,12 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "2.3.0",
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.4.0",
   "required": [
     "asset",
     "canvas",
-    "objects"
+    "objects",
+    "connectors",
+    "embeddedRenders"
   ],
   "objectRequired": [
     "id",
@@ -16,16 +18,49 @@
   ],
   "kinds": [
     "frame",
+    "container",
     "node",
     "text",
     "annotation",
-    "connectorLabel"
+    "connectorLabel",
+    "junction"
+  ],
+  "connectorRequired": [
+    "id",
+    "from",
+    "to",
+    "points",
+    "targetBoundaryPoint",
+    "arrowhead"
   ],
   "rules": {
     "insideCanvas": true,
     "noForbiddenOverlap": true,
-    "safeMarginPx": 64,
-    "bottomSafeZonePx": 64,
-    "annotationGapPx": 28
-  }
+    "safeMarginPxMin": 64,
+    "bottomSafeZonePxMin": 64,
+    "annotationGapPxMin": 28,
+    "nodeInnerPaddingPxMin": 28,
+    "labelConnectorClearancePxMin": 20,
+    "connectorRouteMustAvoidText": true,
+    "connectorRouteMustAvoidUnrelatedNodeInterior": true,
+    "connectorTargetBoundaryTermination": true,
+    "connectorEndpointBoundaryTolerancePx": 2,
+    "connectorTargetInteriorPenetrationPxMax": 0,
+    "arrowheadBodyInsideTargetPxMax": 0,
+    "connectorEmptySpaceTermination": "forbidden unless labeled junction",
+    "meaningfulGraphicContrastMin": "3:1",
+    "normalTextContrastMin": "4.5:1",
+    "colorOnlyMeaning": "forbidden",
+    "embeddedEffectiveTextPtMin": 10.5,
+    "coarseContainerOnlyManifest": "forbidden"
+  },
+  "embeddedRenderRequiredFields": [
+    "surface",
+    "displayWidthPx",
+    "displayHeightPx",
+    "effectiveMinTextPt",
+    "crop",
+    "boundaryIntrusion",
+    "contrastPass"
+  ]
 }

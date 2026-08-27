@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "goal": "시각화는 제품 구조를 더 빠르게 이해시키면서 현대적이고 정돈된 제품 인상을 주어야 한다. 내용마다 어울리는 시각 문법을 선택하고 동일 둥근 네모·화살표 반복을 시각화로 인정하지 않는다.",
@@ -200,5 +200,28 @@
     ],
     "rule": "새 Visual을 만들기 전에 왜 기존 Visual을 Patch할 수 없는지 판단한다. 교체가 필요할 때만 Brief를 작성한다."
   },
-  "regressionRule": "승인된 기존 Visual이 있으면 geometry/text/surface만 Patch하고 전체 Grammar 교체는 Finding이 그 Grammar에 직접 관련될 때만 허용."
+  "regressionRule": "승인된 기존 Visual이 있으면 geometry/text/surface만 Patch하고 전체 Grammar 교체는 Finding이 그 Grammar에 직접 관련될 때만 허용.",
+  "connectorPolicy": {
+    "default": "orthogonal or direct route chosen for clarity, never decorative penetration",
+    "targetTermination": "target outer boundary only",
+    "targetInteriorPenetrationPxMax": 0,
+    "arrowheadBodyInsideTargetPxMax": 0,
+    "crossUnrelatedNodeInterior": 0,
+    "crossTextOrLabel": 0,
+    "endInEmptySpace": "forbidden unless explicit labeled junction/hub",
+    "ports": "use explicit source/target boundary ports in geometry manifest"
+  },
+  "accessibilityContrast": {
+    "normalTextMin": "4.5:1",
+    "largeTextMin": "3:1",
+    "meaningfulGraphicMin": "3:1",
+    "colorOnlyMeaning": "forbidden"
+  },
+  "embeddedValidation": {
+    "originalAssetPassInsufficient": true,
+    "READMEActualRenderRequired": true,
+    "DOCXActualRenderRequired": true,
+    "PDFFreshExportActualRenderRequired": true,
+    "effectiveTextPtMin": 10.5
+  }
 }

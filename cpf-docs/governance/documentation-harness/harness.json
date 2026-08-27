@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "title": "CPF 공식 산출물 실행형 디자인·품질 하네스",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
@@ -19,6 +19,7 @@
       "USER_APPROVED/VISUAL_QA_APPROVED 영역과 REJECTED/AUTOMATED_PASS_ONLY 영역 구분",
       "사용자 Documentation Steering/지적을 Harness 공통/대상 Profile에 먼저 반영",
       "Harness Validator PASS",
+      "새 사용자 Finding은 quality-fixtures.json에 negative fixture로 등록하고 Validator가 해당 실패를 실제 감지하는지 확인",
       "Finding 영향 범위만 PATCH_FIRST로 보정; 승인 영역 보존",
       "Component System으로 spacing/rail/figure/table/link 구성",
       "실제 Render 전페이지 기술 QA",
@@ -169,6 +170,13 @@
       "SEMANTIC_PASS",
       "ACCESSIBILITY_PASS",
       "PDF_PREFLIGHT_PASS",
+      "PROVENANCE_ISOLATION_PASS",
+      "OPENING_SUMMARY_PASS",
+      "CONNECTOR_BOUNDARY_PASS",
+      "CONTRAST_AND_NON_TEXT_PASS",
+      "NEGATIVE_FIXTURE_PASS",
+      "HUMAN_READER_PASS",
+      "SOURCE_ZIP_COMPLETENESS_PASS",
       "PACKAGE_REPLAY_PASS"
     ],
     "allRequired": true,
@@ -195,7 +203,13 @@
     "quality-acceptance.json",
     "GOLDEN_REFERENCE_STANDARD.md",
     "golden-reference.json",
-    "templates/ARTIFACT_REVIEW.template.json"
+    "templates/ARTIFACT_REVIEW.template.json",
+    "DOCUMENT_QUALITY_STANDARD.md",
+    "quality-fixtures.json",
+    "validators/validate_quality_fixtures.py",
+    "validators/validate_quality_fixtures.ps1",
+    "validators/validate_source_zip.py",
+    "validators/validate_source_zip.ps1"
   ],
   "qualityDoctrine": {
     "primary": "문서를 위한 문서를 만들지 않는다. 독자가 실제로 선택·개발·판단·운영하는 데 필요한 정보만 남긴다.",
@@ -239,6 +253,13 @@
     "sectionBreathingRoom": "대메뉴/H1 시작 전에는 이전 내용과 명확히 분리되는 한 줄 안팎의 추가 호흡 공간을 확보한다. H2/H3·표·Callout·코드·Figure 등 의미 단위 전환도 붙어 보이지 않도록 차등 Vertical Rhythm을 사용한다.",
     "tocAndNavigation": "목차·찾아보기·단순 순서·메뉴는 기본적으로 표가 아니다. 번호형 목록/Navigation으로 표현하고, 문서명·역할·상태·형식처럼 실제 행·열 데이터가 있을 때만 표를 사용한다.",
     "visualSemanticCompleteness": "Figure는 기하학적 충돌 0뿐 아니라 의미 구조가 완결되어야 한다. 중앙 Junction/Hub를 암시하는 Connector가 있으면 실제 의미 Node 또는 의도된 연결 구조가 있어야 하며, 빈 중심 때문에 깨진 그림처럼 보이면 재설계한다.",
-    "embeddedFigureSafety": "PNG 자체가 정상이어도 README/DOCX/PDF에 삽입된 최종 표시 영역에서 제목·Node·Stroke·설명이 Frame/Page 경계를 침범하면 FAIL이다. 원본과 Embedded Render를 모두 확인한다."
+    "embeddedFigureSafety": "PNG 자체가 정상이어도 README/DOCX/PDF에 삽입된 최종 표시 영역에서 제목·Node·Stroke·설명이 Frame/Page 경계를 침범하면 FAIL이다. 원본과 Embedded Render를 모두 확인한다.",
+    "userFacingProvenanceIsolation": "Harness version, Source ZIP/SHA, build/evidence baseline 같은 제작·검증 메타데이터는 README·사용자 Guide·운영 매뉴얼의 본문/도입부에 노출하지 않는다. 필요 정보는 Evidence/Manifest에만 둔다.",
+    "openingSummary": "문서 시작부는 독자/목적을 레이아웃 표로 만들지 않는다. 제목·부제목 다음 1~2문장의 자연스러운 lead로 누가 무엇을 끝낼 수 있는지 설명하고 즉시 본문 또는 탐색으로 진입한다.",
+    "connectorBoundaryTermination": "Figure Connector는 대상 Node 내부를 침범하지 않는다. 화살표 tip은 대상 Box의 외곽 경계에 닿고 shaft/arrowhead body는 대상 Node interior 밖에 있어야 한다. Endpoint 외 Node 관통은 0건이다.",
+    "contrastAndNonText": "일반 Text는 최소 4.5:1, 큰 Text는 최소 3:1, 이해에 필요한 Graphical Object/Connector/Boundary는 인접 배경 대비 최소 3:1을 만족한다. 색만으로 상태·의미를 구분하지 않는다.",
+    "negativeFixtureRegression": "사용자 지적으로 생긴 공통 결함은 규칙 문장만 추가하지 않고 quality-fixtures.json의 FAIL fixture와 Validator assertion으로 재발을 막는다.",
+    "readerComprehensionGate": "문서/장/그림을 처음 보는 독자가 제목과 첫 화면만으로 대상·목적·다음 행동을 이해하지 못하면 자동 검증이 통과해도 HUMAN_READER_PASS가 아니다.",
+    "sourceZipCompleteness": "다음 세션용 Source ZIP에는 README, guides, deliverables, assets, documentation-harness, cpf-tools/build를 강제 포함하고 DOCX 11/PDF 11/Visual/Harness 수량을 사후 검증한다."
   }
 }

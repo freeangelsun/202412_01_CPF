@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -90,6 +90,48 @@
       "automated": true,
       "required": true,
       "meaning": "최종 ZIP Clean Replay/Hash/Path/Garbage 검증"
+    },
+    {
+      "id": "PROVENANCE_ISOLATION_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "사용자 본문/표/도입부에 Harness version, Source SHA/ZIP, 제작 baseline을 노출하지 않음"
+    },
+    {
+      "id": "OPENING_SUMMARY_PASS",
+      "type": "MANUAL",
+      "required": true,
+      "pass": "문서 첫 화면이 자연스러운 1~2문장 lead로 독자·목적·완료 결과를 설명하며 메타정보 표를 사용하지 않음"
+    },
+    {
+      "id": "CONNECTOR_BOUNDARY_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "모든 Connector가 target Box 외곽 경계에서 종료되고 target interior 침범 0"
+    },
+    {
+      "id": "CONTRAST_AND_NON_TEXT_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "Text 4.5:1/large 3:1 및 의미 그래픽 3:1, color-only meaning 0"
+    },
+    {
+      "id": "NEGATIVE_FIXTURE_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "quality-fixtures.json의 모든 FAIL fixture를 Validator가 거부"
+    },
+    {
+      "id": "HUMAN_READER_PASS",
+      "type": "MANUAL",
+      "required": true,
+      "pass": "대상 독자 관점에서 문서 목적/다음 행동/그림 의미가 빠르게 식별됨"
+    },
+    {
+      "id": "SOURCE_ZIP_COMPLETENESS_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "README/guides/deliverables/assets/harness/cpf-tools-build 강제 포함 및 DOCX11/PDF11/Visual/Harness count 검증"
     }
   ],
   "manualVisualScore": {
@@ -111,7 +153,11 @@
       "professional_polish",
       "component_choice_fit",
       "table_column_proportion",
-      "heading_line_integrity"
+      "heading_line_integrity",
+      "reader orientation",
+      "connector cleanliness",
+      "table semantic fitness",
+      "provenance isolation"
     ],
     "criticalZeroRequired": [
       "text_overlap",
@@ -161,5 +207,6 @@
     ],
     "afterApproval": "PATCH_ONLY",
     "secondFreshRewriteWithoutNewExplicitRejection": "FORBIDDEN"
-  }
+  },
+  "falseGreenRule": "Automated PASS cannot override a user-visible defect. Any user-visible defect makes the affected artifact FAIL until the Harness rule/fixture and artifact are both corrected."
 }

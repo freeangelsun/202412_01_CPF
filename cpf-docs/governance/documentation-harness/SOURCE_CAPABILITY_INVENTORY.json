@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip",
   "sourceSha256": "b47bce7700700bf4186b997e38ab84192f2db391e750a3781cd66f398824514d",
   "apiPackageCategories": [

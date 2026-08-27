@@ -17,12 +17,12 @@ for p in ROOT.rglob('*'):
     n=p.name.lower()
     if re.search(r'(^|[_\.-])(backup|old|history)([_\.-]|$)',n) or n.startswith('v1.') or n.startswith('v2.0') or n.startswith('v2.1'):
         fail('stale harness artifact '+str(p.relative_to(ROOT)))
-if h.get('version')!='2.3.0': fail('version')
+if h.get('version')!='2.4.0': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='2.3.0': fail(f'version {f}')
+    if d.get('harnessVersion')!='2.4.0': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
@@ -64,7 +64,7 @@ if O['README'].get('manualNavigation','').startswith('mandatory') is not True: f
 if O['README'].get('bootstrapRuntimeBlock','').startswith('mandatory') is not True: fail('README bootstrap/runtime')
 
 
-# v2.3.0 semantic layout gates
+# v2.4.0 semantic layout gates
 if D['tables'].get('header_single_line_required') is not True or D['tables'].get('header_max_visual_lines') != 1: fail('table header single line')
 if D['tables'].get('fixed_50_50_default')!='forbidden_unless_semantically_symmetric': fail('fixed 50/50 policy')
 if D['paragraph'].get('h1_space_before_pt',0) < 38: fail('major section breathing')
@@ -196,6 +196,38 @@ for p in (ROOT/'profiles').glob('*.json'):
 if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('freshRewriteDefault')!='FORBIDDEN': fail('fresh rewrite default')
 if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('automatedPassOnlyIsBaseline') is not False: fail('automated baseline')
 if qam.get('manualVisualScore',{}).get('minimumEach',0)<4 or qam.get('manualVisualScore',{}).get('minimumAverage',0)<4.4: fail('manual visual score threshold')
+# v2.4 quality engineering / recurrence gates
+if not (ROOT/'DOCUMENT_QUALITY_STANDARD.md').is_file(): fail('document quality standard')
+if not (ROOT/'quality-fixtures.json').is_file(): fail('quality fixtures')
+if not (ROOT/'validators'/'validate_quality_fixtures.py').is_file(): fail('quality fixture validator py')
+if not (ROOT/'validators'/'validate_quality_fixtures.ps1').is_file(): fail('quality fixture validator ps1')
+if not (ROOT/'validators'/'validate_source_zip.py').is_file(): fail('source zip validator py')
+if not (ROOT/'validators'/'validate_source_zip.ps1').is_file(): fail('source zip validator ps1')
+if D.get('readerOpening',{}).get('readerNeedTable')!='forbidden': fail('reader opening table')
+if D.get('readerOpening',{}).get('internalProvenanceInUserBody')!='hard_fail': fail('user provenance isolation')
+for _k in ['connector_endpoint_on_target_boundary_required','connector_route_manifest_required','connector_source_target_ids_required']:
+    if D.get('figures',{}).get(_k) is not True: fail('connector rule '+_k)
+if D.get('figures',{}).get('connector_target_interior_penetration_px_max')!=0: fail('connector target intrusion')
+if D.get('figures',{}).get('connector_arrowhead_body_inside_target_px_max')!=0: fail('arrowhead target intrusion')
+if D.get('figures',{}).get('graphical_object_contrast_min')!='3:1 against adjacent background when required for understanding': fail('nontext contrast')
+for _k in ['readerOpeningEncodedAsTable','userFacingHarnessVersion','userFacingSourceSha','connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorEndsInUnlabeledEmptySpace','connectorRouteMissingFromGeometryManifest','graphicalObjectContrastBelow3to1','tableTextContrastBelow4to5to1','colorOnlyMeaning','embeddedEffectiveTextTooSmall','coarseGeometryManifestAcceptedAsPass','negativeFixtureNotEnforced']:
+    if VQ.get('hardFail',{}).get(_k)!=0: fail('v2.4 hard fail '+_k)
+if _cs.get('OPENING_SUMMARY',{}).get('table')!='forbidden': fail('opening summary component')
+if _cs.get('PROVENANCE_NOTE',{}).get('userFacingSurface')!='forbidden': fail('provenance component')
+if O.get('sourceZipCompleteness',{}).get('minimumChecks',{}).get('CPF_DOCX')!=11 or O.get('sourceZipCompleteness',{}).get('minimumChecks',{}).get('CPF_PDF')!=11: fail('source zip doc counts')
+if O.get('sourceZipCompleteness',{}).get('missingOfficialDocxPdfVisualHarness')!='hard_fail': fail('source zip completeness')
+for _gid in ['PROVENANCE_ISOLATION_PASS','OPENING_SUMMARY_PASS','CONNECTOR_BOUNDARY_PASS','CONTRAST_AND_NON_TEXT_PASS','NEGATIVE_FIXTURE_PASS','HUMAN_READER_PASS','SOURCE_ZIP_COMPLETENESS_PASS']:
+    if _gid not in h.get('completionGate',{}).get('required',[]): fail('v2.4 completion '+_gid)
+    if _gid not in {x.get('id') for x in qam.get('stages',[])}: fail('v2.4 quality stage '+_gid)
+# current-only: previous version tokens must not remain in harness files
+for _p in ROOT.rglob('*'):
+    if not _p.is_file(): continue
+    if _p.name in ['HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.json','DELETE_MANIFEST.txt']: continue
+    try: _txt=_p.read_text(encoding='utf-8')
+    except UnicodeDecodeError: continue
+    _old='.'.join(['2','3','0'])
+    if _old in _txt: fail('stale version token '+str(_p.relative_to(ROOT)))
+
 print('HARNESS=PASS')
 print('VERSION='+h['version'])
 print('ARTIFACTS='+str(len(arts)))

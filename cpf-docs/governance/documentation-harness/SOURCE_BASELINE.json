@@ -1,8 +1,8 @@
 {
-  "harnessVersion": "2.3.0",
-  "createdAtKst": "2026-08-26T18:44:47+0900",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip",
-  "sha256": "A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07",
+  "harnessVersion": "2.4.0",
+  "createdAtKst": "2026-08-27T13:25:23+09:00",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_125420(1).zip",
+  "sha256": "96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9",
   "canonicalRequirements": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
   "starterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "publicProfiles": [
@@ -241,11 +241,19 @@
     "산출물 세션은 최신 Source를 다시 Inventory하고 이 Baseline과 차이가 있으면 Source Drift를 기록한다.",
     "CLI는 실제 해당 Source에서 다시 추출한 뒤 사용자 문서에 적는다. Baseline 문자열을 무조건 재사용하지 않는다."
   ],
-  "verifiedAtKst": "2026-08-27T03:51:00+09:00",
+  "verifiedAtKst": "2026-08-27T13:25:23+09:00",
   "sourceType": "USER_PROVIDED_FINAL_SOURCE_ZIP",
   "repository": "https://github.com/freeangelsun/202412_01_CPF",
   "branch": "master",
   "sourceCommit": "UNAVAILABLE_IN_SUPPLIED_ZIP",
   "workingSourceAuthority": "USER_PROVIDED_FINAL_SOURCE_ZIP",
-  "sourceIdentity": "ZIP_SHA256:A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07"
+  "sourceIdentity": "ZIP_SHA256:96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9",
+  "documentationAssetsObserved": {
+    "README": 1,
+    "officialDocx": 11,
+    "officialPdf": 11,
+    "productVisualPng": 8,
+    "documentationHarnessFilesBeforeRefinement": 57,
+    "sourceZipTotalFiles": 10302
+  }
 }

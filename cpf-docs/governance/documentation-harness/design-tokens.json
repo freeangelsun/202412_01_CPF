@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "page": {
     "paper": "A4",
@@ -258,7 +258,17 @@
     "fixed_50_50_default": "forbidden_unless_semantically_symmetric",
     "tabular_data_gate": "행과 Column의 교차점이 독립적인 의미를 가져야 한다. 단순 설명/목차/순서/한 메시지 Callout은 표를 사용하지 않는다.",
     "repeated_value_column": "동일 값이 대부분 행에서 반복되고 탐색/비교 의미가 없으면 Column 제거 또는 다른 표현으로 전환",
-    "columnWidthReview": "실제 최종 데이터로 Column별 longest meaningful token, median text length, role importance를 함께 보고 폭을 결정한다. 단순 문자 수 자동비례만으로 확정하지 않는다."
+    "columnWidthReview": "실제 최종 데이터로 Column별 longest meaningful token, median text length, role importance를 함께 보고 폭을 결정한다. 단순 문자 수 자동비례만으로 확정하지 않는다.",
+    "layout_table": "forbidden",
+    "reader_metadata_table": "hard_fail",
+    "single_record_key_value_table_default": "forbidden",
+    "minimum_meaningful_data_rows": 2,
+    "minimum_independent_dimensions": 2,
+    "header_text_contrast_min": "4.5:1",
+    "body_text_contrast_min": "4.5:1",
+    "color_only_encoding": "forbidden",
+    "fixed_width_default": "avoid; use semantic content-aware width and verify final render",
+    "accessibility_rule": "simple data table, one header row, no merge/split/nested cells, no blank structural rows/columns; repeat header on page break"
   },
   "figures": {
     "use_gate": "그림이 같은 내용을 텍스트/표보다 빠르게 이해시키고 실제 구조·흐름·상태·선택을 보여줄 때만 사용. 장식용 그림 금지.",
@@ -333,7 +343,24 @@
     "title_to_canvas_safe_clearance_px_min": 24,
     "side_node_to_canvas_safe_clearance_px_min": 48,
     "semantic_completeness_required": true,
-    "central_junction_rule": "Connector가 중앙 Hub/Junction을 암시하면 의미 Node/Label 또는 완결된 연결 구조를 제공한다. 비어 있는 중심 때문에 누락/깨짐처럼 보이면 FAIL."
+    "central_junction_rule": "Connector가 중앙 Hub/Junction을 암시하면 의미 Node/Label 또는 완결된 연결 구조를 제공한다. 비어 있는 중심 때문에 누락/깨짐처럼 보이면 FAIL.",
+    "graphical_object_contrast_min": "3:1 against adjacent background when required for understanding",
+    "color_only_meaning": "forbidden",
+    "connector_kind_manifest_required": true,
+    "connector_route_manifest_required": true,
+    "connector_source_target_ids_required": true,
+    "connector_endpoint_on_target_boundary_required": true,
+    "connector_endpoint_boundary_tolerance_px": 2,
+    "connector_target_interior_penetration_px_max": 0,
+    "connector_arrowhead_body_inside_target_px_max": 0,
+    "connector_cross_unrelated_node_interior": 0,
+    "connector_ends_in_unlabeled_empty_space": 0,
+    "connector_to_text_collision": 0,
+    "embedded_min_effective_text_pt": 10.5,
+    "embedded_non_text_contrast_min": "3:1",
+    "actual_display_scale_required": true,
+    "geometry_manifest_min_detail": "each meaningful node/text/annotation/connector and connector route/endpoints; group-only coarse rectangles are insufficient for PASS",
+    "ten_second_comprehension_test": "manual_required for every major figure"
   },
   "callouts": {
     "allowed": [
@@ -386,7 +413,13 @@
     "balance_rule": "페이지와 Figure는 좌우/상하 정보량·여백·강조의 시각적 무게가 균형을 이루어야 한다. 의도 없는 한쪽 과밀·반대쪽 과공백은 FAIL 또는 재배치 대상이다.",
     "link_label_target_mismatch_allowed": 0,
     "pdf_link_to_docx_allowed": 0,
-    "previous_pass_visual_regression_allowed": 0
+    "previous_pass_visual_regression_allowed": 0,
+    "readerOpeningMetadataTableAllowed": 0,
+    "userFacingBuildMetadataAllowed": 0,
+    "colorOnlyMeaningAllowed": 0,
+    "manualReaderComprehensionRequired": true,
+    "negativeFixtureRegressionRequired": true,
+    "connectorBoundaryTerminationRequired": true
   },
   "headingNumbering": {
     "H1": "1. / 2. / 3. ...",
@@ -398,5 +431,16 @@
     "purpose": "번호와 여백을 함께 사용해 대·중·소 메뉴 계층을 즉시 구분한다."
   },
   "componentSystemRef": "component-system.json",
-  "qualityAcceptanceRef": "quality-acceptance.json"
+  "qualityAcceptanceRef": "quality-acceptance.json",
+  "readerOpening": {
+    "defaultPresentation": "TITLE_SUBTITLE_PLUS_LEAD",
+    "readerNeedTable": "forbidden",
+    "keyValueMetadataTable": "forbidden",
+    "leadSentencesMin": 1,
+    "leadSentencesMax": 2,
+    "leadKoreanCharsPreferredMax": 150,
+    "internalProvenanceInUserBody": "hard_fail",
+    "visibleLabelsDefault": "avoid when natural prose is clearer",
+    "firstActionVisibleWithoutMetadataBlock": true
+  }
 }

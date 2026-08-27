@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -103,7 +103,23 @@
     "sectionTransitionCrowding": 0,
     "figureEmbeddedBoundaryIntrusion": 0,
     "figureEmbeddedCrop": 0,
-    "semanticallyIncompleteVisual": 0
+    "semanticallyIncompleteVisual": 0,
+    "readerOpeningEncodedAsTable": 0,
+    "userFacingHarnessVersion": 0,
+    "userFacingSourceSha": 0,
+    "userFacingBuildBaseline": 0,
+    "connectorTargetNodeIntrusion": 0,
+    "connectorArrowheadInsideTargetNode": 0,
+    "connectorEndsInUnlabeledEmptySpace": 0,
+    "connectorCrossesUnrelatedNode": 0,
+    "connectorRouteMissingFromGeometryManifest": 0,
+    "graphicalObjectContrastBelow3to1": 0,
+    "colorOnlyMeaning": 0,
+    "embeddedEffectiveTextTooSmall": 0,
+    "coarseGeometryManifestAcceptedAsPass": 0,
+    "readerCannotIdentifyPurposeFromOpening": 0,
+    "negativeFixtureNotEnforced": 0,
+    "tableTextContrastBelow4to5to1": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -135,7 +151,14 @@
     "readmeUniqueVisualGrammarsBelow": 4,
     "readmeRoundedRectangleArrowChainVisualsOver": 1,
     "figureExplanationGapPtAbove": 6,
-    "figureToNextSectionGapPtBelow": 14
+    "figureToNextSectionGapPtBelow": 14,
+    "openingLeadSentencesOver": 2,
+    "openingLeadKoreanCharsOver": 150,
+    "connectorEndpointBoundaryDistancePxAbove": 2,
+    "connectorTargetInteriorPenetrationPxAbove": 0,
+    "graphicalObjectContrastBelow": "3:1",
+    "embeddedEffectiveTextPtBelow": 10.5,
+    "tableTextContrastBelow": "4.5:1"
   },
   "mandatoryInspection": {
     "allPagesQuickScan": true,
@@ -234,7 +257,24 @@
     ],
     "geometryManifest": "모든 README/Product Figure는 visual-geometry.json의 canvas/node/text/frame bounding box와 validator를 통과해야 한다.",
     "figureExplanation": "“그림 해석/그림 설명” 라벨 없이 Figure 바로 아래 자연스러운 설명으로 연결되는지 확인한다.",
-    "readerTaskFit": "문서를 실제 Persona 입장에서 훑어 첫 30초 안에 목적과 필요한 다음 행동을 찾을 수 있는지 확인한다."
+    "readerTaskFit": "문서를 실제 Persona 입장에서 훑어 첫 30초 안에 목적과 필요한 다음 행동을 찾을 수 있는지 확인한다.",
+    "openingInspection": [
+      "제목/부제목 직후 독자·목적·완료 결과를 자연스럽게 이해할 수 있는가",
+      "누가 보는가/기준 같은 제작형 2열 메타표가 없는가",
+      "Harness/Source SHA/Build baseline이 사용자 본문에 노출되지 않는가"
+    ],
+    "connectorInspection": [
+      "source/target가 명확한가",
+      "tip이 target boundary에 닿고 target interior를 침범하지 않는가",
+      "shaft/arrowhead body가 target node 내부로 들어가지 않는가",
+      "unrelated node/text/label을 가로지르지 않는가",
+      "빈 공간에서 끝나는 connector가 없는가"
+    ],
+    "readerComprehension": [
+      "처음 보는 독자가 10초 내 그림 핵심을 말할 수 있는가",
+      "첫 화면에서 다음 행동을 찾을 수 있는가",
+      "시각적 장식이 정보 탐색을 방해하지 않는가"
+    ]
   },
   "fixLoop": [
     "collect all failures and identify impact scope",

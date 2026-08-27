@@ -25,3 +25,5 @@ foreach($m in [regex]::Matches($text,'\[([^\]]+)\]\(([^)]+)\)')){
   if(($label -match '(?i)PDF') -and -not(Test-Path -LiteralPath $local -PathType Leaf)){ Fail("document link target missing: $target") }
 }
 Write-Host 'README=PASS'; exit 0
+
+if($text -match 'Harness\s+v?\d+(?:\.\d+)+' -or $text -match 'Source(?: snapshot)?\s*[:·]?\s*(?:ZIP_SHA256:)?[0-9A-Fa-f]{16,}' -or $text -match 'Documentation baseline'){throw 'README=FAIL user-facing provenance forbidden'}

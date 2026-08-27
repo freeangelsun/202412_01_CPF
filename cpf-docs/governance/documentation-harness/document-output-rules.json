@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "README": {
     "toc": "forbidden",
@@ -92,7 +92,9 @@
     "sessionBackup": "delete",
     "datedOrRevisionSuffix": "delete",
     "extractedHarnessZip": "delete",
-    "validatorTemp": "delete"
+    "validatorTemp": "delete",
+    "staleVersionStringInCurrentHarness": "forbidden",
+    "versionedSectionHistoryInCurrentDocs": "forbidden"
   },
   "linkIntegrity": {
     "pdfLabelMustTargetPdf": true,
@@ -135,5 +137,37 @@
     "majorSectionBreathing": "about one extra line before H1/major menu",
     "semanticTransitionSpacing": "required between distinct blocks",
     "blankParagraphSpacing": "forbidden"
+  },
+  "userFacingProvenance": {
+    "harnessVersion": "forbidden in README/DOCX/PDF body",
+    "sourceSha": "forbidden in README/DOCX/PDF body",
+    "sourceZip": "forbidden in README/DOCX/PDF body",
+    "allowedIn": [
+      "cpf-docs/deliverables/documentation/** evidence/manifest/handover",
+      "cpf-docs/governance/documentation-harness/SOURCE_BASELINE.json"
+    ]
+  },
+  "sourceZipCompleteness": {
+    "required": true,
+    "defaultTrackedAndNonIgnoredUntracked": true,
+    "forcedInclude": [
+      "README.md",
+      "cpf-docs/guides/**",
+      "cpf-docs/deliverables/**",
+      "cpf-docs/assets/**",
+      "cpf-docs/governance/documentation-harness/**",
+      "cpf-tools/build/**"
+    ],
+    "minimumChecks": {
+      "CPF_DOCX": 11,
+      "CPF_PDF": 11,
+      "PRODUCT_VISUAL_PNG": 8,
+      "HARNESS_FILES_MIN": 57,
+      "CPF_GUIDES_PRESENT": true,
+      "CPF_ASSETS_PRESENT": true,
+      "CPF_TOOLS_BUILD_PRESENT": true
+    },
+    "unicodeRoundTrip": "canonical UTF-8/NFC path must match after Windows Expand-Archive",
+    "missingOfficialDocxPdfVisualHarness": "hard_fail"
   }
 }

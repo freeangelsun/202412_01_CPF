@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "commonRulesRef": "design-tokens.json#/tables",
   "presets": {
@@ -582,6 +582,13 @@
       "flow/state/figure"
     ],
     "fixed5050": "대칭 비교가 아니면 금지",
-    "equalWidth": "대칭성과 실제 데이터 길이가 유사하면 허용; 그렇지 않으면 content-aware proportional width"
+    "equalWidth": "대칭성과 실제 데이터 길이가 유사하면 허용; 그렇지 않으면 content-aware proportional width",
+    "readerMetadataTable": "forbidden",
+    "layoutTable": "forbidden",
+    "singleRecordKeyValueTable": "default_forbidden",
+    "minimumMeaningfulRows": 2,
+    "minimumIndependentDimensions": 2,
+    "openingReaderNeed": "lead paragraph/callout, never a two-column metadata table",
+    "accessibility": "simple data table, explicit header row, no merge/split/nested/blank structural cells"
   }
 }

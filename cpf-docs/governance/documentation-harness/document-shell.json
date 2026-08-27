@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "docxShell": {
@@ -94,5 +94,16 @@
     "sourceIdentity": "short SHA 또는 Source ZIP SHA-256를 표지/문서 정보에 넣을 수 있으나 QA PASS 문구는 넣지 않는다.",
     "dates": "YYYY-MM-DD",
     "timezone": "KST when time is shown"
+  },
+  "opening": {
+    "order": [
+      "DOCUMENT_TITLE",
+      "SUBTITLE optional",
+      "OPENING_SUMMARY",
+      "first H1 or navigation"
+    ],
+    "openingSummaryComponent": "OPENING_SUMMARY",
+    "readerNeedTable": "forbidden",
+    "provenanceMetadata": "forbidden in reader-facing shell"
   }
 }

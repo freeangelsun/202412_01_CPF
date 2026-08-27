@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.3.0",
+  "harnessVersion": "2.4.0",
   "locked": true,
   "purpose": "작성자 해석 편차를 줄이기 위해 공식 문서를 재사용 가능한 Layout Component로 조립한다.",
   "defaultAssembly": "PATCH_EXISTING_COMPONENTS_FIRST",
@@ -64,7 +64,10 @@
         "FIGURE_EXPLANATION"
       ],
       "keepTogetherPreferred": true,
-      "explanationOwnership": "same visual block"
+      "explanationOwnership": "same visual block",
+      "connectorBoundaryTermination": "required",
+      "geometryDetail": "node/text/connector-level manifest required",
+      "embeddedRenderValidation": "README/DOCX/PDF actual displayed state required"
     },
     "FIGURE_EXPLANATION": {
       "role": "figure takeaway",
@@ -89,7 +92,11 @@
       "useGate": "행·열 교차 관계가 독자의 비교/선택을 실제로 빠르게 할 때만 사용",
       "columnWidthPolicy": "content-aware; symmetric equal width when semantically justified",
       "headerSingleLine": true,
-      "fixed5050": "forbidden unless symmetric compare"
+      "fixed5050": "forbidden unless symmetric compare",
+      "readerMetadata": "forbidden",
+      "layoutUse": "forbidden",
+      "minMeaningfulRows": 2,
+      "minIndependentDimensions": 2
     },
     "CALLOUT_NOTE": {
       "role": "note",
@@ -132,10 +139,14 @@
         "왜 보는가",
         "이 문서로 무엇을 끝내는가"
       ],
-      "presentation": "full-width lead paragraph or compact callout",
+      "presentation": "1~2문장의 full-width lead paragraph; 제목/부제목 바로 아래",
       "twoColumn5050": "forbidden",
       "tableEncoding": "forbidden",
-      "spaceAfterPtPreferred": 10
+      "spaceAfterPtPreferred": 10,
+      "keyValueRows": "forbidden",
+      "internalProvenance": "forbidden",
+      "visibleLabels": "optional only when label adds reader value; 누가 보는가/기준 같은 제작형 레이블 반복 금지",
+      "examplePattern": "이 문서는 <독자>가 <업무>를 구현/판단할 때 사용합니다. <완료 결과>까지 확인합니다."
     },
     "API_QUICK_REFERENCE": {
       "role": "developer task summary",
@@ -186,6 +197,40 @@
       "role": "visual breathing between meaning blocks",
       "spaceBeforeToken": "paragraph.semanticTransitionGapPtMin",
       "blankParagraph": "forbidden"
+    },
+    "OPENING_SUMMARY": {
+      "role": "document opening reader orientation",
+      "leftRail": "page",
+      "placement": "after title/subtitle before first major section",
+      "presentation": "natural lead paragraph",
+      "sentences": [
+        1,
+        2
+      ],
+      "table": "forbidden",
+      "sourceHarnessMetadata": "forbidden",
+      "mustAnswer": [
+        "누가 읽는가",
+        "무엇을 하려는가",
+        "읽고 무엇을 끝낼 수 있는가"
+      ]
+    },
+    "PROVENANCE_NOTE": {
+      "role": "build/evidence provenance",
+      "userFacingSurface": "forbidden",
+      "allowedOnlyIn": [
+        "Evidence",
+        "Manifest",
+        "Handover",
+        "QA internal deliverables"
+      ],
+      "forbiddenTokensInUserBody": [
+        "Harness v",
+        "Source SHA",
+        "Source snapshot",
+        "ZIP_SHA256",
+        "baseline SHA"
+      ]
     }
   },
   "compositionRules": [

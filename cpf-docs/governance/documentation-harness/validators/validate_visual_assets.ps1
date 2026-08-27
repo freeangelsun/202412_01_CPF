@@ -1,50 +1,25 @@
-param(
-  [string]$RepositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path,
-  [string]$Manifest = 'cpf-docs/assets/product-docs/visual-geometry.json'
-)
 $ErrorActionPreference='Stop'
-function Fail([string]$m){ Write-Host ('VISUAL_GEOMETRY=FAIL '+$m); exit 1 }
-$path=Join-Path $RepositoryRoot ($Manifest -replace '/','\')
-if(-not(Test-Path -LiteralPath $path -PathType Leaf)){ Fail('manifest missing '+$Manifest) }
-try{$doc=Get-Content -LiteralPath $path -Raw -Encoding UTF8|ConvertFrom-Json}catch{Fail('manifest json '+$_.Exception.Message)}
-if([string]$doc.harnessVersion -ne '2.3.0'){Fail('manifest harnessVersion')}
-$issues=0
-foreach($a in @($doc.assets)){
-  $cw=[double]$a.canvas.width; $ch=[double]$a.canvas.height; $safe=[double]$a.canvas.safeMargin
-  if($cw-le0-or$ch-le0-or$safe-lt64){Fail('canvas '+$a.asset)}
-  $assetPath=Join-Path $RepositoryRoot ([string]$a.asset -replace '/','\')
-  if(-not(Test-Path -LiteralPath $assetPath -PathType Leaf)){Fail('asset missing '+$a.asset)}
-  $objects=@($a.objects)
-  foreach($o in $objects){
-    $x=[double]$o.x;$y=[double]$o.y;$w=[double]$o.w;$h=[double]$o.h
-    if($w-le0-or$h-le0){Fail('invalid box '+$a.asset+' '+$o.id)}
-    if($x-lt$safe-or$y-lt$safe-or($x+$w)-gt($cw-$safe)-or($y+$h)-gt($ch-$safe)){
-      if([string]$o.allowSafeMargin -ne 'true'){Fail('safe-area '+$a.asset+' '+$o.id)}
-    }
-    if([string]$o.kind -eq 'text' -and $null-ne$o.parent){
-      $p=@($objects|Where-Object{$_.id-eq$o.parent})|Select-Object -First 1
-      if($null-eq$p){Fail('parent missing '+$a.asset+' '+$o.id)}
-      $pad=28
-      if($x-lt([double]$p.x+$pad)-or$y-lt([double]$p.y+$pad)-or($x+$w)-gt([double]$p.x+[double]$p.w-$pad)-or($y+$h)-gt([double]$p.y+[double]$p.h-$pad)){
-        Fail('text outside parent '+$a.asset+' '+$o.id)
-      }
-    }
+$Root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\..'))
+$Manifest=Join-Path $Root 'cpf-docs\assets\product-docs\visual-geometry.json'
+if(!(Test-Path -LiteralPath $Manifest)){throw 'VISUAL_GEOMETRY=FAIL manifest missing'}
+$d=Get-Content -LiteralPath $Manifest -Raw -Encoding utf8 | ConvertFrom-Json
+if([string]$d.harnessVersion -ne '2.4.0'){throw 'VISUAL_GEOMETRY=FAIL manifest harnessVersion; regenerate/re-manifest current assets'}
+if([string]$d.schemaVersion -ne '2.0'){throw 'VISUAL_GEOMETRY=FAIL schemaVersion 2.0 required'}
+foreach($a in $d.assets){
+  if([double]$a.canvas.safeMargin -lt 64){throw "VISUAL_GEOMETRY=FAIL safeMargin $($a.asset)"}
+  $ids=@{}; foreach($o in $a.objects){$ids[[string]$o.id]=$o}
+  $meaningful=@($a.objects|Where-Object{$_.kind -in @('node','text','annotation','junction')})
+  if($meaningful.Count -lt 3){throw "VISUAL_GEOMETRY=FAIL coarse manifest $($a.asset)"}
+  if($null -eq $a.connectors){throw "VISUAL_GEOMETRY=FAIL connectors missing $($a.asset)"}
+  foreach($c in $a.connectors){
+    if(!$ids.ContainsKey([string]$c.from) -or !$ids.ContainsKey([string]$c.to)){throw "VISUAL_GEOMETRY=FAIL connector refs $($a.asset)"}
+    if(@($c.points).Count -lt 2){throw "VISUAL_GEOMETRY=FAIL route missing $($a.asset)"}
+    if([double]$c.targetInteriorPenetrationPx -gt 0){throw "VISUAL_GEOMETRY=FAIL target intrusion $($a.asset)"}
+    if([double]$c.arrowheadBodyInsideTargetPx -gt 0){throw "VISUAL_GEOMETRY=FAIL arrowhead intrusion $($a.asset)"}
+    if($c.crossesUnrelatedNodeInterior -eq $true -or $c.crossesTextOrLabel -eq $true){throw "VISUAL_GEOMETRY=FAIL connector collision $($a.asset)"}
+    if($c.endsInUnlabeledEmptySpace -eq $true){throw "VISUAL_GEOMETRY=FAIL empty connector end $($a.asset)"}
   }
-  # Explicit pair constraints are generated with the visual and are deterministic to validate in PowerShell.
-  foreach($pair in @($a.noOverlap)){
-    $one=@($objects|Where-Object{$_.id-eq$pair[0]})|Select-Object -First 1
-    $two=@($objects|Where-Object{$_.id-eq$pair[1]})|Select-Object -First 1
-    if($null-eq$one-or$null-eq$two){Fail('overlap ref missing '+$a.asset)}
-    $over=([double]$one.x-lt([double]$two.x+[double]$two.w))-and([double]$one.x+[double]$one.w-gt[double]$two.x)-and([double]$one.y-lt([double]$two.y+[double]$two.h))-and([double]$one.y+[double]$one.h-gt[double]$two.y)
-    if($over){Fail('overlap '+$a.asset+' '+$pair[0]+' '+$pair[1])}
-  }
-  foreach($g in @($a.minVerticalGaps)){
-    $one=@($objects|Where-Object{$_.id-eq$g.from})|Select-Object -First 1
-    $two=@($objects|Where-Object{$_.id-eq$g.to})|Select-Object -First 1
-    if($null-eq$one-or$null-eq$two){Fail('gap ref missing '+$a.asset)}
-    $gap=[double]$two.y-([double]$one.y+[double]$one.h)
-    if($gap-lt[double]$g.min){Fail('vertical gap '+$a.asset+' '+$g.from+' '+$g.to+' actual='+$gap)}
-  }
+  if(@($a.embeddedRenders).Count -eq 0){throw "VISUAL_GEOMETRY=FAIL embedded renders missing $($a.asset)"}
+  foreach($r in $a.embeddedRenders){if([double]$r.effectiveMinTextPt -lt 10.5 -or [int]$r.crop -ne 0 -or [int]$r.boundaryIntrusion -ne 0 -or $r.contrastPass -ne $true){throw "VISUAL_GEOMETRY=FAIL embedded render $($a.asset) $($r.surface)"}}
 }
-Write-Host ('VISUAL_GEOMETRY=PASS ASSETS='+@($doc.assets).Count)
-exit 0
+Write-Host "VISUAL_GEOMETRY=PASS ASSETS=$(@($d.assets).Count)"

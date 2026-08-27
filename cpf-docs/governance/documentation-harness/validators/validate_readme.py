@@ -16,6 +16,11 @@ if text.count(exact)!=1: errs.append('License 지정 문장 정확히 1회 필�
 if re.search(r'\[[^\]]*LICENSE[^\]]*\]\(',text,re.I): errs.append('LICENSE 파일 링크 금지')
 for bad in ['그림 해석','그림 설명']:
  if bad in text: errs.append('generic figure label '+bad)
+
+# user-facing provenance must stay out of README
+for pat,label in [(r'Harness\s+v?\d+(?:\.\d+)+','Harness version'),(r'Source(?: snapshot)?\s*[:·]?\s*(?:ZIP_SHA256:)?[0-9A-Fa-f]{16,}','Source SHA'),(r'Documentation baseline','Documentation baseline')]:
+ if re.search(pat,text,re.I): errs.append('user-facing provenance forbidden: '+label)
+
 imgs=re.findall(r'!\[[^\]]*\]\(([^)]+)\)',text)
 imgs += re.findall(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\'][^>]*>',text,re.I)
 # stable unique order

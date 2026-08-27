@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json,math,sys
+import json,math,sys,hashlib
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[4]
 M=ROOT/'cpf-docs/assets/product-docs/visual-geometry.json'
@@ -15,7 +15,7 @@ def dist_to_boundary(x,y,r):
     return min(abs(x-rx),abs(x-(rx+rw)),abs(y-ry),abs(y-(ry+rh)))
 if not M.is_file(): fail('manifest missing')
 d=json.loads(M.read_text(encoding='utf-8'))
-if d.get('harnessVersion')!='2.4.0': fail('manifest harnessVersion; current assets must be regenerated/re-manifested for Harness 2.4.0')
+if d.get('harnessVersion')!='2.5.0': fail('manifest harnessVersion; current assets must be regenerated/re-manifested for Harness 2.5.0')
 if d.get('schemaVersion')!='2.0': fail('manifest schemaVersion 2.0 required')
 assets=d.get('assets',[])
 if not assets: fail('assets empty')
@@ -25,6 +25,12 @@ for a in assets:
     if cw<=0 or ch<=0 or safe<64: fail('canvas '+name)
     ap=ROOT/name
     if not ap.is_file(): fail('asset missing '+name)
+    try:
+        from PIL import Image
+        with Image.open(ap) as im:
+            if im.size!=(int(cw),int(ch)): fail('canvas/image dimension mismatch '+name)
+    except Exception as e: fail('image decode '+name+' '+str(e))
+    if a.get('sha256') and hashlib.sha256(ap.read_bytes()).hexdigest().upper()!=str(a['sha256']).upper(): fail('asset sha256 mismatch '+name)
     objs={o['id']:o for o in a.get('objects',[])}
     meaningful=[o for o in objs.values() if o.get('kind') in ('node','text','annotation','junction')]
     if len(meaningful)<3: fail('coarse geometry manifest '+name)
@@ -48,6 +54,8 @@ for a in assets:
         if dist_to_boundary(tx,ty,tr)>2.0: fail('connector endpoint not on target boundary '+name+' '+str(c.get('id')))
         if point_inside(tx,ty,tr,True): fail('connector target intrusion '+name+' '+str(c.get('id')))
         if float(c.get('targetInteriorPenetrationPx',0))>0: fail('connector target intrusion metric '+name+' '+str(c.get('id')))
+        if float(c.get('sourceInteriorPenetrationPx',0))>0: fail('connector source intrusion metric '+name+' '+str(c.get('id')))
+        if float(c.get('targetBoundaryDistancePx',0))>2.0: fail('connector endpoint boundary distance '+name+' '+str(c.get('id')))
         if float(c.get('arrowheadBodyInsideTargetPx',0))>0: fail('arrowhead inside target '+name+' '+str(c.get('id')))
         if c.get('crossesUnrelatedNodeInterior',False): fail('connector crosses node '+name+' '+str(c.get('id')))
         if c.get('crossesTextOrLabel',False): fail('connector crosses text '+name+' '+str(c.get('id')))

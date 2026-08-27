@@ -1,6 +1,13 @@
 # OPEN ISSUES
 
-- Windows PowerShell-only replay: **미검증** in this Linux container because `pwsh`/Windows PowerShell is unavailable. Re-run `cpf-docs\deliverables\documentation\VERIFY.ps1` after applying the overlay on Windows.
-- Documentation/Harness/README/Visual/official DOCX/PDF files generated or modified in this cycle: **absolute path >150 = 0** for both supported home/company repository roots.
-- Supplied Source baseline contains pre-existing long paths under `cpf-docs/work/evidence/codex/current/**` that exceed 150 characters when combined with the known home/company roots. These files were **not created, changed, deleted, or claimed as PASS by this Documentation patch**. They are retained because they are outside the Documentation artifact change set and evidence deletion requires explicit approval.
-- No known product-document visual/layout/content defect remains from the findings addressed in this cycle.
+## 미검증 - Windows PowerShell replay
+- 이 Linux container에는 `pwsh`/Windows PowerShell이 없어 `.ps1` Validator 자체 실행은 하지 못했다.
+- 동일 규칙의 Python Harness/README/Visual/DOCX/Fixture Validator는 실제 실행해 PASS했다.
+- 적용 후 `cpf-docs/deliverables/documentation/VERIFY.ps1`을 Windows에서 실행하면 된다.
+
+## Baseline 분리 이슈 - 기존 장경로
+- supplied Source의 `cpf-docs/work/evidence/codex/current/**` 일부 장경로는 이번 Documentation 변경 이전부터 존재할 수 있다.
+- Documentation 산출물/Harness가 만든 파일은 집/회사 기준 absolute path 150자 Gate를 통과했다.
+- 기존 Evidence는 사용자 승인 없이 삭제하지 않았다.
+
+위 두 항목 외 이번 Documentation Overlay에 남아 있는 검증 가능한 실패는 0건이다.

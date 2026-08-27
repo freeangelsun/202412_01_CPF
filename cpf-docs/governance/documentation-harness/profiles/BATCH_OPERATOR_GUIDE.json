@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "documentId": "BATCH_OPERATOR_GUIDE",
   "title": "CPF 배치 운영 가이드",
   "locked": true,

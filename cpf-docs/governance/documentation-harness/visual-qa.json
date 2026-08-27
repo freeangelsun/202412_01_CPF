@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -119,7 +119,16 @@
     "coarseGeometryManifestAcceptedAsPass": 0,
     "readerCannotIdentifyPurposeFromOpening": 0,
     "negativeFixtureNotEnforced": 0,
-    "tableTextContrastBelow4to5to1": 0
+    "tableTextContrastBelow4to5to1": 0,
+    "docxOpeningMetaTable": 0,
+    "docxUserFacingProvenance": 0,
+    "docxSingleRowLayoutTable": 0,
+    "isolatedTrailingContentPage": 0,
+    "feedbackFixedOnlyInArtifactWithoutHarnessGate": 0,
+    "connectorCrossesTextOrLabel": 0,
+    "connectorEndpointNotOnTargetBoundary": 0,
+    "connectorSourceNodeIntrusion": 0,
+    "tocTabStopOutsideWritableArea": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -307,5 +316,23 @@
     "question2": "표가 목록/본문/Callout보다 비교·선택을 더 빠르게 하는가?",
     "question3": "Column 폭이 실제 내용 비율과 역할에 맞는가?",
     "failIfAny": "표가 장식/레이아웃 목적이거나 Header Wrap/공백 낭비/과도한 Wrap을 만들면 재구성"
+  },
+  "manualHardGate": {
+    "connectorBoundaryTermination": [
+      "모든 connector/arrow는 source node 외곽에서 시작하고 target node 외곽 경계에서 종료한다.",
+      "connector/arrow shaft와 arrowhead body가 target node 내부로 1px도 침범하면 FAIL.",
+      "connector가 관계없는 node 내부, text, label, annotation을 통과하면 FAIL.",
+      "원본 PNG뿐 아니라 README/DOCX/PDF 실제 삽입 렌더에서 같은 조건을 다시 확인한다."
+    ],
+    "readerOpeningSemantics": [
+      "독자/목적/완료할 일을 2열 key-value 표로 표현하지 않는다.",
+      "일반 사용자 본문에 Harness version, Source SHA, source ZIP/build baseline을 노출하지 않는다.",
+      "첫 화면은 독자가 지금 무엇을 결정/실행할지 즉시 알 수 있는 lead 또는 compact callout으로 시작한다."
+    ],
+    "tocAndFinderAlignment": [
+      "찾아보기/TOC의 dotted leader와 페이지 번호는 실제 writable text width 내부에서 끝나야 한다.",
+      "right-aligned tab stop이 page width 또는 text width 밖에 있거나 page number가 clipping/overflow 되면 FAIL.",
+      "DOCX와 Fresh PDF 삽입/렌더에서 오른쪽 dot leader가 page edge에 닿지 않고 페이지 번호가 명확히 보여야 한다."
+    ]
   }
 }

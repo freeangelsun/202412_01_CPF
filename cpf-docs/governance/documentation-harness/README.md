@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.4.0
+# CPF Documentation Harness v2.5.0
 
 CPF 공식 README와 11개 DOCX/PDF를 일관된 상용 문서 품질로 만들기 위한 **실행형 Design/QA Harness**다.
 

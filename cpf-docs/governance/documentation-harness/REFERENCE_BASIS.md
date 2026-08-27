@@ -41,6 +41,26 @@ CPF 사용자 Steering, 최신 Source, Canonical Requirement가 최우선이다.
 - 참고: https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum
 - 참고: https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast
 
+
+### Microsoft Style Guide — Tables / Procedures
+
+- 표는 관계형 데이터에 사용하고 단순 목록을 표로 만들지 않는다. 다운로드 문서의 긴 표는 Header Row 반복을 사용한다.
+- 절차는 작업을 설명하는 짧은 Heading과 번호 목록으로 구성하고, Heading을 반복 설명하는 불필요한 도입문을 피한다.
+- 참고: https://learn.microsoft.com/en-us/style-guide/scannable-content/tables
+- 참고: https://learn.microsoft.com/en-us/style-guide/procedures-instructions/writing-step-by-step-instructions
+
+### GOV.UK — Accessible Documents / Tables
+
+- Word/PDF에서도 Heading Style, Table Header, Contrast, Accessibility Check를 사용하고 단순 레이아웃 장식을 구조로 오인하지 않게 한다.
+- 표는 데이터를 한눈에 비교할 때만 쓰고, 너무 작거나 복잡한 표는 일반 본문·목록 또는 분리된 표로 바꾼다.
+- 참고: https://www.gov.uk/guidance/publishing-accessible-documents
+- 참고: https://guidance.publishing.service.gov.uk/formatting-content/text-formatting/tables/
+
+### Home Office — Headings
+
+- Heading은 실제로 뒤따르는 내용을 설명하는 탐색 구조여야 하며, 시각적 강조를 위해 Heading Style을 사용하지 않는다. Heading level을 건너뛰지 않는다.
+- 참고: https://design.homeoffice.gov.uk/accessibility/page-structure/headings
+
 ## 3. CPF 적용 해석
 
 외부 원칙을 그대로 복사하지 않는다. CPF에서는 다음으로 구체화한다.

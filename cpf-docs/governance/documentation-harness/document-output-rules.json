@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "locked": true,
   "README": {
     "toc": "forbidden",
@@ -169,5 +169,17 @@
     },
     "unicodeRoundTrip": "canonical UTF-8/NFC path must match after Windows Expand-Archive",
     "missingOfficialDocxPdfVisualHarness": "hard_fail"
+  },
+  "docxStructuralValidation": {
+    "officialDocxCount": 11,
+    "openingMetaTable": "forbidden",
+    "userFacingProvenance": "forbidden",
+    "singleRowLayoutTable": "forbidden",
+    "semanticHeadingStylesRequired": true,
+    "blankSpacerParagraph": "forbidden_unless_page_break",
+    "validator": "validators/validate_docx_artifacts.py",
+    "windowsValidator": "validators/validate_docx_artifacts.ps1",
+    "tocRightTabWithinWritableWidth": true,
+    "tocPageNumberVisible": true
   }
 }

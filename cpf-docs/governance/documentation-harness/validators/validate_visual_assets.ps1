@@ -3,7 +3,7 @@ $Root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\..'))
 $Manifest=Join-Path $Root 'cpf-docs\assets\product-docs\visual-geometry.json'
 if(!(Test-Path -LiteralPath $Manifest)){throw 'VISUAL_GEOMETRY=FAIL manifest missing'}
 $d=Get-Content -LiteralPath $Manifest -Raw -Encoding utf8 | ConvertFrom-Json
-if([string]$d.harnessVersion -ne '2.4.0'){throw 'VISUAL_GEOMETRY=FAIL manifest harnessVersion; regenerate/re-manifest current assets'}
+if([string]$d.harnessVersion -ne '2.5.0'){throw 'VISUAL_GEOMETRY=FAIL manifest harnessVersion; regenerate/re-manifest current assets'}
 if([string]$d.schemaVersion -ne '2.0'){throw 'VISUAL_GEOMETRY=FAIL schemaVersion 2.0 required'}
 foreach($a in $d.assets){
   if([double]$a.canvas.safeMargin -lt 64){throw "VISUAL_GEOMETRY=FAIL safeMargin $($a.asset)"}

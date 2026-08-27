@@ -1,2 +1,14 @@
-# CPF Documentation v2.3.0 exact delete manifest
-# No deletions required for source baseline A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07
+# CPF Documentation v2.5.0 exact stale delete manifest
+# Root-relative exact paths only; no wildcard.
+cpf-docs/governance/documentation-harness/CHANGELOG.md
+cpf-docs/governance/documentation-harness/_backup
+cpf-docs/governance/documentation-harness/_history
+cpf-docs/governance/documentation-harness/_session
+cpf-docs/governance/documentation-harness-old
+cpf-docs/governance/documentation-harness-v2.3.0
+cpf-docs/governance/documentation-harness-v2.4.0
+cpf-docs/deliverables/documentation/APPLY_V125.ps1
+cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1
+cpf-docs/deliverables/documentation/_backup
+cpf-docs/deliverables/documentation/_history
+cpf-docs/deliverables/documentation/_session

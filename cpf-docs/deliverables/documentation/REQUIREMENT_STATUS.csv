@@ -1,7 +1,7 @@
 ﻿requirement_id,development_status,verification_status,개발GPT_상태,개발GPT_내용,개발GPT_Evidence
-DOC-HARNESS,완료,완료,완료,Harness v2.3.0 current-only + PATCH_FIRST + reader/task/table/visual gates,cpf-docs/governance/documentation-harness/
-DOC-README,완료,완료,완료,"README 8 visuals, PDF-only navigation, current source baseline",README.md
-DOC-DOCX,완료,완료,완료,"11 DOCX PATCH_FIRST, 71 pages, A11y 0",TEST_AND_EVIDENCE.md
-DOC-PDF,완료,완료,완료,"11 PDF fresh export, PDFium/Poppler 71 pages, preflight 0",TEST_AND_EVIDENCE.md
+DOC-HARNESS,완료,완료,완료,Harness v2.5.0 current-only + PATCH_FIRST + recurrence fixtures/validators,cpf-docs/governance/documentation-harness/
+DOC-README,완료,완료,완료,README 8 visuals + PDF-only navigation + user provenance 0,README.md
+DOC-DOCX,완료,완료,완료,11 DOCX PATCH_FIRST + 53 pages + structure PASS + A11y 0,TEST_AND_EVIDENCE.md
+DOC-PDF,완료,완료,완료,11 PDF fresh export + 53 pages + preflight 0 + font embed PASS,TEST_AND_EVIDENCE.md
 DOC-WINDOWS-PS,완료,미검증,미완료,Windows PowerShell verifier packaged; pwsh unavailable in container,OPEN_ISSUES.md
-DOC-BASELINE-PATH,해당 없음,재확인 필요,해당 없음,Supplied Source의 cpf-docs/work/evidence/codex/current 장경로는 Documentation patch 외 선행 이슈이며 임의 삭제하지 않음,OPEN_ISSUES.md
+DOC-BASELINE-PATH,해당 없음,재확인 필요,해당 없음,Supplied Source 기존 codex evidence 장경로는 Documentation patch 외 선행 이슈,OPEN_ISSUES.md

@@ -1,1 +1,1 @@
-# No empty-directory deletions required.
+# Empty stale directories are covered by DELETE_MANIFEST.txt exact directory entries.

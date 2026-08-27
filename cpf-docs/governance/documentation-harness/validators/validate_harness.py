@@ -17,12 +17,12 @@ for p in ROOT.rglob('*'):
     n=p.name.lower()
     if re.search(r'(^|[_\.-])(backup|old|history)([_\.-]|$)',n) or n.startswith('v1.') or n.startswith('v2.0') or n.startswith('v2.1'):
         fail('stale harness artifact '+str(p.relative_to(ROOT)))
-if h.get('version')!='2.4.0': fail('version')
+if h.get('version')!='2.5.0': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='2.4.0': fail(f'version {f}')
+    if d.get('harnessVersion')!='2.5.0': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
@@ -64,7 +64,7 @@ if O['README'].get('manualNavigation','').startswith('mandatory') is not True: f
 if O['README'].get('bootstrapRuntimeBlock','').startswith('mandatory') is not True: fail('README bootstrap/runtime')
 
 
-# v2.4.0 semantic layout gates
+# v2.5.0 semantic layout gates
 if D['tables'].get('header_single_line_required') is not True or D['tables'].get('header_max_visual_lines') != 1: fail('table header single line')
 if D['tables'].get('fixed_50_50_default')!='forbidden_unless_semantically_symmetric': fail('fixed 50/50 policy')
 if D['paragraph'].get('h1_space_before_pt',0) < 38: fail('major section breathing')
@@ -83,7 +83,7 @@ if _cs.get('TOC_NAVIGATION',{}).get('table')!='forbidden': fail('toc table misus
 if _cs.get('DECISION_TABLE',{}).get('headerSingleLine') is not True: fail('decision table header')
 VQ=load('visual-qa.json')
 for _k in ['tableHeaderWrap','nonTabularContentEncodedAsTable','unjustifiedEqualColumnWidth','unjustifiedFixed5050','repeatedValueOnlyColumn','majorHeadingOrphanWrap','sectionTransitionCrowding','figureEmbeddedBoundaryIntrusion','figureEmbeddedCrop','semanticallyIncompleteVisual']:
-    if VQ.get('hardFail',{}).get(_k) != 0: fail('v2.3 hard fail '+_k)
+    if VQ.get('hardFail',{}).get(_k) != 0: fail('semantic layout hard fail '+_k)
 
 # incremental/visual/link/content-rail gates
 if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('defaultMode')!='PATCH_FIRST': fail('patch first policy')
@@ -105,6 +105,11 @@ if VS.get('readme',{}).get('uniqueVisualGrammarsMinWhenFiveOrMore',0)<4: fail('v
 if VS.get('readme',{}).get('roundedRectangleArrowChainMaxTotal',99)>1: fail('box arrow monoculture')
 if VS.get('readme',{}).get('backgroundContrast','').find('dark-on-dark hard_fail')<0: fail('readme surface contrast')
 if not (ROOT/'validators'/'validate_readme.ps1').is_file(): fail('PowerShell README validator missing')
+for _f in ['validators/validate_docx_artifacts.py','validators/validate_docx_artifacts.ps1']:
+    if not (ROOT/_f).is_file(): fail('DOCX structural validator missing '+_f)
+for _k in ['docxOpeningMetaTable','docxUserFacingProvenance','docxSingleRowLayoutTable','isolatedTrailingContentPage','feedbackFixedOnlyInArtifactWithoutHarnessGate','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','tocTabStopOutsideWritableArea']:
+    if VQ.get('hardFail',{}).get(_k) != 0: fail('feedback recurrence hard fail '+_k)
+
 
 T=load('table-presets.json')['presets']
 for name,t in T.items():
@@ -196,7 +201,7 @@ for p in (ROOT/'profiles').glob('*.json'):
 if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('freshRewriteDefault')!='FORBIDDEN': fail('fresh rewrite default')
 if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('automatedPassOnlyIsBaseline') is not False: fail('automated baseline')
 if qam.get('manualVisualScore',{}).get('minimumEach',0)<4 or qam.get('manualVisualScore',{}).get('minimumAverage',0)<4.4: fail('manual visual score threshold')
-# v2.4 quality engineering / recurrence gates
+# v2.5 quality engineering / recurrence gates
 if not (ROOT/'DOCUMENT_QUALITY_STANDARD.md').is_file(): fail('document quality standard')
 if not (ROOT/'quality-fixtures.json').is_file(): fail('quality fixtures')
 if not (ROOT/'validators'/'validate_quality_fixtures.py').is_file(): fail('quality fixture validator py')
@@ -211,14 +216,14 @@ if D.get('figures',{}).get('connector_target_interior_penetration_px_max')!=0: f
 if D.get('figures',{}).get('connector_arrowhead_body_inside_target_px_max')!=0: fail('arrowhead target intrusion')
 if D.get('figures',{}).get('graphical_object_contrast_min')!='3:1 against adjacent background when required for understanding': fail('nontext contrast')
 for _k in ['readerOpeningEncodedAsTable','userFacingHarnessVersion','userFacingSourceSha','connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorEndsInUnlabeledEmptySpace','connectorRouteMissingFromGeometryManifest','graphicalObjectContrastBelow3to1','tableTextContrastBelow4to5to1','colorOnlyMeaning','embeddedEffectiveTextTooSmall','coarseGeometryManifestAcceptedAsPass','negativeFixtureNotEnforced']:
-    if VQ.get('hardFail',{}).get(_k)!=0: fail('v2.4 hard fail '+_k)
+    if VQ.get('hardFail',{}).get(_k)!=0: fail('v2.5 hard fail '+_k)
 if _cs.get('OPENING_SUMMARY',{}).get('table')!='forbidden': fail('opening summary component')
 if _cs.get('PROVENANCE_NOTE',{}).get('userFacingSurface')!='forbidden': fail('provenance component')
 if O.get('sourceZipCompleteness',{}).get('minimumChecks',{}).get('CPF_DOCX')!=11 or O.get('sourceZipCompleteness',{}).get('minimumChecks',{}).get('CPF_PDF')!=11: fail('source zip doc counts')
 if O.get('sourceZipCompleteness',{}).get('missingOfficialDocxPdfVisualHarness')!='hard_fail': fail('source zip completeness')
 for _gid in ['PROVENANCE_ISOLATION_PASS','OPENING_SUMMARY_PASS','CONNECTOR_BOUNDARY_PASS','CONTRAST_AND_NON_TEXT_PASS','NEGATIVE_FIXTURE_PASS','HUMAN_READER_PASS','SOURCE_ZIP_COMPLETENESS_PASS']:
-    if _gid not in h.get('completionGate',{}).get('required',[]): fail('v2.4 completion '+_gid)
-    if _gid not in {x.get('id') for x in qam.get('stages',[])}: fail('v2.4 quality stage '+_gid)
+    if _gid not in h.get('completionGate',{}).get('required',[]): fail('v2.5 completion '+_gid)
+    if _gid not in {x.get('id') for x in qam.get('stages',[])}: fail('v2.5 quality stage '+_gid)
 # current-only: previous version tokens must not remain in harness files
 for _p in ROOT.rglob('*'):
     if not _p.is_file(): continue

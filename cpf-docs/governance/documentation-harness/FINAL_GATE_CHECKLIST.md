@@ -1,4 +1,4 @@
-# CPF Documentation 최종 Gate Checklist — Harness v2.4.0
+# CPF Documentation 최종 Gate Checklist — Harness v2.5.0
 
 모든 항목이 실제 PASS여야 한다. 미실행/예정/READY는 PASS가 아니다.
 
@@ -73,3 +73,10 @@
 - [ ] Delete Manifest exact/root-relative/wildcard 0
 - [ ] Fresh Clean Replay byte diff 0
 - [ ] ZIP integrity + SHA-256 PASS
+
+## DOCX/PDF 마지막 Hard Gate
+
+- [ ] DOCX 구조 Validator 11/11 PASS — opening meta table 0, user provenance 0, single-row layout table 0
+- [ ] 마지막 페이지 isolated table-tail / heading-only / one-sentence page 0
+- [ ] 사용자 Finding마다 Harness Rule + Negative Fixture + Validator Assertion 존재
+- [ ] 찾아보기/TOC dotted leader + page number가 writable width 내부에서 종료되고 right-edge overflow 0

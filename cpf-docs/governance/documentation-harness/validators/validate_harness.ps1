@@ -17,13 +17,13 @@ $h=Load-Json 'harness.json'
 if(Test-Path -LiteralPath (Join-Path $Root 'CHANGELOG.md')){ Fail 'history file must not remain in current-only harness' }
 $stale=@(Get-ChildItem -LiteralPath $Root -Recurse -Force | Where-Object { $_.Name -match '(?i)(^|[_.-])(backup|old|history)([_.-]|$)|^v1\.|^v2\.0|^v2\.1' })
 if($stale.Count -gt 0){ Fail('stale harness artifact '+$stale[0].FullName) }
-if($h.version -ne '2.4.0'){ Fail 'version' }
+if($h.version -ne '2.5.0'){ Fail 'version' }
 if($h.locked -ne $true -or $h.changeAuthority -ne 'USER_EXPLICIT_REQUEST_ONLY'){ Fail 'change authority' }
 if($h.changePolicy.autoModify -ne $false){ Fail 'auto modify' }
 
 foreach($f in @('design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json')){
     $d=Load-Json $f
-    if($d.harnessVersion -ne '2.4.0'){ Fail("version " + $f) }
+    if($d.harnessVersion -ne '2.5.0'){ Fail("version " + $f) }
 }
 
 $D=Load-Json 'design-tokens.json'
@@ -124,7 +124,7 @@ foreach($a in $arts){
 }
 
 
-# v2.4.0 geometry / reader-first / link / content-rail gates
+# v2.5.0 geometry / reader-first / link / content-rail gates
 if([int]$D.figures.node_inner_padding_px_min -lt 24){ Fail 'figure inner padding' }
 if([int]$D.figures.label_to_label_gap_px_min -lt 24){ Fail 'figure label gap' }
 if([int]$D.figures.node_to_node_gap_px_min -lt 28){ Fail 'figure node gap' }
@@ -170,7 +170,7 @@ if($null -eq $FP.developerChapterContract){Fail 'framework developer chapter con
 $BP=Load-Json 'profiles/BATCH_DEVELOPER_GUIDE.json'
 if($BP.orientation -ne 'landscape'){Fail 'batch guide landscape'}
 
-# v2.4.0 semantic layout gates
+# v2.5.0 semantic layout gates
 if($D.tables.header_single_line_required -ne $true){ Fail 'table header single line' }
 if([int]$D.tables.header_max_visual_lines -ne 1){ Fail 'table header max lines' }
 if($D.tables.fixed_50_50_default -ne 'forbidden_unless_semantically_symmetric'){ Fail 'fixed 50/50 policy' }
@@ -190,7 +190,7 @@ if($CS.components.TOC_NAVIGATION.table -ne 'forbidden'){ Fail 'toc table misuse'
 if($CS.components.DECISION_TABLE.headerSingleLine -ne $true){ Fail 'decision table header' }
 foreach($k in @('tableHeaderWrap','nonTabularContentEncodedAsTable','unjustifiedEqualColumnWidth','unjustifiedFixed5050','repeatedValueOnlyColumn','majorHeadingOrphanWrap','sectionTransitionCrowding','figureEmbeddedBoundaryIntrusion','figureEmbeddedCrop','semanticallyIncompleteVisual')){
     $prop=$Q.hardFail.PSObject.Properties[$k]
-    if($null -eq $prop -or [int]$prop.Value -ne 0){ Fail('v2.3 hard fail '+$k) }
+    if($null -eq $prop -or [int]$prop.Value -ne 0){ Fail('semantic layout hard fail '+$k) }
 }
 
 $C=Load-Json 'product-coverage.json'; $items=@($C.items)
@@ -240,7 +240,7 @@ foreach($prPath in (Get-ChildItem -LiteralPath (Join-Path $Root 'profiles') -Fil
 
 $profiles=(Get-ChildItem -LiteralPath (Join-Path $Root 'profiles') -Filter '*.json' -File).Count
 
-# v2.4 quality engineering / recurrence gates
+# v2.5 quality engineering / recurrence gates
 if(!(Test-Path -LiteralPath (Join-Path $Root 'DOCUMENT_QUALITY_STANDARD.md'))){Fail 'document quality standard'}
 if(!(Test-Path -LiteralPath (Join-Path $Root 'quality-fixtures.json'))){Fail 'quality fixtures'}
 $dt=LoadJson 'design-tokens.json'; $vq=LoadJson 'visual-qa.json'; $out=LoadJson 'document-output-rules.json'; $cmp=LoadJson 'component-system.json'
@@ -249,11 +249,12 @@ if([string]$dt.readerOpening.internalProvenanceInUserBody -ne 'hard_fail'){Fail 
 if($dt.figures.connector_endpoint_on_target_boundary_required -ne $true){Fail 'connector boundary'}
 if([int]$dt.figures.connector_target_interior_penetration_px_max -ne 0){Fail 'connector intrusion'}
 if([int]$dt.figures.connector_arrowhead_body_inside_target_px_max -ne 0){Fail 'arrowhead intrusion'}
-foreach($k in @('readerOpeningEncodedAsTable','userFacingHarnessVersion','userFacingSourceSha','connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorEndsInUnlabeledEmptySpace','graphicalObjectContrastBelow3to1','colorOnlyMeaning','embeddedEffectiveTextTooSmall','coarseGeometryManifestAcceptedAsPass')){if([int]$vq.hardFail.$k -ne 0){Fail "v2.4 hard fail $k"}}
+foreach($k in @('readerOpeningEncodedAsTable','userFacingHarnessVersion','userFacingSourceSha','connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorEndsInUnlabeledEmptySpace','graphicalObjectContrastBelow3to1','colorOnlyMeaning','embeddedEffectiveTextTooSmall','coarseGeometryManifestAcceptedAsPass')){if([int]$vq.hardFail.$k -ne 0){Fail "v2.5 hard fail $k"}}
 if([string]$cmp.components.OPENING_SUMMARY.table -ne 'forbidden'){Fail 'opening summary component'}
 if([string]$cmp.components.PROVENANCE_NOTE.userFacingSurface -ne 'forbidden'){Fail 'provenance component'}
 if([int]$out.sourceZipCompleteness.minimumChecks.CPF_DOCX -ne 11 -or [int]$out.sourceZipCompleteness.minimumChecks.CPF_PDF -ne 11){Fail 'source zip counts'}
 
+foreach($f in @('validators/validate_docx_artifacts.py','validators/validate_docx_artifacts.ps1')){if(!(Test-Path -LiteralPath (Join-Path $Root $f))){Fail('DOCX structural validator missing '+$f)}}
 Write-Host 'HARNESS=PASS'
 Write-Host ('VERSION=' + [string]$h.version)
 Write-Host ('ARTIFACTS=' + $arts.Count)

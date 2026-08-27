@@ -5,3 +5,4 @@ cpf-docs/governance/documentation-harness/_history
 cpf-docs/governance/documentation-harness/_session
 cpf-docs/governance/documentation-harness-old
 cpf-docs/governance/documentation-harness-v2.3.0
+cpf-docs/governance/documentation-harness-v2.4.0

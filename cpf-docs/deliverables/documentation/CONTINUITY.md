@@ -1,9 +1,30 @@
-# CONTINUITY
+# CONTINUITY - CPF Documentation - Harness v2.5.0 / PATCH_FIRST
 
-다음 세션은 Source ZIP `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip` / SHA-256 `A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07`와 현재 Local Working Tree가 같은 기준인지 먼저 확인한다. Harness는 `cpf-docs/governance/documentation-harness/` v2.3.0 현행본 하나만 사용한다. Documentation 변경은 `PATCH_FIRST`로 수행하고, 검수된 좋은 영역을 이유 없이 Fresh redesign하지 않는다. 새 사용자 Finding은 산출물만 임시 수정하지 말고 공통 원인을 Harness/Validator에 먼저 반영한 뒤 영향 범위만 보정한다.
+- 기준 Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_125420(1).zip`
+- Source SHA-256: `96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9`
+- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP`
+- Canonical Harness: `cpf-docs/governance/documentation-harness/` **v2.5.0 current-only**
+- 공식 산출물: `README.md` 1 + DOCX 11 + PDF 11 + Product Visual PNG 8
+- 최종 DOCX/PDF 페이지: 53/53
 
-공통 품질 기준은 독자 니즈 우선, 실제로 표가 필요한 데이터만 표 사용, 의미 대칭인 경우에만 균등 열폭, 그 외 내용/역할 기반 열폭, 표 Header 1줄, H1 한 줄 우선, 메뉴/단락 전환의 충분한 세로 여백, Figure의 실제 삽입 Render safe-area/overlap/crop/semantic completeness 검수, PDF-only 사용자 Navigation이다.
+## 반드시 그대로 승계할 원칙
+1. 산출물은 **PATCH_FIRST**다. 기존 PASS/좋은 디자인/좋은 내용은 유지하고 실패한 구조만 수정한다. 전면 Fresh rewrite/redesign은 사용자 명시 승인이 없으면 금지한다.
+2. 사용자가 새로 지적하거나 추가한 품질 기준은 해당 산출물만 고치지 않는다. **Harness Common Rule/Profile/Token/Validator/Manual Hard Gate + Negative Fixture**까지 함께 보완해 같은 문제가 재발하지 않게 한다.
+3. Harness와 산출물은 **현행본 하나만 유지**한다. `_old`, `_backup`, `_history`, `_session`, versioned harness copy, 과거 session garbage를 남기지 않는다.
+4. 삭제 대상은 Root 상대경로 exact `DELETE_MANIFEST.txt`로 관리하고 사용자 실행용 삭제 명령을 항상 함께 전달한다. Wildcard/Root 밖 삭제는 금지한다.
+5. 표는 실제 관계형/비교 데이터에만 쓴다. reader/purpose/basis, 단일 메시지, 단순 절차, 메뉴/TOC를 억지 표로 만들지 않는다.
+6. 사용자 본문에는 Harness version/Source SHA/build baseline 같은 제작 provenance를 노출하지 않는다. Evidence/Manifest에만 둔다.
+7. Visual은 원본 PNG만 보고 PASS하지 않는다. README/DOCX/PDF 삽입 상태에서 crop/overlap/safe margin/contrast/effective text size를 확인한다. Connector/arrow는 source/target Box 경계에서 시작/종료하며 Box 내부 침범 0을 요구한다.
+8. DOCX는 11개 전페이지 Render + 구조 Validator + Accessibility를 실행하고, PDF는 최종 DOCX에서 Fresh Export 후 PDFium/Poppler/Preflight/Font/Glyph를 확인한다.
+9. 진행률 보고는 중단점이 아니다. 사용자가 100% 완료를 요구하면 최종 ZIP/Hash/Clean Replay까지 연속 수행한다.
+10. 다음 세션에 더 최신 Source ZIP이 오면 과거 Source SHA/Evidence를 승계하지 않고 새 ZIP SHA를 다시 기준선으로 확정한다.
 
-집/회사 공통 명령은 Repository root를 `git rev-parse --show-toplevel`로 자동 탐지하고 Downloads는 `$HOME\Downloads`를 사용한다. PC별 `C:`/`D:` 고정 경로를 기본 명령에 하드코딩하지 않는다.
+## 이번 사용자 지적에서 고정된 재발 방지
+- 화살표/Connector가 Box·Text·Label을 침범하면 FAIL. 대상 Box 외곽 Boundary까지만 표시한다.
+- `누가 보는가 / 이 문서로 끝낼 일 / 기준` 같은 도입부 Meta 정보를 2열 표로 만들지 않는다.
+- Harness/Source SHA 제작 정보를 일반 독자 첫 화면에 노출하지 않는다.
+- 마지막 페이지에 표 꼬리 1~2행, 제목+한 문장만 남는 isolated trailing page를 허용하지 않는다. 실질적인 독립 결론/Decision Matrix인 경우에만 근거화한다.
+- 동일 결함은 모든 공식 문서에 공통 적용해 전수검수한다.
 
-Supplied Source의 `cpf-docs/work/evidence/codex/current/**` 장경로는 Documentation 변경 외 선행 이슈다. 사용자 승인 없이 Evidence를 삭제하지 않으며 Documentation artifact path PASS와 repo-wide baseline path debt를 구분한다.
+## 다음 세션 시작 순서
+최신 Source identity -> Harness current-only/lock -> Existing Artifact KEEP/PATCH audit -> Targeted patch -> Visual -> DOCX 전페이지 -> Accessibility -> PDF Fresh Export -> PDFium/Poppler -> Evidence/Manifest -> Delete Manifest -> Fresh Clean Replay -> Final ZIP.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "title": "CPF 공식 산출물 실행형 디자인·품질 하네스",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
@@ -150,7 +150,12 @@
       "대제목/H1의 한두 단어만 다음 줄로 고립되는 자동 개행을 방치하는 것",
       "대메뉴/단락/표/Callout/코드/Figure 전환을 충분한 시각적 여백 없이 붙여 배치하는 것",
       "Figure 중앙 연결 구조가 의미 Node 없이 끊겨 결손처럼 보이는 상태를 기하학 PASS만으로 승인하는 것",
-      "원본 Figure만 검사하고 DOCX/PDF/README 삽입 후 경계 침범·Crop을 확인하지 않는 것"
+      "원본 Figure만 검사하고 DOCX/PDF/README 삽입 후 경계 침범·Crop을 확인하지 않는 것",
+      "DOCX 도입부의 독자·목적·기준 정보를 Key/Value 또는 2열 Layout Table로 표현하는 것",
+      "사용자 문서 본문·표·Footer에 Harness version, Source SHA, build baseline 같은 제작 provenance를 노출하는 것",
+      "실제 비교 관계가 없는 1-row 또는 단일 message table을 callout/list/code 대신 사용하는 것",
+      "마지막 페이지에 표 꼬리 1~2행, 제목+한 문장, 짧은 bullet 몇 개만 고립시킨 채 최종 승인하는 것",
+      "사용자 지적을 해당 파일만 고치고 DOCX/PDF/Visual 공통 Validator·Negative Fixture에 재발 방지 규칙으로 승격하지 않는 것"
     ]
   },
   "completionGate": {
@@ -177,7 +182,9 @@
       "NEGATIVE_FIXTURE_PASS",
       "HUMAN_READER_PASS",
       "SOURCE_ZIP_COMPLETENESS_PASS",
-      "PACKAGE_REPLAY_PASS"
+      "PACKAGE_REPLAY_PASS",
+      "DOCX_CONTENT_STRUCTURE_PASS",
+      "PAGE_DENSITY_AND_ORPHAN_PASS"
     ],
     "allRequired": true,
     "partialPass": "forbidden",

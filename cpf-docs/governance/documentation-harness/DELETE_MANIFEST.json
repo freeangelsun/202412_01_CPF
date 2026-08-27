@@ -1,15 +1,15 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "rootRelative": true,
-  "wildcardsAllowed": false,
-  "deleteFiles": [
+  "exactPathsOnly": true,
+  "paths": [
     "cpf-docs/governance/documentation-harness/CHANGELOG.md",
     "cpf-docs/governance/documentation-harness/_backup",
     "cpf-docs/governance/documentation-harness/_history",
     "cpf-docs/governance/documentation-harness/_session",
     "cpf-docs/governance/documentation-harness-old",
-    "cpf-docs/governance/documentation-harness-v2.3.0"
-  ],
-  "reason": "현행 documentation-harness 한 세트만 유지한다. 아래 exact path가 존재하면 과거/backup/history/session 가비지이므로 제거한다. 최신 supplied Source baseline에서는 실제 존재 0건이었다."
+    "cpf-docs/governance/documentation-harness-v2.3.0",
+    "cpf-docs/governance/documentation-harness-v2.4.0"
+  ]
 }

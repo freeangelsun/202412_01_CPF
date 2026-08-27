@@ -1,3 +1,3 @@
 # QA REWORK REQUEST
 
-개발 GPT 자체검수 기준으로 신규 QA 재개발 요청을 임의 생성하지 않는다. QA가 동일 Requirement ID를 재개방하면 해당 ID와 QA Finding을 기준으로 재개발한다.
+개발 GPT 관점의 검증 가능한 Documentation 결함은 이번 Overlay에서 0건이다. 최종 완료 여부는 QA가 최신 Source/Runtime/문서 기준으로 판정한다.

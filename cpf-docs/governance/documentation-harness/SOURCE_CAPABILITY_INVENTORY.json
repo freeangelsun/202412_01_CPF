@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.4.0",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip",
-  "sourceSha256": "b47bce7700700bf4186b997e38ab84192f2db391e750a3781cd66f398824514d",
+  "harnessVersion": "2.5.0",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_125420(1).zip",
+  "sourceSha256": "96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9",
   "apiPackageCategories": [
     {
       "category": "platform/operations/observability",
@@ -1577,5 +1577,5 @@
       ]
     }
   ],
-  "use": "Harness 생성 시 Source 기능 누락 확인용. 다음 산출물 세션은 최신 Source에서 다시 생성/비교한다."
+  "use": "Current supplied source baseline API/package category inventory; documentation must re-check actual source symbols before publishing API/option claims."
 }

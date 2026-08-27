@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -132,6 +132,18 @@
       "type": "AUTOMATED",
       "required": true,
       "pass": "README/guides/deliverables/assets/harness/cpf-tools-build 강제 포함 및 DOCX11/PDF11/Visual/Harness count 검증"
+    },
+    {
+      "id": "DOCX_CONTENT_STRUCTURE_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "11개 DOCX에서 도입부 메타표·제작 provenance·1-row layout table·구조적 빈 spacer를 금지하고 Heading/Table 구조를 검증"
+    },
+    {
+      "id": "PAGE_DENSITY_AND_ORPHAN_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "전페이지 Render에서 heading-only, table-tail, 한두 문장 고립 마지막 페이지와 과도한 dead-space를 제거하거나 의도적 예외로 근거화"
     }
   ],
   "manualVisualScore": {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "locked": true,
   "page": {
     "paper": "A4",
@@ -268,7 +268,9 @@
     "body_text_contrast_min": "4.5:1",
     "color_only_encoding": "forbidden",
     "fixed_width_default": "avoid; use semantic content-aware width and verify final render",
-    "accessibility_rule": "simple data table, one header row, no merge/split/nested cells, no blank structural rows/columns; repeat header on page break"
+    "accessibility_rule": "simple data table, one header row, no merge/split/nested cells, no blank structural rows/columns; repeat header on page break",
+    "single_row_layout_table": "hard_fail",
+    "minimum_data_rows_default": 2
   },
   "figures": {
     "use_gate": "그림이 같은 내용을 텍스트/표보다 빠르게 이해시키고 실제 구조·흐름·상태·선택을 보여줄 때만 사용. 장식용 그림 금지.",
@@ -441,6 +443,14 @@
     "leadKoreanCharsPreferredMax": 150,
     "internalProvenanceInUserBody": "hard_fail",
     "visibleLabelsDefault": "avoid when natural prose is clearer",
-    "firstActionVisibleWithoutMetadataBlock": true
+    "firstActionVisibleWithoutMetadataBlock": true,
+    "keyValueMetaTable": "forbidden",
+    "productionProvenance": "evidence_only"
+  },
+  "pageComposition": {
+    "isolated_trailing_content_page": "hard_fail_unless_intentional_closing_section_with_substantive_content",
+    "last_page_minimum_meaningful_blocks": 2,
+    "table_tail_rows_alone_on_last_page": "hard_fail",
+    "heading_plus_single_sentence_alone_on_last_page": "hard_fail"
   }
 }

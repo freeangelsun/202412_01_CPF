@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "locked": true,
   "purpose": "작성자 해석 편차를 줄이기 위해 공식 문서를 재사용 가능한 Layout Component로 조립한다.",
   "defaultAssembly": "PATCH_EXISTING_COMPONENTS_FIRST",
@@ -96,7 +96,8 @@
       "readerMetadata": "forbidden",
       "layoutUse": "forbidden",
       "minMeaningfulRows": 2,
-      "minIndependentDimensions": 2
+      "minIndependentDimensions": 2,
+      "minimumRowsIncludingHeader": 3
     },
     "CALLOUT_NOTE": {
       "role": "note",
@@ -213,7 +214,9 @@
         "누가 읽는가",
         "무엇을 하려는가",
         "읽고 무엇을 끝낼 수 있는가"
-      ]
+      ],
+      "preferredEncoding": "1-2 sentence lead or compact callout",
+      "productionProvenance": "forbidden"
     },
     "PROVENANCE_NOTE": {
       "role": "build/evidence provenance",
@@ -231,6 +234,12 @@
         "ZIP_SHA256",
         "baseline SHA"
       ]
+    },
+    "SINGLE_MESSAGE_BLOCK": {
+      "purpose": "단일 메시지·판정·주의·권장 흐름",
+      "encoding": "paragraph/callout/code according to meaning",
+      "table": "forbidden",
+      "singleRowTable": "hard_fail"
     }
   },
   "compositionRules": [

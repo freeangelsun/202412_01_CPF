@@ -1,4 +1,4 @@
-<!-- CPF-DARK-CONTENT-SURFACE: Markdown Viewer의 Host Background와 분리된 CPF 소유 Dark Brochure Surface -->
+<!-- CPF-DARK-CONTENT-SURFACE -->
 
 <div align="center">
 
@@ -58,7 +58,7 @@ Control Plane은 Policy·Scheduler·Deployment·Recovery를 담당하고 Worker/
 
 # 4. Domain 생성·Starter 선택·DB3 변경을 같은 개발 흐름으로 맞춥니다
 
-업무 Source는 Generated/Prebuilt Domain Owner에 두고, 필요한 Public Profile/Starter와 Provider만 선택합니다. Framework 내부 Leaf를 직접 조합하지 않으며 선택하지 않은 Optional Capability가 Bean·Thread·SQL·Endpoint Side Effect를 남기지 않는 것이 기본 계약입니다.
+업무 Source는 Generated/Prebuilt Domain Owner에 두고 필요한 Public Profile/Starter와 Provider만 선택합니다. Framework 내부 Leaf를 직접 조합하지 않으며 선택하지 않은 Optional Capability가 Bean·Thread·SQL·Endpoint Side Effect를 남기지 않는 것이 기본 계약입니다.
 
 - Domain lifecycle: `create → setup --preview → sync/diff → regenerate/upgrade` 순서로 확인합니다.
 - Public Starter: Web/API, Security, Data, Cache, Messaging, Integration, File, Batch 등을 필요한 범위만 선택합니다.
@@ -138,6 +138,3 @@ DOCX는 편집·보관용 최종 산출물로 ZIP 안에 함께 제공하지만 
 
 CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.
 
----
-
-<sub>Documentation baseline: Harness v2.3.0 · Source snapshot: supplied ZIP SHA-256 `A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07` · 2026-08-27</sub>

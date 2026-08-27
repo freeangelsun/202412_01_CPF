@@ -1,4 +1,4 @@
-# CPF README Visual Storyboard — Harness v2.4.0
+# CPF README Visual Storyboard — Harness v2.5.0
 
 README에는 목차를 두지 않는다. Hero 다음에 CPF 전체 Architecture Map을 먼저 보여주고 번호형 H1/H2를 이어간다. 대메뉴·중메뉴는 번호와 차등 여백으로 구분한다. H2/H3 하위 내용은 공통 Content Rail로 묶고, 주요 Visual은 다크 README 위에서 밝은 Surface로 분리한다. 모든 Visual을 네모+화살표로 그리지 않고 내용별 시각 문법을 선택한다.
 

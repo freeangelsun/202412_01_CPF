@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.4.0",
+  "harnessVersion": "2.5.0",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -134,6 +134,110 @@
         "tableTextContrast": 2.1
       },
       "mustTrigger": "tableTextContrastBelow4to5to1"
+    },
+    {
+      "id": "DOCX_OPENING_META_TABLE",
+      "category": "docx",
+      "expect": "FAIL",
+      "input": {
+        "presentation": "table",
+        "labels": [
+          "누가 보는가",
+          "이 문서로 끝낼 일",
+          "기준"
+        ]
+      },
+      "mustTrigger": "docxOpeningMetaTable"
+    },
+    {
+      "id": "DOCX_USER_PROVENANCE",
+      "category": "docx",
+      "expect": "FAIL",
+      "input": {
+        "text": "Harness 2.5.0 · Source SHA ABCDEF0123456789"
+      },
+      "mustTrigger": "docxUserFacingProvenance"
+    },
+    {
+      "id": "DOCX_SINGLE_ROW_LAYOUT_TABLE",
+      "category": "docx",
+      "expect": "FAIL",
+      "input": {
+        "rows": 1,
+        "purpose": "single message/callout"
+      },
+      "mustTrigger": "docxSingleRowLayoutTable"
+    },
+    {
+      "id": "ISOLATED_TRAILING_CONTENT_PAGE",
+      "category": "page",
+      "expect": "FAIL",
+      "input": {
+        "isLastPage": true,
+        "meaningfulBlocks": 1,
+        "contentOccupancyRatio": 0.18,
+        "reason": "table tail or heading + one sentence"
+      },
+      "mustTrigger": "isolatedTrailingContentPage"
+    },
+    {
+      "id": "FEEDBACK_ARTIFACT_ONLY_FIX",
+      "category": "governance",
+      "expect": "FAIL",
+      "input": {
+        "userFinding": true,
+        "artifactPatched": true,
+        "harnessRuleAdded": false,
+        "negativeFixtureAdded": false
+      },
+      "mustTrigger": "feedbackFixedOnlyInArtifactWithoutHarnessGate"
+    },
+    {
+      "id": "CONNECTOR_CROSSES_NODE",
+      "category": "visual",
+      "input": {
+        "crossesUnrelatedNodeInterior": true
+      },
+      "mustTrigger": "connectorCrossesUnrelatedNode",
+      "expect": "FAIL"
+    },
+    {
+      "id": "CONNECTOR_CROSSES_TEXT_LABEL",
+      "category": "visual",
+      "input": {
+        "crossesTextOrLabel": true
+      },
+      "mustTrigger": "connectorCrossesTextOrLabel",
+      "expect": "FAIL"
+    },
+    {
+      "id": "CONNECTOR_ENDPOINT_OFF_BOUNDARY",
+      "category": "visual",
+      "input": {
+        "targetBoundaryDistancePx": 8
+      },
+      "mustTrigger": "connectorEndpointNotOnTargetBoundary",
+      "expect": "FAIL"
+    },
+    {
+      "id": "CONNECTOR_SOURCE_INTRUSION",
+      "category": "visual",
+      "input": {
+        "sourceInteriorPenetrationPx": 7
+      },
+      "mustTrigger": "connectorSourceNodeIntrusion",
+      "expect": "FAIL"
+    },
+    {
+      "id": "TOC_TABSTOP_OUTSIDE_WRITABLE_AREA",
+      "category": "docx",
+      "expect": "FAIL",
+      "input": {
+        "tabStopTwips": 14740,
+        "writableWidthTwips": 10886,
+        "pageNumberVisible": false
+      },
+      "mustTrigger": "tocTabStopOutsideWritableArea"
     }
   ]
 }

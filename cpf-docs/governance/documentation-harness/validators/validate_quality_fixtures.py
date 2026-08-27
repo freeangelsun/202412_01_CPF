@@ -23,6 +23,16 @@ def evaluate(x):
     elif trig=='colorOnlyMeaning': fail=i.get('meaningEncodedBy')==['color']
     elif trig=='embeddedEffectiveTextTooSmall': fail=float(i.get('effectiveMinTextPt',99))<10.5
     elif trig=='coarseGeometryManifestAcceptedAsPass': fail=i.get('meaningfulNodesDetailed') is False
+    elif trig=='docxOpeningMetaTable': fail=i.get('presentation')=='table' and any(x in i.get('labels',[]) for x in ['누가 보는가','이 문서로 끝낼 일','기준'])
+    elif trig=='docxUserFacingProvenance': fail=bool(re.search(r'(Harness\s*(?:v)?\d+(?:\.\d+)+|Source\s*(?:SHA\s*)?[0-9A-F]{16,})',i.get('text',''),re.I))
+    elif trig=='docxSingleRowLayoutTable': fail=int(i.get('rows',0))==1 and i.get('purpose') in ('single message/callout','reader metadata','layout')
+    elif trig=='isolatedTrailingContentPage': fail=i.get('isLastPage') is True and int(i.get('meaningfulBlocks',99))<=2 and float(i.get('contentOccupancyRatio',1))<0.30
+    elif trig=='feedbackFixedOnlyInArtifactWithoutHarnessGate': fail=i.get('userFinding') is True and i.get('artifactPatched') is True and (i.get('harnessRuleAdded') is not True or i.get('negativeFixtureAdded') is not True)
+    elif trig=='connectorCrossesUnrelatedNode': fail=i.get('crossesUnrelatedNodeInterior') is True
+    elif trig=='connectorCrossesTextOrLabel': fail=i.get('crossesTextOrLabel') is True
+    elif trig=='connectorEndpointNotOnTargetBoundary': fail=float(i.get('targetBoundaryDistancePx',0))>2.0
+    elif trig=='connectorSourceNodeIntrusion': fail=float(i.get('sourceInteriorPenetrationPx',0))>0
+    elif trig=='tocTabStopOutsideWritableArea': fail=float(i.get('tabStopTwips',0))>float(i.get('writableWidthTwips',0)) or i.get('pageNumberVisible') is False
     return fail
 
 errors=[]

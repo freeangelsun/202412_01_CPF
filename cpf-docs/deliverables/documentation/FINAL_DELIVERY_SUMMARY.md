@@ -1,18 +1,16 @@
 # CPF Documentation Final Delivery Summary
 
-- Source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_205036.zip`
-- Source SHA-256: `A5B7844665F4AC3BDAEC601389B306CEBD6F0407AD1C07930C40170611DB7A07`
+- Source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_125420(1).zip`
+- Source SHA-256: `96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9`
 - Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP`
-- Harness: `v2.3.0`, current-only, `PATCH_FIRST`
+- Harness: `v2.5.0`, current-only, `PATCH_FIRST`
 - Product artifacts: README 1 + DOCX 11 + PDF 11
-- Visual assets: 8 + geometry manifest
-- Final DOCX/PDF pages: 71
-- User navigation: PDF-only; DOCX is packaged as editable source but not exposed as a user link.
-- Harness/README/Visual/Python delivery gates: PASS
-- Fresh Source Clean Replay: PASS — 109 overlay files, byte diff 0, package hashes PASS
-- DOCX A11y: 11/11 High=0, Medium=0, Low=0
-- PDFium/Poppler: 11/11 page-count parity, 71 pages
-- PDF preflight/font embedding: PASS
-- Generated/modified Documentation artifact absolute path >150: 0 for supported home/company roots.
-- Supplied Source baseline has pre-existing long Codex evidence paths outside this Documentation patch; they were not modified or deleted.
-- Windows PowerShell replay: 미검증 in this Linux container; `VERIFY.ps1` is packaged for post-apply Windows verification.
+- Product Visual: 8 PNG + geometry manifest
+- Final DOCX/PDF pages: 53/53
+- Harness/README/Visual/DOCX/Fixture Python gates: PASS
+- DOCX Accessibility: 11/11 issues=0
+- PDF Fresh Export/Preflight/Font: 11/11 PASS / warnings=0 / non-embedded font=0
+- PDFium + Poppler: 53 pages rendered in both engines; no missing page/glyph/layout break in final manual QA
+- User navigation: PDF-only, DOCX link=0
+- Current-only/Stale cleanup: exact Delete Manifest packaged
+- Windows PowerShell replay: 미검증 in Linux container; `VERIFY.ps1` packaged

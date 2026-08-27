@@ -1,9 +1,13 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "2.3.0",
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.5.0",
+  "baselineSourceSha256": "96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9",
+  "reviewPolicy": "PATCH_FIRST; endpoints terminate on node boundaries; original PNG and every used embedded surface are manually reviewed after render",
   "assets": [
     {
       "asset": "cpf-docs/assets/product-docs/hero.png",
+      "sha256": "3788D0B0A357B1577F3EF584E73A4AC7F0AA6117EE143CF3063745FFA5AF84BF",
+      "grammar": "platform_mosaic",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -11,51 +15,151 @@
       },
       "objects": [
         {
-          "id": "surface",
-          "kind": "frame",
-          "x": 64,
-          "y": 190,
-          "w": 1472,
-          "h": 610,
-          "allowSafeMargin": "true"
-        },
-        {
-          "id": "flow",
-          "kind": "node",
-          "x": 100,
-          "y": 260,
-          "w": 1400,
-          "h": 220
-        },
-        {
-          "id": "chips",
+          "id": "business",
           "kind": "node",
           "x": 120,
-          "y": 540,
-          "w": 1360,
-          "h": 100
+          "y": 390,
+          "w": 310,
+          "h": 170
+        },
+        {
+          "id": "starter",
+          "kind": "node",
+          "x": 480,
+          "y": 390,
+          "w": 310,
+          "h": 170
+        },
+        {
+          "id": "runtime",
+          "kind": "node",
+          "x": 840,
+          "y": 390,
+          "w": 310,
+          "h": 170
+        },
+        {
+          "id": "operations",
+          "kind": "node",
+          "x": 1200,
+          "y": 390,
+          "w": 280,
+          "h": 170
+        },
+        {
+          "id": "headline",
+          "kind": "annotation",
+          "x": 90,
+          "y": 105,
+          "w": 900,
+          "h": 130
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "h1",
+          "from": "business",
+          "to": "starter",
+          "points": [
+            [
+              430,
+              475
+            ],
+            [
+              480,
+              475
+            ]
+          ],
+          "targetBoundaryPoint": [
+            480,
+            475
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "h2",
+          "from": "starter",
+          "to": "runtime",
+          "points": [
+            [
+              790,
+              475
+            ],
+            [
+              840,
+              475
+            ]
+          ],
+          "targetBoundaryPoint": [
+            840,
+            475
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "h3",
+          "from": "runtime",
+          "to": "operations",
+          "points": [
+            [
+              1150,
+              475
+            ],
+            [
+              1200,
+              475
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1200,
+            475
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     },
     {
       "asset": "cpf-docs/assets/product-docs/architecture.png",
+      "sha256": "3D1AC5F252CA7729DC87A2BB8B3BCDA931E13017E068CB7FC89AC4E548647CAD",
+      "grammar": "layer_plane",
       "canvas": {
         "width": 1600,
         "height": 900,
         "safeMargin": 64
       },
       "objects": [
-        {
-          "id": "frame",
-          "kind": "frame",
-          "x": 36,
-          "y": 36,
-          "w": 1528,
-          "h": 828,
-          "allowSafeMargin": "true"
-        },
         {
           "id": "entry",
           "kind": "node",
@@ -87,13 +191,88 @@
           "y": 700,
           "w": 1100,
           "h": 105
+        },
+        {
+          "id": "title",
+          "kind": "annotation",
+          "x": 80,
+          "y": 70,
+          "w": 1000,
+          "h": 90
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "a1",
+          "from": "entry",
+          "to": "business",
+          "points": [
+            [
+              360,
+              420
+            ],
+            [
+              430,
+              420
+            ]
+          ],
+          "targetBoundaryPoint": [
+            430,
+            420
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "a2",
+          "from": "business",
+          "to": "ops",
+          "points": [
+            [
+              930,
+              420
+            ],
+            [
+              1000,
+              420
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1000,
+            420
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     },
     {
       "asset": "cpf-docs/assets/product-docs/invoke.png",
+      "sha256": "1125060FE1E1E81027A0DBACC011201CF0ECE50FC34FBC9E1C49FF741B786C2A",
+      "grammar": "split_boundary",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -101,32 +280,63 @@
       },
       "objects": [
         {
-          "id": "frame",
-          "kind": "frame",
-          "x": 36,
-          "y": 36,
-          "w": 1528,
-          "h": 828,
-          "allowSafeMargin": "true"
-        },
-        {
-          "id": "same",
+          "id": "sameCaller",
           "kind": "node",
-          "x": 100,
-          "y": 190,
-          "w": 1300,
-          "h": 170
+          "x": 300,
+          "y": 210,
+          "w": 270,
+          "h": 125
         },
         {
-          "id": "remote",
+          "id": "binding",
           "kind": "node",
-          "x": 100,
-          "y": 450,
-          "w": 1300,
-          "h": 200
+          "x": 650,
+          "y": 210,
+          "w": 300,
+          "h": 125
         },
         {
-          "id": "note",
+          "id": "sameOwner",
+          "kind": "node",
+          "x": 1040,
+          "y": 210,
+          "w": 270,
+          "h": 125
+        },
+        {
+          "id": "remoteLabel",
+          "kind": "annotation",
+          "x": 100,
+          "y": 480,
+          "w": 140,
+          "h": 48
+        },
+        {
+          "id": "remoteCaller",
+          "kind": "node",
+          "x": 260,
+          "y": 475,
+          "w": 270,
+          "h": 135
+        },
+        {
+          "id": "system6",
+          "kind": "node",
+          "x": 645,
+          "y": 465,
+          "w": 310,
+          "h": 155
+        },
+        {
+          "id": "remoteOwner",
+          "kind": "node",
+          "x": 1040,
+          "y": 475,
+          "w": 270,
+          "h": 135
+        },
+        {
+          "id": "boundaryNote",
           "kind": "annotation",
           "x": 210,
           "y": 700,
@@ -134,11 +344,132 @@
           "h": 90
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "i1",
+          "from": "sameCaller",
+          "to": "binding",
+          "points": [
+            [
+              570,
+              272
+            ],
+            [
+              650,
+              272
+            ]
+          ],
+          "targetBoundaryPoint": [
+            650,
+            272
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "i2",
+          "from": "binding",
+          "to": "sameOwner",
+          "points": [
+            [
+              950,
+              272
+            ],
+            [
+              1040,
+              272
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1040,
+            272
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "i3",
+          "from": "remoteCaller",
+          "to": "system6",
+          "points": [
+            [
+              530,
+              542
+            ],
+            [
+              645,
+              542
+            ]
+          ],
+          "targetBoundaryPoint": [
+            645,
+            542
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "i4",
+          "from": "system6",
+          "to": "remoteOwner",
+          "points": [
+            [
+              955,
+              542
+            ],
+            [
+              1040,
+              542
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1040,
+            542
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     },
     {
       "asset": "cpf-docs/assets/product-docs/tx.png",
+      "sha256": "F29990702E8CBA670FFD1C6BACEDB791CDDBC2AF9CBB693194BE8D1D37E22020",
+      "grammar": "state_map",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -146,21 +477,44 @@
       },
       "objects": [
         {
-          "id": "frame",
-          "kind": "frame",
-          "x": 36,
-          "y": 36,
-          "w": 1528,
-          "h": 828,
-          "allowSafeMargin": "true"
+          "id": "success",
+          "kind": "node",
+          "x": 650,
+          "y": 190,
+          "w": 300,
+          "h": 110
         },
         {
-          "id": "statezone",
+          "id": "result",
           "kind": "node",
-          "x": 180,
-          "y": 180,
-          "w": 1240,
-          "h": 560
+          "x": 650,
+          "y": 345,
+          "w": 300,
+          "h": 210
+        },
+        {
+          "id": "technical",
+          "kind": "node",
+          "x": 190,
+          "y": 385,
+          "w": 310,
+          "h": 125
+        },
+        {
+          "id": "business",
+          "kind": "node",
+          "x": 1100,
+          "y": 385,
+          "w": 310,
+          "h": 125
+        },
+        {
+          "id": "unknown",
+          "kind": "node",
+          "x": 650,
+          "y": 610,
+          "w": 300,
+          "h": 115
         },
         {
           "id": "recovery",
@@ -168,30 +522,141 @@
           "x": 270,
           "y": 770,
           "w": 1060,
-          "h": 60,
-          "allowSafeMargin": "true"
+          "h": 60
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "t1",
+          "from": "result",
+          "to": "success",
+          "points": [
+            [
+              800,
+              345
+            ],
+            [
+              800,
+              300
+            ]
+          ],
+          "targetBoundaryPoint": [
+            800,
+            300
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "t2",
+          "from": "result",
+          "to": "technical",
+          "points": [
+            [
+              650,
+              450
+            ],
+            [
+              500,
+              450
+            ]
+          ],
+          "targetBoundaryPoint": [
+            500,
+            450
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "t3",
+          "from": "result",
+          "to": "business",
+          "points": [
+            [
+              950,
+              450
+            ],
+            [
+              1100,
+              450
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1100,
+            450
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "t4",
+          "from": "result",
+          "to": "unknown",
+          "points": [
+            [
+              800,
+              555
+            ],
+            [
+              800,
+              610
+            ]
+          ],
+          "targetBoundaryPoint": [
+            800,
+            610
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     },
     {
       "asset": "cpf-docs/assets/product-docs/batch.png",
+      "sha256": "04ACD7460286A6DCBA0F1EC975FE54F86B4FE75101BDBEB032AE1B6A5AA1BA00",
+      "grammar": "control_plane_lane",
       "canvas": {
         "width": 1600,
         "height": 900,
         "safeMargin": 64
       },
       "objects": [
-        {
-          "id": "frame",
-          "kind": "frame",
-          "x": 36,
-          "y": 36,
-          "w": 1528,
-          "h": 828,
-          "allowSafeMargin": "true"
-        },
         {
           "id": "control",
           "kind": "node",
@@ -209,19 +674,67 @@
           "h": 135
         },
         {
-          "id": "center",
+          "id": "centercut",
           "kind": "node",
           "x": 170,
           "y": 635,
           "w": 1260,
           "h": 135
+        },
+        {
+          "id": "title",
+          "kind": "annotation",
+          "x": 80,
+          "y": 70,
+          "w": 1000,
+          "h": 90
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "b1",
+          "from": "control",
+          "to": "worker",
+          "points": [
+            [
+              800,
+              360
+            ],
+            [
+              800,
+              455
+            ]
+          ],
+          "targetBoundaryPoint": [
+            800,
+            455
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     },
     {
       "asset": "cpf-docs/assets/product-docs/gateway.png",
+      "sha256": "7CDF8AD410B51C7A7F5758375A9A27E478B804F3FDBD4E04DE73AC1BE6A54D20",
+      "grammar": "split_boundary",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -229,32 +742,47 @@
       },
       "objects": [
         {
-          "id": "frame",
-          "kind": "frame",
-          "x": 36,
-          "y": 36,
-          "w": 1528,
-          "h": 828,
-          "allowSafeMargin": "true"
-        },
-        {
-          "id": "with",
+          "id": "external",
           "kind": "node",
-          "x": 110,
-          "y": 220,
-          "w": 650,
-          "h": 480
+          "x": 170,
+          "y": 330,
+          "w": 250,
+          "h": 95
         },
         {
-          "id": "without",
+          "id": "gateway",
           "kind": "node",
-          "x": 840,
-          "y": 220,
-          "w": 650,
-          "h": 480
+          "x": 470,
+          "y": 330,
+          "w": 240,
+          "h": 95
         },
         {
-          "id": "note",
+          "id": "ownerWith",
+          "kind": "node",
+          "x": 320,
+          "y": 520,
+          "w": 270,
+          "h": 105
+        },
+        {
+          "id": "trusted",
+          "kind": "node",
+          "x": 910,
+          "y": 330,
+          "w": 270,
+          "h": 95
+        },
+        {
+          "id": "ownerWithout",
+          "kind": "node",
+          "x": 1040,
+          "y": 520,
+          "w": 290,
+          "h": 105
+        },
+        {
+          "id": "rule",
           "kind": "annotation",
           "x": 330,
           "y": 745,
@@ -262,11 +790,105 @@
           "h": 70
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "g1",
+          "from": "external",
+          "to": "gateway",
+          "points": [
+            [
+              420,
+              377
+            ],
+            [
+              470,
+              377
+            ]
+          ],
+          "targetBoundaryPoint": [
+            470,
+            377
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "g2",
+          "from": "gateway",
+          "to": "ownerWith",
+          "points": [
+            [
+              590,
+              425
+            ],
+            [
+              455,
+              520
+            ]
+          ],
+          "targetBoundaryPoint": [
+            455,
+            520
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "g3",
+          "from": "trusted",
+          "to": "ownerWithout",
+          "points": [
+            [
+              1045,
+              425
+            ],
+            [
+              1185,
+              520
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1185,
+            520
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     },
     {
       "asset": "cpf-docs/assets/product-docs/ops.png",
+      "sha256": "87B9222F73C7D07801CA619A184F6E3C2CB9C54655898C783CE4B90B82EB3A23",
+      "grammar": "timeline_trace",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -274,36 +896,198 @@
       },
       "objects": [
         {
-          "id": "frame",
-          "kind": "frame",
-          "x": 36,
-          "y": 36,
-          "w": 1528,
-          "h": 828,
-          "allowSafeMargin": "true"
-        },
-        {
-          "id": "timeline",
+          "id": "transaction",
           "kind": "node",
           "x": 65,
-          "y": 330,
-          "w": 1470,
-          "h": 200
+          "y": 365,
+          "w": 230,
+          "h": 130
+        },
+        {
+          "id": "operation",
+          "kind": "node",
+          "x": 355,
+          "y": 365,
+          "w": 230,
+          "h": 130
+        },
+        {
+          "id": "instance",
+          "kind": "node",
+          "x": 645,
+          "y": 365,
+          "w": 230,
+          "h": 130
+        },
+        {
+          "id": "recovery",
+          "kind": "node",
+          "x": 935,
+          "y": 365,
+          "w": 230,
+          "h": 130
+        },
+        {
+          "id": "audit",
+          "kind": "node",
+          "x": 1225,
+          "y": 365,
+          "w": 230,
+          "h": 130
         },
         {
           "id": "risk",
-          "kind": "node",
+          "kind": "annotation",
           "x": 170,
           "y": 620,
           "w": 1260,
           "h": 130
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "o1",
+          "from": "transaction",
+          "to": "operation",
+          "points": [
+            [
+              295,
+              430
+            ],
+            [
+              355,
+              430
+            ]
+          ],
+          "targetBoundaryPoint": [
+            355,
+            430
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "o2",
+          "from": "operation",
+          "to": "instance",
+          "points": [
+            [
+              585,
+              430
+            ],
+            [
+              645,
+              430
+            ]
+          ],
+          "targetBoundaryPoint": [
+            645,
+            430
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "o3",
+          "from": "instance",
+          "to": "recovery",
+          "points": [
+            [
+              875,
+              430
+            ],
+            [
+              935,
+              430
+            ]
+          ],
+          "targetBoundaryPoint": [
+            935,
+            430
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "o4",
+          "from": "recovery",
+          "to": "audit",
+          "points": [
+            [
+              1165,
+              430
+            ],
+            [
+              1225,
+              430
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1225,
+            430
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "triangle",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "DOCX_OPERATOR_MANUAL",
+          "displayWidthPx": 900,
+          "displayHeightPx": 506,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "PDF_OPERATOR_MANUAL",
+          "displayWidthPx": 900,
+          "displayHeightPx": 506,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     },
     {
       "asset": "cpf-docs/assets/product-docs/capabilities.png",
+      "sha256": "5415C7C958125CE92496F20C0E3C344371DFA3DB826C6DD3A67D8C65FD8294BD",
+      "grammar": "cluster_hub",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -311,25 +1095,272 @@
       },
       "objects": [
         {
-          "id": "frame",
-          "kind": "frame",
-          "x": 36,
-          "y": 36,
-          "w": 1528,
-          "h": 828,
-          "allowSafeMargin": "true"
+          "id": "center",
+          "kind": "node",
+          "x": 620,
+          "y": 380,
+          "w": 360,
+          "h": 160
         },
         {
-          "id": "map",
+          "id": "web",
           "kind": "node",
-          "x": 170,
-          "y": 190,
-          "w": 1260,
-          "h": 600
+          "x": 650,
+          "y": 150,
+          "w": 300,
+          "h": 130
+        },
+        {
+          "id": "observability",
+          "kind": "node",
+          "x": 181,
+          "y": 245,
+          "w": 300,
+          "h": 130
+        },
+        {
+          "id": "security",
+          "kind": "node",
+          "x": 1001,
+          "y": 245,
+          "w": 300,
+          "h": 130
+        },
+        {
+          "id": "integration",
+          "kind": "node",
+          "x": 121,
+          "y": 475,
+          "w": 300,
+          "h": 130
+        },
+        {
+          "id": "messaging",
+          "kind": "node",
+          "x": 1121,
+          "y": 455,
+          "w": 300,
+          "h": 130
+        },
+        {
+          "id": "persistence",
+          "kind": "node",
+          "x": 420,
+          "y": 644,
+          "w": 300,
+          "h": 130
+        },
+        {
+          "id": "batch",
+          "kind": "node",
+          "x": 880,
+          "y": 633,
+          "w": 300,
+          "h": 130
         }
       ],
-      "noOverlap": [],
-      "minVerticalGaps": []
+      "connectors": [
+        {
+          "id": "c1",
+          "from": "center",
+          "to": "web",
+          "points": [
+            [
+              800,
+              380
+            ],
+            [
+              800,
+              280
+            ]
+          ],
+          "targetBoundaryPoint": [
+            800,
+            280
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "none",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "c2",
+          "from": "center",
+          "to": "observability",
+          "points": [
+            [
+              620,
+              410
+            ],
+            [
+              481,
+              310
+            ]
+          ],
+          "targetBoundaryPoint": [
+            481,
+            310
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "none",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "c3",
+          "from": "center",
+          "to": "security",
+          "points": [
+            [
+              980,
+              410
+            ],
+            [
+              1001,
+              310
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1001,
+            310
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "none",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "c4",
+          "from": "center",
+          "to": "integration",
+          "points": [
+            [
+              620,
+              485
+            ],
+            [
+              421,
+              540
+            ]
+          ],
+          "targetBoundaryPoint": [
+            421,
+            540
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "none",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "c5",
+          "from": "center",
+          "to": "messaging",
+          "points": [
+            [
+              980,
+              485
+            ],
+            [
+              1121,
+              520
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1121,
+            520
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "none",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "c6",
+          "from": "center",
+          "to": "persistence",
+          "points": [
+            [
+              720,
+              540
+            ],
+            [
+              570,
+              644
+            ]
+          ],
+          "targetBoundaryPoint": [
+            570,
+            644
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "none",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        },
+        {
+          "id": "c7",
+          "from": "center",
+          "to": "batch",
+          "points": [
+            [
+              880,
+              540
+            ],
+            [
+              1030,
+              633
+            ]
+          ],
+          "targetBoundaryPoint": [
+            1030,
+            633
+          ],
+          "targetBoundaryDistancePx": 0,
+          "targetInteriorPenetrationPx": 0,
+          "sourceInteriorPenetrationPx": 0,
+          "arrowhead": "none",
+          "arrowheadBodyInsideTargetPx": 0,
+          "crossesUnrelatedNodeInterior": false,
+          "crossesTextOrLabel": false,
+          "endsInUnlabeledEmptySpace": false
+        }
+      ],
+      "embeddedRenders": [
+        {
+          "surface": "README",
+          "displayWidthPx": 1200,
+          "displayHeightPx": 675,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
     }
   ]
 }

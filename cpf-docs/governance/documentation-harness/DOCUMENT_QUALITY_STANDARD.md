@@ -1,4 +1,4 @@
-# CPF 문서 품질 엔지니어링 표준 — Harness v2.4.0
+# CPF 문서 품질 엔지니어링 표준 — Harness v2.5.0
 
 ## 1. 목적
 
@@ -118,3 +118,18 @@ README는 제품 간판이며 내부 Evidence 문서가 아니다. Architecture/
 ## 10. 최종 판정
 
 자동 검사 PASS는 필요조건이지 충분조건이 아니다. 실제 화면에서 어색함·충돌·과밀·모호함이 발견되면 해당 산출물은 FAIL이며, 먼저 Harness가 그 유형을 잡도록 보완한 뒤 산출물을 다시 수정한다.
+
+
+## 9. DOCX 구조·마지막 페이지 재발 방지
+
+- 11개 공식 DOCX는 `validators/validate_docx_artifacts.py`로 도입부 Meta Table, 사용자용 Provenance, 1-row Layout Table, 의미 없는 빈 Spacer를 자동 검사한다.
+- 마지막 페이지는 전페이지 Render에서 별도 확인한다. 표의 마지막 1~2행, H1/H2와 한 문장, 짧은 bullet 몇 개만 남으면 `isolatedTrailingContentPage`로 FAIL한다.
+- 해결은 내용을 억지로 늘리는 것이 아니라 앞 페이지의 spacing/table density를 조정하거나, 해당 페이지가 실제 독립 결론·의사결정 정보를 제공하도록 Source-backed 내용을 재배치한다.
+- 사용자가 발견한 새 결함은 Artifact Patch와 동시에 Common Rule + Negative Fixture + Validator Assertion에 반영해야 완료다.
+
+## 10. 찾아보기/TOC 우측 경계
+
+- 찾아보기의 dotted leader와 페이지 번호는 현재 Section의 writable text width 안에 있어야 한다.
+- portrait/landscape 문서에 동일한 고정 tab position을 재사용하지 않는다. Section page width와 좌우 margin을 기준으로 tab stop을 계산한다.
+- 오른쪽 dot leader가 페이지 edge까지 뻗거나 page number가 crop/overflow 되는 상태는 자동 Validator와 최종 Render 모두에서 FAIL이다.
+

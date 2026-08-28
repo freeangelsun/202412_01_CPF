@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "commonRulesRef": "design-tokens.json#/tables",
   "presets": {
@@ -25,7 +25,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "OPTION": {
       "columns": [
@@ -48,7 +50,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "API": {
       "columns": [
@@ -71,7 +75,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "ROLE": {
       "columns": [
@@ -94,7 +100,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "DECISION": {
       "columns": [
@@ -117,7 +125,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "ERROR": {
       "columns": [
@@ -140,7 +150,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "RUNBOOK": {
       "columns": [
@@ -163,7 +175,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "STATE": {
       "columns": [
@@ -186,7 +200,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "RESTART_RERUN_REPROCESS_RECONCILE": {
       "columns": [
@@ -213,7 +229,9 @@
       "headerSingleLine": true,
       "widthPolicy": "SYMMETRIC_COMPARISON",
       "equalWidthJustification": "병렬 선택지가 동일 역할이며 비교축이 대칭적임",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "HTTP_STATUS": {
       "columns": [
@@ -236,7 +254,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "OWNER_BOUNDARY": {
       "columns": [
@@ -259,7 +279,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "TOPOLOGY_COMPARE": {
       "columns": [
@@ -288,7 +310,9 @@
           2
         ]
       ],
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "SYSTEM6": {
       "columns": [
@@ -311,7 +335,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "DB_VENDOR": {
       "columns": [
@@ -341,7 +367,9 @@
           3
         ]
       ],
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "DB_LIFECYCLE": {
       "columns": [
@@ -364,7 +392,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "STARTER_SELECTION": {
       "columns": [
@@ -387,7 +417,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "TEST_SCENARIO": {
       "columns": [
@@ -410,7 +442,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "SOURCE_NAV": {
       "columns": [
@@ -430,7 +464,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "DOCUMENT_INDEX": {
       "columns": [
@@ -454,7 +490,9 @@
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
       "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
-      "usageConstraint": "공식 문서 목록처럼 실제 4개 속성이 필요한 경우만 사용. 목차/찾아보기에는 사용 금지."
+      "usageConstraint": "공식 문서 목록처럼 실제 4개 속성이 필요한 경우만 사용. 목차/찾아보기에는 사용 금지.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "RULE_SUMMARY": {
       "columns": [
@@ -477,7 +515,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "COMPATIBILITY": {
       "columns": [
@@ -500,7 +540,9 @@
       ],
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "API_QUICK_REFERENCE": {
       "columns": [
@@ -527,7 +569,9 @@
       "landscapeRequired": true,
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     },
     "API_OPTION_MATRIX": {
       "columns": [
@@ -554,7 +598,9 @@
       "landscapeRequired": true,
       "headerSingleLine": true,
       "widthPolicy": "CONTENT_WEIGHTED",
-      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다."
+      "widthReview": "최종 실제 데이터 기준으로 excessive wrap/unused whitespace를 확인하고 필요 시 preset 비율을 조정한다.",
+      "renderWrapReview": "required",
+      "pageFragmentOrphan": "hard_fail"
     }
   },
   "selectionPolicy": {
@@ -589,6 +635,25 @@
     "minimumMeaningfulRows": 2,
     "minimumIndependentDimensions": 2,
     "openingReaderNeed": "lead paragraph/callout, never a two-column metadata table",
-    "accessibility": "simple data table, explicit header row, no merge/split/nested/blank structural cells"
+    "accessibility": "simple data table, explicit header row, no merge/split/nested/blank structural cells",
+    "widthOptimization": "실제 셀 내용 기반 비례폭. equal width는 대칭 비교에서만 허용.",
+    "wrapMinimization": "Header 1줄, 짧은 token 1줄 우선. 불필요한 줄개행이 반복되면 문구 축약보다 먼저 Column 폭을 재배분한다.",
+    "pageFragmentRule": "Header+1행 또는 마지막 1~2행 고립 fragment 금지."
+  },
+  "globalWidthPolicy": {
+    "mode": "SEMANTIC_CONTENT_PROPORTIONAL",
+    "equalWidth": "only explicit symmetric comparison",
+    "equalWidthContentDemandVariancePctMax": 12,
+    "headerWrap": "hard_fail",
+    "shortTokenWrap": "hard_fail",
+    "semanticWidthInversion": "hard_fail",
+    "resolutionOrder": [
+      "shorten header without losing meaning",
+      "narrow ID/status/default columns",
+      "widen description/usage/failure/recovery columns",
+      "reduce columns/split table",
+      "switch to landscape when profile allows",
+      "never shrink below minimum font"
+    ]
   }
 }

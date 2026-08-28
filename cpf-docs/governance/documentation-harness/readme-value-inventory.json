@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "items": [
     {
@@ -124,5 +124,126 @@
       "section": "README-8"
     }
   ],
-  "rule": "README는 이 Value를 기능 목록처럼 나열하지 않는다. 8개 섹션 안에서 관련 Value를 묶어 구조/효익으로 설명한다."
+  "rule": "README는 Value를 “장점/효익/차별점” 목록으로 나열하지 않는다. 각 Value는 해당 구조·기능·개발·운영 설명의 결과로 자연스럽게 드러나야 한다.",
+  "presentationRule": "첫 화면과 첫 스크롤에서 CPF의 정체성과 핵심 효익이 보이고, 이후 Architecture/Invocation/Failure/Batch/DB3/Operations로 증명한다. 별도 마케팅 표는 만들지 않는다.",
+  "antiUnderstatementRule": "Source로 확인 가능한 차별 기능이 충분한데 README에서 구조·개발·실패복구·Batch·DB3·운영 관점의 실제 효과가 자연스럽게 식별되지 않으면 README_NATURAL_VALUE_FAIL.",
+  "naturalDistribution": {
+    "requiredGroupsMin": 7,
+    "distinctFunctionalSectionsMin": 4,
+    "maxSingleSectionSharePct": 45,
+    "firstScanGroupsMin": 3,
+    "dedicatedBenefitHeading": "forbidden",
+    "benefitTable": "forbidden",
+    "evidenceRule": "같은 문단에서 capability/fact와 사용자 효과가 인과적으로 연결되면 Value evidence로 인정. “좋다/편하다/강력하다” 단독 표현은 evidence가 아니다."
+  },
+  "forbiddenHeadingTokens": [
+    "장점",
+    "핵심 장점",
+    "왜 좋은가",
+    "이 구조의 장점",
+    "무엇이 달라지는가",
+    "좋아지는 점",
+    "편해지는 점",
+    "차별점",
+    "효익",
+    "Value Proposition",
+    "Benefits",
+    "핵심 해석",
+    "기반 기술"
+  ],
+  "groups": [
+    {
+      "id": "TOPOLOGY_INVOCATION",
+      "evidenceAny": [
+        "Same JVM",
+        "Remote",
+        "Domain Invocation",
+        "System6",
+        "X-Transaction-Id",
+        "transactionId"
+      ]
+    },
+    {
+      "id": "FAILURE_RECOVERY",
+      "evidenceAny": [
+        "UNKNOWN",
+        "Reconcile",
+        "Idempotency",
+        "Saga",
+        "TCC",
+        "XA"
+      ]
+    },
+    {
+      "id": "BATCH_RESILIENCE",
+      "evidenceAny": [
+        "Control Plane",
+        "Scheduler",
+        "Worker",
+        "Center-Cut",
+        "Lease",
+        "Fencing",
+        "Process Kill",
+        "Rerun",
+        "Reprocess"
+      ]
+    },
+    {
+      "id": "GENERATOR_STARTER",
+      "evidenceAny": [
+        "Generator",
+        "Starter",
+        "Provider",
+        "Generated Domain",
+        "Bootstrap"
+      ]
+    },
+    {
+      "id": "DB3_LIFECYCLE",
+      "evidenceAny": [
+        "Oracle",
+        "PostgreSQL",
+        "MariaDB",
+        "Migration",
+        "Rollback",
+        "Seed",
+        "Upgrade"
+      ]
+    },
+    {
+      "id": "BOUNDARY_INTEGRATION",
+      "evidenceAny": [
+        "Gateway",
+        "Backoffice",
+        "Messaging",
+        "File",
+        "Notification",
+        "외부 연계"
+      ]
+    },
+    {
+      "id": "OPERATIONS_SECURITY",
+      "evidenceAny": [
+        "Trace",
+        "Timeline",
+        "Health",
+        "Approval",
+        "Audit",
+        "Permission",
+        "Masking",
+        "instanceId"
+      ]
+    },
+    {
+      "id": "COMMON_CAPABILITIES",
+      "evidenceAny": [
+        "Cache",
+        "Validation",
+        "Transaction",
+        "Security",
+        "Config",
+        "Profile"
+      ]
+    }
+  ]
 }

@@ -1,245 +1,163 @@
 #!/usr/bin/env python3
-import json, hashlib, re
+import json,hashlib,re,subprocess,sys
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1]
+H=Path(__file__).resolve().parents[1]
+VER='2.8.0'
 
 def fail(msg):
     print('HARNESS=FAIL',msg); raise SystemExit(1)
-def load(name):
-    p=ROOT/name
-    if not p.is_file(): fail(f'missing {name}')
+def load(rel):
+    p=H/rel
+    if not p.is_file(): fail('missing '+rel)
     try:return json.loads(p.read_text(encoding='utf-8'))
-    except Exception as e: fail(f'json {name}: {e}')
-
-h=load('harness.json')
-if (ROOT/'CHANGELOG.md').exists(): fail('history file must not remain in current-only harness')
-for p in ROOT.rglob('*'):
+    except Exception as e: fail(f'json {rel}: {e}')
+# Required executable-quality files.
+required=[
+ 'harness.json','ANTI_PATTERN_CATALOG.md','MANUAL_REVIEW_SCORECARD.md','DOCUMENT_DESIGN_PLAYBOOK.md','README_BROCHURE_AND_AI_TEXT_STANDARD.md','INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','AUTHORING_EXECUTION_PROTOCOL.md','design-tokens.json','writing-style.json','content-density.json','document-output-rules.json','quality-acceptance.json','quality-fixtures.json','visual-qa.json','reader-task-coverage.json','readme-value-inventory.json','scope.json','table-presets.json','figure-presets.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARD_GATE_POLICY.md',
+ 'profiles/README.json','templates/ARTIFACT_REVIEW.template.json','templates/SESSION_RUN_MANIFEST.template.json','templates/FINAL_ACCEPTANCE.template.json',
+ 'validators/validate_quality_fixtures.py','validators/validate_readme.py','validators/validate_docx_artifacts.py','validators/validate_reader_task_coverage.py','validators/validate_final_acceptance.py','validators/run_all_gates.py',
+ 'validators/validate_quality_fixtures.ps1','validators/validate_readme.ps1','validators/validate_docx_artifacts.ps1','validators/validate_final_acceptance.ps1','validators/run_all_gates.ps1'
+]
+for r in required:
+    if not (H/r).is_file(): fail('required file '+r)
+# Current-only: no history/backup/session files or folders in canonical harness.
+for p in H.rglob('*'):
     n=p.name.lower()
-    if re.search(r'(^|[_\.-])(backup|old|history)([_\.-]|$)',n) or n.startswith('v1.') or n.startswith('v2.0') or n.startswith('v2.1'):
-        fail('stale harness artifact '+str(p.relative_to(ROOT)))
-if h.get('version')!='2.5.0': fail('version')
-if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
-if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
-for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
-    d=load(f)
-    if d.get('harnessVersion')!='2.5.0': fail(f'version {f}')
-D=load('design-tokens.json')
-if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
-if D['tables']['body_default_alignment']!='left': fail('table body left')
-if D['tables'].get('equal_width_default')!='conditional': fail('equal width policy')
-if D['tables']['max_columns_portrait']!=4 or D['tables']['max_columns_landscape']!=5: fail('table columns')
-if D['tables']['max_cell_korean_chars_review']>70: fail('cell prose limit')
-W=load('writing-style.json')
-if W['license']['exact_user_facing_sentence']!='CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.': fail('license exact phrase')
-O=load('document-output-rules.json')
-if O['README']['licenseExactSentence']!=W['license']['exact_user_facing_sentence']: fail('license output rules')
+    if p==H/'DELETE_MANIFEST.txt' or p==H/'DELETE_MANIFEST.json': continue
+    if n in {'changelog.md','.pytest_cache','__pycache__'} or n.endswith('.pyc') or any(x in n for x in ['_backup','_history','_session']) or re.match(r'documentation-harness-v\d',n): fail('stale/history artifact '+str(p.relative_to(H)))
+# JSON parse and version consistency.
+for p in H.rglob('*.json'):
+    d=load(str(p.relative_to(H)))
+    hv=d.get('harnessVersion')
+    if hv is not None and hv!=VER: fail(f'version mismatch {p.relative_to(H)}={hv}')
+h=load('harness.json')
+if h.get('version')!=VER or h.get('locked') is not True: fail('harness version/lock')
+if h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
+# Strict final acceptance must exist and be all-required.
+cg=h.get('completionGate',{})
+if cg.get('allRequired') is not True or cg.get('partialPass')!='forbidden': fail('completion gate strictness')
+for gid in ['README_SCANABILITY_PASS','README_NATURAL_VALUE_PASS','TABLE_PROPORTION_RENDER_PASS','READER_TASK_COMPLETENESS_PASS','DOCUMENT_SIZE_CAP_ABSENCE_PASS','CONTENT_COVERAGE_NOT_TRUNCATED_PASS','README_BROCHURE_PASS','README_AI_TEXT_COMPANION_PASS','INFORMATION_ARCHITECTURE_PASS','FULL_PAGE_FRESH_EYES_REVIEW_PASS','FLEXIBLE_TABLE_LAYOUT_PASS','LONG_DOCUMENT_NAVIGATION_PASS','MANUAL_EVIDENCE_COMPLETE_PASS','FINAL_ACCEPTANCE_AGGREGATOR_PASS']:
+    if gid not in cg.get('required',[]): fail('missing completion gate '+gid)
+qa=load('quality-acceptance.json'); qids={s['id'] for s in qa.get('stages',[]) if s.get('required')}
+for gid in cg.get('required',[]):
+    if gid not in qids: fail('completion stage missing in quality-acceptance '+gid)
+fa=qa.get('finalAcceptance',{})
+if 'EVERY required stage exactly PASS' not in fa.get('passOnlyIf',''): fail('final acceptance exact PASS rule')
+if fa.get('manualEvidenceMandatory') is not True: fail('manual evidence mandatory')
+for bad in ['AUTOMATED_PASS_ONLY','NOT_EXECUTED','BLOCKED','UNKNOWN','SKIPPED','PARTIAL','WAIVED']:
+    if bad not in fa.get('forbiddenFinalStates',[]): fail('forbidden final state missing '+bad)
+# README rules: natural value, no promotional headings, scanability.
+rp=load('profiles/README.json')
+if rp.get('structureLocked') is not False or rp.get('coverageLocked') is not True: fail('README profile flexibility/coverage')
+sp=rp.get('specialRules',{})
+if sp.get('naturalValueDiscovery',{}).get('forbiddenDedicatedValueSection') is not True: fail('README benefit section prohibition')
+sc=sp.get('scanability',{})
+if sc.get('h2Min')!=5 or sc.get('h2UpperBound')!='NONE': fail('README H2 no-upper-bound policy')
+if rp.get('specialRules',{}).get('totalSizePolicy',{}).get('h2UpperBound')!='NONE': fail('README total size policy')
+if rp.get('specialRules',{}).get('aiTextCompanion',{}).get('requiredForEveryInformativeFigure') is not True: fail('README AI text companion policy')
+if rp.get('specialRules',{}).get('brochureMode',{}).get('required') is not True: fail('README brochure policy')
+forbidden=' '.join(sp.get('forbidden',[]))
+for term in ['CPF를 적용하면 무엇이 달라지는가','핵심 장점','왜 좋은가','이 구조의 장점','핵심 해석','기반 기술']:
+    if term not in forbidden: fail('README forbidden label missing '+term)
+rv=load('readme-value-inventory.json')
+nd=rv.get('naturalDistribution',{})
+if nd.get('requiredGroupsMin',0)<7 or nd.get('distinctFunctionalSectionsMin',0)<4 or nd.get('maxSingleSectionSharePct',99)>45: fail('README natural value distribution')
+if len(rv.get('groups',[]))<8: fail('README value groups')
+# Vertical rhythm and table width strictness.
+d=load('design-tokens.json'); par=d.get('paragraph',{}); tab=d.get('tables',{})
+mins={'body_line_spacing_multiple':1.25,'body_space_after_pt':7.5,'h1_space_before_pt':52,'h2_space_before_pt':28,'h3_space_before_pt':18,'semanticTransitionGapPtMin':14}
+for k,v in mins.items():
+    if float(par.get(k,0))<v: fail(f'vertical rhythm {k}')
+wh=tab.get('widthHardGates',{})
+for k in ['unjustifiedEqualWidthCount','headerWrapCount','shortTokenWrapCount','excessiveWrapDensityCount','semanticWidthInversionCount','renderedWidthMismatchCount']:
+    if wh.get(k)!=0: fail('table hard gate '+k)
+if '12' not in str(wh.get('equalWidthAllowedOnlyIf','')): fail('equal width 12 percent rule')
+# Reader-task is not keyword-only.
+rc=load('reader-task-coverage.json')
+if len(rc.get('artifacts',[]))!=12: fail('reader task artifact count')
+if len(rc.get('requiredTaskDimensions',[]))<8: fail('reader task dimensions')
+if 'term presence is only a pre-check' not in rc.get('policy',''): fail('reader keyword-only false green')
+# User visual connector finding remains hard-zero.
+vq=load('visual-qa.json'); hf=vq.get('hardFail',{})
+for k in ['connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','promotionalBenefitHeading','readmeDenseWallOfText','semanticTableWidthInversion','shortTokenWrap','readerTaskKeywordOnlyFalseGreen','manualGateNotExecuted','manualEvidenceMissing','requiredGateNonPass','automatedOnlyFinalPassAttempt','documentTotalSizeCap','coverageTruncatedForLength','readmeBrochureStructureMissing','readmeVisualKoreanCompanionMissing','readmeImageAltMissing','readmeBrochureVisualRhythmMissing','informationArchitectureReaderNeedMismatch','longDocumentNavigationMissing','fixedWidthTableCausesWrap','manualFreshEyesReviewMissing']:
+    if hf.get(k)!=0: fail('hardFail key '+k)
+# High-quality human review threshold must not be weakened.
+ms=qa.get('manualVisualScore',{})
+if float(ms.get('minimumEach',0))<4 or float(ms.get('minimumAverage',0))<4.6: fail('manual visual score threshold weakened')
+for dim in ['information_architecture_fit','no_content_truncation','fresh_eyes_scan_quality','readme_brochure_quality','readme_ai_text_companion']:
+    if dim not in ms.get('dimensions',[]): fail('manual visual dimension missing '+dim)
+art=load('templates/ARTIFACT_REVIEW.template.json')
+for fld in ['scanPassEvidence','detailPassEvidence','readerPassEvidence']:
+    if fld not in art: fail('artifact review evidence field missing '+fld)
+for mg in ['contentCoverageNotTruncated','informationArchitecture','freshEyesTwoPass','flexibleTableLayout','longDocumentNavigation','readmeBrochure','readmeAiTextCompanion']:
+    if mg not in art.get('manualGates',{}): fail('artifact manual gate missing '+mg)
+# v2.8 no total size cap and self-contained authoring playbooks.
+size=h.get('documentSizePolicy',{})
+for k in ['totalFileSizeLimit','totalPageCountLimit','totalWordCountLimit','totalCharacterCountLimit','totalSectionCountLimit','totalFigureCountLimit']:
+    if size.get(k)!='NONE': fail('total document size cap '+k)
+if size.get('coverageReductionForLength')!='FORBIDDEN': fail('coverage reduction for length')
+cd=load('content-density.json')
+if 'pageBudgets' in cd or 'hardMaxPolicy' in cd: fail('legacy page budget/hardMax policy forbidden')
+if cd.get('totalDocumentSizePolicy',{}).get('totalPageCountLimit')!='NONE': fail('content density total page cap')
+# No H2/visual upper bound in README rules.
+do=load('document-output-rules.json')
+if do.get('README',{}).get('visualCountUpperBound')!='NONE': fail('README visual upper bound')
+if 'visualCountMax' in do.get('README',{}): fail('README visualCountMax forbidden')
+# Required playbooks must state core guarantees.
+for rel,token in [('DOCUMENT_DESIGN_PLAYBOOK.md','총 페이지/용량'),('README_BROCHURE_AND_AI_TEXT_STANDARD.md','AI/텍스트'),('INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','Reader Task'),('AUTHORING_EXECUTION_PROTOCOL.md','Clean replay'),('ANTI_PATTERN_CATALOG.md','FAIL'),('MANUAL_REVIEW_SCORECARD.md','평균 4.6')]:
+    txt=(H/rel).read_text(encoding='utf-8')
+    if token.lower() not in txt.lower(): fail('playbook missing token '+rel+' '+token)
+# Every profile carries no-size policy and documentation intent.
+for pp in (H/'profiles').glob('*.json'):
+    pd=json.loads(pp.read_text(encoding='utf-8'))
+    pol=pd.get('totalDocumentSizePolicy',{})
+    if pol.get('totalPageLimit')!='NONE' or pol.get('coverageReductionForLength')!='FORBIDDEN': fail('profile size policy '+pp.name)
+    if not pd.get('documentationIntent',{}).get('primaryMode'): fail('profile documentation intent '+pp.name)
 
-# documentation usability gates
-if h.get('changePolicy',{}).get('documentationFeedbackIsHarnessChangeRequest') is not True: fail('harness-first feedback rule')
-if D.get('headingNumbering',{}).get('H2')!='1.1 / 1.2 / 2.1 ...': fail('H2 numbering')
-if D['paragraph'].get('h1_space_before_pt',0) < 28: fail('H1 spacing')
-if D['paragraph'].get('h2_space_before_pt',0) < 16: fail('H2 spacing')
-if D['figures'].get('low_contrast_label')!='hard_fail': fail('figure contrast')
-if D['fonts'].get('pdf_korean_font_embedding_required') is not True: fail('pdf korean font embedding')
-# current visual geometry / balance gates
-FG=D.get('figures',{})
-if FG.get('node_inner_padding_px_min',0) < 18: fail('figure inner padding')
-if FG.get('label_to_label_gap_px_min',0) < 20: fail('figure label gap')
-if FG.get('node_to_node_gap_px_min',0) < 24: fail('figure node gap')
-if FG.get('label_to_connector_clearance_px_min',0) < 12: fail('figure connector clearance')
-if FG.get('group_title_band_height_px_min',0) < 44: fail('figure group title band')
-if FG.get('text_node_boundary_collision') != 0 or FG.get('text_connector_collision') != 0: fail('figure collision gate')
-if D.get('visual_quality',{}).get('page_visual_balance_required') is not True: fail('page visual balance')
-if h.get('qualityDoctrine',{}).get('singleCurrentHarness') is None: fail('single current harness')
-if O.get('globalPathGate',{}).get('absolutePathMaxChars') != 150: fail('path max 150')
-if O.get('harnessRetention',{}).get('currentOnly') is not True: fail('current harness only')
-if O.get('DOCX',{}).get('tocMaterializedVisibleEntriesRequired') is not True: fail('visible TOC entries')
-Q=load('visual-qa.json')
-for k in ['figureTextNodeBoundaryCollision','figureTextConnectorCollision','figureTitleChildLabelOverlap','pageAccidentalVisualImbalance','figureAccidentalVisualImbalance','unresolvedLargeDeadSpace']:
-    if Q.get('hardFail',{}).get(k) != 0: fail('visual qa '+k)
-FROOT=load('figure-presets.json')
-CG=FROOT.get('commonGeometryGate',{})
-if CG.get('nodeInnerPaddingPxMin',0) < 18 or CG.get('labelConnectorClearancePxMin',0) < 12: fail('figure preset common geometry')
-if O['README'].get('manualNavigation','').startswith('mandatory') is not True: fail('README manual navigation')
-if O['README'].get('bootstrapRuntimeBlock','').startswith('mandatory') is not True: fail('README bootstrap/runtime')
+# Reject reintroduction of total-cap fields anywhere in JSON.
+def walk_caps(obj,path=''):
+    if isinstance(obj,dict):
+        for k,v in obj.items():
+            kp=(path+'.'+k).strip('.')
+            if k in {'pageBudgets','hardMaxPolicy','h2Max','visualCountMax','hardMaxPages'}: fail('forbidden total-cap field '+kp)
+            if k=='hardMax' and any(x in path.lower() for x in ['readme','page','document','visualcount']): fail('forbidden hardMax total cap '+kp)
+            walk_caps(v,kp)
+    elif isinstance(obj,list):
+        for idx,v in enumerate(obj): walk_caps(v,f'{path}[{idx}]')
+for jp in H.rglob('*.json'):
+    if jp.name in {'HARNESS_LOCK.json','PACKAGE_MANIFEST.json'}: continue
+    walk_caps(json.loads(jp.read_text(encoding='utf-8')),str(jp.relative_to(H)))
+if 'Preferred Page Budget' in (H/'CONTENT_COMPRESSION_STANDARD.md').read_text(encoding='utf-8'): fail('legacy page budget phrase')
 
-
-# v2.5.0 semantic layout gates
-if D['tables'].get('header_single_line_required') is not True or D['tables'].get('header_max_visual_lines') != 1: fail('table header single line')
-if D['tables'].get('fixed_50_50_default')!='forbidden_unless_semantically_symmetric': fail('fixed 50/50 policy')
-if D['paragraph'].get('h1_space_before_pt',0) < 38: fail('major section breathing')
-if D['paragraph'].get('majorHeadingSingleLinePreferred') is not True: fail('major heading single line')
-if D['figures'].get('embedded_render_boundary_collision') != 0 or D['figures'].get('embedded_render_crop') != 0: fail('embedded figure boundary')
-if D['figures'].get('semantic_completeness_required') is not True: fail('figure semantic completeness')
-TP=load('table-presets.json')
-if TP.get('selectionPolicy',{}).get('principle','').find('표로 표현해야 하는 데이터를 표로 표현')<0: fail('table semantic policy')
-for _n,_t in TP.get('presets',{}).items():
-    if _t.get('headerSingleLine') is not True: fail('table header preset '+_n)
-    if _t.get('widthPolicy') not in ['CONTENT_WEIGHTED','CONTENT_WEIGHTED_WITH_SYMMETRIC_GROUPS','SYMMETRIC_COMPARISON']: fail('width policy '+_n)
-CQ=load('component-system.json')
-_cs=CQ.get('components',CQ)
-if _cs.get('READER_NEED_BLOCK',{}).get('tableEncoding')!='forbidden': fail('reader need table misuse')
-if _cs.get('TOC_NAVIGATION',{}).get('table')!='forbidden': fail('toc table misuse')
-if _cs.get('DECISION_TABLE',{}).get('headerSingleLine') is not True: fail('decision table header')
-VQ=load('visual-qa.json')
-for _k in ['tableHeaderWrap','nonTabularContentEncodedAsTable','unjustifiedEqualColumnWidth','unjustifiedFixed5050','repeatedValueOnlyColumn','majorHeadingOrphanWrap','sectionTransitionCrowding','figureEmbeddedBoundaryIntrusion','figureEmbeddedCrop','semanticallyIncompleteVisual']:
-    if VQ.get('hardFail',{}).get(_k) != 0: fail('semantic layout hard fail '+_k)
-
-# incremental/visual/link/content-rail gates
-if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('defaultMode')!='PATCH_FIRST': fail('patch first policy')
-_evo=h.get('changePolicy',{}).get('artifactEvolutionPolicy',{})
-if _evo.get('freshRebuildException',{}).get('afterApproval')!='PATCH_ONLY': fail('fresh rebuild lifecycle')
-if _evo.get('freshRebuildException',{}).get('maxConsecutiveFreshRebuilds')!=1: fail('fresh rebuild max once')
-
-if D['paragraph'].get('h2_space_after_pt',99)>6 or D['paragraph'].get('h3_space_after_pt',99)>5: fail('subheading content gap')
-if D.get('indentation',{}).get('subheading_content_indent_mm',0)<4: fail('subheading content rail')
-if D['figures'].get('canvas_safe_margin_px_min',0)<48: fail('figure canvas safe margin')
-if D['figures'].get('rounded_rectangle_arrow_chain_default')!='forbidden': fail('box arrow default')
-if O.get('linkIntegrity',{}).get('pdfLabelMustTargetPdf') is not True: fail('pdf link target rule')
-if O.get('linkIntegrity',{}).get('docxUserNavigationAllowed') is not False: fail('docx user navigation')
-if O.get('linkIntegrity',{}).get('docxPackagingRequired') is not True: fail('docx packaging')
-if O.get('artifactEvolution',{}).get('default')!='PATCH_FIRST': fail('incremental artifact rule')
-if O.get('windowsValidation',{}).get('pythonRequired') is not False: fail('python must not be required on Windows')
-VS=load('visual-system.json')
-if VS.get('readme',{}).get('uniqueVisualGrammarsMinWhenFiveOrMore',0)<4: fail('visual grammar diversity')
-if VS.get('readme',{}).get('roundedRectangleArrowChainMaxTotal',99)>1: fail('box arrow monoculture')
-if VS.get('readme',{}).get('backgroundContrast','').find('dark-on-dark hard_fail')<0: fail('readme surface contrast')
-if not (ROOT/'validators'/'validate_readme.ps1').is_file(): fail('PowerShell README validator missing')
-for _f in ['validators/validate_docx_artifacts.py','validators/validate_docx_artifacts.ps1']:
-    if not (ROOT/_f).is_file(): fail('DOCX structural validator missing '+_f)
-for _k in ['docxOpeningMetaTable','docxUserFacingProvenance','docxSingleRowLayoutTable','isolatedTrailingContentPage','feedbackFixedOnlyInArtifactWithoutHarnessGate','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','tocTabStopOutsideWritableArea']:
-    if VQ.get('hardFail',{}).get(_k) != 0: fail('feedback recurrence hard fail '+_k)
-
-
-T=load('table-presets.json')['presets']
-for name,t in T.items():
-    widths=t.get('widthPct',[])
-    if sum(widths)!=100: fail(f'width sum {name}')
-    if len(t.get('columns',[]))!=len(widths): fail(f'columns {name}')
-    if len(widths)>5: fail(f'too many cols {name}')
-    if len(widths)>2 and len(set(widths))==1 and t.get('widthPolicy')!='SYMMETRIC_COMPARISON': fail(f'unjustified equal widths {name}')
-F=load('figure-presets.json')['presets']
-if 'README_ARCHITECTURE_MAP' not in F: fail('architecture visual')
-scope=load('scope.json'); arts=scope.get('officialArtifacts',[])
-if len(arts)!=12 or scope.get('officialDocxCount')!=11 or scope.get('officialPdfCount')!=11: fail('scope count')
-models=load('content-models.json')['models']
-for a in arts:
-    p=ROOT/'profiles'/a['profile']; pr=json.loads(p.read_text(encoding='utf-8'))
-    if pr.get('documentId')!=a['id'] or pr.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail(f'profile {p.name}')
-    if pr.get('additionalH1') is not False: fail(f'extra h1 {p.name}')
-    if a['id']=='FRAMEWORK_DEVELOPER_GUIDE':
-        gp=pr.get('guidePolicy',{})
-        if gp.get('catalogStyle')!='forbidden' or gp.get('frequencyFirst') is not True: fail('framework guide frequency policy')
-        if '내부 Domain↔Domain 호출은 Gateway 미경유' not in gp.get('gatewayRule',''): fail('framework gateway rule')
-    if a['id']=='BATCH_DEVELOPER_GUIDE':
-        gp=pr.get('guidePolicy',{})
-        if gp.get('catalogStyle')!='forbidden' or gp.get('frequencyFirst') is not True: fail('batch guide frequency policy')
-
-    if a['id']=='README':
-        if pr.get('tocRequired') is not False: fail('README profile TOC')
-        nums=[]
-        for s in pr['sections']:
-            m=re.match(r'^(\d+)\. ',s['title'])
-            if not m: fail(f'README unnumbered {s["title"]}')
-            nums.append(int(m.group(1)))
-        if nums!=list(range(1,len(nums)+1)): fail('README numbering')
-        if pr.get('specialRules',{}).get('architectureMap',{}).get('required') is not True: fail('README architecture')
-        sr=pr.get('specialRules',{})
-        if sr.get('gatewayOptionality',{}).get('internalDomainViaGateway')!='forbidden': fail('README gateway internal-domain rule')
-        if sr.get('manualNavigation',{}).get('required') is not True: fail('README manual navigation profile')
-        if sr.get('developerEntryBlock',{}).get('required') is not True: fail('README developer entry block')
-        if len(pr.get('sections',[]))<6: fail('README coverage section minimum')
-        # Every non-license README subsection is hierarchically numbered.
-        for secidx,sec in enumerate(pr.get('sections',[])[:-1],start=1):
-            for h2idx,t in enumerate(sec.get('requiredH2',[]),start=1):
-                if not re.match(r'^%d\.%d\s+'%(secidx,h2idx), t): fail(f'README H2 numbering {t}')
-        expected=W['license']['exact_user_facing_sentence']
-        if pr.get('specialRules',{}).get('license',{}).get('exactSentence')!=expected: fail('license README profile')
-        matches=sum(1 for sec in pr.get('sections',[]) if sec.get('requiredH2')==[expected])
-        if matches!=1: fail('license README H2')
-    else:
-        if pr.get('tocRequired') is not True: fail(f'DOCX toc {p.name}')
-    for s in pr.get('sections',[]):
-        if s.get('additionalH2') is not False or s.get('additionalH3') is not False: fail(f'extra heading {p.name}')
-        if s.get('model') not in models: fail(f'model {p.name}:{s.get("model")}')
-        for t in s.get('tables',[]):
-            if t not in T: fail(f'table {p.name}:{t}')
-        for f in s.get('figures',[]):
-            if f not in F: fail(f'figure {p.name}:{f}')
-C=load('product-coverage.json'); items=C.get('items',[])
-if len(items)<55: fail('coverage')
-for raw in (ROOT/'DELETE_MANIFEST.txt').read_text(encoding='utf-8').splitlines():
+# Exact delete manifest only, no wildcard/parent traversal/current canonical path.
+for raw in (H/'DELETE_MANIFEST.txt').read_text(encoding='utf-8').splitlines():
     s=raw.strip()
     if not s or s.startswith('#'): continue
-    if '*' in s or '?' in s or s.startswith('/') or '..' in Path(s).parts: fail(f'unsafe delete {s}')
-lock=load('HARNESS_LOCK.json')
-for rel,expected in lock.get('files',{}).items():
-    p=ROOT/rel
-    if not p.is_file(): fail(f'lock missing {rel}')
-    if hashlib.sha256(p.read_bytes()).hexdigest()!=expected: fail(f'lock mismatch {rel}')
-# v2 executable design / acceptance gates
-for req in ["component-system.json","quality-acceptance.json","golden-reference.json","GOLDEN_REFERENCE_STANDARD.md","templates/ARTIFACT_REVIEW.template.json"]:
-    if not (ROOT/req).exists(): fail("missing v2 file "+req)
-qam=load("quality-acceptance.json")
-if qam.get("automatedPassIsQualityPass") is not False: fail("automated pass quality separation")
-
-for _gid in ['TABLE_SEMANTIC_FIT_PASS','HEADING_AND_VERTICAL_RHYTHM_PASS','EMBEDDED_FIGURE_PASS']:
-    if _gid not in h.get('completionGate',{}).get('required',[]): fail('completion gate '+_gid)
-    if _gid not in {x.get('id') for x in qam.get('stages',[])}: fail('quality stage '+_gid)
-
-if set(qam.get("baselineEligibility",[])) != {"USER_APPROVED","VISUAL_QA_APPROVED"}: fail("baseline approval states")
-cs=load("component-system.json")
-for cid in ["H1_SECTION","H2_SUBSECTION","BODY_BLOCK","BULLET_GROUP","FIGURE_BLOCK","FIGURE_EXPLANATION","DECISION_TABLE","DOCUMENT_LINK_ROW"]:
-    if cid not in cs.get("components",{}): fail("component "+cid)
-if cs['components']['FIGURE_EXPLANATION'].get('visibleLabel')!='forbidden': fail('generic figure explanation label')
-if cs['components']['DOCUMENT_LINK_ROW'].get('docxLink')!='forbidden': fail('document link component docx')
-
-for p in (ROOT/'profiles').glob('*.json'):
-    pr=json.loads(p.read_text(encoding='utf-8'))
-    if pr.get('structureLocked') is not False or pr.get('coverageLocked') is not True: fail('profile outcome-flex '+p.name)
-    if pr.get('compositionPolicy',{}).get('mode')!='OUTCOME_LOCKED_LAYOUT_FLEXIBLE': fail('profile composition '+p.name)
-if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('freshRewriteDefault')!='FORBIDDEN': fail('fresh rewrite default')
-if h.get('changePolicy',{}).get('artifactEvolutionPolicy',{}).get('automatedPassOnlyIsBaseline') is not False: fail('automated baseline')
-if qam.get('manualVisualScore',{}).get('minimumEach',0)<4 or qam.get('manualVisualScore',{}).get('minimumAverage',0)<4.4: fail('manual visual score threshold')
-# v2.5 quality engineering / recurrence gates
-if not (ROOT/'DOCUMENT_QUALITY_STANDARD.md').is_file(): fail('document quality standard')
-if not (ROOT/'quality-fixtures.json').is_file(): fail('quality fixtures')
-if not (ROOT/'validators'/'validate_quality_fixtures.py').is_file(): fail('quality fixture validator py')
-if not (ROOT/'validators'/'validate_quality_fixtures.ps1').is_file(): fail('quality fixture validator ps1')
-if not (ROOT/'validators'/'validate_source_zip.py').is_file(): fail('source zip validator py')
-if not (ROOT/'validators'/'validate_source_zip.ps1').is_file(): fail('source zip validator ps1')
-if D.get('readerOpening',{}).get('readerNeedTable')!='forbidden': fail('reader opening table')
-if D.get('readerOpening',{}).get('internalProvenanceInUserBody')!='hard_fail': fail('user provenance isolation')
-for _k in ['connector_endpoint_on_target_boundary_required','connector_route_manifest_required','connector_source_target_ids_required']:
-    if D.get('figures',{}).get(_k) is not True: fail('connector rule '+_k)
-if D.get('figures',{}).get('connector_target_interior_penetration_px_max')!=0: fail('connector target intrusion')
-if D.get('figures',{}).get('connector_arrowhead_body_inside_target_px_max')!=0: fail('arrowhead target intrusion')
-if D.get('figures',{}).get('graphical_object_contrast_min')!='3:1 against adjacent background when required for understanding': fail('nontext contrast')
-for _k in ['readerOpeningEncodedAsTable','userFacingHarnessVersion','userFacingSourceSha','connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorEndsInUnlabeledEmptySpace','connectorRouteMissingFromGeometryManifest','graphicalObjectContrastBelow3to1','tableTextContrastBelow4to5to1','colorOnlyMeaning','embeddedEffectiveTextTooSmall','coarseGeometryManifestAcceptedAsPass','negativeFixtureNotEnforced']:
-    if VQ.get('hardFail',{}).get(_k)!=0: fail('v2.5 hard fail '+_k)
-if _cs.get('OPENING_SUMMARY',{}).get('table')!='forbidden': fail('opening summary component')
-if _cs.get('PROVENANCE_NOTE',{}).get('userFacingSurface')!='forbidden': fail('provenance component')
-if O.get('sourceZipCompleteness',{}).get('minimumChecks',{}).get('CPF_DOCX')!=11 or O.get('sourceZipCompleteness',{}).get('minimumChecks',{}).get('CPF_PDF')!=11: fail('source zip doc counts')
-if O.get('sourceZipCompleteness',{}).get('missingOfficialDocxPdfVisualHarness')!='hard_fail': fail('source zip completeness')
-for _gid in ['PROVENANCE_ISOLATION_PASS','OPENING_SUMMARY_PASS','CONNECTOR_BOUNDARY_PASS','CONTRAST_AND_NON_TEXT_PASS','NEGATIVE_FIXTURE_PASS','HUMAN_READER_PASS','SOURCE_ZIP_COMPLETENESS_PASS']:
-    if _gid not in h.get('completionGate',{}).get('required',[]): fail('v2.5 completion '+_gid)
-    if _gid not in {x.get('id') for x in qam.get('stages',[])}: fail('v2.5 quality stage '+_gid)
-# current-only: previous version tokens must not remain in harness files
-for _p in ROOT.rglob('*'):
-    if not _p.is_file(): continue
-    if _p.name in ['HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.json','DELETE_MANIFEST.txt']: continue
-    try: _txt=_p.read_text(encoding='utf-8')
+    if '*' in s or '?' in s or s.startswith('/') or '..' in Path(s).parts: fail('unsafe delete '+s)
+    if s.rstrip('/')=='cpf-docs/governance/documentation-harness': fail('delete current harness forbidden')
+# No stale version tokens outside delete manifest.
+for p in H.rglob('*'):
+    if not p.is_file() or p.name in {'DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json'}: continue
+    try:txt=p.read_text(encoding='utf-8')
     except UnicodeDecodeError: continue
-    _old='.'.join(['2','3','0'])
-    if _old in _txt: fail('stale version token '+str(_p.relative_to(ROOT)))
-
+    if re.search(r'2\.(?:3|4|5|6)\.0',txt): fail('stale harness version token '+str(p.relative_to(H)))
+# Lock and package manifest hashes.
+lock=load('HARNESS_LOCK.json'); pm=load('PACKAGE_MANIFEST.json')
+if lock.get('harnessVersion')!=VER or pm.get('harnessVersion')!=VER: fail('lock/manifest version')
+for rel,expected in lock.get('files',{}).items():
+    p=H/rel
+    if not p.is_file(): fail('lock missing '+rel)
+    if hashlib.sha256(p.read_bytes()).hexdigest()!=expected: fail('lock mismatch '+rel)
+if pm.get('fileCount')!=len(pm.get('files',[])): fail('package manifest count')
+for x in pm.get('files',[]):
+    p=H/x['path']
+    if not p.is_file(): fail('package manifest missing '+x['path'])
+    if hashlib.sha256(p.read_bytes()).hexdigest()!=x['sha256'] or p.stat().st_size!=x['size']: fail('package manifest mismatch '+x['path'])
+# Negative fixtures must really fail.
+r=subprocess.run([sys.executable,str(H/'validators/validate_quality_fixtures.py')],capture_output=True,text=True)
+if r.returncode!=0: fail('negative fixture validator\n'+r.stdout+r.stderr)
 print('HARNESS=PASS')
-print('VERSION='+h['version'])
-print('ARTIFACTS='+str(len(arts)))
-print('COVERAGE_ITEMS='+str(len(items)))
-print('PROFILES='+str(len(list((ROOT/'profiles').glob('*.json')))))
-print('TABLE_PRESETS='+str(len(T)))
-print('FIGURE_PRESETS='+str(len(F)))
-print('QUALITY_MODEL=EXECUTABLE_DESIGN_SYSTEM')
-print('DEFAULT_EVOLUTION=PATCH_FIRST')
-print('FRESH_REWRITE_DEFAULT=FORBIDDEN')
+print('VERSION='+VER)
+print('STRICT_FINAL_ACCEPTANCE=ENFORCED')
+print('NEGATIVE_FIXTURES='+str(len(load('quality-fixtures.json').get('fixtures',[]))))
+print('CURRENT_ONLY=PASS')

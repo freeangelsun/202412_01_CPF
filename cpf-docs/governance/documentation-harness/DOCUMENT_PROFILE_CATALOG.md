@@ -1,4 +1,4 @@
-# CPF 공식 문서 Profile Catalog — Harness v2.5.0
+# CPF 공식 문서 Profile Catalog — Harness v2.8.0
 
 > 작성자가 임의 목차를 만들지 않도록 아래 H1/H2 구조를 고정한다. README를 제외한 11개 문서는 목차가 필수다.
 
@@ -489,3 +489,13 @@
 ## v2 Profile 해석
 
 Profile의 `sections`와 `requiredH2`는 독자가 반드시 답을 얻어야 하는 **Coverage Blueprint**다. 정확한 페이지 박스/H1/H2 수를 채우는 목표가 아니다. 직전 승인 Layout을 우선 보존하며, 중복·과밀·스캔 문제를 해결할 때 인접 항목을 병합할 수 있다. 새로운 H1을 장식/분량 목적으로 추가하는 것은 금지한다.
+
+
+## v2.8.0 강제 보강
+
+- README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
+- 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
+- 길이 때문에 Source-backed Coverage 또는 Reader Task를 줄이면 FAIL한다.
+- README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
+- 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
+- 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.

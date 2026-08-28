@@ -1,0 +1,301 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.8.0",
+  "policy": "term presence is only a pre-check. Final PASS requires task-level actionability and manual evidence.",
+  "artifacts": [
+    {
+      "id": "README",
+      "path": "README.md",
+      "allRequiredConcepts": [
+        "Same JVM",
+        "UNKNOWN",
+        "Batch",
+        "Oracle",
+        "Generator",
+        "transactionId",
+        "Approval"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "FRAMEWORK_DEVELOPER_GUIDE",
+      "path": "cpf-docs/guides/02_프레임워크_개발자_가이드.docx",
+      "allRequiredConcepts": [
+        "Public API",
+        "옵션",
+        "UNKNOWN",
+        "Reconcile",
+        "검증"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "BATCH_DEVELOPER_GUIDE",
+      "path": "cpf-docs/guides/03_배치_개발자_가이드.docx",
+      "allRequiredConcepts": [
+        "Lease",
+        "Fencing",
+        "Restart",
+        "Rerun",
+        "Reconcile",
+        "Process Kill"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "OPERATOR_MANUAL",
+      "path": "cpf-docs/guides/04_운영자_매뉴얼.docx",
+      "allRequiredConcepts": [
+        "transactionId",
+        "UNKNOWN",
+        "위험 운영 조치",
+        "DB Migration",
+        "Evidence"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "BATCH_OPERATOR_GUIDE",
+      "path": "cpf-docs/guides/05_배치_운영_가이드.docx",
+      "allRequiredConcepts": [
+        "lease",
+        "checkpoint",
+        "restart",
+        "rerun",
+        "reconcile",
+        "DB3"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "GATEWAY_GUIDE",
+      "path": "cpf-docs/guides/06_Gateway_개발_사용_가이드.docx",
+      "allRequiredConcepts": [
+        "외부 Entry",
+        "내부 Domain 호출",
+        "Security",
+        "Rate Limit",
+        "UNKNOWN"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "SPECIFICATION",
+      "path": "cpf-docs/guides/07_Specification_기술_명세.docx",
+      "allRequiredConcepts": [
+        "Public Contract",
+        "Identity",
+        "Oracle",
+        "PostgreSQL",
+        "MariaDB",
+        "Topology"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "ARCHITECTURE_DESIGN",
+      "path": "cpf-docs/deliverables/아키텍처설계서.docx",
+      "allRequiredConcepts": [
+        "Owner",
+        "Same JVM",
+        "Remote",
+        "Generated Domain",
+        "DB3",
+        "운영"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "TECHNICAL_SPECIFICATION",
+      "path": "cpf-docs/deliverables/기술사양서.docx",
+      "allRequiredConcepts": [
+        "Runtime",
+        "Public Surface",
+        "Internal",
+        "instanceId",
+        "Acceptance"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "TECHNICAL_STANDARD",
+      "path": "cpf-docs/deliverables/기술표준서.docx",
+      "allRequiredConcepts": [
+        "MUST",
+        "Generated Domain",
+        "UNKNOWN",
+        "보안",
+        "검증"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "DATABASE_STANDARD",
+      "path": "cpf-docs/deliverables/데이터베이스표준서.docx",
+      "allRequiredConcepts": [
+        "Oracle",
+        "PostgreSQL",
+        "MariaDB",
+        "Migration",
+        "Rollback",
+        "Lock"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    },
+    {
+      "id": "DELIVERABLE_INDEX",
+      "path": "cpf-docs/deliverables/산출물목록.docx",
+      "allRequiredConcepts": [
+        "개발자",
+        "운영자",
+        "아키텍트",
+        "PDF",
+        "DOCX"
+      ],
+      "manualTaskReviewRequired": true,
+      "manualTaskDimensions": [
+        "purpose_or_question",
+        "selection_or_when_to_use",
+        "inputs_options_or_prerequisites",
+        "normal_flow_or_procedure",
+        "failure_boundary_or_unknown",
+        "recovery_reconcile_or_next_action",
+        "verification_or_result_check",
+        "source_sample_or_deeper_reference"
+      ],
+      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+    }
+  ],
+  "requiredTaskDimensions": [
+    "purpose_or_question",
+    "selection_or_when_to_use",
+    "inputs_options_or_prerequisites",
+    "normal_flow_or_procedure",
+    "failure_boundary_or_unknown",
+    "recovery_reconcile_or_next_action",
+    "verification_or_result_check",
+    "source_sample_or_deeper_reference"
+  ],
+  "dimensionApplicabilityRule": "각 Artifact Profile이 applicable=false로 명시하지 않은 Dimension은 모두 PASS 필요. 단순 keyword 존재는 PASS 근거가 될 수 없다."
+}

@@ -1,19 +1,18 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "README": {
     "toc": "forbidden",
-    "h1Numbering": "required 1..N sequential",
-    "headingPattern": "^# [1-9][0-9]*\\. ",
+    "h1Numbering": "forbidden; exactly one product H1 title",
+    "headingPattern": "^#\\s+[^#].+$ for product title; section headings use ## without promotional benefit labels",
     "licenseExactSentence": "CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.",
     "licenseAdditionalSentence": "forbidden",
     "architectureVisual": "mandatory",
     "visualCountMin": 5,
-    "visualCountMax": 8,
     "sameVisualLayoutMax": 2,
     "sourceIdentifiers": "must be current source-backed",
-    "h2Numbering": "required hierarchical 1.1, 1.2...",
+    "h2Numbering": "optional; readability first",
     "h3Numbering": "when used: 1), 2), 3)...",
     "manualNavigation": "mandatory near bottom; role-based links with one-line Korean purpose",
     "bootstrapRuntimeBlock": "mandatory near bottom; Bootstrap/Build/Test/Runtime commands verified from current source",
@@ -30,7 +29,28 @@
     "incrementalImprovement": "PATCH_FIRST; preserve previous PASS sections/visuals unless impacted; compare before/after for regression",
     "userNavigation": "PDF_ONLY",
     "docxLink": "forbidden",
-    "surfaceDefinition": "Host viewer background는 제어 불가. CPF 소유 Hero/주요 Content Surface는 dark brochure로 명확히 분리하고, Visual canvas는 light/neutral로 대비한다."
+    "surfaceDefinition": "Host viewer background는 제어 불가. CPF 소유 Hero/주요 Content Surface는 dark brochure로 명확히 분리하고, Visual canvas는 light/neutral로 대비한다.",
+    "naturalValuePresentation": "required; capability/fact + consequence integrated into functional sections; benefit-only headings/tables forbidden",
+    "scanability": "H2 최소 5, 상한 없음. 국소 긴 문단/연속 표/연속 대형 Figure는 재구성 Trigger이며 전체 Coverage 삭제 근거가 아니다.",
+    "forbiddenPromotionalHeadings": [
+      "CPF를 적용하면 무엇이 달라지는가",
+      "핵심 장점",
+      "왜 좋은가",
+      "이 구조의 장점",
+      "핵심 해석",
+      "기반 기술",
+      "차별점",
+      "효익",
+      "좋아지는 점",
+      "편해지는 점"
+    ],
+    "tableUse": "comparison/relationship only; no reader metadata/benefit summary/layout table; max 4 columns by default",
+    "lineBreakEconomy": "avoid forced line breaks; short tokens and headings should stay one line where practical",
+    "visualCountUpperBound": "NONE",
+    "brochureMode": "required: dark CPF-owned brochure surface, strong Hero, visual narrative, short Korean copy, clear section rhythm, no table-heavy landing page",
+    "aiTextCompanion": "모든 의미 Figure는 비어 있지 않은 Alt Text + 바로 아래 1~2문장의 간략 한글 설명을 가진다. 설명은 Figure의 핵심 의미/관계를 텍스트로 복원해 AI·검색·텍스트 소비자가 그림 없이도 요지를 이해할 수 있어야 한다.",
+    "noTotalSizeLimit": "README 전체 용량/문자/줄/H2/Figure 수 상한 없음. Source-backed Coverage를 길이 때문에 줄이지 않는다.",
+    "coverageBeforeBrevity": "Coverage > total-length brevity. 과밀하면 삭제가 아니라 구조를 나눈다."
   },
   "DOCX": {
     "toc": "required H1/H2 with real page numbers",
@@ -45,7 +65,7 @@
     "blankPage": "hard_fail",
     "h2Numbering": "automatic hierarchical required",
     "h3Numbering": "automatic local numbering when profile permits",
-    "headingSpacing": "H1/H2/H3 differentiated by design-tokens; dense uniform spacing hard_fail",
+    "headingSpacing": "H1 >=52/11pt before/after, H2 >=28/7pt, H3 >=18/5.5pt, body line spacing >=1.25, body after >=7.5pt; renderer visual breathing required",
     "visualExplanation": "1-2 concise Korean sentences below informative figures",
     "pdfKoreanFontEmbedding": "mandatory",
     "pdfCrossRendererGlyph": "minimum two independent renderers; Korean glyph must match/read correctly",
@@ -58,7 +78,11 @@
     "subheadingContentGap": "H2 after <=6pt, H3 after <=5pt; next subsection separation larger",
     "figureExplanationOwnership": "figure/caption/explanation stay one visual block; explanation closer to figure than next heading",
     "incrementalImprovement": "PATCH_FIRST; unchanged PASS pages/visuals preserved; no unrelated redesign",
-    "orientation": "reader_first; landscape allowed/preferred for API/option/compare-heavy documents"
+    "orientation": "reader_first; landscape allowed/preferred for API/option/compare-heavy documents",
+    "tableWidth": "semantic/content proportional. Unjustified equal-width 0; header wrap 0; short-token wrap 0; semantic width inversion 0; render evidence required",
+    "readerTaskCompleteness": "keyword presence is insufficient. Intended reader must be able to decide/use/configure/handle failure/recover/verify from the document as applicable.",
+    "noTotalSizeLimit": "모든 공식 DOCX/PDF는 총 페이지/용량/문자수 상한 없음. Reader Task Coverage가 길이보다 우선.",
+    "localDensityRule": "국소 과밀은 Section/Table/Figure 재배치 Trigger이며 내용 삭제 근거가 아니다."
   },
   "finalReview": {
     "semantic": "각 문서의 독자가 실제 질문에 답할 수 있는지",
@@ -69,7 +93,13 @@
     "gatewayTopology": "내부 Domain 간 호출이 Gateway를 경유한다고 오표현한 곳이 0건인지",
     "pdfCompatibility": "한글 Font embedding + 2개 렌더러 Glyph PASS",
     "visualBalance": "모든 문서의 전페이지와 모든 Figure에서 상하·좌우 밀도, whitespace, alignment, label/connector geometry를 실제 렌더로 확인",
-    "readerNeed": "각 문서의 Persona가 왜 열었는지와 문서 종료 시 어떤 작업/판단을 끝내는지가 일치하는지 확인"
+    "readerNeed": "각 문서의 Persona가 왜 열었는지와 문서 종료 시 어떤 작업/판단을 끝내는지가 일치하는지 확인",
+    "readmeNaturalValue": "장점 전용 제목 없이 CPF의 실제 차별 기능과 효과가 최소 4개 기능 Section에 분산되어 자연스럽게 읽히는지",
+    "scanability": "README/문서의 과밀 문단, 연속 표/그림, 제목·본문·표 간 답답한 간격, 불필요한 줄개행이 0인지",
+    "tableProportion": "실제 Render 기준 비대칭 표의 균등폭 0, Header wrap 0, short token wrap 0, 긴 설명 Column 폭 부족 0",
+    "brochureAndAiText": "README가 브로셔형 첫인상/시각 리듬을 유지하고 모든 의미 Figure에 간략 한글 텍스트 설명+Alt Text가 있는지",
+    "noContentTruncation": "페이지/용량/섹션 수를 맞추기 위한 Coverage 삭제 0",
+    "freshEyes": "전페이지 1차 Scan pass와 2차 Detailed pass를 분리 수행하고 각 Evidence를 남긴다."
   },
   "globalPathGate": {
     "windowsRoot": "C:\\dev\\projects\\jck\\202412_01_CPF",
@@ -126,7 +156,7 @@
   "qualityAcceptanceRef": "quality-acceptance.json",
   "componentSystemRef": "component-system.json",
   "goldenReferenceRef": "golden-reference.json",
-  "finalQualityRule": "자동 Validator PASS만으로 완료 금지. HUMAN_VISUAL_PASS + REGRESSION_PASS + CLICK_THROUGH_PASS 필수.",
+  "finalQualityRule": "Final Acceptance Aggregator가 quality-acceptance.json의 모든 required stage를 정확히 PASS로 확인하고, Manual Evidence가 모두 존재하며 Critical Finding 0일 때만 완료. 자동 Validator만 PASS이면 전체 FAIL.",
   "layoutQuality": {
     "majorHeadingSingleLinePreferred": true,
     "tableHeaderSingleLineRequired": true,
@@ -181,5 +211,20 @@
     "windowsValidator": "validators/validate_docx_artifacts.ps1",
     "tocRightTabWithinWritableWidth": true,
     "tocPageNumberVisible": true
+  },
+  "globalDocumentSizePolicy": {
+    "scope": "README + 모든 공식 DOCX/PDF",
+    "totalFileSizeLimit": "NONE",
+    "totalPageCountLimit": "NONE",
+    "totalWordCountLimit": "NONE",
+    "totalCharacterCountLimit": "NONE",
+    "totalSectionCountLimit": "NONE",
+    "totalFigureCountLimit": "NONE",
+    "coverageReductionForLength": "FORBIDDEN",
+    "rule": "필요한 Source-backed 기능·장점·업무 절차·실패/복구·운영 정보는 총 길이를 이유로 삭제/축약하지 않는다. 과밀하면 Section 분리, Heading 재구성, Bullet/Callout/Figure/가로형 Table, 상세 Reference 연결로 재배치한다.",
+    "localReadabilityThresholds": "허용. 문단/표/그림의 국소 가독성 Threshold는 삭제 한도가 아니라 재구성 Trigger다.",
+    "pageCountCompression": "FORBIDDEN",
+    "fontShrinkForLength": "FORBIDDEN",
+    "marginShrinkForLength": "FORBIDDEN"
   }
 }

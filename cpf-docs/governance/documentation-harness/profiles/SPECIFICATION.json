@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "documentId": "SPECIFICATION",
   "title": "CPF Specification 기술 명세",
   "locked": true,
@@ -317,5 +317,50 @@
   "tablePolicy": {
     "listedPresets": "allowed_when_semantically_needed",
     "mandatoryOnlyWhenAcceptanceExplicitlyRequires": true
+  },
+  "readerTopTasks": [
+    "제품범위",
+    "기술 Stack",
+    "Public Contract",
+    "Identity",
+    "DB3",
+    "Topology/Optionality"
+  ],
+  "readerTopTasksAllRequired": true,
+  "readerTaskCompleteness": {
+    "required": true,
+    "dimensions": [
+      "purpose_or_question",
+      "selection_or_when_to_use",
+      "inputs_options_or_prerequisites",
+      "normal_flow_or_procedure",
+      "failure_boundary_or_unknown",
+      "recovery_reconcile_or_next_action",
+      "verification_or_result_check",
+      "source_sample_or_deeper_reference"
+    ],
+    "keywordPresenceOnly": "insufficient",
+    "passRule": "대상 Persona가 적용 가능한 Dimension을 실제로 완료할 수 있어야 하며, 각 Dimension의 수동 Review Evidence가 필요하다.",
+    "notApplicableRule": "Profile에 사유를 명시한 경우에만 NOT_APPLICABLE 허용. 빈칸/미실행을 NOT_APPLICABLE로 대체 금지."
+  },
+  "layoutQuality": {
+    "verticalRhythm": "H1/H2/H3/본문/Table/Figure/Code/Callout 사이의 breathing room을 design-tokens 최소값 이상 확보하고 전페이지 Render에서 답답함 0",
+    "tableWidth": "비대칭 표는 내용/역할 기반 비례폭. Header wrap/short token wrap/semantic width inversion/excessive wrap 0",
+    "manualRenderRequired": true
+  },
+  "documentationIntent": {
+    "primaryMode": "REFERENCE",
+    "readerOutcome": "정확한 계약·옵션·제약·호환성을 조회",
+    "rule": "문서 유형에 맞는 정보 구조를 사용한다. 서로 다른 독자 요구를 한 장에 혼합해 표/본문을 과밀하게 만들지 않는다.",
+    "referenceBasis": "INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md"
+  },
+  "totalDocumentSizePolicy": {
+    "totalPageLimit": "NONE",
+    "totalByteLimit": "NONE",
+    "totalWordLimit": "NONE",
+    "totalCharacterLimit": "NONE",
+    "totalSectionLimit": "NONE",
+    "coverageReductionForLength": "FORBIDDEN",
+    "onDensity": "restructure, split, change orientation, use navigation/reference; do not omit required reader information"
   }
 }

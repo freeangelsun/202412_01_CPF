@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -144,12 +144,144 @@
       "automated": false,
       "required": true,
       "meaning": "전페이지 Render에서 heading-only, table-tail, 한두 문장 고립 마지막 페이지와 과도한 dead-space를 제거하거나 의도적 예외로 근거화"
+    },
+    {
+      "id": "TABLE_WIDTH_AND_WRAP_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "비대칭 표 균등폭 0, Header wrap 0, 반복 short-token wrap 0, 내용량 기반 비례폭 확인"
+    },
+    {
+      "id": "VERTICAL_RHYTHM_DENSITY_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "H1/H2/H3/본문/표/Figure 전환의 breathing room과 페이지 밀도 전페이지 PASS"
+    },
+    {
+      "id": "READER_TASK_COVERAGE_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "README+11문서의 reader task coverage 12/12 및 사람 눈 작업 완결성 PASS"
+    },
+    {
+      "id": "TABLE_FRAGMENT_ORPHAN_PASS",
+      "type": "MANUAL",
+      "required": true,
+      "pass": "Header+1행, 마지막 1~2행 등 고립 table fragment 0"
+    },
+    {
+      "id": "README_NATURAL_VALUE_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "장점 전용 Heading/Section 없이 Source-backed Value가 기능 설명에 분산되고 독자가 자연스럽게 장점을 이해함"
+    },
+    {
+      "id": "README_SCANABILITY_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "README 과밀 문단/연속 표/연속 대형 Figure/상세 Reference 복제 0, 첫 화면과 Section 흐름이 빠르게 스캔 가능"
+    },
+    {
+      "id": "TABLE_PROPORTION_RENDER_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "비대칭 표 균등폭 0, semantic width inversion 0, Header wrap 0, short-token wrap 0, rendered width mismatch 0"
+    },
+    {
+      "id": "READER_TASK_COMPLETENESS_PASS",
+      "type": "MANUAL",
+      "required": true,
+      "pass": "각 문서 Persona의 필수 Task에 대해 목적/선택/입력·옵션/정상 흐름/실패·경계/복구/검증/관련 Source 또는 예시가 적용 가능한 범위에서 완결"
+    },
+    {
+      "id": "MANUAL_EVIDENCE_COMPLETE_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "모든 Manual/Hybrid stage에 evidenceRef가 존재하고 실제 파일/기록이 있으며 NOT_EXECUTED/BLOCKED/UNKNOWN 0"
+    },
+    {
+      "id": "FINAL_ACCEPTANCE_AGGREGATOR_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "모든 required stage == PASS, unresolved critical findings == 0, required artifact review == APPROVED"
+    },
+    {
+      "id": "SOURCE_IDENTITY_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "최신 Source identity/file SHA가 현재 run manifest와 일치하고 과거 Evidence를 승계하지 않음"
+    },
+    {
+      "id": "SEMANTIC_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "Architecture/Ownership/DB3/Topology/API 의미 왜곡 0"
+    },
+    {
+      "id": "ACCESSIBILITY_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "DOCX/PDF 접근성, heading/table/alt/contrast 필수 기준 PASS"
+    },
+    {
+      "id": "PDF_PREFLIGHT_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "PDF font/glyph/link/page/embedded resource preflight PASS"
+    },
+    {
+      "id": "DOCUMENT_SIZE_CAP_ABSENCE_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "README/DOCX/PDF 총 페이지·용량·문자·단어·Section/Figure Hard Cap 0"
+    },
+    {
+      "id": "CONTENT_COVERAGE_NOT_TRUNCATED_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "길이/페이지를 이유로 Source-backed 기능·장점·Reader Task Coverage 삭제 0"
+    },
+    {
+      "id": "README_BROCHURE_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "README Hero/dark brochure/visual narrative/scan rhythm이 제품 간판 수준으로 유지"
+    },
+    {
+      "id": "README_AI_TEXT_COMPANION_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "README 모든 의미 Figure에 non-empty Alt Text + 바로 아래 1~2문장 한글 설명"
+    },
+    {
+      "id": "INFORMATION_ARCHITECTURE_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "각 문서가 Profile Persona/Entry/Exit과 How-to/Reference/Explanation 의도에 맞는 구조"
+    },
+    {
+      "id": "FULL_PAGE_FRESH_EYES_REVIEW_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "전페이지 Scan pass + 각 페이지 Detail pass Evidence 모두 존재"
+    },
+    {
+      "id": "FLEXIBLE_TABLE_LAYOUT_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "고정폭/균등폭 압축 대신 내용 기반 유연 폭·Landscape/분할로 wrap 최소화"
+    },
+    {
+      "id": "LONG_DOCUMENT_NAVIGATION_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "긴 문서가 실제 TOC/Heading/Navigation으로 필요한 정보를 빠르게 찾을 수 있음"
     }
   ],
   "manualVisualScore": {
     "scale": "1..5",
     "minimumEach": 4,
-    "minimumAverage": 4.4,
+    "minimumAverage": 4.6,
     "dimensions": [
       "hierarchy_and_scanability",
       "vertical_rhythm",
@@ -169,7 +301,22 @@
       "reader orientation",
       "connector cleanliness",
       "table semantic fitness",
-      "provenance isolation"
+      "provenance isolation",
+      "line_break_economy",
+      "reader_task_completeness",
+      "readme_product_value",
+      "table_fragment_pagination",
+      "readme_scanability",
+      "natural_value_expression",
+      "vertical_breathing",
+      "semantic_table_width_fit",
+      "wrap_economy",
+      "reader_task_actionability",
+      "information_architecture_fit",
+      "no_content_truncation",
+      "fresh_eyes_scan_quality",
+      "readme_brochure_quality",
+      "readme_ai_text_companion"
     ],
     "criticalZeroRequired": [
       "text_overlap",
@@ -196,9 +343,29 @@
       "major_heading_orphan_wrap",
       "section_transition_crowding",
       "embedded_figure_boundary_intrusion",
-      "semantically_incomplete_visual"
+      "semantically_incomplete_visual",
+      "unjustified_equal_width_by_content",
+      "excessive_wrap_density",
+      "major_section_breathing_insufficient",
+      "semantic_block_crowding",
+      "table_fragment_orphan",
+      "reader_top_task_missing",
+      "readme_value_underrepresented",
+      "promotional_benefit_heading",
+      "readme_dense_wall",
+      "readme_consecutive_table_or_figure",
+      "semantic_table_width_inversion",
+      "short_token_wrap",
+      "manual_gate_not_executed",
+      "manual_evidence_missing",
+      "reader_task_keyword_only_false_green",
+      "content_truncated_for_length",
+      "readme_brochure_missing",
+      "readme_ai_text_companion_missing",
+      "fresh_eyes_second_pass_missing",
+      "information_architecture_reader_need_mismatch"
     ],
-    "rule": "평균이 높아도 Critical 결함 1건이면 FAIL. 모든 Dimension 4 이상이어야 한다."
+    "rule": "평균이 높아도 Critical 결함 1건이면 FAIL. 모든 적용 가능한 Dimension 4 이상, 평균 4.6 이상이어야 한다. README 전용 Dimension은 README에만 적용한다."
   },
   "regression": {
     "scope": "변경된 페이지/블록 + 인접 영향 페이지",
@@ -220,5 +387,26 @@
     "afterApproval": "PATCH_ONLY",
     "secondFreshRewriteWithoutNewExplicitRejection": "FORBIDDEN"
   },
-  "falseGreenRule": "Automated PASS cannot override a user-visible defect. Any user-visible defect makes the affected artifact FAIL until the Harness rule/fixture and artifact are both corrected."
+  "falseGreenRule": "Automated PASS cannot override a user-visible defect. Any user-visible defect makes the affected artifact FAIL until the Harness rule/fixture and artifact are both corrected.",
+  "finalAcceptance": {
+    "authoritativeValidator": "validators/validate_final_acceptance.py / validate_final_acceptance.ps1",
+    "passOnlyIf": "EVERY required stage exactly PASS AND unresolvedCriticalFindings=0 AND all required evidence refs exist AND all target artifacts have approvalState VISUAL_QA_APPROVED or USER_APPROVED",
+    "forbiddenFinalStates": [
+      "AUTOMATED_PASS_ONLY",
+      "NOT_EXECUTED",
+      "BLOCKED",
+      "UNKNOWN",
+      "SKIPPED",
+      "PARTIAL",
+      "WAIVED"
+    ],
+    "waiverPolicy": "No waiver can convert a required gate to PASS. External blocking means final status remains FAIL/INCOMPLETE.",
+    "manualEvidenceMandatory": true,
+    "contactSheetAloneInsufficient": true,
+    "noContentTruncationForLength": true,
+    "noTotalDocumentSizeCap": true,
+    "readmeBrochureMandatory": true,
+    "readmeAiTextCompanionMandatory": true,
+    "twoPassVisualReviewMandatory": true
+  }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -47,7 +47,6 @@
     "longProseTableCells": 0,
     "repeatedGenericDiagramTemplate": 0,
     "readmeToc": 0,
-    "readmeUnnumberedH1": 0,
     "lowContrastRequiredFigureText": 0,
     "missingFigureKoreanExplanation": 0,
     "denseUniformHeadingSpacing": 0,
@@ -128,7 +127,44 @@
     "connectorCrossesTextOrLabel": 0,
     "connectorEndpointNotOnTargetBoundary": 0,
     "connectorSourceNodeIntrusion": 0,
-    "tocTabStopOutsideWritableArea": 0
+    "tocTabStopOutsideWritableArea": 0,
+    "unjustifiedEqualWidthByContent": 0,
+    "excessiveCellWrapDensity": 0,
+    "majorSectionBreathingInsufficient": 0,
+    "semanticBlocksVisuallyCrowded": 0,
+    "tableFragmentOrphan": 0,
+    "readerTopTaskMissing": 0,
+    "readmeValueCoverageInsufficient": 0,
+    "promotionalBenefitHeading": 0,
+    "readmeDedicatedBenefitSection": 0,
+    "readmeDenseWallOfText": 0,
+    "readmeConsecutiveTables": 0,
+    "readmeConsecutiveLargeFigures": 0,
+    "readmeValueConcentratedInOneSection": 0,
+    "semanticTableWidthInversion": 0,
+    "renderedTableWidthMismatch": 0,
+    "shortTokenWrap": 0,
+    "excessiveCellWrap": 0,
+    "insufficientH1Breathing": 0,
+    "insufficientH2Breathing": 0,
+    "insufficientH3Breathing": 0,
+    "insufficientSemanticTransitionGap": 0,
+    "readerTaskKeywordOnlyFalseGreen": 0,
+    "manualGateNotExecuted": 0,
+    "manualEvidenceMissing": 0,
+    "requiredGateNonPass": 0,
+    "automatedOnlyFinalPassAttempt": 0,
+    "readmeH1CountNotOne": 0,
+    "documentTotalSizeCap": 0,
+    "coverageTruncatedForLength": 0,
+    "readmeBrochureStructureMissing": 0,
+    "readmeVisualKoreanCompanionMissing": 0,
+    "readmeImageAltMissing": 0,
+    "readmeBrochureVisualRhythmMissing": 0,
+    "informationArchitectureReaderNeedMismatch": 0,
+    "longDocumentNavigationMissing": 0,
+    "fixedWidthTableCausesWrap": 0,
+    "manualFreshEyesReviewMissing": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -334,5 +370,31 @@
       "right-aligned tab stop이 page width 또는 text width 밖에 있거나 page number가 clipping/overflow 되면 FAIL.",
       "DOCX와 Fresh PDF 삽입/렌더에서 오른쪽 dot leader가 page edge에 닿지 않고 페이지 번호가 명확히 보여야 한다."
     ]
+  },
+  "manualReadabilityGate": {
+    "everyPageRequired": true,
+    "contactSheetOnly": "insufficient",
+    "check": [
+      "세로 여백/호흡",
+      "표 열폭과 줄개행",
+      "문단 과밀",
+      "제목 계층",
+      "독자 작업 완결성",
+      "Figure connector/box boundary",
+      "README scanability/natural value expression"
+    ],
+    "rule": "한 항목이라도 보기 어렵거나 답답하면 HUMAN_VISUAL_PASS 불가"
+  },
+  "v2_8_strict": {
+    "noTotalSizeCap": true,
+    "coverageTruncationForLength": "hard_fail",
+    "readmeBrochure": "mandatory",
+    "readmeAiTextCompanion": "mandatory for every informative figure",
+    "freshEyesTwoPass": [
+      "scan_pass_all_pages",
+      "detail_pass_every_page",
+      "high_risk_200pct"
+    ],
+    "totalLengthRule": "longer document is acceptable; cramped/omitted content is not"
   }
 }

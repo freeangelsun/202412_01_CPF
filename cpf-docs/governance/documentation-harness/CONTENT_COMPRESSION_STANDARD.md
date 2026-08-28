@@ -1,8 +1,8 @@
-# CPF 산출물 내용 압축 표준 — Harness v2.5.0
+# CPF 산출물 내용 구조화 표준 — Harness v2.8.0
 
 ## 1. 상위 원칙
 
-공식 산출물은 책이 아니다. 독자가 업무를 수행하기 위해 필요한 정보만 남긴다. 페이지 수·기능명 개수·설명 길이는 품질 지표가 아니다.
+여기서 “압축”은 페이지 수를 줄이는 뜻이 아니라 **중복과 불필요한 일반론을 제거하고 정보 구조를 명확히 하는 것**이다. 독자가 업무를 수행하는 데 필요한 Source-backed 정보에는 총 분량 상한을 두지 않는다. 페이지 수·기능명 개수·설명 길이는 품질 지표가 아니다.
 
 ## 2. 작성 순서
 
@@ -37,7 +37,7 @@
 - 거래/호출 절은 `하려는 일 → 패턴 → API/Annotation → 옵션 → 언제 선택 → 피해야 할 경우 → 오류/실패 → Retry/Idempotency/Reconcile/Compensation → 검증` 흐름을 우선한다.
 - Same JVM과 Remote Domain Invocation은 같은 업무 계약의 Topology 차이로 설명한다. 내부 Domain 간 호출을 Gateway 경유로 설명하지 않는다.
 - 저빈도 기능이나 내부 구현 상세는 본문을 늘리지 말고 1~2문장 요약 후 Specification/Source/EDU로 연결한다.
-- Preferred Page Budget 상단을 넘기면 먼저 반복·저빈도·배경 설명을 제거한다. 페이지 수를 채우는 방향으로 작성하지 않는다.
+- 총 페이지 Budget은 두지 않는다. 반복·중복·독자 작업에 불필요한 설명만 제거하고, 필요한 Source-backed Coverage는 길이와 무관하게 유지한다.
 
 ## 7. 시각적 구조와 분량 균형
 
@@ -48,3 +48,13 @@
 - 사용자 Windows Repository Root `C:\dev\projects\jck\202412_01_CPF`를 포함한 생성 파일 절대경로는 150자를 초과하지 않는다.
 - Repository에는 현행 `cpf-docs/governance/documentation-harness/**` 한 세트만 유지한다. 과거 Harness 버전, 날짜/R/REV/SESSION suffix, ZIP 해제본, 세션 백업, Validator 임시 출력은 삭제 대상이다.
 - 목차는 실제 H1/H2가 화면에 보여야 하며 빈 TOC Field 페이지만 남는 산출물은 FAIL이다.
+
+
+## v2.8.0 강제 보강
+
+- README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
+- 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
+- 길이 때문에 Source-backed Coverage 또는 Reader Task를 줄이면 FAIL한다.
+- README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
+- 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
+- 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.

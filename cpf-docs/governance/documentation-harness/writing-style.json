@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "language": {
     "primary": "ko-KR",
@@ -185,5 +185,18 @@
     "sourceZip": "forbidden",
     "buildBaseline": "forbidden",
     "evidenceOnly": true
+  },
+  "readmeBenefitExpression": {
+    "dedicatedHeading": "forbidden",
+    "marketingLabel": "forbidden",
+    "rule": "제품의 구조/동작/개발 흐름을 설명하면서 결과로 얻는 효과를 같은 문단 또는 인접 1문장에 자연스럽게 녹인다. “장점/왜 좋은가/달라지는 점”을 별도 제목으로 만들지 않는다.",
+    "proof": "Source-backed capability/fact must precede or accompany benefit claim"
+  },
+  "paragraphRhythm": {
+    "preferredVisualLines": "3..7",
+    "hardMaxChars": 420,
+    "hardMaxSentences": 5,
+    "denseWalls": "hard_fail",
+    "spaceBetweenParagraphs": "at least 50% of line spacing; CPF DOCX token 7.5pt or greater"
   }
 }

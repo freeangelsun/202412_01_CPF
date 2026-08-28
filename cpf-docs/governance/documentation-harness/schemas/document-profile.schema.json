@@ -32,7 +32,6 @@
         "required": [
           "title",
           "model",
-          "requiredH2",
           "additionalH2",
           "additionalH3",
           "tables",
@@ -53,8 +52,28 @@
               "type": "string",
               "minLength": 1
             }
+          },
+          "requiredTopics": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           }
-        }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "requiredH2"
+            ]
+          },
+          {
+            "required": [
+              "requiredTopics"
+            ]
+          }
+        ]
       }
     },
     "coverageLocked": {

@@ -1,8 +1,15 @@
-# CPF Documentation Harness exact stale delete manifest
-cpf-docs/governance/documentation-harness/CHANGELOG.md
+# CPF Documentation Harness v2.8.0 exact stale delete manifest
+cpf-docs/governance/documentation-harness-v2.3.0
+cpf-docs/governance/documentation-harness-v2.4.0
+cpf-docs/governance/documentation-harness-v2.5.0
+cpf-docs/governance/documentation-harness-v2.6.0
+cpf-docs/governance/documentation-harness-v2.7.0
+cpf-docs/governance/documentation-harness-v2.8.0
+cpf-docs/governance/documentation-harness-old
+cpf-docs/governance/documentation-harness/_old
 cpf-docs/governance/documentation-harness/_backup
 cpf-docs/governance/documentation-harness/_history
 cpf-docs/governance/documentation-harness/_session
-cpf-docs/governance/documentation-harness-old
-cpf-docs/governance/documentation-harness-v2.3.0
-cpf-docs/governance/documentation-harness-v2.4.0
+cpf-docs/governance/documentation-harness/CHANGELOG.md
+cpf-docs/governance/documentation-harness/validators/__pycache__
+cpf-docs/governance/documentation-harness/.pytest_cache

@@ -1,72 +1,63 @@
 # CPF Documentation Harness Reference Basis
 
-## 1. 우선순위
+## 1. 적용 우선순위
 
-CPF 사용자 Steering, 최신 Source, Canonical Requirement가 최우선이다. 외부 작성·접근성 표준은 CPF 문서를 더 읽기 쉽고 검증 가능하게 만드는 범위에서만 반영하며, CPF Architecture/Source 계약을 바꾸는 근거로 사용하지 않는다.
+CPF 사용자 Steering, 최신 Source, Canonical Requirement가 최우선이다. 외부 문서 작성·접근성 기준은 CPF 문서를 더 읽기 쉽고 검증 가능하게 만드는 범위에서만 사용하며 Architecture/API/Ownership을 바꾸는 근거로 사용하지 않는다.
 
-## 2. 이번 Harness에 반영한 외부 근거
+## 2. 외부 근거와 Harness 반영
 
-### Microsoft Writing Style Guide — Scannable content
+### Microsoft Writing Style Guide — Scannable content / Headings
 
-- 중요한 내용을 먼저 두고, 짧은 제목·문장·문단과 일관된 패턴으로 스캔 속도를 높인다.
-- 긴 문서는 내부 탐색 수단을 제공한다.
-- 참고: https://learn.microsoft.com/en-us/style-guide/scannable-content/
+- 중요한 내용을 먼저 배치하고 짧은 제목·문장·문단, 일관된 Pattern, 긴 문서 Navigation을 사용한다.
+- Heading은 위쪽 여백을 더 크게 두고 아래 첫 본문과 가깝게 묶어 계층을 시각화한다.
+- CPF 반영: H1/H2/H3 Vertical Rhythm, 장문 재구성, 긴 문서 Navigation, Scan pass.
+- https://learn.microsoft.com/en-us/style-guide/scannable-content/
+- https://learn.microsoft.com/en-us/style-guide/scannable-content/headings
 
 ### Microsoft Word Accessibility
 
-- Table은 데이터에만 사용하고 가능하면 단순 구조를 사용한다. Header Row를 지정하고 Merge/Split/Nested/Blank structural cell을 피한다.
-- Built-in Heading Style, Alt Text, 충분한 Contrast, 실제 Accessibility Checker를 사용한다.
-- 참고: https://support.microsoft.com/en-us/accessibility/word/make-your-word-documents-accessible-to-people-with-disabilities
+- 표는 데이터 관계에만 사용하고 단순 구조/Header Row를 사용한다. Fixed-width Table을 피하고 Window/Contents에 맞는 유연 폭을 사용한다.
+- Built-in Heading Style, Alt Text, 의미 있는 Link Text, 충분한 Contrast, Accessibility Checker를 사용한다.
+- CPF 반영: Table semantic fit, content-aware width, Alt Text, Heading hierarchy, Accessibility Gate.
+- https://support.microsoft.com/en-US/accessibility/word/make-your-word-documents-accessible-to-people-with-disabilities
+- https://support.microsoft.com/en-US/accessibility/word/make-your-word-documents-accessible-to-everyone-with-accessibility-assistant
 
-### Google Developer Documentation Style Guide
+### GOV.UK — Publishing accessible documents
 
-- Table은 여러 속성의 관계형 데이터에 적합하고, 단순 목록·절차·레이아웃에는 List/본문을 사용한다.
-- Headings는 계층적으로 사용하고 본문은 좌측 정렬하며, 이미지에는 의미 있는 Alt Text를 제공한다.
-- 참고: https://developers.google.com/style/tables
-- 참고: https://developers.google.com/style/lists
-- 참고: https://developers.google.com/style/accessibility
+- 의미 있는 Subheading, Bullet, Numbered Step으로 문서를 나누고 Heading Level을 건너뛰지 않는다.
+- Table은 실제 데이터에만 사용하며 이미지에는 Alt Text를 제공하고 Contrast/Accessibility Check를 수행한다.
+- CPF 반영: 레이아웃용 Table 금지, Semantic Heading, Alt Text, Manual Accessibility Review.
+- https://www.gov.uk/guidance/publishing-accessible-documents
 
-### GOV.UK Design System / Content Guidance
+### W3C WCAG 2.2 / WCAG2ICT
 
-- Heading 계층과 Style을 일관되게 유지하고, Type/Spacing Scale로 일정한 Vertical Rhythm을 만든다.
-- Table Header는 구조를 설명해야 하며 복잡한 Table은 분해한다.
-- 참고: https://design-system.service.gov.uk/styles/headings/
-- 참고: https://design-system.service.gov.uk/styles/type-scale/
-- 참고: https://design-system.service.gov.uk/components/table/
+- 일반 Text 4.5:1, 큰 Text와 의미 Graphic 3:1 Contrast 기준을 적용한다.
+- Text spacing 변경/확대에도 내용 손실이 없어야 한다.
+- CPF 반영: Contrast Hard Gate, Font/Margin/Spacing 축소로 페이지 수를 압축하는 행위 금지, 확대/복수 Renderer 검증.
+- https://www.w3.org/TR/WCAG22/
+- https://www.w3.org/WAI/WCAG22/Understanding/text-spacing
+- https://www.w3.org/TR/wcag2ict-22/
 
-### W3C WCAG 2.2
+### Diátaxis
 
-- 일반 Text 대비는 4.5:1, 큰 Text는 3:1 이상을 기준으로 한다.
-- 이해에 필요한 Graphical Object/Boundary/Connector는 인접 배경과 3:1 이상의 Non-text Contrast를 확보한다.
-- 참고: https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum
-- 참고: https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast
+- Documentation 사용자의 요구를 Tutorial, How-to, Reference, Explanation으로 구분하고 그 요구를 중심으로 정보 구조를 설계한다.
+- CPF 반영: README=Overview/Wayfinding, Developer/Operator=How-to 중심, Specification/Standard=Reference 중심, Architecture=Explanation+Reference.
+- https://diataxis.fr/
 
+### GitHub Repository README
 
-### Microsoft Style Guide — Tables / Procedures
+- README는 Repository 사용자가 프로젝트를 이해하고 탐색하는 첫 진입점이다.
+- CPF 반영: README를 다크 브로셔형 제품 간판 + 역할별 Navigation으로 사용하며 단순 Reference Sheet처럼 만들지 않는다.
+- https://docs.github.com/en/repositories/creating-and-managing-repositories/best-practices-for-repositories
 
-- 표는 관계형 데이터에 사용하고 단순 목록을 표로 만들지 않는다. 다운로드 문서의 긴 표는 Header Row 반복을 사용한다.
-- 절차는 작업을 설명하는 짧은 Heading과 번호 목록으로 구성하고, Heading을 반복 설명하는 불필요한 도입문을 피한다.
-- 참고: https://learn.microsoft.com/en-us/style-guide/scannable-content/tables
-- 참고: https://learn.microsoft.com/en-us/style-guide/procedures-instructions/writing-step-by-step-instructions
+## 3. CPF 강제 해석
 
-### GOV.UK — Accessible Documents / Tables
-
-- Word/PDF에서도 Heading Style, Table Header, Contrast, Accessibility Check를 사용하고 단순 레이아웃 장식을 구조로 오인하지 않게 한다.
-- 표는 데이터를 한눈에 비교할 때만 쓰고, 너무 작거나 복잡한 표는 일반 본문·목록 또는 분리된 표로 바꾼다.
-- 참고: https://www.gov.uk/guidance/publishing-accessible-documents
-- 참고: https://guidance.publishing.service.gov.uk/formatting-content/text-formatting/tables/
-
-### Home Office — Headings
-
-- Heading은 실제로 뒤따르는 내용을 설명하는 탐색 구조여야 하며, 시각적 강조를 위해 Heading Style을 사용하지 않는다. Heading level을 건너뛰지 않는다.
-- 참고: https://design.homeoffice.gov.uk/accessibility/page-structure/headings
-
-## 3. CPF 적용 해석
-
-외부 원칙을 그대로 복사하지 않는다. CPF에서는 다음으로 구체화한다.
-
-- 문서 도입부의 독자/목적은 자연스러운 1~2문장 Lead로 표현하고 Key/Value Layout Table을 만들지 않는다.
-- Harness version, Source SHA, build baseline은 Evidence/Manifest에만 두며 사용자 본문에 노출하지 않는다.
-- Connector는 대상 Box 내부로 들어가지 않고 외곽 Boundary에서 종료한다.
-- 원본 Figure 검사만으로 PASS하지 않고 README/DOCX/PDF에 실제 삽입된 크기에서 Crop, Boundary, Effective Text Size, Contrast를 다시 검사한다.
-- 사용자 지적은 공통 Rule + Negative Fixture + Validator Assertion으로 고정해 같은 문제의 재발을 막는다.
+- **총 문서 용량 제한 없음:** README/DOCX/PDF의 파일 크기, 페이지, 문자, 단어, H2, Figure 총수 상한을 두지 않는다.
+- **Coverage 우선:** 길이를 줄이기 위해 Source-backed 기능·장점·Reader Task를 삭제하면 Hard Fail이다. 과밀하면 Section/Paragraph/Figure/Table/Navigation을 재구성한다.
+- **README 브로셔 유지:** Hero, Dark CPF-owned Surface, 시각 Story, 자연스러운 장점 표현을 유지한다.
+- **AI/텍스트 대응 유지:** README의 모든 의미 Figure는 의미 있는 Alt Text와 바로 아래 1~2문장의 간략 한글 설명을 가진다.
+- **표는 내용 기반 유연 폭:** 비대칭 균등폭, 고정 50:50, Header/short token wrap을 허용하지 않는다.
+- **Figure Geometry:** Connector는 Node Boundary에서 끝나고 Text/Label/다른 Node를 침범하지 않는다. 실제 README/DOCX/PDF 삽입 상태를 검증한다.
+- **시각검수 이중화:** 전페이지 Contact Sheet Scan pass + 각 페이지 Detail pass를 모두 수행하고 Evidence를 남긴다.
+- **작성자 독립성:** Harness만 읽고도 동일 품질 절차를 수행할 수 있도록 Design Playbook, Reader Needs, README Standard, Authoring Protocol을 정본으로 유지한다.
+- **False Green 금지:** Required Gate 하나라도 FAIL/BLOCKED/NOT_EXECUTED/UNKNOWN/PARTIAL/WAIVED이면 전체 PASS 불가.

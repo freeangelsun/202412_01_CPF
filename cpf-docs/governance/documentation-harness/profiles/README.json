@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -14,208 +14,28 @@
     "Architect/기술 의사결정자",
     "운영 담당자"
   ],
-  "entryCondition": "Repository 첫 화면에서 CPF를 평가하거나 처음 실행하려는 상태",
-  "exitCondition": "CPF의 차별점과 실제 개발·운영 편의를 이해하고 시작 경로와 상세 문서를 찾을 수 있다.",
+  "entryCondition": "Repository 첫 화면에서 CPF가 무엇인지 평가하거나 개발·운영 진입점을 찾는 상태",
+  "exitCondition": "CPF의 정체성·구조·개발/운영 방식과 실제 강점을 자연스럽게 이해하고, 필요한 시작 명령과 상세 PDF 문서를 찾을 수 있다.",
   "orientation": "screen",
   "globalRules": {
     "allH1MustAppearExactlyOnce": false,
     "allRequiredH2MustAppearExactlyOnce": false,
-    "renamingHeadings": "semantic meaning locked; concise wording allowed",
-    "reorderingHeadings": "allowed when reader flow improves; preserve approved order unless Finding requires change",
-    "extraSections": "forbidden unless coverage gap requires it",
+    "renamingHeadings": "flow/topic meaning locked; 자연스럽고 짧은 문구 허용. 장점/효익/차별점 전용 Heading은 금지.",
+    "reorderingHeadings": "requiredFlow 순서를 보존. 사용자 명시 변경 또는 독자 Flow 결함 근거가 있을 때만 변경.",
+    "extraSections": "allowed when Reader Need/Source Coverage requires it; no arbitrary total H2 cap",
     "contentDensityRef": "content-density.json",
     "coverageMustRemain": true
   },
   "sections": [
     {
-      "title": "1. 호출·오케스트레이션은 배포 구조가 달라져도 같은 업무 계약을 유지합니다",
+      "title": "CPF 개요",
       "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "1.1 Same JVM과 Remote를 같은 Domain Invocation 계약으로 호출",
-        "1.2 호출 순서와 실패 경계를 오케스트레이션 계약으로 분리",
-        "1.3 System6·transactionId·operationId·instanceId로 거래를 연결"
+      "requiredTopics": [
+        "CPF 정의와 적용 범위",
+        "업무 코드는 Domain에 두고 CPF는 공통 실행/운영 방식을 제공",
+        "Spring Boot 기반 Business Platform Framework"
       ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "SPLIT_COMPARE",
-        "OPERATIONS_TRACE"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "2. 성공과 실패 사이의 불확실성까지 거래 상태로 관리합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "2.1 Local Transaction과 원격 Side Effect를 구분",
-        "2.2 UNKNOWN을 추측하지 않고 Reconcile",
-        "2.3 Idempotency로 중복 Side Effect를 제어",
-        "2.4 Saga·TCC·XA를 자원 특성에 맞게 선택"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "RECOVERY_STATE_MAP"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "3. Batch는 실행·제어·복구 역할을 나눠 운영 실수를 줄입니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "3.1 Control Plane·Scheduler·Worker·Center-Cut·Agent 역할",
-        "3.2 Restart·Rerun·Reprocess·Reconcile 선택",
-        "3.3 Lease·Fencing·Heartbeat와 Process Kill 복구"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "BATCH_CONTROL_EXECUTION_MAP"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "4. Domain 생성부터 Starter와 DB까지 같은 규칙으로 맞춥니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "4.1 Generator가 Domain 구조와 Package를 Canonical하게 생성",
-        "4.2 필요한 Starter·Provider만 조합",
-        "4.3 Oracle·PostgreSQL·MariaDB Lifecycle을 함께 관리"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "LIFECYCLE_PIPELINE"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "5. 외부 연계와 Gateway·Backoffice도 업무 Owner 경계를 유지합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "5.1 외부 연계·Messaging·File·Notification의 실패와 재처리",
-        "5.2 Gateway 선택 시와 미선택 시 경계를 한눈에 비교",
-        "5.3 내부 Domain 간 호출은 Gateway를 경유하지 않음",
-        "5.4 Backoffice는 Owner Domain을 우회하지 않음"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "GATEWAY_OPTIONALITY",
-        "OWNERSHIP_BOUNDARY"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "6. 운영자는 거래와 Runtime을 같은 식별 체계로 추적합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "6.1 Log·Trace·Timeline·Health를 한 흐름으로 확인",
-        "6.2 위험 조치는 Permission·Reason·Approval·Audit와 연결",
-        "6.3 운영 상태와 복구 결과를 같은 기준으로 확인"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "OPERATIONS_TRACE"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "7. 반복 공통 기능을 다시 만들지 않고 필요한 Capability를 선택합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "7.1 Cache·Validation·Messaging·File·Notification 공통 계약",
-        "7.2 Security·Masking·Audit·Approval 공통 정책",
-        "7.3 Config·Profile·Provider로 Runtime 기능 선택"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "CAPABILITY_LANDSCAPE"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "8. 시작·생성·Build·Test 흐름이 정해져 있어 바로 개발에 들어갑니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "8.1 Bootstrap으로 개발 환경 준비",
-        "8.2 Build·Test·Runtime을 검증된 명령으로 실행",
-        "8.3 Generator CLI로 Domain 생성·검증"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "LIFECYCLE_PIPELINE"
-      ],
-      "maxCodeLevel": "L2",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "9. 필요한 매뉴얼과 상세 가이드를 역할별로 바로 찾습니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "9.1 Framework·Batch 개발자는 개발 가이드에서 선택/API를 확인",
-        "9.2 운영자는 운영자·Batch 운영 가이드에서 판단과 조치를 확인",
-        "9.3 Gateway·Specification·Architecture·DB 표준은 상세 계약과 경계를 확인"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
-    },
-    {
-      "title": "10. Community & Evaluation License",
-      "model": "BROCHURE_PANEL",
-      "introRule": "Content Model의 compact 규칙을 따른다.",
-      "requiredH2": [
-        "CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다."
-      ],
+      "benefitRule": "장점이라는 라벨을 붙이지 않고 제품 정의 문장 안에서 반복 구현 감소·표준화 효과가 자연스럽게 드러나게 한다.",
       "additionalH2": false,
       "additionalH3": false,
       "tables": [],
@@ -223,7 +43,126 @@
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": [],
-      "renderPolicy": "coverage target; may merge with adjacent section if reader question remains answered"
+      "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
+    },
+    {
+      "title": "전체 구조와 Module 역할",
+      "model": "BROCHURE_PANEL",
+      "requiredTopics": [
+        "cpf-core/cpf-common/cpf-admin/cpf-backoffice/cpf-batch/cpf-starters 역할",
+        "Generated Domain 위치",
+        "Gateway는 External Boundary에서 선택적으로 사용",
+        "내부 Domain 호출은 Gateway 비경유"
+      ],
+      "figures": [
+        "README_ARCHITECTURE_MAP"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": [],
+      "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
+    },
+    {
+      "title": "업무 Domain 개발 흐름",
+      "model": "BROCHURE_PANEL",
+      "requiredTopics": [
+        "Bootstrap",
+        "Generator",
+        "Starter/Provider 선택",
+        "Build/Test/Runtime",
+        "DB3 Oracle/PostgreSQL/MariaDB"
+      ],
+      "benefitRule": "개발자가 무엇을 하면 되는지를 먼저 보여주고, 구조·Package·DB·실행 방식이 자동으로 맞춰지는 효과를 설명 속에 녹인다.",
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": [],
+      "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
+    },
+    {
+      "title": "거래·호출·실패 처리",
+      "model": "BROCHURE_PANEL",
+      "requiredTopics": [
+        "Same JVM/Remote Domain Invocation",
+        "System6/거래 식별",
+        "Local vs Remote failure",
+        "UNKNOWN/Reconcile",
+        "Idempotency",
+        "Saga/TCC/XA 선택"
+      ],
+      "benefitRule": "배포 구조 변화와 실패·복구 표준화의 이점은 동작 흐름의 결과로만 설명한다.",
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": [],
+      "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
+    },
+    {
+      "title": "Batch·외부 연계·운영",
+      "model": "BROCHURE_PANEL",
+      "requiredTopics": [
+        "Batch Control Plane/Scheduler/Worker/Center-Cut/Agent",
+        "Restart/Rerun/Reprocess/Reconcile",
+        "Lease/Fencing/Heartbeat/Process Kill",
+        "Integration/Messaging/File/Notification",
+        "Trace/Timeline/Health",
+        "Permission/Reason/Approval/Audit"
+      ],
+      "benefitRule": "운영자가 판단·복구·추적할 수 있는 흐름을 보여주며 별도 장점 장을 만들지 않는다.",
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": [],
+      "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
+    },
+    {
+      "title": "사용해보기",
+      "model": "BROCHURE_PANEL",
+      "requiredTopics": [
+        "Bootstrap",
+        "Build",
+        "Test",
+        "Runtime",
+        "Generator"
+      ],
+      "positionRule": "README 최상단 금지. 제품·구조·개발 흐름을 이해한 뒤 배치.",
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": [],
+      "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
+    },
+    {
+      "title": "문서 안내와 License",
+      "model": "BROCHURE_PANEL",
+      "requiredTopics": [
+        "역할별 PDF 문서 링크",
+        "Community & Evaluation License"
+      ],
+      "linkRule": "PDF_ONLY; DOCX direct link forbidden",
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": [],
+      "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
     }
   ],
   "specialRules": {
@@ -246,13 +185,14 @@
       "preset": "README_ARCHITECTURE_MAP"
     },
     "visualCount": {
-      "min": 5,
       "preferred": [
         6,
         7
       ],
-      "hardMax": 8,
-      "sameLayoutMax": 2
+      "sameLayoutMax": 2,
+      "upperBound": "NONE",
+      "minimum": 5,
+      "rule": "의미 있는 Figure 수에 총 상한을 두지 않는다. 동일 의미/장식 중복만 제거한다."
     },
     "license": {
       "exactSentence": "CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.",
@@ -277,12 +217,22 @@
       "Figure와 설명 사이 경계가 모호해 설명 귀속을 알기 어려운 배치",
       "직전 PASS Visual/문서를 근거 없이 전면 재작성하여 시각 품질을 회귀시키는 것",
       "사용자 Navigation의 DOCX 링크",
-      "“그림 해석/그림 설명” 같은 generic Figure 라벨"
+      "“그림 해석/그림 설명” 같은 generic Figure 라벨",
+      "“CPF를 적용하면 무엇이 달라지는가” 같은 효과/장점 전용 Heading",
+      "“핵심 장점”, “왜 좋은가”, “이 구조의 장점”, “핵심 해석”, “기반 기술”, “차별점”, “효익”, “좋아지는 점”, “편해지는 점”을 장 제목으로 사용",
+      "장점을 한 Section 또는 표에 몰아서 설명",
+      "3개 이상의 긴 문단을 연속 배치",
+      "표-표 또는 대형 Figure-대형 Figure를 설명/호흡 없이 연속 배치",
+      "한 Section에서 본문·표·그림·불릿을 모두 과밀하게 사용",
+      "상세 Guide 수준의 긴 API/Option/Failure Reference를 README에 복제",
+      "전체 길이/용량/H2 수/Figure 수를 줄이기 위해 Source-backed Coverage를 삭제",
+      "브로셔 시각 흐름을 텍스트/표 중심으로 축소",
+      "의미 Figure의 Alt Text 또는 바로 아래 간략 한글 설명 누락"
     ],
     "headingNumbering": {
-      "H1": "1.",
-      "H2": "1.1",
-      "H3": "1) when explicitly allowed"
+      "H1": "exactly one product title only",
+      "H2": "numbering optional; concise descriptive heading",
+      "H3": "use sparingly; no deeper level"
     },
     "spacing": "H1/H2/본문/Visual은 design-tokens 차등 여백을 사용. H2/H3와 첫 내용 사이를 compact하게, 다음 부제목 전 간격은 더 크게.",
     "valueHighlights": "CPF 차별점은 한 줄 한 메시지 + 일관된 marker/bullet로 표시. 한 문단에서 굵은 문구만 연속 나열 금지.",
@@ -362,7 +312,66 @@
       "coverageLocked": true,
       "exactSectionCount": "not a quality target",
       "mergeAdjacentAllowed": true,
-      "rule": "현재 승인된 메뉴 구조를 우선 보존하고, 과밀/중복/스캔성 문제를 해결할 때만 병합·축약한다."
+      "rule": "현재 승인된 메뉴 구조를 우선 보존하고, 과밀/중복/스캔성 문제를 해결할 때만 병합·분리·재배치한다. Reader Task/Source Coverage 삭제는 금지."
+    },
+    "scanability": {
+      "singleH1Required": true,
+      "h2Min": 5,
+      "maxHeadingDepth": 3,
+      "paragraphPreferredVisualLines": "3..7",
+      "consecutiveLongParagraphsMax": 2,
+      "longParagraphChars": 220,
+      "consecutiveTables": 0,
+      "consecutiveLargeFiguresWithoutExplanation": 0,
+      "tableMaxColumns": 4,
+      "tableMaxDataRowsPreferred": 8,
+      "sectionRule": "한 Section은 하나의 독자 질문/작업에 집중. 한 화면에서 핵심 1~2개가 먼저 보이게 한다.",
+      "detailOffload": "세부 API/옵션/긴 규격은 PDF Guide/Specification으로 이동",
+      "h2UpperBound": "NONE",
+      "paragraphReviewOverChars": 420,
+      "paragraphReviewOverSentences": 5,
+      "onViolation": "restructure; do not truncate coverage",
+      "tableCellReviewOverChars": 90
+    },
+    "naturalValueDiscovery": {
+      "required": true,
+      "rule": "CPF의 강점은 제품 정의·구조·개발 흐름·실패/복구·Batch·운영 설명 속에서 구조/동작의 결과로 자연스럽게 드러나야 한다. 장점 전용 Section/Heading/마케팅 표 금지.",
+      "distributedValueGroupsMin": 7,
+      "distinctFunctionalSectionsMin": 4,
+      "maxValueShareInSingleSectionPct": 45,
+      "firstScanValueGroupsMin": 3,
+      "forbiddenDedicatedValueSection": true
+    },
+    "brochureMode": {
+      "required": true,
+      "heroFirst": true,
+      "darkCpfOwnedSurface": true,
+      "visualNarrativeRequired": true,
+      "tableHeavyLandingPage": "hard_fail",
+      "readerFirstScan": "첫 화면에서 CPF 정체성, 적용 범위, 대표 시각 인상을 파악할 수 있어야 함",
+      "benefitPresentation": "별도 장점 장 금지. 구조/기능/개발/운영 설명의 결과로 자연스럽게 드러냄"
+    },
+    "aiTextCompanion": {
+      "requiredForEveryInformativeFigure": true,
+      "altTextRequired": true,
+      "visibleKoreanCompanionRequired": true,
+      "companionSentences": "1~2",
+      "companionPurpose": "그림을 보지 못해도 AI/검색/텍스트 독자가 핵심 구조·관계·결과를 이해",
+      "genericLabelsForbidden": [
+        "그림 설명",
+        "그림 해석",
+        "이미지 설명"
+      ],
+      "fileNameOnlyAlt": "hard_fail"
+    },
+    "totalSizePolicy": {
+      "totalBytes": "NONE",
+      "totalChars": "NONE",
+      "totalLines": "NONE",
+      "h2UpperBound": "NONE",
+      "figureUpperBound": "NONE",
+      "coverageReductionForLength": "forbidden",
+      "densityFix": "split/restructure/offload exact reference; preserve summary/decision/failure/recovery/value evidence"
     }
   },
   "coverageLocked": true,
@@ -375,7 +384,7 @@
     "splitSectionAllowed": "only when scanability improves and total density does not increase",
     "headingText": "may be shortened for readability without changing meaning",
     "newH1": "forbidden unless Profile Coverage cannot be expressed clearly without it",
-    "openingSummary": "TITLE_SUBTITLE_PLUS_1_TO_2_SENTENCE_LEAD",
+    "openingSummary": "ONE_H1_TITLE_PLUS_1_TO_2_SENTENCE_LEAD_AND_HERO; no reader metadata table; no benefit-list wall",
     "readerMetadataTable": "forbidden",
     "userFacingProvenance": "forbidden"
   },
@@ -403,5 +412,51 @@
   "tablePolicy": {
     "listedPresets": "allowed_when_semantically_needed",
     "mandatoryOnlyWhenAcceptanceExplicitlyRequires": true
+  },
+  "readerTopTasks": [
+    "CPF가 무엇인지 파악",
+    "전체 구조/Module 역할 이해",
+    "업무 Domain 개발 흐름 이해",
+    "거래·호출·실패/복구 방식 이해",
+    "Batch·연계·운영 방식 이해",
+    "개발 시작",
+    "상세 문서 찾기"
+  ],
+  "readerTopTasksAllRequired": true,
+  "readerTaskCompleteness": {
+    "required": true,
+    "dimensions": [
+      "purpose_or_question",
+      "selection_or_when_to_use",
+      "inputs_options_or_prerequisites",
+      "normal_flow_or_procedure",
+      "failure_boundary_or_unknown",
+      "recovery_reconcile_or_next_action",
+      "verification_or_result_check",
+      "source_sample_or_deeper_reference"
+    ],
+    "keywordPresenceOnly": "insufficient",
+    "passRule": "대상 Persona가 적용 가능한 Dimension을 실제로 완료할 수 있어야 하며, 각 Dimension의 수동 Review Evidence가 필요하다.",
+    "notApplicableRule": "Profile에 사유를 명시한 경우에만 NOT_APPLICABLE 허용. 빈칸/미실행을 NOT_APPLICABLE로 대체 금지."
+  },
+  "layoutQuality": {
+    "verticalRhythm": "H1/H2/H3/본문/Table/Figure/Code/Callout 사이의 breathing room을 design-tokens 최소값 이상 확보하고 전페이지 Render에서 답답함 0",
+    "tableWidth": "비대칭 표는 내용/역할 기반 비례폭. Header wrap/short token wrap/semantic width inversion/excessive wrap 0",
+    "manualRenderRequired": true
+  },
+  "documentationIntent": {
+    "primaryMode": "OVERVIEW_WAYFINDING",
+    "readerOutcome": "CPF를 빠르게 이해하고 적절한 시작/상세 문서로 이동",
+    "rule": "문서 유형에 맞는 정보 구조를 사용한다. 서로 다른 독자 요구를 한 장에 혼합해 표/본문을 과밀하게 만들지 않는다.",
+    "referenceBasis": "INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md"
+  },
+  "totalDocumentSizePolicy": {
+    "totalPageLimit": "NONE",
+    "totalByteLimit": "NONE",
+    "totalWordLimit": "NONE",
+    "totalCharacterLimit": "NONE",
+    "totalSectionLimit": "NONE",
+    "coverageReductionForLength": "FORBIDDEN",
+    "onDensity": "restructure, split, change orientation, use navigation/reference; do not omit required reader information"
   }
 }

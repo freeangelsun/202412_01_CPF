@@ -1,23 +1,35 @@
-# CPF README Visual Storyboard — Harness v2.5.0
+# README Visual Storyboard — v2.8.0
 
-README에는 목차를 두지 않는다. Hero 다음에 CPF 전체 Architecture Map을 먼저 보여주고 번호형 H1/H2를 이어간다. 대메뉴·중메뉴는 번호와 차등 여백으로 구분한다. H2/H3 하위 내용은 공통 Content Rail로 묶고, 주요 Visual은 다크 README 위에서 밝은 Surface로 분리한다. 모든 Visual을 네모+화살표로 그리지 않고 내용별 시각 문법을 선택한다.
+README는 **다크 브로셔형 제품 간판**이다. 목차를 두지 않고 제품 H1 하나로 시작한다. H2는 독자의 질문과 Source-backed Coverage가 필요한 만큼 사용하며 **상한을 두지 않는다.**
 
-| 순서 | 섹션 | 핵심 Value | 권장 Visual | 설명 규칙 |
-|---|---|---|---|---|
-| Hero | CPF / Core Platform Framework | 한 줄 제품 정의와 제품 인상 | README_HERO | 밝은 focal surface + editorial layer, 보조 문장 1~2줄 |
-| Architecture | Hero 직후 | Domain·Framework·Gateway·Backoffice·Batch·DB·Operations 위치 | README_ARCHITECTURE_MAP | 밝은 canvas의 Layer/Plane/Ownership Zone. 수평 Box chain 금지 |
-| 1 | 호출·오케스트레이션 | Same JVM/Remote Domain Invocation, System6, Trace Identity | SPLIT_COMPARE / OPERATIONS_TRACE | Split field 또는 Trace Lane. 단순 Box chain 금지 |
-| 2 | 거래 상태와 복구 | Local/Remote 경계, UNKNOWN/Reconcile, Idempotency, Saga/TCC/XA | RECOVERY_STATE_MAP | State Ring/Orbit + Reconcile Branch |
-| 3 | Batch 실행/제어/복구 | 역할, 4가지 복구, Lease/Fencing | BATCH_CONTROL_EXECUTION_MAP | Control Plane ribbon + Execution Lane |
-| 4 | Domain/Starter/DB Canonical | Generator, Starter/Provider, DB3 | LIFECYCLE_PIPELINE | Lifecycle Spine + Milestone / Vendor Band |
-| 5 | Gateway/Integration/Backoffice Boundary | Gateway 선택/미선택, Owner Domain | GATEWAY_OPTIONALITY + OWNERSHIP_BOUNDARY | Split Boundary + Nested Zone. 내부 Domain↔Domain은 Gateway 미경유 |
-| 6 | Operations Trace/Safe Control | IDs, Log/Trace/Timeline, Approval/Audit | OPERATIONS_TRACE | Multi-lane Trace Rail + Event Marker |
-| 7 | Framework Common Capability | 공통 Capability | CAPABILITY_LANDSCAPE | Mosaic/Cluster Landscape, 동일 카드 Grid 금지 |
-| 8 | Bootstrap/Build/Test/Runtime | 개발환경 준비와 실행 | LIFECYCLE_PIPELINE 또는 COMMAND JOURNEY | 실제 Source 검증 명령만 사용 |
-| 9 | 역할별 매뉴얼 | Developer/Batch/Operator/Gateway/Spec/Architecture/DB | 그림 불필요 | 링크 + 한 줄 목적 |
-| 10 | License | Community & Evaluation License | 그림 없음 | 고정 한 문장 |
+## 권장 흐름
 
-핵심 장점은 한 문단에 Bold 문구를 연속 나열하지 않는다. 한 줄 한 메시지와 일관된 marker/bullet을 사용한다. 의미 있는 그림에는 바로 아래 간결한 한국어 설명을 둔다.
+1. Hero — CPF / Core Platform Framework, 한 줄 정의, 짧은 보조 설명, Hero Visual
+2. Architecture — 전체 구조와 Module/Domain/Boundary
+3. Development — Bootstrap → Generator → Starter/Provider → Build/Test/Runtime → DB3
+4. Invocation & Failure — Same JVM/Remote, System6, Local/Remote Failure, UNKNOWN/Reconcile/Idempotency
+5. Batch & Integration — Batch Roles, Restart/Rerun/Reprocess, 외부 연계
+6. Operations & Security — Trace/Timeline/Health, Permission/Reason/Approval/Audit
+7. Try it — 실제 Source-verified 시작 명령
+8. Manuals — 역할별 PDF Navigation + License
 
+Coverage가 더 필요하면 Section을 추가한다. 전체 길이/섹션 수 때문에 기능을 빼지 않는다.
 
-모든 Visual은 제목·이미지·1~2문장 설명을 하나의 블록으로 묶는다. 설명은 다음 H1/H2보다 해당 Visual에 더 가깝게 두며, 일반 사용자 문서 링크는 `[PDF]`만 제공하고 실제 `.pdf` Target과 정확히 일치시킨다. DOCX는 ZIP 산출물에만 포함한다. 산출물 보정은 직전 PASS Visual을 보존하는 PATCH_FIRST가 기본이다.
+## 브로셔 시각 규칙
+
+- Hero와 주요 CPF-owned Panel은 dark brochure Surface를 유지한다.
+- 핵심 Figure는 light/neutral canvas로 분리해 dark-on-dark를 방지한다.
+- Figure 수 총 상한은 없다. 의미 없는 장식/중복 Figure만 금지한다.
+- 5개 이상 Figure가 있으면 최소 4종의 시각 Grammar를 사용하고 같은 Grammar를 2회 넘게 반복하지 않는 것을 기본으로 한다.
+- Table은 실제 비교 관계에만 사용하고 첫 화면을 Table로 시작하지 않는다.
+- 긴 본문/표/Figure를 연속 배치하지 않고 시각적 호흡을 준다.
+
+## AI/텍스트 설명
+
+모든 의미 Figure는 다음을 갖는다.
+
+- 의미 있는 Alt Text
+- Figure 바로 아래 자연스러운 1~2문장의 한글 설명
+- 파일명만 적은 Alt Text, 빈 Alt Text, `그림 설명/그림 해석` 라벨은 FAIL
+
+한글 설명은 Figure를 못 보더라도 핵심 구조·관계·결과를 이해할 수 있어야 한다.

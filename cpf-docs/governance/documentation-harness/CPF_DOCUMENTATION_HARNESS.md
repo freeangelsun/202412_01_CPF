@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.5.0
+# CPF Documentation Harness v2.8.0
 
 ## 1. 목적
 
@@ -45,7 +45,7 @@ Table은 행·열의 교차점이 실제 의미 있는 데이터일 때만 사�
 
 ## 6. Heading과 Vertical Rhythm
 
-H1/H2/H3는 번호와 계층을 유지한다. H1은 한 줄을 우선하고 마지막 1~2단어 고립 Wrap을 허용하지 않는다. H1 시작 전 여백은 제목 아래 첫 Content보다 명확히 크며, H2/H3는 첫 Content와 가깝게 묶는다. 빈 문단으로 여백을 만들지 않는다.
+DOCX/PDF의 H1/H2/H3는 문서 Profile의 번호/계층을 유지한다. README는 제품 H1 하나와 짧은 H2 구조를 사용하며 번호형 Heading을 강제하지 않는다. H1은 한 줄을 우선하고 마지막 1~2단어 고립 Wrap을 허용하지 않는다. H1 시작 전 여백은 제목 아래 첫 Content보다 명확히 크며, H2/H3는 첫 Content와 가깝게 묶는다. 빈 문단으로 여백을 만들지 않는다.
 
 ## 7. Figure와 Connector
 
@@ -77,3 +77,18 @@ README는 제품 간판이다. Hero/Architecture/핵심 Value/개발 진입/문�
 ## 11. 완료 Gate
 
 Semantic, Source Identity, Reader Task Fit, Table Semantic Fit, Heading Rhythm, Figure Geometry, Connector Boundary, Embedded Figure, Contrast/Non-text, Accessibility, PDF Preflight, Link, Human Visual, Human Reader, Negative Fixture, Regression, Package Replay가 모두 PASS여야 한다. 미실행은 PASS가 아니다.
+
+
+## Strict Final Acceptance
+
+개별 Validator가 PASS해도 완료가 아니다. `validators/validate_final_acceptance.py` 또는 `.ps1`이 모든 required Gate=PASS, Manual Evidence 존재, Critical Finding=0, Artifact Review 승인 상태를 확인해야 최종 PASS다. `NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED`는 PASS로 변환하지 않는다.
+
+
+## v2.8.0 강제 보강
+
+- README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
+- 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
+- 길이 때문에 Source-backed Coverage 또는 Reader Task를 줄이면 FAIL한다.
+- README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
+- 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
+- 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.

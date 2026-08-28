@@ -1,69 +1,64 @@
-# CPF 산출물 시각·레이아웃 표준 — Harness v2.5.0
+# CPF 산출물 시각·레이아웃 표준 — Harness v2.8.0
 
-## 1. 기본 원칙
+## 1. 목표
 
-시각 요소는 꾸밈이 아니라 독자의 이해 시간을 줄이는 도구다. 자동 Geometry PASS보다 실제 README/DOCX/PDF에서의 읽기 편의와 완결성을 우선한다.
+읽는 사람이 문서의 계층과 다음 행동을 빠르게 찾게 한다. 페이지 수보다 스캔성, 세로 호흡, 줄개행 최소화, 실제 Render 품질을 우선한다.
 
-## 2. Grid와 여백
+## 2. 세로 호흡
 
-- 본문, Table Title, Table, Figure Title/Explanation은 정의된 Rail에 정렬한다.
-- H1 시작 전에는 이전 Block과 충분한 breathing room을 둔다.
-- H2/H3 아래 첫 Content는 가깝게, 다음 Heading 전 간격은 더 크게 둔다.
-- 빈 문단·Space·Tab으로 여백을 만들지 않는다.
-- Page 한쪽 과밀/반대쪽 과공백은 FAIL이다.
+- Body line spacing 1.25 이상, paragraph after 7.5pt 이상
+- H1 before 52pt / after 11pt 이상
+- H2 before 28pt / after 7pt 이상
+- H3 before 18pt / after 5.5pt 이상
+- 의미 Block 전환은 최소 14pt를 기본 기준으로 검토
+- 대메뉴 시작 전 여백은 제목 아래 첫 내용보다 명확히 크게 보이게 한다.
+- 빈 문단/Space/Tab으로 여백을 만들지 않는다.
+- 수치상 PASS여도 전페이지 Render에서 답답하면 FAIL이다.
 
-## 3. 도입부
+## 3. 문단과 정보 밀도
 
-- 제목/부제목 뒤 1~2문장 Lead로 독자·목적·완료 결과를 설명한다.
-- `누가 보는가`, `기준` 같은 제작형 Meta Label을 2열 Table로 배치하지 않는다.
-- Harness version/Source SHA/Build baseline은 사용자 화면에 노출하지 않는다.
+일반 문단은 약 3~7 visual lines를 기본 목표로 한다. 긴 문단이 3개 이상 연속되면 재구성한다. 복잡한 내용은 Heading, List, Callout, Figure를 의미에 맞게 선택한다. 표·그림을 단순 장식으로 추가하지 않는다.
 
 ## 4. Table
 
-- 실제 Data 관계가 있을 때만 사용한다.
-- Header는 한 줄, Body는 좌측정렬 기본이다.
-- Column 폭은 Content 역할/길이로 배분하고 대칭 비교만 균등폭을 허용한다.
-- Merge/Split/Nested/Blank Structural Cell은 금지한다.
-- Header/Body Text Contrast 4.5:1 이상을 확보한다.
-- Layout Table, Reader Metadata Table, 단일 Key/Value Table은 금지한다.
+- 실제 행/열 관계가 있을 때만 사용한다.
+- Header는 한 줄이다.
+- 비대칭 표는 내용·역할 기반 비례폭이다.
+- ID/상태/필수/기본값 열은 좁고 설명/선택/실패/복구 열은 넓어야 한다.
+- 대칭 비교가 아니면 균등폭을 허용하지 않는다.
+- Header Wrap 0, Short Token Wrap 0, Semantic Width Inversion 0, 반복 과도 개행 0이 필수다.
+- 실제 Render에서 개행을 확인하고 필요하면 Landscape를 사용한다.
 
-## 5. Figure Geometry
+## 5. Figure Geometry와 Connector
 
-### 5.1 Node/Text
+Text는 Parent Node 내부 safe padding을 유지한다. Connector는 source/target/route를 기록하며 대상 Box 외곽 Boundary에서 끝난다.
 
-Text는 Parent Node 내부 Padding을 확보하고 Canvas/Node/Frame 경계를 침범하지 않는다. Group Title은 Child Label과 별도 Band에 둔다.
+- target/source interior penetration 0px
+- arrowhead body inside target 0px
+- unrelated Node/Text/Label crossing 0
+- unlabeled empty-space termination 0
+- Frame/Canvas overflow 0
 
-### 5.2 Connector
-
-- Geometry Manifest에 source ID, target ID, route points, target boundary point, arrowhead 정보를 기록한다.
-- target tip은 Box Boundary에 닿고 Node interior로 들어가지 않는다.
-- target interior penetration = 0px
-- arrowhead body inside target = 0px
-- unrelated Node interior crossing = 0
-- Text/Label crossing = 0
-- unlabeled empty-space termination = 0
-- Connector가 중앙 Hub를 암시하면 실제 Label/Hub/Junction을 둔다.
-
-### 5.3 Contrast
-
-일반 Text 4.5:1, 큰 Text 3:1, 의미 있는 Border/Connector/Graphical Object 3:1 이상이다. 색 하나만으로 의미를 구분하지 않는다.
+중앙 Hub가 의미상 필요하면 실제 Hub/Label을 둔다. Geometry manifest만으로 의미 완결성을 대체하지 않는다.
 
 ## 6. Embedded Render
 
-원본 Asset PASS만으로 완료하지 않는다. README 실제 Viewer 크기, DOCX 실제 삽입 크기, PDF Fresh Export에서 다음을 확인한다.
+README Light/Dark, DOCX 삽입 크기, 최종 PDF를 모두 확인한다. Crop, Boundary intrusion, 저대비, Effective Text 과소, Caption ownership 오류가 하나라도 있으면 FAIL이다.
 
-- Crop/Boundary intrusion 0
-- Effective minimum text 10.5pt 이상
-- Connector/Label/Node collision 0
-- Contrast 기준 유지
-- Caption/Explanation ownership 명확
-- 100%와 고위험 Label 200% 확인
-- 주요 Figure 10초 이해 테스트 PASS
+## 7. README 전용
 
-## 7. 시각 문법
+제품 H1 하나와 H2 최소 5개 권장, 상한 없음의 간결한 구조를 기본으로 한다. 장점/효익/차별점 전용 Heading을 만들지 않고, 구조·개발·실패복구·Batch·운영 흐름을 설명하면서 강점이 자연스럽게 드러나게 한다. 한 화면에 긴 문단·표·대형 Figure를 몰아넣지 않는다.
 
-모든 그림을 둥근 Box+Arrow Chain으로 반복하지 않는다. Architecture는 Layer/Zone, 호출은 Lane/Route, Recovery는 State/Branch/Ring, Batch는 Control/Execution Plane, DB3는 Lifecycle/Vendor Band, Operations는 Timeline/Trace처럼 의미에 맞는 문법을 선택한다.
+## 8. 사람 검수
 
-## 8. 최종 사람 검수
+Contact Sheet는 탐색 도구일 뿐 승인 Evidence가 아니다. 전페이지를 실제 크기로 검수하며 Cover/TOC/Wide Table/Figure/Code-heavy/마지막 페이지는 고위험 Page로 별도 확인한다. 사용자가 보기 어렵다고 판단한 결과는 자동 PASS를 무효화한다.
 
-Contact Sheet만으로 PASS하지 않는다. 전페이지를 보고 Cover/TOC/Figure/Wide Table/Code-heavy/마지막 Page는 100% 이상에서 검수한다. 사용자가 실제 화면에서 어색함을 발견하면 자동 PASS를 무효화하고 Harness 재발 방지부터 보완한다.
+
+## v2.8.0 강제 보강
+
+- README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
+- 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
+- 길이 때문에 Source-backed Coverage 또는 Reader Task를 줄이면 FAIL한다.
+- README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
+- 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
+- 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.

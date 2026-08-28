@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -154,7 +154,7 @@
       "category": "docx",
       "expect": "FAIL",
       "input": {
-        "text": "Harness 2.5.0 · Source SHA ABCDEF0123456789"
+        "text": "Harness 2.8.0 · Source SHA ABCDEF0123456789"
       },
       "mustTrigger": "docxUserFacingProvenance"
     },
@@ -238,6 +238,365 @@
         "pageNumberVisible": false
       },
       "mustTrigger": "tocTabStopOutsideWritableArea"
+    },
+    {
+      "id": "UNJUSTIFIED_EQUAL_WIDTH_TABLE",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "equalWidths": true,
+        "symmetricComparison": false,
+        "contentDemandVariancePct": 54
+      },
+      "mustTrigger": "unjustifiedEqualWidthByContent"
+    },
+    {
+      "id": "EXCESSIVE_CELL_WRAP_DENSITY",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "shortColumnMedianLines": 1,
+        "longColumnMedianLines": 4.2,
+        "repeatedRows": 5
+      },
+      "mustTrigger": "excessiveCellWrapDensity"
+    },
+    {
+      "id": "MAJOR_SECTION_VERTICAL_CROWDING",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "majorHeadingGapBeforePt": 7,
+        "minimumPt": 18
+      },
+      "mustTrigger": "majorSectionBreathingInsufficient"
+    },
+    {
+      "id": "BODY_BLOCKS_NO_BREATHING",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "semanticTransitionGapPt": 4,
+        "minimumPt": 10,
+        "denseBlocks": 4
+      },
+      "mustTrigger": "semanticBlocksVisuallyCrowded"
+    },
+    {
+      "id": "TABLE_FRAGMENT_ORPHAN",
+      "category": "page",
+      "expect": "FAIL",
+      "input": {
+        "headerRows": 1,
+        "dataRowsOnPage": 1,
+        "continuesNextPage": true
+      },
+      "mustTrigger": "tableFragmentOrphan"
+    },
+    {
+      "id": "READER_TOP_TASK_MISSING",
+      "category": "content",
+      "expect": "FAIL",
+      "input": {
+        "requiredTask": "failure/recovery",
+        "present": false
+      },
+      "mustTrigger": "readerTopTaskMissing"
+    },
+    {
+      "id": "README_VALUE_UNDERREPRESENTED",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "requiredValueGroups": 7,
+        "visibleValueGroupsBeforeArchitecture": 2
+      },
+      "mustTrigger": "readmeValueCoverageInsufficient"
+    },
+    {
+      "id": "README_PROMOTIONAL_BENEFIT_HEADING",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "heading": "## CPF를 적용하면 무엇이 달라지는가"
+      },
+      "mustTrigger": "promotionalBenefitHeading"
+    },
+    {
+      "id": "README_DEDICATED_BENEFIT_SECTION",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "heading": "## 핵심 장점",
+        "benefitOnlySection": true
+      },
+      "mustTrigger": "readmeDedicatedBenefitSection"
+    },
+    {
+      "id": "README_DENSE_WALL",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "consecutiveLongParagraphs": 3,
+        "longParagraphChars": 240
+      },
+      "mustTrigger": "readmeDenseWallOfText"
+    },
+    {
+      "id": "README_CONSECUTIVE_TABLES",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "consecutiveTables": 2
+      },
+      "mustTrigger": "readmeConsecutiveTables"
+    },
+    {
+      "id": "README_CONSECUTIVE_FIGURES",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "consecutiveLargeFiguresWithoutExplanation": 2
+      },
+      "mustTrigger": "readmeConsecutiveLargeFigures"
+    },
+    {
+      "id": "README_VALUE_CONCENTRATED",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "maxValueShareInSingleSectionPct": 72,
+        "allowedMaxPct": 45
+      },
+      "mustTrigger": "readmeValueConcentratedInOneSection"
+    },
+    {
+      "id": "TABLE_SEMANTIC_WIDTH_INVERSION",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "longRole": "설명",
+        "longWidthPct": 22,
+        "shortRole": "상태",
+        "shortWidthPct": 30,
+        "rows": 6
+      },
+      "mustTrigger": "semanticTableWidthInversion"
+    },
+    {
+      "id": "TABLE_RENDERED_WIDTH_MISMATCH",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "expectedSharePct": 48,
+        "actualSharePct": 25,
+        "tolerancePct": 15
+      },
+      "mustTrigger": "renderedTableWidthMismatch"
+    },
+    {
+      "id": "SHORT_TOKEN_WRAP",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "token": "transactionId",
+        "visualLines": 2
+      },
+      "mustTrigger": "shortTokenWrap"
+    },
+    {
+      "id": "EXCESSIVE_CELL_WRAP",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "visualLines": 5,
+        "repeatedRows": 3
+      },
+      "mustTrigger": "excessiveCellWrap"
+    },
+    {
+      "id": "INSUFFICIENT_H1_BREATHING",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "level": "H1",
+        "spaceBeforePt": 34,
+        "minimumPt": 52
+      },
+      "mustTrigger": "insufficientH1Breathing"
+    },
+    {
+      "id": "INSUFFICIENT_H2_BREATHING",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "level": "H2",
+        "spaceBeforePt": 18,
+        "minimumPt": 28
+      },
+      "mustTrigger": "insufficientH2Breathing"
+    },
+    {
+      "id": "READER_TASK_KEYWORD_ONLY",
+      "category": "content",
+      "expect": "FAIL",
+      "input": {
+        "keywordPresent": true,
+        "taskActionable": false
+      },
+      "mustTrigger": "readerTaskKeywordOnlyFalseGreen"
+    },
+    {
+      "id": "MANUAL_GATE_NOT_EXECUTED",
+      "category": "acceptance",
+      "expect": "FAIL",
+      "input": {
+        "required": true,
+        "status": "NOT_EXECUTED"
+      },
+      "mustTrigger": "manualGateNotExecuted"
+    },
+    {
+      "id": "MANUAL_EVIDENCE_MISSING",
+      "category": "acceptance",
+      "expect": "FAIL",
+      "input": {
+        "requiredManualGate": true,
+        "status": "PASS",
+        "evidenceRefs": []
+      },
+      "mustTrigger": "manualEvidenceMissing"
+    },
+    {
+      "id": "REQUIRED_GATE_NON_PASS",
+      "category": "acceptance",
+      "expect": "FAIL",
+      "input": {
+        "required": true,
+        "status": "BLOCKED"
+      },
+      "mustTrigger": "requiredGateNonPass"
+    },
+    {
+      "id": "AUTOMATED_ONLY_FINAL_PASS",
+      "category": "acceptance",
+      "expect": "FAIL",
+      "input": {
+        "automatedAllPass": true,
+        "manualAllPass": false,
+        "finalStatus": "PASS"
+      },
+      "mustTrigger": "automatedOnlyFinalPassAttempt"
+    },
+    {
+      "id": "TOTAL_DOCUMENT_PAGE_CAP",
+      "category": "size",
+      "expect": "FAIL",
+      "input": {
+        "scope": "all-docs",
+        "totalPageLimit": 60
+      },
+      "mustTrigger": "documentTotalSizeCap"
+    },
+    {
+      "id": "TOTAL_README_SECTION_CAP",
+      "category": "size",
+      "expect": "FAIL",
+      "input": {
+        "scope": "README",
+        "h2UpperBound": 8
+      },
+      "mustTrigger": "documentTotalSizeCap"
+    },
+    {
+      "id": "COVERAGE_TRUNCATED_FOR_LENGTH",
+      "category": "content",
+      "expect": "FAIL",
+      "input": {
+        "requiredCoverage": true,
+        "removedBecause": "page count/length"
+      },
+      "mustTrigger": "coverageTruncatedForLength"
+    },
+    {
+      "id": "README_BROCHURE_MISSING",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "hero": false,
+        "darkCpfOwnedSurface": false,
+        "visualNarrative": false
+      },
+      "mustTrigger": "readmeBrochureStructureMissing"
+    },
+    {
+      "id": "README_FIGURE_KOREAN_COMPANION_MISSING",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "informativeFigure": true,
+        "koreanCompanion": false
+      },
+      "mustTrigger": "readmeVisualKoreanCompanionMissing"
+    },
+    {
+      "id": "README_IMAGE_ALT_MISSING",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "informativeFigure": true,
+        "altText": ""
+      },
+      "mustTrigger": "readmeImageAltMissing"
+    },
+    {
+      "id": "README_REFERENCE_SHEET_STYLE",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "tableHeavyLandingPage": true,
+        "visualNarrative": false
+      },
+      "mustTrigger": "readmeBrochureVisualRhythmMissing"
+    },
+    {
+      "id": "DOCUMENT_READER_NEED_MISMATCH",
+      "category": "content",
+      "expect": "FAIL",
+      "input": {
+        "profileReaderNeedMatched": false
+      },
+      "mustTrigger": "informationArchitectureReaderNeedMismatch"
+    },
+    {
+      "id": "LONG_DOCUMENT_NO_NAVIGATION",
+      "category": "navigation",
+      "expect": "FAIL",
+      "input": {
+        "longDocument": true,
+        "tocOrEquivalentNavigation": false
+      },
+      "mustTrigger": "longDocumentNavigationMissing"
+    },
+    {
+      "id": "FIXED_WIDTH_TABLE_WRAP",
+      "category": "table",
+      "expect": "FAIL",
+      "input": {
+        "fixedWidth": true,
+        "shortTokenWrap": true
+      },
+      "mustTrigger": "fixedWidthTableCausesWrap"
+    },
+    {
+      "id": "FRESH_EYES_SECOND_PASS_MISSING",
+      "category": "manual",
+      "expect": "FAIL",
+      "input": {
+        "scanPass": true,
+        "detailPass": false
+      },
+      "mustTrigger": "manualFreshEyesReviewMissing"
     }
   ]
 }

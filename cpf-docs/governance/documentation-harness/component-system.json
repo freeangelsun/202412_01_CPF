@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "purpose": "작성자 해석 편차를 줄이기 위해 공식 문서를 재사용 가능한 Layout Component로 조립한다.",
   "defaultAssembly": "PATCH_EXISTING_COMPONENTS_FIRST",
@@ -47,13 +47,17 @@
       "leftRail": "subheading-content",
       "marker": "•",
       "maxItemsPreferred": 5,
-      "useWhen": "분해했을 때 스캔 속도가 개선되는 핵심/선택/주의/복구"
+      "useWhen": "분해했을 때 스캔 속도가 개선되는 핵심/선택/주의/복구",
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "NUMBERED_STEPS": {
       "role": "ordered procedure",
       "leftRail": "subheading-content",
       "marker": "1) 2) 3)",
-      "maxItemsPreferred": 6
+      "maxItemsPreferred": 6,
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "FIGURE_BLOCK": {
       "role": "visual explanation",
@@ -81,7 +85,9 @@
         "그림 설명",
         "Figure 해석",
         "Figure 설명"
-      ]
+      ],
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "DECISION_TABLE": {
       "role": "selection/comparison",
@@ -102,12 +108,16 @@
     "CALLOUT_NOTE": {
       "role": "note",
       "leftRail": "subheading-content",
-      "maxSentencesPreferred": 3
+      "maxSentencesPreferred": 3,
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "CALLOUT_WARNING": {
       "role": "warning/forbidden",
       "leftRail": "subheading-content",
-      "maxSentencesPreferred": 3
+      "maxSentencesPreferred": 3,
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "CODE_EXAMPLE": {
       "role": "minimal executable hint",
@@ -128,7 +138,9 @@
       "role": "source navigation",
       "leftRail": "subheading-content",
       "maxLines": 2,
-      "exactPathRequired": true
+      "exactPathRequired": true,
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "READER_NEED_BLOCK": {
       "role": "reader intent / outcome",
@@ -147,7 +159,9 @@
       "keyValueRows": "forbidden",
       "internalProvenance": "forbidden",
       "visibleLabels": "optional only when label adds reader value; 누가 보는가/기준 같은 제작형 레이블 반복 금지",
-      "examplePattern": "이 문서는 <독자>가 <업무>를 구현/판단할 때 사용합니다. <완료 결과>까지 확인합니다."
+      "examplePattern": "이 문서는 <독자>가 <업무>를 구현/판단할 때 사용합니다. <완료 결과>까지 확인합니다.",
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "API_QUICK_REFERENCE": {
       "role": "developer task summary",
@@ -192,7 +206,9 @@
       "presentation": "label + full-width concise explanation",
       "table": "forbidden",
       "twoColumn5050": "forbidden",
-      "maxSentences": 2
+      "maxSentences": 2,
+      "localLimitSemantics": "readability/reflow trigger only; never a total document content-deletion limit",
+      "onExceed": "split/rewrite/restructure while preserving meaning and Reader Task Coverage"
     },
     "SEMANTIC_TRANSITION": {
       "role": "visual breathing between meaning blocks",

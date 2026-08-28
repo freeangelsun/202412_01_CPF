@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "goal": "시각화는 제품 구조를 더 빠르게 이해시키면서 현대적이고 정돈된 제품 인상을 주어야 한다. 내용마다 어울리는 시각 문법을 선택하고 동일 둥근 네모·화살표 반복을 시각화로 인정하지 않는다.",
@@ -67,7 +67,8 @@
         6,
         7
       ],
-      "hardMax": 8
+      "upperBound": "NONE",
+      "rule": "총 Figure 수 상한 없음; 의미 없는 중복/장식 Figure만 금지"
     },
     "mandatory": [
       "README_HERO",

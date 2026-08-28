@@ -1,135 +1,128 @@
-# CPF 문서 품질 엔지니어링 표준 — Harness v2.5.0
+# CPF 문서 품질 엔지니어링 표준 — Harness v2.8.0
 
-## 1. 목적
+## 1. 최종 품질 정의
 
-이 표준은 README와 11개 DOCX/PDF를 “내용이 존재하는 문서”가 아니라 **처음 보는 사람이 빠르게 이해하고 실제 개발·운영·판단을 끝낼 수 있는 상용 Framework 문서**로 만들기 위한 공통 품질 Gate다. 자동 검사와 사람 검수의 역할을 분리하며 어느 한쪽만 통과해서 완료할 수 없다.
+CPF 공식 문서는 내용이 존재하는 것만으로 완료되지 않는다. 대상 독자가 빠르게 훑어 구조를 이해하고, 필요한 선택·실행·실패 대응·복구·검증까지 끝낼 수 있어야 한다. 자동 검사는 필요조건이며 전페이지 Render와 사람 검수를 대체하지 않는다.
 
-## 2. 첫 화면과 문서 도입부
+최종 PASS는 `validators/validate_final_acceptance.py` 또는 `.ps1`이 모든 필수 Gate를 확인한 경우에만 가능하다. `AUTOMATED_PASS_ONLY`, `NOT_EXECUTED`, `BLOCKED`, `UNKNOWN`, `SKIPPED`, `PARTIAL`, `WAIVED`는 PASS가 아니다.
 
-1. 제목과 부제목 다음에는 1~2문장의 자연스러운 Lead를 둔다.
-2. Lead는 `누가 읽는가 → 무엇을 하려는가 → 무엇까지 끝낼 수 있는가`를 설명한다.
-3. `누가 보는가 / 이 문서로 끝낼 일 / 기준`을 2열 Key/Value Table로 만드는 것을 금지한다.
-4. 단순 Meta 정보는 Table로 만들지 않는다.
-5. `Harness v...`, `Source SHA...`, `Source snapshot...`, ZIP Hash, 제작 Baseline은 사용자 본문/표/Footer에 노출하지 않는다. Evidence/Manifest/Handover에서만 관리한다.
-6. 첫 화면의 시각적 우선순위는 `문서명 → 독자 가치 → 첫 행동/탐색`이다. 제작자의 검증 정보가 독자의 첫 행동보다 앞에 오면 FAIL이다.
+## 2. Reader Task 완결성
 
-## 3. 정보 표현 선택
+Keyword가 있다는 이유로 Coverage PASS를 주지 않는다. 문서별 Persona는 적용 가능한 범위에서 다음을 완료할 수 있어야 한다.
 
-### 3.1 Table
+1. 이 문서를 왜 여는지와 해결할 질문
+2. 언제 사용하고 무엇을 선택하는지
+3. 필요한 입력·옵션·기본값·선행조건
+4. 정상 흐름 또는 실행 절차
+5. 오류·경계·부분 실패·UNKNOWN
+6. 복구·Reconcile·Compensation 또는 다음 행동
+7. 결과·상태·로그·DB·운영 화면의 검증 방법
+8. Source·Sample·상세 Reference로 이동할 경로
 
-Table은 최소 2개의 독립 Dimension과 의미 있는 2개 이상의 Data Row가 있을 때 우선 검토한다. 한 행의 Key/Value, 장을 보는 이유, Golden Path 한 문장, 목차, 단순 메뉴, 순차 절차를 Table로 표현하지 않는다.
+필요한 Dimension이 하나라도 빠지면 `READER_TASK_COMPLETENESS_PASS`는 FAIL이다.
 
-- Layout용 Table: 금지
-- Reader metadata Table: 금지
-- Merge/Split/Nested Data Table: 금지
-- Header Row 없는 Data Table: 금지
-- 의미 없는 반복 Column: 금지
-- Header 자동 2줄: 금지
-- 고정 50:50: 대칭 비교가 아니면 금지
-- 긴 설명을 Cell에 밀어 넣기: 금지
+## 3. README
 
-Table은 최종 데이터로 열 폭을 결정한다. 짧은 Code/Status/ID는 좁게, 설명/조건/복구는 넓게 둔다. Header 글씨를 작게 줄여 맞추지 않는다.
+README는 Repository의 제품 간판이자 빠른 탐색 화면이다. 상세 Reference를 복제하지 않는다.
 
-### 3.2 List와 Procedure
+- 제품 H1은 하나만 사용한다.
+- H2는 기본 필요 Coverage 기반, 상한 없음에서 독자의 질문·작업 중심으로 구성한다.
+- 목차는 만들지 않는다.
+- `CPF를 적용하면 무엇이 달라지는가`, `핵심 장점`, `왜 좋은가`, `이 구조의 장점`, `핵심 해석`, `기반 기술`, `차별점`, `효익`, `좋아지는 점`, `편해지는 점` 같은 장점 전용 Heading/Section을 금지한다.
+- CPF의 강점은 제품 정의, 전체 구조, 개발 흐름, 거래·호출·실패/복구, Batch·연계·운영 설명 속에서 **구조와 동작의 결과로 자연스럽게** 드러내고 Source-backed 사실로 뒷받침한다.
+- 긴 문단 3개 연속, 표 연속, 설명 없는 대형 Figure 연속, 한 Section 과밀을 금지한다.
+- 일반 문단은 3~7 visual lines를 목표로 하며 420자 또는 5문장을 넘기지 않는다.
+- 긴 API/옵션/실패 Reference는 PDF Guide/Specification으로 이동한다.
+- 사용자 Navigation은 PDF만 노출하고 DOCX는 전달 패키지에만 포함한다.
 
-순서가 중요하면 Numbered List, 순서가 중요하지 않은 병렬 정보는 Bullet List를 사용한다. 같은 List 안에서는 문장 구조와 품사를 최대한 평행하게 유지한다.
+## 4. 문서 도입부
 
-### 3.3 Lead/Callout
+제목·부제목 다음에는 자연스러운 1~2문장 Lead를 둔다. `누가 보는가 / 이 문서로 끝낼 일 / 기준` 같은 Reader Metadata를 2열 Key/Value Table로 만들지 않는다. Harness version, Source SHA, ZIP Hash, 제작 Baseline은 사용자 본문·표·Footer에서 금지하고 Evidence에서만 관리한다.
 
-단일 메시지, 장 목적, 주의, Golden Path는 Full-width Lead 또는 짧은 Callout으로 표현한다. 짧은 메시지를 억지 Table로 확장하지 않는다.
+## 5. Vertical Rhythm
 
-## 4. 제목과 Vertical Rhythm
+페이지 수를 줄이기 위해 여백을 축소하지 않는다.
 
-- Heading은 계층을 건너뛰지 않는다.
-- H1은 한 줄을 우선하고 마지막 한두 단어만 다음 줄로 떨어지는 Wrap은 FAIL이다.
-- H1 시작 전 여백은 제목 아래 첫 내용보다 명확히 크다.
-- H2/H3는 첫 본문과 한 덩어리로 읽히게 붙이고 다음 Heading 전 여백은 더 크게 둔다.
-- 빈 문단/수동 줄바꿈으로 여백을 만들지 않는다. Style/Token으로만 제어한다.
-- 문단·Table·Code·Callout·Figure 전환마다 의미 단위에 맞는 차등 여백을 사용한다.
+- Body line spacing: 1.25 이상
+- Body space after: 7.5pt 이상
+- H1 before/after: 52pt / 11pt 이상
+- H2 before/after: 28pt / 7pt 이상
+- H3 before/after: 18pt / 5.5pt 이상
+- 의미 Block 전환: 14pt 이상을 기본으로 검토
 
-## 5. Figure와 Connector
+제목 아래 첫 내용은 다음 소제목 시작 전보다 가깝게 묶는다. 빈 문단으로 여백을 만들지 않는다. 수치가 맞아도 실제 Render가 답답하면 FAIL이다.
 
-### 5.1 Geometry Manifest 최소 상세
+## 6. Table 사용과 열 폭
 
-Group 전체를 큰 Rectangle 하나로만 등록한 Manifest는 PASS 근거가 아니다. 이해에 필요한 Node, Text, Annotation, Junction, Connector를 개별 Bounding/Route 데이터로 등록한다.
+Table은 두 개 이상의 Dimension과 의미 있는 Data Row가 있을 때만 사용한다. 목차, Reader Metadata, 단일 메시지, 순차 절차, 한 행 Key/Value, Layout 용도로 사용하지 않는다.
 
-### 5.2 Connector Boundary 규칙
+열 폭은 실제 데이터와 의미 역할을 기반으로 배분한다.
 
-1. Connector는 source와 target ID를 가진다.
-2. Connector route point를 Manifest에 기록한다.
-3. target tip은 target Box의 외곽 Boundary에 닿는다.
-4. shaft와 arrowhead body는 target Node 내부를 침범하지 않는다.
-5. target interior penetration 허용치는 0px이다.
-6. Endpoint가 아닌 Node/Container/Text/Label을 관통하지 않는다.
-7. 명시적 Label/Hub/Junction이 없는 빈 공간에서 끝나지 않는다.
-8. Box 내부에서 Connector를 끊거나 화살표가 Text를 향해 찌르는 모양을 만들지 않는다.
+- ID·상태·필수·기본값·Code: 좁게
+- 설명·용도·선택조건·실패·복구·주의: 넓게
+- 비대칭 데이터의 균등폭: 금지
+- 균등폭 허용: 대칭 비교 + 의미 역할 동등 + Content Demand 변동 12% 이하
+- Header Wrap: 0
+- Short Token Wrap: 0
+- Semantic Width Inversion: 0
+- 반복 4줄 초과 Cell: 0
 
-### 5.3 Contrast와 의미
+먼저 Header를 짧게 하고, 좁은 열을 줄이고, 설명 열을 넓히고, 필요하면 Table을 분리하거나 Landscape로 전환한다. Font를 줄여 억지로 맞추지 않는다. OOXML 폭만으로 PASS하지 않고 최종 Render에서 실제 줄개행을 확인한다.
 
-- 일반 Text: 4.5:1 이상
-- 큰 Text: 3:1 이상
-- 의미 있는 Node Border/Connector/Graphical Object: 3:1 이상
-- 상태/Owner/경계를 색 하나로만 구분: 금지
+## 7. Figure와 Connector
 
-### 5.4 Embedded Render
+Connector는 source/target ID와 route를 가진다. 화살표는 대상 Box 내부를 찌르지 않고 **외곽 Boundary에서 종료**한다.
 
-원본 PNG가 정상이어도 PASS가 아니다. README 실제 폭, DOCX 삽입 크기, 최종 PDF Export 크기에서 다음을 다시 검사한다.
+- target interior penetration = 0px
+- source interior penetration = 0px
+- arrowhead body inside target = 0px
+- unrelated Node crossing = 0
+- Text/Label crossing = 0
+- unlabeled empty-space termination = 0
 
-- Crop 0
-- Frame/Page Boundary 침범 0
-- Effective Text 10.5pt 미만 0
-- Connector/Label/Node 충돌 0
-- 설명 귀속 모호 0
-- 주요 Visual의 10초 이해 실패 0
+원본 PNG만 확인하지 않는다. README, DOCX, PDF 삽입 Render에서 Crop·Boundary·Contrast·Effective Text·Connector 충돌을 다시 검사한다.
 
-## 6. 접근성
+## 8. 정보 표현 선택
 
-- Heading Style과 Heading hierarchy를 사용한다.
-- Informative Figure는 Alt Text를 가진다.
-- Data Table은 단순 Header 구조를 사용한다.
-- 중요한 정보는 Header/Footer에만 두지 않는다.
-- Body는 좌측 정렬하고 Full Justification을 금지한다.
-- 색만으로 의미를 전달하지 않는다.
-- 최종 DOCX Accessibility 결과 High/Medium/Low = 0/0/0을 목표 Gate로 사용한다.
+- 순차 작업: Numbered List
+- 병렬 정보: Bullet List
+- 단일 메시지·장 목적·주의: Lead/Callout
+- 실제 비교·선택·상태·규격: Table
+- 구조·흐름·상태 변화: 의미에 맞는 Figure
 
-## 7. Developer Guide
+모든 내용을 표나 네모+화살표 그림으로 반복하지 않는다.
 
-주요 기능은 독자가 첫 Scan에서 다음을 찾을 수 있어야 한다.
+## 9. 접근성
 
-`하려는 일 → Public API/Annotation → 옵션/기본값 → 언제 선택 → 언제 피함 → 실패 → Retry/Idempotency/UNKNOWN/Reconcile → 최소 예 → 검증 → Source`
+Heading Style과 논리적 계층을 사용하고, Informative Figure는 Alt Text를 제공한다. Data Table은 단순 Header 구조를 사용한다. Body는 좌측 정렬하고 Full Justification을 금지한다. 일반 Text 4.5:1, 큰 Text와 의미 그래픽 3:1 이상 Contrast를 사용한다. 색 하나만으로 의미를 전달하지 않는다.
 
-API/Option/기본값은 최신 Source에서 검증한다. Source에 없는 API를 문서 편의를 위해 만들지 않는다.
+## 10. 사용자 Finding 재발 방지
 
-## 8. README
+사용자 Finding을 Artifact만 수정해서는 안 된다. 다음을 모두 수행해야 한다.
 
-README는 제품 간판이며 내부 Evidence 문서가 아니다. Architecture/Value/Golden Path/Manual Navigation을 빠르게 제공하되 Harness version, Source SHA, 내부 제작 상태를 본문에 노출하지 않는다. Visual은 Dark Content Surface 안에서도 Light/Neutral Focal Canvas로 충분히 분리한다.
+1. Harness 공통 Rule 또는 대상 Profile 보완
+2. Negative Fixture 추가
+3. Validator가 해당 Fixture를 실제 FAIL시키는지 실행
+4. Artifact는 PATCH_FIRST로 영향 범위만 보정
+5. Before/After와 Embedded Render 회귀 검수
+6. Final Acceptance Manifest에 Evidence 연결
 
-## 9. 재발 방지
+Fixture가 실제로 거부되지 않으면 Harness 자체가 FAIL이다.
 
-사용자 지적 하나를 고칠 때 다음 4단계를 모두 완료한다.
+## 11. Current-only
 
-1. 공통 원인을 Harness Rule/Token/Component/Profile에 반영
-2. `quality-fixtures.json`에 의도적으로 실패하는 Negative Fixture 등록
-3. Validator가 해당 Fixture를 FAIL로 판정하는지 실행
-4. 영향받은 산출물을 수정하고 Before/After + Embedded Render로 회귀 검증
+Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나만 유지한다. version folder, `_old`, `_backup`, `_history`, `_session`, CHANGELOG/history snapshot을 남기지 않는다. 삭제는 `DELETE_MANIFEST.txt`의 exact Root-relative 경로만 허용한다.
 
-규칙 문구만 추가하고 Validator/Fixture가 없으면 재발 방지 완료가 아니다.
+## 12. 최종 판정
 
-## 10. 최종 판정
-
-자동 검사 PASS는 필요조건이지 충분조건이 아니다. 실제 화면에서 어색함·충돌·과밀·모호함이 발견되면 해당 산출물은 FAIL이며, 먼저 Harness가 그 유형을 잡도록 보완한 뒤 산출물을 다시 수정한다.
+평균 점수가 높아도 Critical Finding 1건이면 FAIL이다. Contact Sheet만으로 전페이지 수동 검수를 대체하지 않는다. 모든 required Gate=PASS, Manual Evidence 존재, Critical Finding=0, Artifact Review 승인 상태가 충족된 경우에만 최종 완료다.
 
 
-## 9. DOCX 구조·마지막 페이지 재발 방지
+## v2.8.0 강제 보강
 
-- 11개 공식 DOCX는 `validators/validate_docx_artifacts.py`로 도입부 Meta Table, 사용자용 Provenance, 1-row Layout Table, 의미 없는 빈 Spacer를 자동 검사한다.
-- 마지막 페이지는 전페이지 Render에서 별도 확인한다. 표의 마지막 1~2행, H1/H2와 한 문장, 짧은 bullet 몇 개만 남으면 `isolatedTrailingContentPage`로 FAIL한다.
-- 해결은 내용을 억지로 늘리는 것이 아니라 앞 페이지의 spacing/table density를 조정하거나, 해당 페이지가 실제 독립 결론·의사결정 정보를 제공하도록 Source-backed 내용을 재배치한다.
-- 사용자가 발견한 새 결함은 Artifact Patch와 동시에 Common Rule + Negative Fixture + Validator Assertion에 반영해야 완료다.
-
-## 10. 찾아보기/TOC 우측 경계
-
-- 찾아보기의 dotted leader와 페이지 번호는 현재 Section의 writable text width 안에 있어야 한다.
-- portrait/landscape 문서에 동일한 고정 tab position을 재사용하지 않는다. Section page width와 좌우 margin을 기준으로 tab stop을 계산한다.
-- 오른쪽 dot leader가 페이지 edge까지 뻗거나 page number가 crop/overflow 되는 상태는 자동 Validator와 최종 Render 모두에서 FAIL이다.
-
+- README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
+- 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
+- 길이 때문에 Source-backed Coverage 또는 Reader Task를 줄이면 FAIL한다.
+- README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
+- 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
+- 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.

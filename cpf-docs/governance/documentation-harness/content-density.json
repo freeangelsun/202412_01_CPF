@@ -1,14 +1,10 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "global": {
     "one_section_one_question": true,
-    "h1_intro_max_sentences": 2,
-    "h1_intro_max_chars": 180,
-    "h2_max_paragraphs": 2,
-    "h2_max_sentences_total": 5,
     "h2_preferred_text_chars_excluding_tables_code": 420,
     "h2_review_chars_over": 650,
     "repeated_background_explanation": "forbidden",
@@ -27,7 +23,15 @@
     "semantic_component_selection": "표/목록/본문/Callout/Figure는 의미 구조에 맞게 선택. 모든 블록을 표로 통일하지 않는다.",
     "major_section_breathing": "H1/대메뉴 시작 전에는 일반 단락 전환보다 한 줄 안팎의 추가 시각 여백을 둔다.",
     "table_header_single_line": "required",
-    "major_heading_single_line": "preferred; 1~2 word orphan wrap hard fail"
+    "major_heading_single_line": "preferred; 1~2 word orphan wrap hard fail",
+    "h1_intro_review_over_sentences": 2,
+    "h1_intro_review_over_chars": 180,
+    "h2_review_over_paragraphs": 2,
+    "h2_review_over_sentences_total": 5,
+    "when_detail_exceeds_review_threshold": "내용을 삭제하지 않는다. 의미 단위로 Section/Paragraph/Bullet/Callout/Figure/Reference를 재구성해 가독성을 높인다.",
+    "total_document_size_limit": "NONE",
+    "coverage_reduction_for_length": "FORBIDDEN",
+    "readability_threshold_semantics": "모든 max/preferred 성격의 국소 값은 시각 재구성 Trigger이며 전체 정보 삭제/누락 근거가 아니다."
   },
   "microBlocks": {
     "developer": [
@@ -65,84 +69,56 @@
       "Source exact path"
     ]
   },
-  "pageBudgets": {
-    "FRAMEWORK_DEVELOPER_GUIDE": {
-      "preferred": [
-        22,
-        32
-      ],
-      "hardMax": 38
-    },
-    "BATCH_DEVELOPER_GUIDE": {
-      "preferred": [
-        16,
-        24
-      ],
-      "hardMax": 30
-    },
-    "OPERATOR_MANUAL": {
-      "preferred": [
-        25,
-        38
-      ],
-      "hardMax": 45
-    },
-    "BATCH_OPERATOR_GUIDE": {
-      "preferred": [
-        20,
-        32
-      ],
-      "hardMax": 40
-    },
-    "GATEWAY_GUIDE": {
-      "preferred": [
-        18,
-        28
-      ],
-      "hardMax": 35
-    },
-    "SPECIFICATION": {
-      "preferred": [
-        35,
-        50
-      ],
-      "hardMax": 60
-    },
-    "ARCHITECTURE_DESIGN": {
-      "preferred": [
-        24,
-        38
-      ],
-      "hardMax": 45
-    },
-    "TECHNICAL_SPECIFICATION": {
-      "preferred": [
-        22,
-        34
-      ],
-      "hardMax": 40
-    },
-    "TECHNICAL_STANDARD": {
-      "preferred": [
-        22,
-        34
-      ],
-      "hardMax": 40
-    },
-    "DATABASE_STANDARD": {
-      "preferred": [
-        28,
-        42
-      ],
-      "hardMax": 50
-    },
-    "DELIVERABLE_INDEX": {
-      "preferred": [
-        7,
-        12
-      ],
-      "hardMax": 15
-    }
+  "verticalRhythm": {
+    "pageCountCompression": "forbidden",
+    "bodyLineSpacingMin": 1.25,
+    "bodySpaceAfterPtMin": 7.5,
+    "h1BeforePtMin": 52,
+    "h2BeforePtMin": 28,
+    "h3BeforePtMin": 18,
+    "semanticTransitionGapPtMin": 14,
+    "manualVisualOverride": "if cramped, FAIL even when numeric thresholds pass"
   },
-  "hardMaxPolicy": "hardMax를 목표로 채우지 않는다. 먼저 사용빈도 낮은 설명·중복·긴 표를 제거한다. Preferred 상단을 넘으면 실제 개발 중 반복 조회 가치가 있는지 재검토하고, 상세 계약은 Specification/Source로 이동한다."
+  "pageDensityGate": {
+    "tooDense": "텍스트/표가 페이지 전체에 시각적 그룹 없이 연속되어 첫 스캔 진입점이 부족하면 FAIL",
+    "tooSparse": "마지막 페이지에 제목+한 문장, 표 꼬리 1~2행 등 의미 블록이 고립되면 FAIL",
+    "target": "여백은 의미 구분에 사용하고 내용 없는 빈 페이지를 만들지 않는다."
+  },
+  "readabilityOverPageCount": true,
+  "readme": {
+    "longParagraphChars": 220,
+    "consecutiveLongParagraphsMax": 2,
+    "h2Min": 5,
+    "consecutiveTablesMax": 1,
+    "consecutiveLargeFiguresWithoutExplanationMax": 1,
+    "detailOffload": "long reference to guide/specification",
+    "paragraphReviewOverChars": 420,
+    "paragraphReviewOverSentences": 5,
+    "h2UpperBound": "NONE",
+    "visualUpperBound": "NONE",
+    "onDensityViolation": "내용 삭제 금지. Section/paragraph/list/visual 분리와 상세 문서 연결로 재구성."
+  },
+  "tableWrap": {
+    "headerVisualLinesMax": 1,
+    "shortTokenVisualLinesMax": 1,
+    "preferredCellVisualLinesMax": 3,
+    "reviewCellVisualLinesMax": 4,
+    "repeatedLongCellRowsMax": 0,
+    "policy": "reallocate width or change orientation before reducing font"
+  },
+  "totalDocumentSizePolicy": {
+    "scope": "README + 모든 공식 DOCX/PDF",
+    "totalFileSizeLimit": "NONE",
+    "totalPageCountLimit": "NONE",
+    "totalWordCountLimit": "NONE",
+    "totalCharacterCountLimit": "NONE",
+    "totalSectionCountLimit": "NONE",
+    "totalFigureCountLimit": "NONE",
+    "coverageReductionForLength": "FORBIDDEN",
+    "rule": "필요한 Source-backed 기능·장점·업무 절차·실패/복구·운영 정보는 총 길이를 이유로 삭제/축약하지 않는다. 과밀하면 Section 분리, Heading 재구성, Bullet/Callout/Figure/가로형 Table, 상세 Reference 연결로 재배치한다.",
+    "localReadabilityThresholds": "허용. 문단/표/그림의 국소 가독성 Threshold는 삭제 한도가 아니라 재구성 Trigger다.",
+    "pageCountCompression": "FORBIDDEN",
+    "fontShrinkForLength": "FORBIDDEN",
+    "marginShrinkForLength": "FORBIDDEN"
+  }
 }

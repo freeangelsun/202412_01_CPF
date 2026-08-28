@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.5.0",
+  "harnessVersion": "2.8.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "docxShell": {
@@ -14,15 +14,15 @@
         "문서 제목",
         "문서 한 줄 목적",
         "대상 독자",
-        "문서 버전",
-        "기준 Source identity short form"
+        "문서 버전"
       ],
       "titleMaxLines": 2,
       "purposeMaxLines": 2,
       "noDecorativeGrayBoxes": true,
       "noLongLegalText": true,
       "titleSingleLinePreferred": true,
-      "titleOrphanWrap": "hard_fail"
+      "titleOrphanWrap": "hard_fail",
+      "readerFacingProvenance": "forbidden: Harness version/Source SHA/Source ZIP/build baseline are evidence-only"
     },
     "toc": {
       "required": true,
@@ -64,8 +64,8 @@
     "sectionStart": {
       "pageBreakEveryH1": false,
       "remainingSpaceRuleMm": 55,
-      "h1SpaceBeforePt": 40,
-      "h1AfterTableOrFigureMinPt": 18,
+      "h1SpaceBeforePt": 52,
+      "h1AfterTableOrFigureMinPt": 24,
       "majorSectionExtraBreathing": "about one body line compared with ordinary block transition"
     },
     "lastPage": {
@@ -78,20 +78,21 @@
     "order": [
       "Hero",
       "mandatory CPF architecture map",
-      "locked numbered H1 panels",
+      "5..8 concise functional H2 sections",
       "short documentation navigation",
       "Community & Evaluation License"
     ],
-    "headingNumbering": "required; Markdown H1 text contains locked numeric prefix 1. 2. 3. ...",
+    "headingNumbering": "not required; exactly one product H1, functional H2 headings; benefit/promotional headings forbidden",
     "toc": "forbidden",
     "heroWidth": "100%",
     "coreVisualWidth": "100%",
     "unsupportedCssDependency": "forbidden",
-    "heroRule": "Hero는 브랜드/한 줄 정의/핵심 플랫폼 인상만. 기능 카드 10개 이상을 Hero에 몰아넣지 않는다."
+    "heroRule": "Hero는 브랜드/한 줄 정의/핵심 플랫폼 인상만. 기능 카드 10개 이상을 Hero에 몰아넣지 않는다.",
+    "scanability": "no TOC, no dense benefit list, no consecutive tables, no consecutive large figures without explanation"
   },
   "metadata": {
-    "documentVersionFormat": "HARNESS_VERSION + document revision; do not invent release status",
-    "sourceIdentity": "short SHA 또는 Source ZIP SHA-256를 표지/문서 정보에 넣을 수 있으나 QA PASS 문구는 넣지 않는다.",
+    "documentVersionFormat": "document revision only when useful to reader; never expose Harness version or Source SHA in user-facing body/cover/footer",
+    "sourceIdentity": "user-facing README/DOCX/PDF forbidden; evidence/manifest only",
     "dates": "YYYY-MM-DD",
     "timezone": "KST when time is shown"
   },

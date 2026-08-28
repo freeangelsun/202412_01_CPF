@@ -2,7 +2,7 @@
 import json,hashlib,re,subprocess,sys
 from pathlib import Path
 H=Path(__file__).resolve().parents[1]
-VER='2.9.0'
+VER='2.10.0'
 
 def fail(msg):
     print('HARNESS=FAIL',msg); raise SystemExit(1)
@@ -13,10 +13,10 @@ def load(rel):
     except Exception as e: fail(f'json {rel}: {e}')
 # Required executable-quality files.
 required=[
- 'harness.json','ANTI_PATTERN_CATALOG.md','MANUAL_REVIEW_SCORECARD.md','DOCUMENT_DESIGN_PLAYBOOK.md','README_BROCHURE_AND_AI_TEXT_STANDARD.md','INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','AUTHORING_EXECUTION_PROTOCOL.md','design-tokens.json','writing-style.json','content-density.json','document-output-rules.json','quality-acceptance.json','quality-fixtures.json','visual-qa.json','reader-task-coverage.json','readme-value-inventory.json','scope.json','table-presets.json','figure-presets.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARD_GATE_POLICY.md',
+ 'harness.json','READABILITY_AND_ACTIONABILITY_STANDARD.md','HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md','readability-actionability.json','ANTI_PATTERN_CATALOG.md','MANUAL_REVIEW_SCORECARD.md','DOCUMENT_DESIGN_PLAYBOOK.md','README_BROCHURE_AND_AI_TEXT_STANDARD.md','INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','AUTHORING_EXECUTION_PROTOCOL.md','design-tokens.json','writing-style.json','content-density.json','document-output-rules.json','quality-acceptance.json','quality-fixtures.json','visual-qa.json','reader-task-coverage.json','readme-value-inventory.json','scope.json','table-presets.json','figure-presets.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARD_GATE_POLICY.md',
  'profiles/README.json','templates/ARTIFACT_REVIEW.template.json','templates/SESSION_RUN_MANIFEST.template.json','templates/FINAL_ACCEPTANCE.template.json',
- 'validators/validate_quality_fixtures.py','validators/validate_readme.py','validators/validate_docx_artifacts.py','validators/validate_reader_task_coverage.py','validators/validate_final_acceptance.py','validators/run_all_gates.py',
- 'validators/validate_quality_fixtures.ps1','validators/validate_readme.ps1','validators/validate_docx_artifacts.ps1','validators/validate_final_acceptance.ps1','validators/run_all_gates.ps1'
+ 'validators/validate_source_alignment.py','validators/validate_quality_fixtures.py','validators/validate_readability_actionability.py','validators/validate_readme.py','validators/validate_docx_artifacts.py','validators/validate_reader_task_coverage.py','validators/validate_final_acceptance.py','validators/run_all_gates.py',
+ 'validators/validate_source_alignment.ps1','validators/validate_quality_fixtures.ps1','validators/validate_readability_actionability.ps1','validators/validate_readme.ps1','validators/validate_docx_artifacts.ps1','validators/validate_final_acceptance.ps1','validators/run_all_gates.ps1'
 ]
 for r in required:
     if not (H/r).is_file(): fail('required file '+r)
@@ -36,7 +36,7 @@ if h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authorit
 # Strict final acceptance must exist and be all-required.
 cg=h.get('completionGate',{})
 if cg.get('allRequired') is not True or cg.get('partialPass')!='forbidden': fail('completion gate strictness')
-for gid in ['README_SCANABILITY_PASS','README_NATURAL_VALUE_PASS','TABLE_PROPORTION_RENDER_PASS','READER_TASK_COMPLETENESS_PASS','DOCUMENT_SIZE_CAP_ABSENCE_PASS','CONTENT_COVERAGE_NOT_TRUNCATED_PASS','README_BROCHURE_PASS','README_AI_TEXT_COMPANION_PASS','INFORMATION_ARCHITECTURE_PASS','FULL_PAGE_FRESH_EYES_REVIEW_PASS','FLEXIBLE_TABLE_LAYOUT_PASS','LONG_DOCUMENT_NAVIGATION_PASS','MANUAL_EVIDENCE_COMPLETE_PASS','FINAL_ACCEPTANCE_AGGREGATOR_PASS']:
+for gid in ['SOURCE_ALIGNMENT_PASS','READABILITY_AND_ACTIONABILITY_PASS','SELECTION_TO_ACTION_PASS','DEVELOPER_WORKING_EXAMPLE_PASS','VISUAL_COMFORT_AND_DENSITY_PASS','README_SCANABILITY_PASS','README_NATURAL_VALUE_PASS','TABLE_PROPORTION_RENDER_PASS','READER_TASK_COMPLETENESS_PASS','DOCUMENT_SIZE_CAP_ABSENCE_PASS','CONTENT_COVERAGE_NOT_TRUNCATED_PASS','README_BROCHURE_PASS','README_AI_TEXT_COMPANION_PASS','INFORMATION_ARCHITECTURE_PASS','FULL_PAGE_FRESH_EYES_REVIEW_PASS','FLEXIBLE_TABLE_LAYOUT_PASS','LONG_DOCUMENT_NAVIGATION_PASS','MANUAL_EVIDENCE_COMPLETE_PASS','FINAL_ACCEPTANCE_AGGREGATOR_PASS']:
     if gid not in cg.get('required',[]): fail('missing completion gate '+gid)
 qa=load('quality-acceptance.json'); qids={s['id'] for s in qa.get('stages',[]) if s.get('required')}
 for gid in cg.get('required',[]):
@@ -65,7 +65,7 @@ if nd.get('requiredGroupsMin',0)<7 or nd.get('distinctFunctionalSectionsMin',0)<
 if len(rv.get('groups',[]))<8: fail('README value groups')
 # Vertical rhythm and table width strictness.
 d=load('design-tokens.json'); par=d.get('paragraph',{}); tab=d.get('tables',{})
-mins={'body_line_spacing_multiple':1.25,'body_space_after_pt':7.5,'h1_space_before_pt':52,'h2_space_before_pt':28,'h3_space_before_pt':18,'semanticTransitionGapPtMin':14}
+mins={'body_line_spacing_multiple':1.32,'body_space_after_pt':8.5,'h1_space_before_pt':58,'h2_space_before_pt':32,'h3_space_before_pt':20,'semanticTransitionGapPtMin':16}
 for k,v in mins.items():
     if float(par.get(k,0))<v: fail(f'vertical rhythm {k}')
 wh=tab.get('widthHardGates',{})
@@ -79,18 +79,26 @@ if len(rc.get('requiredTaskDimensions',[]))<8: fail('reader task dimensions')
 if 'term presence is only a pre-check' not in rc.get('policy',''): fail('reader keyword-only false green')
 # User visual connector finding remains hard-zero.
 vq=load('visual-qa.json'); hf=vq.get('hardFail',{})
-for k in ['connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','promotionalBenefitHeading','readmeDenseWallOfText','semanticTableWidthInversion','shortTokenWrap','readerTaskKeywordOnlyFalseGreen','manualGateNotExecuted','manualEvidenceMissing','requiredGateNonPass','automatedOnlyFinalPassAttempt','documentTotalSizeCap','coverageTruncatedForLength','readmeBrochureStructureMissing','readmeVisualKoreanCompanionMissing','readmeImageAltMissing','readmeBrochureVisualRhythmMissing','informationArchitectureReaderNeedMismatch','longDocumentNavigationMissing','fixedWidthTableCausesWrap','manualFreshEyesReviewMissing']:
+for k in ['connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','promotionalBenefitHeading','readmeDenseWallOfText','semanticTableWidthInversion','shortTokenWrap','readerTaskKeywordOnlyFalseGreen','manualGateNotExecuted','manualEvidenceMissing','requiredGateNonPass','automatedOnlyFinalPassAttempt','documentTotalSizeCap','coverageTruncatedForLength','readmeBrochureStructureMissing','readmeVisualKoreanCompanionMissing','readmeImageAltMissing','readmeBrochureVisualRhythmMissing','informationArchitectureReaderNeedMismatch','longDocumentNavigationMissing','fixedWidthTableCausesWrap','manualFreshEyesReviewMissing','selectionWithoutNextAction','apiSummaryWithoutWorkingExample','developerChapterTableWall','readmeDenseCenteredHero','readmeFlatLongNavigation','readmeStackedCodeBlocks','longFlatListWall','consecutiveLongBulletWall','heavyBlockWall','uniformManualScoresWithoutEvidence','genericReaderPassEvidence','pagePackedForLength']:
     if hf.get(k)!=0: fail('hardFail key '+k)
 # High-quality human review threshold must not be weakened.
 ms=qa.get('manualVisualScore',{})
 if float(ms.get('minimumEach',0))<4 or float(ms.get('minimumAverage',0))<4.6: fail('manual visual score threshold weakened')
-for dim in ['information_architecture_fit','no_content_truncation','fresh_eyes_scan_quality','readme_brochure_quality','readme_ai_text_companion']:
+for dim in ['information_architecture_fit','no_content_truncation','fresh_eyes_scan_quality','readme_brochure_quality','readme_ai_text_companion','reader_actionability','selection_to_action','working_example_fit','failure_recovery_closure','visual_comfort','information_hierarchy','flat_list_density','heavy_block_rhythm']:
     if dim not in ms.get('dimensions',[]): fail('manual visual dimension missing '+dim)
 art=load('templates/ARTIFACT_REVIEW.template.json')
 for fld in ['scanPassEvidence','detailPassEvidence','readerPassEvidence']:
     if fld not in art: fail('artifact review evidence field missing '+fld)
-for mg in ['contentCoverageNotTruncated','informationArchitecture','freshEyesTwoPass','flexibleTableLayout','longDocumentNavigation','readmeBrochure','readmeAiTextCompanion']:
+for mg in ['contentCoverageNotTruncated','informationArchitecture','freshEyesTwoPass','flexibleTableLayout','longDocumentNavigation','readmeBrochure','readmeAiTextCompanion','selectionToAction','workingExampleFit','visualComfort','heavyBlockRhythm','flatListGrouping','failureRecoveryClosure']:
     if mg not in art.get('manualGates',{}): fail('artifact manual gate missing '+mg)
+# Readability/actionability structural reinforcement.
+ra=load('readability-actionability.json')
+if ra.get('global',{}).get('longFlatListItemsHardFail',99)>7: fail('readability flat list threshold weakened')
+if ra.get('global',{}).get('heavyBlocksConsecutiveHardFail',99)>4: fail('readability heavy block threshold weakened')
+if ra.get('developerChapterContract',{}).get('apiSummaryIsNotHowTo',False) is False and ra.get('global',{}).get('apiSummaryIsNotHowTo') is not True: fail('API summary false-green policy')
+if ra.get('developerChapterContract',{}).get('selectionTable','')=='': fail('selection-to-action contract missing')
+for rel in ['READABILITY_AND_ACTIONABILITY_STANDARD.md','HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md']:
+    if not (H/rel).is_file(): fail('readability standard missing '+rel)
 # v2.8 no total size cap and self-contained authoring playbooks.
 size=h.get('documentSizePolicy',{})
 for k in ['totalFileSizeLimit','totalPageCountLimit','totalWordCountLimit','totalCharacterCountLimit','totalSectionCountLimit','totalFigureCountLimit']:

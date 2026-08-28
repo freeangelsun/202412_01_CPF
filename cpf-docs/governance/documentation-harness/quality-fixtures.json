@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -656,6 +656,131 @@
       },
       "mustTrigger": "windowsVsCodeMarkdownPreviewRuntimeFailure",
       "expect": "FAIL"
+    },
+    {
+      "id": "SELECTION_WITHOUT_NEXT_ACTION",
+      "category": "content",
+      "expect": "FAIL",
+      "input": {
+        "selectionPresented": true,
+        "nextActionPresent": false
+      },
+      "mustTrigger": "selectionWithoutNextAction"
+    },
+    {
+      "id": "API_SUMMARY_WITHOUT_WORKING_EXAMPLE",
+      "category": "content",
+      "expect": "FAIL",
+      "input": {
+        "apiSummaryTables": 2,
+        "workingExampleOrProcedure": false
+      },
+      "mustTrigger": "apiSummaryWithoutWorkingExample"
+    },
+    {
+      "id": "DEVELOPER_CHAPTER_TABLE_WALL",
+      "category": "content",
+      "expect": "FAIL",
+      "input": {
+        "developerChapter": true,
+        "semanticTables": 3,
+        "actionBlocks": 0
+      },
+      "mustTrigger": "developerChapterTableWall"
+    },
+    {
+      "id": "README_DENSE_CENTERED_HERO",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "centeredHero": true,
+        "bodyChars": 356,
+        "limitChars": 260
+      },
+      "mustTrigger": "readmeDenseCenteredHero"
+    },
+    {
+      "id": "README_FLAT_LONG_NAVIGATION",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "navigationListItems": 11,
+        "grouped": false,
+        "limit": 6
+      },
+      "mustTrigger": "readmeFlatLongNavigation"
+    },
+    {
+      "id": "README_STACKED_CODE_BLOCKS",
+      "category": "readme",
+      "expect": "FAIL",
+      "input": {
+        "consecutiveCodeBlocks": 4,
+        "purposeTextBetween": false
+      },
+      "mustTrigger": "readmeStackedCodeBlocks"
+    },
+    {
+      "id": "LONG_FLAT_LIST_WALL",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "flatListItems": 9,
+        "semanticGroups": 1
+      },
+      "mustTrigger": "longFlatListWall"
+    },
+    {
+      "id": "CONSECUTIVE_LONG_BULLET_WALL",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "consecutiveLongBullets": 7,
+        "charsEachAtLeast": 90
+      },
+      "mustTrigger": "consecutiveLongBulletWall"
+    },
+    {
+      "id": "HEAVY_BLOCK_WALL",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "consecutiveHeavyBlocks": 4,
+        "semanticExplanationBetween": false
+      },
+      "mustTrigger": "heavyBlockWall"
+    },
+    {
+      "id": "UNIFORM_MANUAL_SCORES_WITHOUT_EVIDENCE",
+      "category": "manual",
+      "expect": "FAIL",
+      "input": {
+        "scoreCount": 12,
+        "sameScoreCount": 11,
+        "dimensionEvidencePresent": false
+      },
+      "mustTrigger": "uniformManualScoresWithoutEvidence"
+    },
+    {
+      "id": "GENERIC_READER_PASS_EVIDENCE",
+      "category": "manual",
+      "expect": "FAIL",
+      "input": {
+        "readerPassEvidence": [
+          "전체 확인 완료"
+        ],
+        "readerTaskTraceCount": 0
+      },
+      "mustTrigger": "genericReaderPassEvidence"
+    },
+    {
+      "id": "PAGE_PACKED_FOR_LENGTH",
+      "category": "layout",
+      "expect": "FAIL",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "mustTrigger": "pagePackedForLength"
     }
   ]
 }

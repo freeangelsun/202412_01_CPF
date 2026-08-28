@@ -30,7 +30,7 @@ def main():
     try:m=load_json(mp)
     except Exception as e: print('FINAL_ACCEPTANCE=FAIL '+str(e)); return 2
     errs=[]
-    if m.get('harnessVersion')!='2.9.0': errs.append('manifest harnessVersion must be 2.9.0')
+    if m.get('harnessVersion')!='2.10.0': errs.append('manifest harnessVersion must be 2.10.0')
     stages={x['id']:x for x in QA.get('stages',[]) if x.get('required')}
     gates=m.get('gates',{})
     evidence=m.get('gateEvidence',{})
@@ -72,7 +72,7 @@ def main():
         if not ref or not rp.is_file(): errs.append(f'artifact review file missing: {aid} -> {ref}'); continue
         try:r=load_json(rp)
         except Exception as e: errs.append(str(e)); continue
-        if r.get('harnessVersion')!='2.9.0': errs.append(f'{aid}: review harnessVersion mismatch')
+        if r.get('harnessVersion')!='2.10.0': errs.append(f'{aid}: review harnessVersion mismatch')
         if r.get('approvalState') not in ALLOWED_APPROVAL: errs.append(f'{aid}: approvalState {r.get("approvalState")} not approved')
         if r.get('unresolvedCriticalFindings'): errs.append(f'{aid}: unresolvedCriticalFindings not empty')
         mg=r.get('manualGates',{})
@@ -80,6 +80,16 @@ def main():
             if v not in ('PASS','NOT_APPLICABLE'):
                 errs.append(f'{aid}: manual gate {k}={v}')
         if not r.get('evidenceRefs'): errs.append(f'{aid}: evidenceRefs empty')
+        traces=r.get('readerTaskTraces',[])
+        if not isinstance(traces,list) or len(traces)<3: errs.append(f'{aid}: readerTaskTraces must contain at least 3 concrete task traces')
+        for ti,tr in enumerate(traces):
+            if not isinstance(tr,dict): errs.append(f'{aid}: readerTaskTrace #{ti+1} must be structured object'); continue
+            for k in ['task','startSection','selection','action','resultCheck','evidenceRef']:
+                if not str(tr.get(k,'')).strip(): errs.append(f'{aid}: readerTaskTrace #{ti+1} missing {k}')
+        de=r.get('dimensionEvidence',{})
+        for dim in ['reader_actionability','selection_to_action','working_example_fit','failure_recovery_closure','visual_comfort','information_hierarchy','flat_list_density','heavy_block_rhythm']:
+            refs=de.get(dim,[]) if isinstance(de,dict) else []
+            if not isinstance(refs,list) or not refs: errs.append(f'{aid}: dimensionEvidence missing {dim}')
         # Every hard-fail count in layoutChecks must be 0/false/null-safe.
         for k,v in r.get('layoutChecks',{}).items():
             if k=='majorHeadingSingleLine':
@@ -89,7 +99,7 @@ def main():
             if isinstance(v,bool) and v is True and k.lower().endswith(('fail','violation')): errs.append(f'{aid}: hard-fail metric {k}=true')
     # High-quality human review contract: mandatory gates, two-pass evidence, scores.
     score_cfg=QA.get('manualVisualScore',{})
-    required_manual=['readerTaskFit','readerTaskCompleteness','tableSemanticFit','tableProportionRender','headingVerticalRhythm','embeddedFigure','humanVisual','regression','clickThrough','contentCoverageNotTruncated','informationArchitecture','freshEyesTwoPass','flexibleTableLayout','longDocumentNavigation']
+    required_manual=['readerTaskFit','readerTaskCompleteness','tableSemanticFit','tableProportionRender','headingVerticalRhythm','embeddedFigure','humanVisual','regression','clickThrough','contentCoverageNotTruncated','informationArchitecture','freshEyesTwoPass','flexibleTableLayout','longDocumentNavigation','selectionToAction','workingExampleFit','visualComfort','heavyBlockRhythm','flatListGrouping','failureRecoveryClosure']
     for aid in targets:
         entry=review_by.get(aid)
         if not entry: continue
@@ -117,6 +127,11 @@ def main():
             vals.append(float(v))
         if vals and sum(vals)/len(vals) < float(score_cfg.get('minimumAverage',4.6)):
             errs.append(f'{aid}: manualVisualScore average {sum(vals)/len(vals):.2f} below {score_cfg.get("minimumAverage")}')
+        if len(vals)>=10:
+            from collections import Counter
+            c=Counter(vals); same=max(c.values())
+            if same/len(vals)>=0.80 and not str(r.get('scoreUniformityJustification','')).strip():
+                errs.append(f'{aid}: >=80% manual scores are identical without scoreUniformityJustification')
     # Global evidence list also required.
     if not m.get('evidenceRefs'): errs.append('global evidenceRefs empty')
     # Reviewer identity/time for manual gate accountability.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -276,6 +276,36 @@
       "automated": false,
       "required": true,
       "meaning": "긴 문서가 실제 TOC/Heading/Navigation으로 필요한 정보를 빠르게 찾을 수 있음"
+    },
+    {
+      "id": "READABILITY_AND_ACTIONABILITY_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "전체 문서가 과밀하지 않고, Reader Task가 실제 선택·행동·결과 확인으로 완결됨"
+    },
+    {
+      "id": "SELECTION_TO_ACTION_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "선택/비교 뒤 실제 적용·Consumer·설정·검증 경로가 이어짐"
+    },
+    {
+      "id": "DEVELOPER_WORKING_EXAMPLE_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "개발 기능 장이 API 표만으로 끝나지 않고 Working Example/절차/호출 경로를 제공"
+    },
+    {
+      "id": "VISUAL_COMFORT_AND_DENSITY_PASS",
+      "automated": false,
+      "required": true,
+      "meaning": "긴 Flat List/Heavy Block/Page packing 없이 의미 그룹과 시각 호흡이 확보됨"
+    },
+    {
+      "id": "SOURCE_ALIGNMENT_PASS",
+      "automated": true,
+      "required": true,
+      "meaning": "최신 Source Catalog/Public artifact/API inventory가 Harness baseline과 일치"
     }
   ],
   "manualVisualScore": {
@@ -316,7 +346,15 @@
       "no_content_truncation",
       "fresh_eyes_scan_quality",
       "readme_brochure_quality",
-      "readme_ai_text_companion"
+      "readme_ai_text_companion",
+      "reader_actionability",
+      "selection_to_action",
+      "working_example_fit",
+      "failure_recovery_closure",
+      "visual_comfort",
+      "information_hierarchy",
+      "flat_list_density",
+      "heavy_block_rhythm"
     ],
     "criticalZeroRequired": [
       "text_overlap",
@@ -387,7 +425,7 @@
     "afterApproval": "PATCH_ONLY",
     "secondFreshRewriteWithoutNewExplicitRejection": "FORBIDDEN"
   },
-  "falseGreenRule": "Automated PASS cannot override a user-visible defect. Any user-visible defect makes the affected artifact FAIL until the Harness rule/fixture and artifact are both corrected.",
+  "falseGreenRule": "자동 키워드/파일/표/Geometry PASS만으로 완료 금지. Selection-to-Action, 실제 Consumer/Working Example, 실패·복구, Visual Comfort와 Reader Trace Evidence가 없으면 FAIL.",
   "finalAcceptance": {
     "authoritativeValidator": "validators/validate_final_acceptance.py / validate_final_acceptance.ps1",
     "passOnlyIf": "EVERY required stage exactly PASS AND unresolvedCriticalFindings=0 AND all required evidence refs exist AND all target artifacts have approvalState VISUAL_QA_APPROVED or USER_APPROVED",

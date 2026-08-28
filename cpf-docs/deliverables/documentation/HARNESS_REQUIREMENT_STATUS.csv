@@ -1,0 +1,9 @@
+﻿requirement_id,requirement,개발GPT_수행,개발GPT_상태,개발GPT_검증_Evidence,development_status,verification_status
+HAR-210-001,Harness purpose reaffirmation: source-to-reader executable official artifacts,완료,완료,Harness purposeReaffirmation + standards,완료,완료
+HAR-210-002,Reader Actionability / Selection-to-Action hard gates,완료,완료,validator + profiles + fixtures,완료,완료
+HAR-210-003,Developer Working Example / Consumer / failure-recovery closure,완료,완료,profiles + final acceptance + fixtures,완료,완료
+HAR-210-004,Visual comfort / density / vertical rhythm / hierarchy,완료,완료,tokens + density rules + validator,완료,완료
+HAR-210-005,False-green negative fixture expansion,완료,완료,76/76 PASS,완료,완료
+HAR-210-006,Latest source alignment,완료,완료,414 inventory refs + 26 public developer artifacts PASS,완료,완료
+HAR-210-007,Clean replay / lock / package manifest integrity,완료,완료,86 Harness files byte-for-byte replay PASS,완료,완료
+HAR-210-008,Windows PowerShell runtime,미완료,미검증,PowerShell unavailable in Linux environment,완료,미검증

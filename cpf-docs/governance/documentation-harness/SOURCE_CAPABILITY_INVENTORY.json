@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.9.0",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_125420(1).zip",
-  "sourceSha256": "96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9",
+  "harnessVersion": "2.10.0",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
+  "sourceSha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
   "apiPackageCategories": [
     {
       "category": "platform/operations/observability",
@@ -1577,5 +1577,5 @@
       ]
     }
   ],
-  "use": "Current supplied source baseline API/package category inventory; documentation must re-check actual source symbols before publishing API/option claims."
+  "use": "Current supplied source baseline API/package category inventory; all 414 sample references were rechecked against CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip and exist. Documentation must still re-check exact API/consumer semantics before authoring."
 }

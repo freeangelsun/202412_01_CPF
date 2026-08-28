@@ -1,4 +1,4 @@
-# CPF Documentation Anti-Pattern Catalog — v2.9.0
+# CPF Documentation Anti-Pattern Catalog — v2.10.0
 
 Harness 작성자가 반복 실수를 즉시 식별하도록 **실패 모양 → 올바른 방향**을 정리한다. 아래 항목은 하나라도 남으면 해당 Gate를 PASS할 수 없다.
 
@@ -61,7 +61,7 @@ Harness 작성자가 반복 실수를 즉시 식별하도록 **실패 모양 →
 
 
 
-## Harness 2.9.0 Visual Quality Uplift
+## Harness 2.10.0 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
@@ -70,3 +70,15 @@ Harness 작성자가 반복 실수를 즉시 식별하도록 **실패 모양 →
 - 마지막 페이지의 제목+한 문장, Source-only, 표 꼬리 1~2행, 의미 없는 대형 공백은 금지한다. 페이지 수를 줄이기 위해 전체 Font/Margin/Line spacing을 축소하지 않고 내용·국소 배치를 보정한다.
 - README Visual은 원본과 900/1200/1440px 삽입 Surface에서 text safe area·crop·boundary intrusion 0을 확인한다.
 - Windows VS Code built-in Markdown Preview Runtime은 가능한 Windows 환경에서 별도 실행한다. 실행하지 못한 경우 미검증으로 기록한다.
+## A-READ-01 선택표에서 끝나는 문서
+
+선택 기준만 제시하고 실제 설정·Consumer·예제·검증으로 이어지지 않으면 FAIL.
+
+## A-READ-02 API Table Wall
+
+개발자 장에 Public API/옵션 표가 2개 이상 있고 Working Example/절차/Consumer가 없으면 FAIL.
+
+## A-VIS-01 Flat List / Heavy Block Wall
+
+긴 Flat List 7개 이상, 장문 Bullet 6개 이상, 설명 없는 Heavy Block 4개 이상 연속은 FAIL. 내용을 삭제하지 말고 의미 그룹과 여백, 적절한 Component로 재구성한다.
+

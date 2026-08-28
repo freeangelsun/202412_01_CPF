@@ -13,7 +13,7 @@ def main():
     manifest=Path(sys.argv[1]).resolve()
     readme=(H.parents[2]/'README.md')
     for script,args in [
-        ('validate_harness.py',[]),('validate_quality_fixtures.py',[]),('validate_readme.py',[str(readme)]),('validate_docx_artifacts.py',[]),('validate_reader_task_coverage.py',[])]:
+        ('validate_harness.py',[]),('validate_source_alignment.py',[]),('validate_quality_fixtures.py',[]),('validate_readme.py',[str(readme)]),('validate_docx_artifacts.py',[]),('validate_reader_task_coverage.py',[]),('validate_readability_actionability.py',[])]:
         run([sys.executable,str(V/script),*args])
     run([sys.executable,str(V/'validate_final_acceptance.py'),str(manifest)])
     print('ALL_GATES=PASS')

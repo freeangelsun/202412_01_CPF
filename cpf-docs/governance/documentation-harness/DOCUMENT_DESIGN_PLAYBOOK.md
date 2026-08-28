@@ -1,4 +1,4 @@
-# CPF Document Design Playbook — v2.9.0
+# CPF Document Design Playbook — v2.10.0
 
 이 문서는 작성자가 누구든 같은 수준의 시각 품질을 내도록 **작성 순서와 화면 판정 기준**을 고정한다. 총 페이지/용량을 줄이는 것은 목표가 아니다. 필요한 정보를 모두 제공하면서 읽기 쉽게 구조화하는 것이 목표다.
 
@@ -50,3 +50,7 @@
 - **Detail pass:** 각 페이지 100% 이상에서 Header wrap, Cell wrap, Alignment, Figure crop, Connector, Link, Glyph를 확인한다. 고위험 Figure/Table은 200%까지 본다.
 
 Contact Sheet만 보고 PASS할 수 없다. 두 Pass의 Evidence가 모두 있어야 `FULL_PAGE_FRESH_EYES_REVIEW_PASS`가 PASS다.
+## 전체 문서 Visual Comfort
+
+총 페이지/용량을 줄이기 위해 내용을 압축하지 않는다. Body line spacing 1.32, paragraph after 8.5pt, H1/H2/H3 58/32/20pt 이상의 호흡을 기본으로 하며, Heavy Block 4개/Flat List 7개 이상은 재구성한다. 자세한 기준은 `READABILITY_AND_ACTIONABILITY_STANDARD.md`를 따른다.
+

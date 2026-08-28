@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -331,7 +331,12 @@
       "paragraphReviewOverChars": 420,
       "paragraphReviewOverSentences": 5,
       "onViolation": "restructure; do not truncate coverage",
-      "tableCellReviewOverChars": 90
+      "tableCellReviewOverChars": 90,
+      "flatListItemsHardFail": 7,
+      "consecutiveLongBulletsHardFail": 6,
+      "heavyBlocksConsecutiveHardFail": 4,
+      "stackedCodeBlocksWithoutPurposeHardFail": 3,
+      "centeredHeroBodyCharsHardFail": 260
     },
     "naturalValueDiscovery": {
       "required": true,
@@ -372,6 +377,11 @@
       "figureUpperBound": "NONE",
       "coverageReductionForLength": "forbidden",
       "densityFix": "split/restructure/offload exact reference; preserve summary/decision/failure/recovery/value evidence"
+    },
+    "navigationDensity": {
+      "flatListItemsHardFail": 7,
+      "groupingRequired": "3~5개의 의미 그룹",
+      "itemRule": "한 줄 목적 + PDF link; 긴 설명을 한 Flat list에 쌓지 않는다."
     }
   },
   "coverageLocked": true,
@@ -468,5 +478,28 @@
   },
   "artifactEvolution": {
     "mode": "PATCH_FIRST; approved/good baseline content and visuals preserved unless finding impact requires change"
+  },
+  "visualComfort": {
+    "required": true,
+    "rule": "정보량을 유지하되 같은 무게의 표/긴 목록/코드/Figure를 연속 적층하지 않고 의미 그룹과 충분한 vertical rhythm으로 구성한다.",
+    "flatListItemsHardFail": 7,
+    "heavyBlocksConsecutiveHardFail": 4,
+    "pagePackingForLength": "forbidden"
+  },
+  "readerTaskExecutionContract": {
+    "required": true,
+    "keywordOrTablePresenceOnly": "insufficient",
+    "flow": [
+      "question_or_job",
+      "selection",
+      "prerequisite_or_input",
+      "action_or_consumer",
+      "normal_result",
+      "failure_or_unknown",
+      "recovery_or_next_action",
+      "verification",
+      "reference"
+    ],
+    "rule": "해당 Persona가 문서만 따라 실제 업무를 끝낼 수 있어야 한다. 각 단계가 다른 문서에 있으면 직접 연결되는 Reference와 이동 이유를 제공한다."
   }
 }

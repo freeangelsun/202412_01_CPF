@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "deliverableType": "DOCUMENTATION_HARNESS_ONLY",
+  "harnessVersion": "2.10.0",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
+  "sourceZipSha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
+  "sourceFileCount": 10447,
+  "gitExactSha": "UNAVAILABLE_IN_SUPPLIED_ZIP",
+  "gitBranch": "master",
+  "repository": "https://github.com/freeangelsun/202412_01_CPF",
+  "canonicalRequirement": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+  "note": "Supplied source ZIP does not contain .git. No commit SHA was inferred or substituted."
+}

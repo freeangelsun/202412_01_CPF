@@ -1,4 +1,4 @@
-# Information Architecture & Reader Needs — v2.9.0
+# Information Architecture & Reader Needs — v2.10.0
 
 문서의 품질은 내용량보다 **독자가 필요한 답을 얼마나 빨리 찾고 끝낼 수 있는지**로 판정한다. CPF 문서는 Diátaxis의 사용자 요구 구분을 참고하되 CPF 문서 체계에 맞게 적용한다.
 
@@ -41,3 +41,7 @@ Keyword가 한 번 등장하는 것만으로는 Coverage가 아니다. 독자가
 - 읽은 뒤 어떤 결과를 확인할 수 있어야 하는가?
 
 답할 수 없으면 Section 자체를 재설계한다.
+## Selection-to-Action
+
+Reader Task는 선택 지점에서 끝나지 않는다. 선택 후 실제 설정·Consumer/작업·정상 결과·실패/복구·검증으로 이어져야 한다. API/키워드 존재는 pre-check일 뿐 Reader Task PASS Evidence가 아니다.
+

@@ -1,4 +1,4 @@
-# README Visual Storyboard — v2.9.0
+# README Visual Storyboard — v2.10.0
 
 README는 **다크 브로셔형 제품 간판**이다. 목차를 두지 않고 제품 H1 하나로 시작한다. H2는 독자의 질문과 Source-backed Coverage가 필요한 만큼 사용하며 **상한을 두지 않는다.**
 

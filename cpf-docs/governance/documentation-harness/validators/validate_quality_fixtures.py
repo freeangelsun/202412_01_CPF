@@ -71,6 +71,18 @@ def evaluate(x):
     if trig=='visualSafeAreaClipAtViewerWidth': return int(i.get('viewerWidthPx',0)) in (900,1200,1440) and (int(i.get('crop',0))!=0 or int(i.get('boundaryIntrusion',0))!=0)
     if trig=='approvedBaselineQualityRegression': return i.get('approvedBaseline') is True and i.get('changedOutsideFindingScope') is True and i.get('qualityRegressed') is True
     if trig=='windowsVsCodeMarkdownPreviewRuntimeFailure': return i.get('platform')=='windows' and i.get('previewRequired') is True and i.get('runtimeStatus')=='FAIL'
+    if trig=='selectionWithoutNextAction': return i.get('selectionPresented') is True and i.get('nextActionPresent') is not True
+    if trig=='apiSummaryWithoutWorkingExample': return int(i.get('apiSummaryTables',0))>=1 and i.get('workingExampleOrProcedure') is not True
+    if trig=='developerChapterTableWall': return i.get('developerChapter') is True and int(i.get('semanticTables',0))>=2 and int(i.get('actionBlocks',0))==0
+    if trig=='readmeDenseCenteredHero': return i.get('centeredHero') is True and int(i.get('bodyChars',0))>int(i.get('limitChars',260))
+    if trig=='readmeFlatLongNavigation': return int(i.get('navigationListItems',0))>int(i.get('limit',6)) and i.get('grouped') is not True
+    if trig=='readmeStackedCodeBlocks': return int(i.get('consecutiveCodeBlocks',0))>=3 and i.get('purposeTextBetween') is not True
+    if trig=='longFlatListWall': return int(i.get('flatListItems',0))>=7 and int(i.get('semanticGroups',1))<=1
+    if trig=='consecutiveLongBulletWall': return int(i.get('consecutiveLongBullets',0))>=6 and int(i.get('charsEachAtLeast',0))>=90
+    if trig=='heavyBlockWall': return int(i.get('consecutiveHeavyBlocks',0))>=4 and i.get('semanticExplanationBetween') is not True
+    if trig=='uniformManualScoresWithoutEvidence': return int(i.get('scoreCount',0))>=10 and int(i.get('sameScoreCount',0))/max(1,int(i.get('scoreCount',1)))>=0.8 and i.get('dimensionEvidencePresent') is not True
+    if trig=='genericReaderPassEvidence': return int(i.get('readerTaskTraceCount',0))<3
+    if trig=='pagePackedForLength': return i.get('spacingReducedForPageCount') is True
     return False
 
 errors=[]

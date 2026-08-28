@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "documentId": "ARCHITECTURE_DESIGN",
   "title": "CPF 아키텍처설계서",
   "locked": true,
@@ -300,5 +300,28 @@
     "totalSectionLimit": "NONE",
     "coverageReductionForLength": "FORBIDDEN",
     "onDensity": "restructure, split, change orientation, use navigation/reference; do not omit required reader information"
+  },
+  "visualComfort": {
+    "required": true,
+    "rule": "정보량을 유지하되 같은 무게의 표/긴 목록/코드/Figure를 연속 적층하지 않고 의미 그룹과 충분한 vertical rhythm으로 구성한다.",
+    "flatListItemsHardFail": 7,
+    "heavyBlocksConsecutiveHardFail": 4,
+    "pagePackingForLength": "forbidden"
+  },
+  "readerTaskExecutionContract": {
+    "required": true,
+    "keywordOrTablePresenceOnly": "insufficient",
+    "flow": [
+      "question_or_job",
+      "selection",
+      "prerequisite_or_input",
+      "action_or_consumer",
+      "normal_result",
+      "failure_or_unknown",
+      "recovery_or_next_action",
+      "verification",
+      "reference"
+    ],
+    "rule": "해당 Persona가 문서만 따라 실제 업무를 끝낼 수 있어야 한다. 각 단계가 다른 문서에 있으면 직접 연결되는 Reference와 이동 이유를 제공한다."
   }
 }

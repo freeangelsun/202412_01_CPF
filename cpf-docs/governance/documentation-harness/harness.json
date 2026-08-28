@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.9.0",
-  "title": "CPF 공식 산출물 실행형 디자인·품질 하네스 — Strict No-False-Green / No-Content-Truncation",
+  "version": "2.10.0",
+  "title": "CPF 공식 산출물 실행형 디자인·내용완결성·품질 하네스 — Reader-Executable / Strict No-False-Green",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "changePolicy": {
@@ -173,7 +173,15 @@
       "README 의미 Figure 아래 AI/텍스트 소비자를 위한 간략 한글 설명을 누락하는 것",
       "README Figure의 Alt Text를 비우거나 파일명/장식 문구만 넣는 것",
       "긴 문서를 Navigation/Heading 재구성 없이 단순 압축하는 것",
-      "Document Profile의 Persona/Reader Need/Exit Condition을 확인하지 않고 Source 기능 나열만으로 내용을 채우는 것"
+      "Document Profile의 Persona/Reader Need/Exit Condition을 확인하지 않고 Source 기능 나열만으로 내용을 채우는 것",
+      "선택/비교 표를 제시하고 선택 후 실제 적용 절차·설정·Consumer·검증 경로 없이 다음 장으로 넘어가는 것",
+      "Public API/Annotation/옵션 표만 반복하고 실제 Working Example 또는 Consumer 호출 경로가 없는 개발자 장을 완료 처리하는 것",
+      "같은 H1 안에서 표 2개 이상이 연속되고 이를 해석·적용하는 본문/예제/절차가 없는 table wall을 허용하는 것",
+      "7개 이상의 긴 Bullet/Navigation을 의미 그룹 없이 하나의 Flat List로 나열하는 것",
+      "목적/결과 설명 없이 Code Block을 3개 이상 연속 적층하는 것",
+      "한 화면/페이지에서 Table·Code·Figure·긴 List 중 Heavy Block 4개 이상이 의미 전환 설명 없이 연속되는 것",
+      "Hero/Intro의 긴 본문을 중앙정렬하여 3줄 이상 큰 덩어리로 만드는 것",
+      "문서 전체의 페이지 수를 줄이는 것을 가독성보다 우선하는 것"
     ]
   },
   "completionGate": {
@@ -220,7 +228,12 @@
       "FULL_PAGE_FRESH_EYES_REVIEW_PASS",
       "FLEXIBLE_TABLE_LAYOUT_PASS",
       "LONG_DOCUMENT_NAVIGATION_PASS",
-      "FINAL_ACCEPTANCE_AGGREGATOR_PASS"
+      "FINAL_ACCEPTANCE_AGGREGATOR_PASS",
+      "READABILITY_AND_ACTIONABILITY_PASS",
+      "SELECTION_TO_ACTION_PASS",
+      "DEVELOPER_WORKING_EXAMPLE_PASS",
+      "VISUAL_COMFORT_AND_DENSITY_PASS",
+      "SOURCE_ALIGNMENT_PASS"
     ],
     "allRequired": true,
     "partialPass": "forbidden",
@@ -332,5 +345,23 @@
     "pageCountCompression": "FORBIDDEN",
     "fontShrinkForLength": "FORBIDDEN",
     "marginShrinkForLength": "FORBIDDEN"
+  },
+  "purposeReaffirmation": {
+    "purpose": "최신 CPF Source와 정본을 근거로 README/DOCX/PDF를 만들고, 실제 독자가 이해·선택·개발·운영·검증까지 완료할 수 있는지 생성·검수·패키징 전 과정을 재현 가능하게 강제한다.",
+    "notJust": "파일 존재/키워드 존재/표 개수/페이지 Geometry/Renderer 성공만 확인하는 문서 검수기가 아니다.",
+    "readerExecutableDefinition": "Persona가 문서를 읽고 무엇을 선택할지 판단하고, 필요한 설정·Consumer·호출/작업 절차를 적용하고, 정상 결과와 실패/UNKNOWN/복구를 이해하고, Test/Trace/결과로 완료를 확인할 수 있어야 한다.",
+    "visualComfortDefinition": "전체 문서는 정보량을 유지하면서도 의미 그룹·여백·계층·Component 선택을 통해 첫 스캔 진입점과 시선 휴식 공간이 있어야 하며, 표/긴 Bullet/Code/Figure가 같은 무게로 연속 적층되면 FAIL이다.",
+    "sourceToArtifactLoop": [
+      "Source/정본 inventory",
+      "Reader Task/Persona 설계",
+      "Content model/선택·행동·실패·검증 흐름",
+      "Layout/Visual composition",
+      "Automated semantic+geometry gates",
+      "전페이지 Render",
+      "Fresh-eyes human review",
+      "Regression",
+      "Package replay"
+    ],
+    "falseGreenRule": "API/키워드/선택표가 존재한다는 이유만으로 실제 행동 경로가 없는 문서를 PASS 처리하지 않는다."
   }
 }

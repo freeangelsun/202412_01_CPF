@@ -69,7 +69,7 @@ for rel in DOCS:
     try: doc=Document(p)
     except Exception as e: fail(rel,'open '+str(e)); continue
     # Vertical rhythm: numeric minimum + manual render gate required separately.
-    for sn,min_before,min_after in [('Heading 1',52,11),('Heading 2',28,7),('Heading 3',18,5.5)]:
+    for sn,min_before,min_after in [('Heading 1',58,12),('Heading 2',32,7.5),('Heading 3',20,6)]:
         if sn in doc.styles:
             pf=doc.styles[sn].paragraph_format
             b=pf.space_before.pt if pf.space_before else 0; a=pf.space_after.pt if pf.space_after else 0
@@ -77,10 +77,10 @@ for rel in DOCS:
     if 'Normal' in doc.styles:
         pf=doc.styles['Normal'].paragraph_format
         after=pf.space_after.pt if pf.space_after else 0
-        if after+0.01<7.5: fail(rel,f'body paragraph spacing too tight {after}pt')
+        if after+0.01<8.5: fail(rel,f'body paragraph spacing too tight {after}pt')
         try:
             ls=float(pf.line_spacing or 0)
-            if ls and ls<1.25: fail(rel,f'body line spacing too tight {ls}')
+            if ls and ls<1.32: fail(rel,f'body line spacing too tight {ls}')
         except: pass
     # Opening metadata table and provenance forbidden.
     for t in doc.tables[:2]:

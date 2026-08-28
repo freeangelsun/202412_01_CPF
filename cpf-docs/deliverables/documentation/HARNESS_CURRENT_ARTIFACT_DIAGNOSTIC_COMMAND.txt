@@ -1,0 +1,2 @@
+python .\cpf-docs\governance\documentation-harness\validators\validate_readability_actionability.py .
+# Expected now: FAIL until official artifacts are reworked against Harness 2.10.0.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "artifact": "",
   "baselineState": "",
   "baselineRef": "",
@@ -55,7 +55,15 @@
     "no_content_truncation": null,
     "fresh_eyes_scan_quality": null,
     "readme_brochure_quality": null,
-    "readme_ai_text_companion": null
+    "readme_ai_text_companion": null,
+    "reader_actionability": null,
+    "selection_to_action": null,
+    "working_example_fit": null,
+    "failure_recovery_closure": null,
+    "visual_comfort": null,
+    "information_hierarchy": null,
+    "flat_list_density": null,
+    "heavy_block_rhythm": null
   },
   "criticalFindings": [],
   "regression": {
@@ -82,7 +90,16 @@
     "promotionalBenefitHeadingCount": 0,
     "readmeDenseWallCount": 0,
     "readerTaskIncompleteCount": 0,
-    "crowdedPageCount": 0
+    "crowdedPageCount": 0,
+    "selectionWithoutNextActionCount": 0,
+    "apiSummaryWithoutWorkingExampleCount": 0,
+    "developerChapterTableWallCount": 0,
+    "flatListWallCount": 0,
+    "consecutiveLongBulletWallCount": 0,
+    "heavyBlockWallCount": 0,
+    "stackedCodeBlocksCount": 0,
+    "denseCenteredHeroCount": 0,
+    "pagePackingCount": 0
   },
   "manualGates": {
     "readerTaskFit": "NOT_EXECUTED",
@@ -102,11 +119,17 @@
     "flexibleTableLayout": "NOT_EXECUTED",
     "longDocumentNavigation": "NOT_EXECUTED",
     "readmeBrochure": "NOT_EXECUTED",
-    "readmeAiTextCompanion": "NOT_EXECUTED"
+    "readmeAiTextCompanion": "NOT_EXECUTED",
+    "selectionToAction": "NOT_EXECUTED",
+    "workingExampleFit": "NOT_EXECUTED",
+    "visualComfort": "NOT_EXECUTED",
+    "heavyBlockRhythm": "NOT_EXECUTED",
+    "flatListGrouping": "NOT_EXECUTED",
+    "failureRecoveryClosure": "NOT_EXECUTED"
   },
   "evidenceRefs": [],
   "unresolvedCriticalFindings": [],
-  "finalRule": "approvalState cannot become VISUAL_QA_APPROVED unless every applicable manualGate=PASS/NOT_APPLICABLE, all required manualVisualScores meet threshold, Scan+Detail+Reader pass evidence exist, all hard-fail counts=0, unresolvedCriticalFindings empty, evidenceRefs non-empty.",
+  "finalRule": "approvalState cannot become VISUAL_QA_APPROVED unless every applicable manualGate=PASS/NOT_APPLICABLE, all required manualVisualScores meet threshold, readerTaskTraces>=3 for task-oriented artifacts, dimensionEvidence exists for readability/actionability dimensions, Scan+Detail+Reader pass evidence exist, all hard-fail counts=0, unresolvedCriticalFindings empty, evidenceRefs non-empty.",
   "mandatoryHumanChecks": [
     "hierarchy",
     "vertical rhythm",
@@ -121,5 +144,17 @@
   ],
   "scanPassEvidence": [],
   "detailPassEvidence": [],
-  "readerPassEvidence": []
+  "readerPassEvidence": [],
+  "readerTaskTraces": [],
+  "dimensionEvidence": {
+    "reader_actionability": [],
+    "selection_to_action": [],
+    "working_example_fit": [],
+    "failure_recovery_closure": [],
+    "visual_comfort": [],
+    "information_hierarchy": [],
+    "flat_list_density": [],
+    "heavy_block_rhythm": []
+  },
+  "scoreUniformityJustification": ""
 }

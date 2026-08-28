@@ -1,5 +1,5 @@
 {
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "harnessLockSha256": "FILL_FROM_HARNESS_LOCK",
   "source": {
     "file": "FILL_LATEST_SOURCE_ZIP",

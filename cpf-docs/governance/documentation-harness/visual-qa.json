@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -170,7 +170,19 @@
     "readmeHeaderWrapAt900or1200": 0,
     "visualSafeAreaClipAtViewerWidth": 0,
     "approvedBaselineQualityRegression": 0,
-    "windowsVsCodeMarkdownPreviewRuntimeFailure": 0
+    "windowsVsCodeMarkdownPreviewRuntimeFailure": 0,
+    "selectionWithoutNextAction": 0,
+    "apiSummaryWithoutWorkingExample": 0,
+    "developerChapterTableWall": 0,
+    "readmeDenseCenteredHero": 0,
+    "readmeFlatLongNavigation": 0,
+    "readmeStackedCodeBlocks": 0,
+    "longFlatListWall": 0,
+    "consecutiveLongBulletWall": 0,
+    "heavyBlockWall": 0,
+    "uniformManualScoresWithoutEvidence": 0,
+    "genericReaderPassEvidence": 0,
+    "pagePackedForLength": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -209,7 +221,12 @@
     "connectorTargetInteriorPenetrationPxAbove": 0,
     "graphicalObjectContrastBelow": "3:1",
     "embeddedEffectiveTextPtBelow": 10.5,
-    "tableTextContrastBelow": "4.5:1"
+    "tableTextContrastBelow": "4.5:1",
+    "flatListItemsOver": 6,
+    "consecutiveLongBulletsOver": 5,
+    "heavyBlocksConsecutiveOver": 3,
+    "codeBlocksWithoutPurposeOver": 2,
+    "centeredHeroBodyCharsOver": 260
   },
   "mandatoryInspection": {
     "allPagesQuickScan": true,
@@ -325,6 +342,14 @@
       "처음 보는 독자가 10초 내 그림 핵심을 말할 수 있는가",
       "첫 화면에서 다음 행동을 찾을 수 있는가",
       "시각적 장식이 정보 탐색을 방해하지 않는가"
+    ],
+    "readabilityAndActionability": [
+      "선택표 뒤에 각 선택지의 첫 행동/설정/Consumer/예제가 이어지는지 확인",
+      "개발자 장이 API/옵션 표만으로 끝나지 않고 실제 Working Example/절차와 Test까지 닫히는지 확인",
+      "README/DOCX/PDF에서 7개 이상 Flat List를 의미 그룹으로 분리했는지 확인",
+      "표·코드·Figure·긴 목록이 동일 무게로 4개 이상 연속되지 않는지 확인",
+      "각 페이지/화면에 시선 진입점과 휴식 공간이 있고 전체적으로 답답하지 않은지 확인",
+      "Hero/Intro 장문 중앙정렬, 끝까지 차는 한 줄, 반복되는 굵은/파란 링크가 시선을 분산하지 않는지 확인"
     ]
   },
   "fixLoop": [
@@ -389,7 +414,12 @@
       "Figure connector/box boundary",
       "README scanability/natural value expression"
     ],
-    "rule": "한 항목이라도 보기 어렵거나 답답하면 HUMAN_VISUAL_PASS 불가"
+    "rule": "한 항목이라도 보기 어렵거나 답답하면 HUMAN_VISUAL_PASS 불가",
+    "selectionToActionRequired": true,
+    "workingExampleRequiredForDeveloperTask": true,
+    "visualComfortRequired": true,
+    "flatListGroupingRequired": true,
+    "heavyBlockRhythmRequired": true
   },
   "v2_8_strict": {
     "noTotalSizeCap": true,

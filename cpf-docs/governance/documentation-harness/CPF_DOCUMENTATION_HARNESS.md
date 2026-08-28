@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.9.0
+# CPF Documentation Harness v2.10.0
 
 ## 1. 목적
 
@@ -84,7 +84,7 @@ Semantic, Source Identity, Reader Task Fit, Table Semantic Fit, Heading Rhythm, 
 개별 Validator가 PASS해도 완료가 아니다. `validators/validate_final_acceptance.py` 또는 `.ps1`이 모든 required Gate=PASS, Manual Evidence 존재, Critical Finding=0, Artifact Review 승인 상태를 확인해야 최종 PASS다. `NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED`는 PASS로 변환하지 않는다.
 
 
-## v2.9.0 강제 보강
+## v2.10.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -92,3 +92,9 @@ Semantic, Source Identity, Reader Task Fit, Table Semantic Fit, Heading Rhythm, 
 - README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
 - 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
 - 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.
+## Reader-Executable 목적 재확인
+
+이 Harness는 문서 파일의 존재나 Geometry만 검사하기 위한 체계가 아니다. 최신 Source와 정본을 바탕으로 대상 Persona가 `질문/목적 → 선택 → 설정/입력 → 실제 Consumer/절차 → 정상 결과 → 실패/UNKNOWN → 복구/다음 행동 → 검증 → Reference`를 끝낼 수 있는 공식 산출물을 만들고 검수하기 위한 생산 Harness다.
+
+API/Annotation/Keyword/선택표만 존재하는 문서는 How-to 완료로 인정하지 않는다. 전체 문서는 정보량을 유지하되 긴 Flat List와 Heavy Block 적층을 의미 그룹·여백·Component 재구성으로 해소하고, 페이지 수를 줄이기 위해 Font/Margin/Line spacing을 축소하지 않는다.
+

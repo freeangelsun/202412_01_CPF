@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0",
+  "scope": "DOCUMENTATION_HARNESS_ONLY",
+  "harnessVersion": "2.10.0",
+  "development_status": "완료",
+  "verification_status": "미검증",
+  "overall_status": "미검증",
+  "qa_final_status": "NOT_SET_BY_DEVELOPER_GPT",
+  "executed": {
+    "jsonParse": "PASS",
+    "pythonCompile": "PASS",
+    "harnessSelfValidation": "PASS",
+    "negativeFixtures": "PASS_76_OF_76",
+    "sourceAlignment": "PASS",
+    "sourceZipValidation": "PASS",
+    "freshReplay": "PASS",
+    "currentArtifactFalseGreenRejection": "PASS_20_FINDINGS_REJECTED"
+  },
+  "unexecuted": {
+    "windowsPowerShellRuntime": "미검증"
+  },
+  "note": "Harness implementation and executable gates are complete. Overall verification remains 미검증 only for the external Windows PowerShell runtime; no unexecuted test is counted as PASS. Existing official documents are downstream rework targets and are not marked complete."
+}

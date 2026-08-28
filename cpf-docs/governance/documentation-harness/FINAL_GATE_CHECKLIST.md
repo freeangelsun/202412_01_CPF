@@ -1,4 +1,4 @@
-# CPF Documentation 최종 Gate Checklist — Harness v2.9.0
+# CPF Documentation 최종 Gate Checklist — Harness v2.10.0
 
 **한 항목이라도 미실행·FAIL·BLOCKED·UNKNOWN이면 최종 PASS 불가.** 마지막 판정은 `validate_final_acceptance`가 수행한다.
 
@@ -101,7 +101,7 @@
 - [ ] `AUTOMATED_PASS_ONLY/NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED` 상태 0
 
 
-## v2.9.0 강제 보강
+## v2.10.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -109,3 +109,12 @@
 - README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
 - 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
 - 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.
+## Readability & Actionability 추가 Hard Gate
+
+- [ ] 선택/비교 뒤 실제 다음 행동이 모두 연결되었는가
+- [ ] 개발자 장이 API/옵션 표만으로 끝나지 않는가
+- [ ] 실제 Consumer/Working Example/절차가 있는가
+- [ ] 실패/UNKNOWN 뒤 복구/다음 행동과 검증이 닫혔는가
+- [ ] 긴 Flat List 7개, 장문 Bullet 6개, Heavy Block 4개, 설명 없는 Code 3개 이상 연속이 0건인가
+- [ ] 전페이지/README 900·1200·1440 육안검수에서 답답함·평면 계층·과밀이 0건인가
+

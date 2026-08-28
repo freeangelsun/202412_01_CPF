@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.10.0",
+  "locked": true,
+  "purpose": "사람이 실제로 읽고 행동할 수 있는 내용 완결성과, 과밀하지 않은 시각적 호흡을 자동/수동 Gate로 강제한다.",
+  "global": {
+    "selectionToActionRequired": true,
+    "apiSummaryIsNotHowTo": true,
+    "heavyBlockTypes": [
+      "table",
+      "code",
+      "figure",
+      "long_list",
+      "callout_stack"
+    ],
+    "heavyBlocksConsecutiveHardFail": 4,
+    "longFlatListItemsHardFail": 7,
+    "longBulletCharsReview": 90,
+    "consecutiveLongBulletsHardFail": 6,
+    "stackedCodeBlocksWithoutPurposeHardFail": 3,
+    "centeredHeroLongCharsHardFail": 260,
+    "centeredHeroVisualLinesReview": 3,
+    "tableWallTablesWithoutActionHardFail": 2,
+    "manualOverride": "자동 수치 이내라도 전페이지 Render가 답답하거나 정보 계층이 평평하면 HUMAN_VISUAL_FAIL"
+  },
+  "developerChapterContract": {
+    "requiredFlow": [
+      "reader_job",
+      "selection",
+      "prerequisites_or_config",
+      "real_consumer_or_call_path",
+      "working_example_or_procedure",
+      "normal_result",
+      "failure_or_unknown",
+      "recovery_or_next_action",
+      "verification",
+      "reference"
+    ],
+    "applicability": "기능 성격상 해당하지 않는 단계는 Profile에 사유를 명시해야 하며 빈칸을 N/A로 대체할 수 없다.",
+    "tableOnlyChapter": "FAIL when 2+ semantic tables exist and no working example/procedure/consumer evidence exists",
+    "selectionTable": "선택 항목마다 선택 후 첫 행동이 같은 장 또는 직접 연결된 절에 있어야 한다.",
+    "workingExample": "3~15줄의 최소 동작 코드/명령/절차 또는 Source-backed Consumer 경로. Interface 이름만 나열하는 것은 불충분.",
+    "failureClosure": "Timeout/Technical/UNKNOWN/Side Effect가 관련되면 Retry 가능조건과 blind retry 금지, Probe/Reconcile/Compensation 등 실제 다음 행동을 닫는다."
+  },
+  "frameworkDeveloperGuide": {
+    "persistenceSelection": {
+      "headingRegex": "JDBC.*MyBatis.*JPA.*선택",
+      "choices": {
+        "JDBC": [
+          "JdbcTemplate",
+          "NamedParameterJdbcTemplate",
+          "DataSource",
+          "JDBC 예"
+        ],
+        "MyBatis": [
+          "Mapper 인터페이스",
+          "@Mapper",
+          "SqlSession",
+          "MyBatis 예"
+        ],
+        "JPA": [
+          "Entity",
+          "JpaRepository",
+          "EntityManager",
+          "JPA 예"
+        ]
+      },
+      "rule": "표 안의 선택 기준과 별개로 각 선택지별 최소 설정/코드/Repository 사용 경로가 후속 본문에 있어야 한다."
+    },
+    "domainInvocation": {
+      "headingRegex": "Domain 호출과 외부 연계",
+      "requiredOutsideTableEvidence": [
+        "CpfDomainClient",
+        "execute(",
+        "CpfResult",
+        "UNKNOWN",
+        "Reconcile"
+      ],
+      "requireSystem6Flow": true,
+      "requireSameJvmRemoteBoundary": true,
+      "rule": "API/옵션/Topology/System6 표만으로 완료 금지. 실제 Consumer 호출 예와 4상태 분기, UNKNOWN 후속 행동이 필요하다."
+    }
+  },
+  "readme": {
+    "flatNavigationItemsHardFail": 7,
+    "groupingTarget": "3~5개의 의미 그룹으로 분리하고 각 항목은 목적→링크로 짧게 표현",
+    "consecutiveCodeBlocksWithoutPurposeHardFail": 3,
+    "heroCenteredBodyCharsHardFail": 260,
+    "heroCenteredBodyLinesReview": 3,
+    "longParagraphCharsReview": 220,
+    "visualComfort": "한 화면에서 큰 텍스트 덩어리/긴 목록/코드/표가 같은 무게로 반복되지 않게 크기·간격·그룹을 차등화한다."
+  },
+  "manualReview": {
+    "requiredDimensions": [
+      "reader_actionability",
+      "selection_to_action",
+      "working_example_fit",
+      "failure_recovery_closure",
+      "visual_comfort",
+      "information_hierarchy",
+      "flat_list_density",
+      "heavy_block_rhythm"
+    ],
+    "evidencePerDimensionRequired": true,
+    "scoreUniformityReview": "10개 이상 점수 중 80% 이상이 동일한 값이면 실제 page/section 관찰 근거 없이는 PASS 금지",
+    "readerTaskTraceMin": 3,
+    "readerTaskTraceFormat": "task + startSection + selection + action + resultCheck + evidenceRef"
+  }
+}

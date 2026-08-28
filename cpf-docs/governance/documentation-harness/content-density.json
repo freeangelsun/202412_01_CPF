@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "global": {
@@ -31,7 +31,15 @@
     "when_detail_exceeds_review_threshold": "내용을 삭제하지 않는다. 의미 단위로 Section/Paragraph/Bullet/Callout/Figure/Reference를 재구성해 가독성을 높인다.",
     "total_document_size_limit": "NONE",
     "coverage_reduction_for_length": "FORBIDDEN",
-    "readability_threshold_semantics": "모든 max/preferred 성격의 국소 값은 시각 재구성 Trigger이며 전체 정보 삭제/누락 근거가 아니다."
+    "readability_threshold_semantics": "모든 max/preferred 성격의 국소 값은 시각 재구성 Trigger이며 전체 정보 삭제/누락 근거가 아니다.",
+    "flat_list_items_hard_fail": 7,
+    "long_bullet_chars_review": 90,
+    "consecutive_long_bullets_hard_fail": 6,
+    "heavy_blocks_consecutive_hard_fail": 4,
+    "table_wall_without_action_hard_fail": 2,
+    "stacked_code_without_purpose_hard_fail": 3,
+    "visual_comfort_rule": "정보량을 삭제하지 말고 의미 그룹/계층/여백/Component 전환으로 숨 쉴 공간을 만든다. 동일 무게의 표·긴 목록·코드·그림을 연속 적층하지 않는다.",
+    "page_packing_for_compactness": "forbidden"
   },
   "microBlocks": {
     "developer": [
@@ -71,18 +79,26 @@
   },
   "verticalRhythm": {
     "pageCountCompression": "forbidden",
-    "bodyLineSpacingMin": 1.25,
-    "bodySpaceAfterPtMin": 7.5,
-    "h1BeforePtMin": 52,
-    "h2BeforePtMin": 28,
-    "h3BeforePtMin": 18,
-    "semanticTransitionGapPtMin": 14,
+    "bodyLineSpacingMin": 1.32,
+    "bodySpaceAfterPtMin": 8.5,
+    "h1BeforePtMin": 58,
+    "h2BeforePtMin": 32,
+    "h3BeforePtMin": 20,
+    "semanticTransitionGapPtMin": 16,
     "manualVisualOverride": "if cramped, FAIL even when numeric thresholds pass"
   },
   "pageDensityGate": {
     "tooDense": "텍스트/표가 페이지 전체에 시각적 그룹 없이 연속되어 첫 스캔 진입점이 부족하면 FAIL",
     "tooSparse": "마지막 페이지에 제목+한 문장, 표 꼬리 1~2행 등 의미 블록이 고립되면 FAIL",
-    "target": "여백은 의미 구분에 사용하고 내용 없는 빈 페이지를 만들지 않는다."
+    "target": "여백은 의미 구분에 사용하고 내용 없는 빈 페이지를 만들지 않는다.",
+    "tooDenseHardSignals": [
+      "7개 이상 flat list",
+      "6개 이상 장문 bullet",
+      "설명 없는 heavy block 4개 이상 연속",
+      "해석/행동 없는 표 2개 이상 연속",
+      "목적 설명 없는 code block 3개 이상 연속"
+    ],
+    "visualComfort": "각 화면/페이지에 첫 스캔 진입점과 시선 휴식 공간이 있어야 한다. 대제목/소제목/본문/표/그림/코드의 무게를 차등화한다."
   },
   "readabilityOverPageCount": true,
   "readme": {
@@ -96,7 +112,12 @@
     "paragraphReviewOverSentences": 5,
     "h2UpperBound": "NONE",
     "visualUpperBound": "NONE",
-    "onDensityViolation": "내용 삭제 금지. Section/paragraph/list/visual 분리와 상세 문서 연결로 재구성."
+    "onDensityViolation": "내용 삭제 금지. Section/paragraph/list/visual 분리와 상세 문서 연결로 재구성.",
+    "flatListItemsHardFail": 7,
+    "consecutiveLongBulletsHardFail": 6,
+    "consecutiveCodeBlocksWithoutPurposeHardFail": 3,
+    "centeredHeroBodyCharsHardFail": 260,
+    "heavyBlocksConsecutiveHardFail": 4
   },
   "tableWrap": {
     "headerVisualLinesMax": 1,

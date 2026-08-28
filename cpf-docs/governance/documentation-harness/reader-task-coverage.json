@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.9.0",
-  "policy": "term presence is only a pre-check. Final PASS requires task-level actionability and manual evidence.",
+  "harnessVersion": "2.10.0",
+  "policy": "term presence is only a pre-check. Final PASS requires task-level actionability, Selection-to-Action closure, real consumer/procedure evidence, failure/recovery closure, verification and manual evidence.",
   "artifacts": [
     {
       "id": "README",
@@ -26,7 +26,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "FRAMEWORK_DEVELOPER_GUIDE",
@@ -49,7 +49,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "BATCH_DEVELOPER_GUIDE",
@@ -73,7 +73,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "OPERATOR_MANUAL",
@@ -96,7 +96,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "BATCH_OPERATOR_GUIDE",
@@ -120,7 +120,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "GATEWAY_GUIDE",
@@ -143,7 +143,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "SPECIFICATION",
@@ -167,7 +167,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "ARCHITECTURE_DESIGN",
@@ -191,7 +191,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "TECHNICAL_SPECIFICATION",
@@ -214,7 +214,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "TECHNICAL_STANDARD",
@@ -237,7 +237,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "DATABASE_STANDARD",
@@ -261,7 +261,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     },
     {
       "id": "DELIVERABLE_INDEX",
@@ -284,7 +284,7 @@
         "verification_or_result_check",
         "source_sample_or_deeper_reference"
       ],
-      "passRule": "allRequiredConcepts presence + all applicable manualTaskDimensions PASS + evidenceRef present"
+      "passRule": "allRequiredConcepts pre-check + applicable task dimensions actionable + Selection-to-Action/consumer-or-procedure/failure-recovery/verification evidence + manual evidenceRef"
     }
   ],
   "requiredTaskDimensions": [
@@ -297,5 +297,15 @@
     "verification_or_result_check",
     "source_sample_or_deeper_reference"
   ],
-  "dimensionApplicabilityRule": "각 Artifact Profile이 applicable=false로 명시하지 않은 Dimension은 모두 PASS 필요. 단순 keyword 존재는 PASS 근거가 될 수 없다."
+  "dimensionApplicabilityRule": "각 Artifact Profile이 applicable=false로 명시하지 않은 Dimension은 모두 PASS 필요. 단순 keyword 존재는 PASS 근거가 될 수 없다.",
+  "actionabilityPolicy": {
+    "selectionToActionRequired": true,
+    "apiSummaryOnlyPass": "forbidden",
+    "tableOnlyPass": "forbidden",
+    "consumerOrProcedureEvidenceRequired": true,
+    "failureRecoveryRequiredWhenApplicable": true,
+    "verificationRequired": true,
+    "manualTaskTraceMin": 3,
+    "rule": "Reader Task keyword/표/API 이름이 존재해도 실제 다음 행동을 수행할 수 없으면 FAIL."
+  }
 }

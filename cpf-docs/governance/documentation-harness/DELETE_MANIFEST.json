@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.10.0",
   "policy": "exact-root-relative-only-no-wildcard",
   "delete": [
     "cpf-docs/governance/documentation-harness-v2.3.0",

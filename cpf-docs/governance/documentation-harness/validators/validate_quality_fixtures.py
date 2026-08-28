@@ -65,6 +65,12 @@ def evaluate(x):
     if trig=='longDocumentNavigationMissing': return i.get('longDocument') is True and i.get('tocOrEquivalentNavigation') is not True
     if trig=='fixedWidthTableCausesWrap': return i.get('fixedWidth') is True and i.get('shortTokenWrap') is True
     if trig=='manualFreshEyesReviewMissing': return i.get('scanPass') is not True or i.get('detailPass') is not True
+    if trig=='darkTableHeaderAutomaticOrDarkText': return i.get('darkHeader') is True and (str(i.get('textColor','')).upper() in ('','AUTO','000000') or float(i.get('contrast',99))<4.5)
+    if trig=='readmeViewerSectionBreathingInsufficient': return int(i.get('viewerWidthPx',0)) in (900,1200,1440) and float(i.get('majorSectionGapPx',99))<float(i.get('minimumPx',0))
+    if trig=='readmeHeaderWrapAt900or1200': return int(i.get('viewerWidthPx',0)) in (900,1200,1440) and int(i.get('headerVisualLines',1))>1
+    if trig=='visualSafeAreaClipAtViewerWidth': return int(i.get('viewerWidthPx',0)) in (900,1200,1440) and (int(i.get('crop',0))!=0 or int(i.get('boundaryIntrusion',0))!=0)
+    if trig=='approvedBaselineQualityRegression': return i.get('approvedBaseline') is True and i.get('changedOutsideFindingScope') is True and i.get('qualityRegressed') is True
+    if trig=='windowsVsCodeMarkdownPreviewRuntimeFailure': return i.get('platform')=='windows' and i.get('previewRequired') is True and i.get('runtimeStatus')=='FAIL'
     return False
 
 errors=[]

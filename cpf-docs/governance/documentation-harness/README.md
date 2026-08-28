@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.8.0
+# CPF Documentation Harness v2.9.0
 
 CPF 공식 README와 11개 DOCX/PDF를 일관된 상용 문서 품질로 만들기 위한 **실행형 Design/QA Harness**다.
 
@@ -55,7 +55,7 @@ CPF 공식 README와 11개 DOCX/PDF를 일관된 상용 문서 품질로 만들�
 10. Fresh Clean Replay 후 최종 ZIP 확정
 
 
-## v2.8.0 강제 보강
+## v2.9.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.

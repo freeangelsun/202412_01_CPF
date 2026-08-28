@@ -5,7 +5,7 @@ $h=Split-Path -Parent $here
 $qa=Get-Content -Raw -LiteralPath (Join-Path $h 'quality-acceptance.json') -Encoding utf8 | ConvertFrom-Json -Depth 100
 $m=Get-Content -Raw -LiteralPath $Manifest -Encoding utf8 | ConvertFrom-Json -Depth 100
 $errs=New-Object System.Collections.Generic.List[string]
-if($m.harnessVersion-ne '2.8.0'){$errs.Add('manifest harnessVersion must be 2.8.0')}
+if($m.harnessVersion-ne '2.9.0'){$errs.Add('manifest harnessVersion must be 2.9.0')}
 $agg='FINAL_ACCEPTANCE_AGGREGATOR_PASS'
 $required=@($qa.stages|Where-Object{$_.required -eq $true})
 foreach($s in $required){

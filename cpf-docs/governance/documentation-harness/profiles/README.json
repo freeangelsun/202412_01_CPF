@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.8.0",
+  "harnessVersion": "2.9.0",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -458,5 +458,15 @@
     "totalSectionLimit": "NONE",
     "coverageReductionForLength": "FORBIDDEN",
     "onDensity": "restructure, split, change orientation, use navigation/reference; do not omit required reader information"
+  },
+  "visualQualityHardGates": {
+    "majorSectionViewerBreathing": "900/1200/1440px에서 번호 H2 전환이 붙어 보이지 않아야 하며 이전 의미 블록과 명확히 분리",
+    "tableHeaderWrap": "900/1200/1440px에서 README 표 Header 2줄 0건. 폭이 부족하면 표를 prose/list/cards로 재구성",
+    "visualSafeArea": "9개 의미 Visual의 text/label/canvas 경계 침범·crop 0",
+    "productValueCoverage": "Source-backed 구조·개발·실패/복구·Batch·DB3·운영 가치가 별도 장점 Heading 없이 설명 흐름에 충분히 분산",
+    "windowsVsCodePreview": "Windows VS Code built-in Markdown Preview는 환경별 Runtime Gate. 실행 환경이 없으면 미검증으로 기록하고 PASS로 위조하지 않음"
+  },
+  "artifactEvolution": {
+    "mode": "PATCH_FIRST; approved/good baseline content and visuals preserved unless finding impact requires change"
   }
 }

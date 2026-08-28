@@ -1,24 +1,23 @@
-param([string]$ZipPath='')
+param([Parameter(Mandatory=$true)][string]$ZipPath)
 $ErrorActionPreference='Stop'
-$root=[IO.Path]::GetFullPath((git rev-parse --show-toplevel).Trim())
-if([string]::IsNullOrWhiteSpace($ZipPath)){
-  $cand=@(Get-ChildItem -LiteralPath (Join-Path $HOME 'Downloads') -File -Filter 'CPF_DOCUMENTATION_V2_5_0_FINAL_OVERLAY_*.zip' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending)
-  if($cand.Count-eq 0){throw 'FINAL OVERLAY ZIP NOT FOUND under $HOME\Downloads'}
-  $ZipPath=$cand[0].FullName
-}
+$root=[IO.Path]::GetFullPath((git rev-parse --show-toplevel).Trim());Set-Location $root
 $ZipPath=[IO.Path]::GetFullPath($ZipPath)
 if(!(Test-Path -LiteralPath $ZipPath -PathType Leaf)){throw "ZIP NOT FOUND: $ZipPath"}
-$tmp=Join-Path $env:TEMP ('cpf-doc-v250-'+[guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $tmp -Force|Out-Null
+$tmp=Join-Path $env:TEMP ('cpf-doc-290-'+[guid]::NewGuid().ToString('N'));New-Item -ItemType Directory -Path $tmp -Force|Out-Null
 try{
   Expand-Archive -LiteralPath $ZipPath -DestinationPath $tmp -Force
-  $manifest=Join-Path $tmp 'cpf-docs\deliverables\documentation\DELETE_MANIFEST.txt'
-  if(!(Test-Path -LiteralPath $manifest -PathType Leaf)){throw 'DELETE_MANIFEST.txt missing from overlay'}
-  Get-Content -LiteralPath $manifest -Encoding UTF8|ForEach-Object{
-    $r=$_.Trim(); if(!$r -or $r.StartsWith('#')){return}
+  $m=Join-Path $tmp 'cpf-docs\deliverables\documentation\DELETE_MANIFEST.txt'
+  if(!(Test-Path -LiteralPath $m -PathType Leaf)){throw 'DELETE_MANIFEST.txt missing from overlay'}
+  Get-Content -LiteralPath $m -Encoding UTF8|ForEach-Object{
+    $r=$_.Trim();if(!$r-or$r.StartsWith('#')){return}
     if([IO.Path]::IsPathRooted($r)-or$r.Contains('..')-or[Management.Automation.WildcardPattern]::ContainsWildcardCharacters($r)){throw "UNSAFE DELETE: $r"}
-    $p=[IO.Path]::GetFullPath((Join-Path $root ($r-replace '/','\')))
-    if(!$p.StartsWith($root.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw "OUTSIDE ROOT: $r"}
+    $norm=$r.Replace('\\','/').TrimStart('/')
+    if($norm -eq 'cpf-docs/deliverables/documentation' -or $norm -eq 'cpf-docs/guides' -or $norm -eq 'cpf-docs/governance/documentation-harness'){throw "CURRENT CANONICAL DELETE FORBIDDEN: $r"}
+    $sep=[IO.Path]::DirectorySeparatorChar
+    $rootPrefix=$root.TrimEnd($sep)+$sep
+    $rel=$r.Replace('/',[string]$sep)
+    $p=[IO.Path]::GetFullPath((Join-Path $root $rel))
+    if(!$p.StartsWith($rootPrefix,[StringComparison]::OrdinalIgnoreCase)){throw "OUTSIDE ROOT: $r"}
     if(Test-Path -LiteralPath $p){Remove-Item -LiteralPath $p -Recurse -Force;Write-Host "DELETED=$r"}
   }
   Get-ChildItem -LiteralPath $tmp -Force|ForEach-Object{Copy-Item -LiteralPath $_.FullName -Destination $root -Recurse -Force}

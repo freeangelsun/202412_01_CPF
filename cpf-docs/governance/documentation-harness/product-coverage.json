@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.8.0",
+  "harnessVersion": "2.9.0",
   "locked": true,
   "sourceBaseline": {
     "file": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260826_171223.zip",

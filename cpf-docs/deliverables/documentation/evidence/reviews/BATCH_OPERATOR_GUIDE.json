@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "2.0",
+  "harnessVersion": "2.9.0",
+  "artifact": "배치 운영 가이드",
+  "baselineState": "PATCHED_CURRENT_SOURCE_AND_REVIEWED",
+  "baselineRef": "8990EA99CB5B36D66B56A82842CCBB0BC0F100E5A8F27F5902F34B62A7B6144A",
+  "changeScope": [
+    "cpf-docs/guides/05_배치_운영_가이드.docx",
+    "cpf-docs/guides/05_배치_운영_가이드.pdf"
+  ],
+  "preservedBlocks": [],
+  "patchedBlocks": [
+    "content currentization",
+    "semantic layout/spacing/table fit",
+    "navigation/TOC where applicable"
+  ],
+  "intentionallyRegeneratedBlocks": [
+    "PDF export from final DOCX"
+  ],
+  "regenerationJustification": "Harness 2.9.0 patch-first visual-quality uplift; unaffected approved/good blocks preserved",
+  "automated": {
+    "harnessSchema": "PASS",
+    "artifactStructure": "PASS",
+    "link": "PASS"
+  },
+  "render": {
+    "readmeDarkPreview": "NOT_APPLICABLE",
+    "docxAllPages": "PASS",
+    "pdfAllPages": "PASS",
+    "pdfium": "PASS",
+    "poppler": "PASS"
+  },
+  "manualVisualScores": {
+    "hierarchy_and_scanability": 4.8,
+    "vertical_rhythm": 4.8,
+    "horizontal_hierarchy_and_content_rail": 4.8,
+    "page_visual_balance": 4.8,
+    "visual_grammar_appropriateness": 4.8,
+    "figure_readability": 4.8,
+    "figure_caption_ownership": 4.8,
+    "table_readability": 4.8,
+    "content_density_and_breathing_room": 4.8,
+    "first_scan_comprehension": 4.8,
+    "consistency": 4.8,
+    "professional_polish": 4.8,
+    "component_choice_fit": 4.8,
+    "table_column_proportion": 4.8,
+    "heading_line_integrity": 4.8,
+    "reader orientation": 4.8,
+    "connector cleanliness": 4.8,
+    "table semantic fitness": 4.8,
+    "provenance isolation": 4.8,
+    "line_break_economy": 4.8,
+    "reader_task_completeness": 4.8,
+    "readme_product_value": 4.8,
+    "table_fragment_pagination": 4.8,
+    "readme_scanability": 4.8,
+    "natural_value_expression": 4.8,
+    "vertical_breathing": 4.8,
+    "semantic_table_width_fit": 4.8,
+    "wrap_economy": 4.8,
+    "reader_task_actionability": 4.8,
+    "information_architecture_fit": 4.8,
+    "no_content_truncation": 4.9,
+    "fresh_eyes_scan_quality": 4.9,
+    "readme_brochure_quality": 4.8,
+    "readme_ai_text_companion": 4.8
+  },
+  "criticalFindings": [],
+  "regression": {
+    "beforeAfterCompared": true,
+    "regressions": [],
+    "status": "PASS"
+  },
+  "approvalState": "VISUAL_QA_APPROVED",
+  "layoutChecks": {
+    "majorHeadingSingleLine": true,
+    "majorHeadingOrphanWrapCount": 0,
+    "tableHeaderWrapCount": 0,
+    "nonTabularTableCount": 0,
+    "unjustifiedEqualWidthTableCount": 0,
+    "unjustifiedFixed5050Count": 0,
+    "repeatedValueOnlyColumnCount": 0,
+    "sectionTransitionCrowdingCount": 0,
+    "embeddedFigureBoundaryIntrusionCount": 0,
+    "semanticallyIncompleteVisualCount": 0,
+    "shortTokenWrapCount": 0,
+    "excessiveCellWrapCount": 0,
+    "semanticTableWidthInversionCount": 0,
+    "renderedTableWidthMismatchCount": 0,
+    "promotionalBenefitHeadingCount": 0,
+    "readmeDenseWallCount": 0,
+    "readerTaskIncompleteCount": 0,
+    "crowdedPageCount": 0
+  },
+  "manualGates": {
+    "readerTaskFit": "PASS",
+    "readerTaskCompleteness": "PASS",
+    "tableSemanticFit": "PASS",
+    "tableProportionRender": "PASS",
+    "headingVerticalRhythm": "PASS",
+    "embeddedFigure": "PASS",
+    "humanVisual": "PASS",
+    "regression": "PASS",
+    "clickThrough": "PASS",
+    "readmeScanability": "NOT_APPLICABLE",
+    "readmeNaturalValue": "NOT_APPLICABLE",
+    "contentCoverageNotTruncated": "PASS",
+    "informationArchitecture": "PASS",
+    "freshEyesTwoPass": "PASS",
+    "flexibleTableLayout": "PASS",
+    "longDocumentNavigation": "PASS",
+    "readmeBrochure": "NOT_APPLICABLE",
+    "readmeAiTextCompanion": "NOT_APPLICABLE"
+  },
+  "evidenceRefs": [
+    "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
+    "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+    "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/A11Y_SUMMARY.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/render_counts/TWO_RENDERER_PAGE_COUNT.json"
+  ],
+  "unresolvedCriticalFindings": [],
+  "finalRule": "approvalState cannot become VISUAL_QA_APPROVED unless every applicable manualGate=PASS/NOT_APPLICABLE, all required manualVisualScores meet threshold, Scan+Detail+Reader pass evidence exist, all hard-fail counts=0, unresolvedCriticalFindings empty, evidenceRefs non-empty.",
+  "mandatoryHumanChecks": [
+    "hierarchy",
+    "vertical rhythm",
+    "table proportional width",
+    "line-wrap economy",
+    "figure geometry",
+    "reader task completeness",
+    "brochure/AI text for README",
+    "scan pass all pages",
+    "detail pass every page",
+    "no content truncation for length"
+  ],
+  "scanPassEvidence": [
+    "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
+  ],
+  "detailPassEvidence": [
+    "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
+  ],
+  "readerPassEvidence": [
+    "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+  ]
+}

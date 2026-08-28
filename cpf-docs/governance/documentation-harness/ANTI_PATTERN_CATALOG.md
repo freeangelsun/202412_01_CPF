@@ -1,4 +1,4 @@
-# CPF Documentation Anti-Pattern Catalog — v2.8.0
+# CPF Documentation Anti-Pattern Catalog — v2.9.0
 
 Harness 작성자가 반복 실수를 즉시 식별하도록 **실패 모양 → 올바른 방향**을 정리한다. 아래 항목은 하나라도 남으면 해당 Gate를 PASS할 수 없다.
 
@@ -52,3 +52,21 @@ Harness 작성자가 반복 실수를 즉시 식별하도록 **실패 모양 →
   - **대신:** 문서 Intent에 맞게 우선순위를 두고 필요한 Reference로 연결.
 - **FAIL:** Harness/Source SHA/Build baseline을 사용자 본문에 표시.
   - **대신:** Evidence/Manifest에만 기록.
+
+## AP-DELIVERY-WINDOWS-ROOT-PREFIX
+
+- **금지:** Windows root containment 검사에서 separator를 문자열 literal로 중복 조립하여 정상 Root 상대경로를 `OUTSIDE ROOT`로 오판하는 구현.
+- **필수:** `DirectorySeparatorChar`로 root prefix와 상대경로 separator를 구성하고 `GetFullPath` 결과를 root boundary와 비교한다.
+- **Gate:** canonical `APPLY.ps1`/`DELETE_ONLY.ps1`에 `TrimEnd('` separator literal이 있거나 `DirectorySeparatorChar`/`$rootPrefix` 경계 검사가 없으면 Harness FAIL.
+
+
+
+## Harness 2.9.0 Visual Quality Uplift
+
+- 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
+- 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
+- README는 900/1200/1440px에서 대메뉴 전환 호흡과 Header 단일 행을 확인한다. 폭이 부족한 Markdown 표는 유지하지 않고 독자 흐름에 맞는 prose/list/card로 바꾼다.
+- 진한 DOCX 표 Header는 텍스트 대비 4.5:1 이상이며 AUTO/검정 글자를 허용하지 않는다.
+- 마지막 페이지의 제목+한 문장, Source-only, 표 꼬리 1~2행, 의미 없는 대형 공백은 금지한다. 페이지 수를 줄이기 위해 전체 Font/Margin/Line spacing을 축소하지 않고 내용·국소 배치를 보정한다.
+- README Visual은 원본과 900/1200/1440px 삽입 Surface에서 text safe area·crop·boundary intrusion 0을 확인한다.
+- Windows VS Code built-in Markdown Preview Runtime은 가능한 Windows 환경에서 별도 실행한다. 실행하지 못한 경우 미검증으로 기록한다.

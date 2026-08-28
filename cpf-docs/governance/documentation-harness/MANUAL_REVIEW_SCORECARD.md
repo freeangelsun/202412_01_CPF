@@ -1,4 +1,4 @@
-# CPF Documentation Manual Review Scorecard — v2.8.0
+# CPF Documentation Manual Review Scorecard — v2.9.0
 
 자동 Validator는 필요조건일 뿐이다. 최종 품질은 실제 Render를 사람이 두 번 보고 아래 Scorecard로 판정한다.
 
@@ -54,3 +54,14 @@ Persona 역할로 문서를 처음부터 사용해 본다.
 - 전체가 표/장문 Reference Sheet처럼 보이지 않는가
 - Visual이 의미 있고 서로 다른 Grammar를 사용하는가
 - AI/검색/텍스트 독자가 Figure 설명만으로 핵심 의미를 이해할 수 있는가
+
+
+## Harness 2.9.0 Visual Quality Uplift
+
+- 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
+- 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
+- README는 900/1200/1440px에서 대메뉴 전환 호흡과 Header 단일 행을 확인한다. 폭이 부족한 Markdown 표는 유지하지 않고 독자 흐름에 맞는 prose/list/card로 바꾼다.
+- 진한 DOCX 표 Header는 텍스트 대비 4.5:1 이상이며 AUTO/검정 글자를 허용하지 않는다.
+- 마지막 페이지의 제목+한 문장, Source-only, 표 꼬리 1~2행, 의미 없는 대형 공백은 금지한다. 페이지 수를 줄이기 위해 전체 Font/Margin/Line spacing을 축소하지 않고 내용·국소 배치를 보정한다.
+- README Visual은 원본과 900/1200/1440px 삽입 Surface에서 text safe area·crop·boundary intrusion 0을 확인한다.
+- Windows VS Code built-in Markdown Preview Runtime은 가능한 Windows 환경에서 별도 실행한다. 실행하지 못한 경우 미검증으로 기록한다.

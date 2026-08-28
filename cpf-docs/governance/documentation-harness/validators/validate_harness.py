@@ -2,7 +2,7 @@
 import json,hashlib,re,subprocess,sys
 from pathlib import Path
 H=Path(__file__).resolve().parents[1]
-VER='2.8.0'
+VER='2.9.0'
 
 def fail(msg):
     print('HARNESS=FAIL',msg); raise SystemExit(1)
@@ -130,17 +130,36 @@ for jp in H.rglob('*.json'):
 if 'Preferred Page Budget' in (H/'CONTENT_COMPRESSION_STANDARD.md').read_text(encoding='utf-8'): fail('legacy page budget phrase')
 
 # Exact delete manifest only, no wildcard/parent traversal/current canonical path.
+delete_txt=[]
 for raw in (H/'DELETE_MANIFEST.txt').read_text(encoding='utf-8').splitlines():
     s=raw.strip()
     if not s or s.startswith('#'): continue
+    delete_txt.append(s)
     if '*' in s or '?' in s or s.startswith('/') or '..' in Path(s).parts: fail('unsafe delete '+s)
     if s.rstrip('/')=='cpf-docs/governance/documentation-harness': fail('delete current harness forbidden')
+delete_json=load('DELETE_MANIFEST.json')
+for key in ['delete','paths']:
+    arr=delete_json.get(key)
+    if arr!=delete_txt: fail('delete manifest TXT/JSON mismatch '+key)
+if delete_json.get('wildcards') not in ([],None): fail('delete manifest wildcards must be empty')
+if delete_json.get('currentCanonicalPath')!='cpf-docs/governance/documentation-harness': fail('delete manifest currentCanonicalPath mismatch')
 # No stale version tokens outside delete manifest.
 for p in H.rglob('*'):
     if not p.is_file() or p.name in {'DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json'}: continue
     try:txt=p.read_text(encoding='utf-8')
     except UnicodeDecodeError: continue
     if re.search(r'2\.(?:3|4|5|6)\.0',txt): fail('stale harness version token '+str(p.relative_to(H)))
+# Delivery PowerShell Windows root-containment recurrence guard.
+ROOT=H.parents[2]
+DELIVERY=ROOT/'cpf-docs/deliverables/documentation'
+for rel in ['APPLY.ps1','DELETE_ONLY.ps1']:
+    p=DELIVERY/rel
+    if p.is_file():
+        txt=p.read_text(encoding='utf-8-sig')
+        if "TrimEnd('" in txt: fail('delivery Windows separator literal in root prefix '+rel)
+        if '[IO.Path]::DirectorySeparatorChar' not in txt or '$rootPrefix=$root.TrimEnd($sep)+$sep' not in txt or 'StartsWith($rootPrefix' not in txt:
+            fail('delivery Windows root containment guard missing '+rel)
+
 # Lock and package manifest hashes.
 lock=load('HARNESS_LOCK.json'); pm=load('PACKAGE_MANIFEST.json')
 if lock.get('harnessVersion')!=VER or pm.get('harnessVersion')!=VER: fail('lock/manifest version')

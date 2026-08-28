@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "title": "CPF 공식 산출물 실행형 디자인·품질 하네스 — Strict No-False-Green / No-Content-Truncation",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",

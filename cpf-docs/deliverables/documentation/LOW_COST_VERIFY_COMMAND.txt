@@ -1,1 +1,1 @@
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-docs\deliverables\documentation\VERIFY.ps1
+pwsh .\cpf-docs\deliverables\documentation\VERIFY.ps1

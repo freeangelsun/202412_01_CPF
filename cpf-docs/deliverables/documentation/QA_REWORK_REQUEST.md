@@ -1,3 +1,3 @@
-# QA REWORK REQUEST
+# QA Rework Request / Revalidation Note
 
-개발 GPT 관점의 검증 가능한 Documentation 결함은 이번 Overlay에서 0건이다. 최종 완료 여부는 QA가 최신 Source/Runtime/문서 기준으로 판정한다.
+Development GPT completed Harness 2.9.0 incremental documentation uplift and self-review. QA final state remains QA-owned. Please revalidate the current master/worktree application, especially the visual findings captured in `CODEX_REVALIDATION_REQUEST.md`.

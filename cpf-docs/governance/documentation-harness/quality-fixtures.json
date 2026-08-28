@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.8.0",
+  "harnessVersion": "2.9.0",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -154,7 +154,7 @@
       "category": "docx",
       "expect": "FAIL",
       "input": {
-        "text": "Harness 2.8.0 · Source SHA ABCDEF0123456789"
+        "text": "Harness 2.9.0 · Source SHA ABCDEF0123456789"
       },
       "mustTrigger": "docxUserFacingProvenance"
     },
@@ -597,6 +597,65 @@
         "detailPass": false
       },
       "mustTrigger": "manualFreshEyesReviewMissing"
+    },
+    {
+      "id": "DOCX_DARK_HEADER_BLACK_TEXT",
+      "input": {
+        "darkHeader": true,
+        "textColor": "000000",
+        "contrast": 1.35
+      },
+      "mustTrigger": "darkTableHeaderAutomaticOrDarkText",
+      "expect": "FAIL"
+    },
+    {
+      "id": "README_VIEWER_SECTION_GAP_TOO_TIGHT",
+      "input": {
+        "viewerWidthPx": 1200,
+        "majorSectionGapPx": 18,
+        "minimumPx": 36
+      },
+      "mustTrigger": "readmeViewerSectionBreathingInsufficient",
+      "expect": "FAIL"
+    },
+    {
+      "id": "README_HEADER_WRAP_AT_900",
+      "input": {
+        "viewerWidthPx": 900,
+        "headerVisualLines": 2
+      },
+      "mustTrigger": "readmeHeaderWrapAt900or1200",
+      "expect": "FAIL"
+    },
+    {
+      "id": "VISUAL_SAFE_AREA_CLIP_AT_VIEWER_WIDTH",
+      "input": {
+        "viewerWidthPx": 900,
+        "crop": 1,
+        "boundaryIntrusion": 0
+      },
+      "mustTrigger": "visualSafeAreaClipAtViewerWidth",
+      "expect": "FAIL"
+    },
+    {
+      "id": "APPROVED_BASELINE_VISUAL_REGRESSION",
+      "input": {
+        "approvedBaseline": true,
+        "changedOutsideFindingScope": true,
+        "qualityRegressed": true
+      },
+      "mustTrigger": "approvedBaselineQualityRegression",
+      "expect": "FAIL"
+    },
+    {
+      "id": "WINDOWS_VSCODE_PREVIEW_RUNTIME_FAILURE",
+      "input": {
+        "platform": "windows",
+        "previewRequired": true,
+        "runtimeStatus": "FAIL"
+      },
+      "mustTrigger": "windowsVsCodeMarkdownPreviewRuntimeFailure",
+      "expect": "FAIL"
     }
   ]
 }

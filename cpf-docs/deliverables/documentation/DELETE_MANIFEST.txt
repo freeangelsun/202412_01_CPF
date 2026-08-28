@@ -1,14 +1,31 @@
-# CPF Documentation v2.5.0 exact stale delete manifest
-# Root-relative exact paths only; no wildcard.
-cpf-docs/governance/documentation-harness/CHANGELOG.md
+# CPF Documentation Harness 2.9.0 current-only exact stale delete manifest
+# Root-relative exact paths only. No wildcard. Run before overlay copy.
+cpf-docs/governance/documentation-harness-v2.3.0
+cpf-docs/governance/documentation-harness-v2.4.0
+cpf-docs/governance/documentation-harness-v2.5.0
+cpf-docs/governance/documentation-harness-v2.6.0
+cpf-docs/governance/documentation-harness-v2.7.0
+cpf-docs/governance/documentation-harness-v2.8.0
+cpf-docs/governance/documentation-harness-v2.9.0
+cpf-docs/governance/documentation-harness-old
+cpf-docs/governance/documentation-harness/_old
 cpf-docs/governance/documentation-harness/_backup
 cpf-docs/governance/documentation-harness/_history
 cpf-docs/governance/documentation-harness/_session
-cpf-docs/governance/documentation-harness-old
-cpf-docs/governance/documentation-harness-v2.3.0
-cpf-docs/governance/documentation-harness-v2.4.0
+cpf-docs/governance/documentation-harness/CHANGELOG.md
+cpf-docs/governance/documentation-harness/validators/__pycache__
+cpf-docs/governance/documentation-harness/.pytest_cache
 cpf-docs/deliverables/documentation/APPLY_V125.ps1
 cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1
 cpf-docs/deliverables/documentation/_backup
 cpf-docs/deliverables/documentation/_history
 cpf-docs/deliverables/documentation/_session
+cpf-docs/deliverables/documentation/evidence/automated/pdf_parity
+cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_harness.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_harness_after_delete_sync.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_quality_fixtures.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_readme.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_source_zip.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets.txt

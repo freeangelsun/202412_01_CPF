@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.9.0",
+  "pdfs": 11,
+  "warnings": 0,
+  "status": "PASS",
+  "reports": [
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/02_프레임워크_개발자_가이드.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/03_배치_개발자_가이드.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/04_운영자_매뉴얼.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/05_배치_운영_가이드.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/06_Gateway_개발_사용_가이드.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/07_Specification_기술_명세.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/아키텍처설계서.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/기술사양서.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/기술표준서.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/데이터베이스표준서.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight/산출물목록.json"
+  ]
+}

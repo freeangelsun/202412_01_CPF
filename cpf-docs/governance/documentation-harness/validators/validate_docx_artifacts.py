@@ -37,6 +37,24 @@ def role(header):
     if any(k in x for k in NARROW): return 'narrow'
     if any(k in x for k in WIDE): return 'wide'
     return 'normal'
+def hex_luminance(h):
+    try:
+        h=h[-6:]; rgb=[int(h[i:i+2],16)/255 for i in (0,2,4)]
+        c=[x/12.92 if x<=0.04045 else ((x+0.055)/1.055)**2.4 for x in rgb]
+        return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2]
+    except:return None
+def contrast_ratio(a,b):
+    la,lb=hex_luminance(a),hex_luminance(b)
+    if la is None or lb is None:return 0
+    hi,lo=max(la,lb),min(la,lb); return (hi+0.05)/(lo+0.05)
+def cell_fill(cell):
+    shd=cell._tc.get_or_add_tcPr().find(qn('w:shd'))
+    return shd.get(qn('w:fill')) if shd is not None else None
+def run_color_hex(run):
+    try:
+        c=run.font.color.rgb
+        return str(c) if c else None
+    except:return None
 def symmetric(t):
     if not t.rows:return False
     hs=[c.text.strip().lower() for c in t.rows[0].cells]
@@ -79,6 +97,16 @@ for rel in DOCS:
         if not t.rows or not t.rows[0].cells: continue
         trPr=t.rows[0]._tr.get_or_add_trPr()
         if trPr.find(qn('w:tblHeader')) is None: fail(rel,f'table #{idx} header row not marked repeat header')
+        # Dark table headers must render with explicit high-contrast text; AUTO/black on navy is a hard fail.
+        for ci,cell in enumerate(t.rows[0].cells,1):
+            fill=cell_fill(cell)
+            if fill and hex_luminance(fill) is not None and hex_luminance(fill)<0.24:
+                runs=[r for p0 in cell.paragraphs for r in p0.runs if r.text.strip()]
+                if not runs: continue
+                for r in runs:
+                    fg=run_color_hex(r)
+                    if not fg or contrast_ratio(fill,fg)<4.5:
+                        fail(rel,f'table #{idx} dark header col {ci} missing explicit >=4.5:1 text contrast fill={fill} text={fg or "AUTO"}')
         gw=grid_widths(t); n=len(t.columns)
         if len(gw)!=n or n<2: continue
         total=sum(gw); shares=[w/total for w in gw]

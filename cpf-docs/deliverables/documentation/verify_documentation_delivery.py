@@ -1,49 +1,43 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import hashlib,json,re,sys
+import json,hashlib,subprocess,sys
 ROOT=Path(__file__).resolve().parents[3]
-errs=[]
-def req(p,label):
-    if not p.is_file(): errs.append('missing '+label+': '+str(p))
+H=ROOT/'cpf-docs/governance/documentation-harness'
+D=ROOT/'cpf-docs/deliverables/documentation'
+def run(args):
+ r=subprocess.run(args,cwd=ROOT,text=True,capture_output=True); print(r.stdout,end=''); print(r.stderr,end='',file=sys.stderr);
+ if r.returncode: raise SystemExit(r.returncode)
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest().upper()
-h=ROOT/'cpf-docs/governance/documentation-harness/harness.json';req(h,'harness')
-if h.is_file() and json.loads(h.read_text(encoding='utf-8')).get('version')!='2.5.0': errs.append('harness version')
-readme=ROOT/'README.md';req(readme,'README')
-if readme.is_file():
- t=readme.read_text(encoding='utf-8')
- if '.docx)' in t.lower() or re.search(r'\[[^\]]*DOCX[^\]]*\]\(',t,re.I): errs.append('DOCX user link')
- imgs=re.findall(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\']',t,re.I)+re.findall(r'!\[[^\]]*\]\(([^)]+)\)',t)
- if len(dict.fromkeys(imgs))!=8: errs.append('README visual count')
-paths=[]
-for sub in ['cpf-docs/guides','cpf-docs/deliverables']:
- base=ROOT/sub; paths+=list(base.glob('*.docx'))+list(base.glob('*.pdf'))
-if len([p for p in paths if p.suffix.lower()=='.docx'])!=11: errs.append('DOCX count')
-if len([p for p in paths if p.suffix.lower()=='.pdf'])!=11: errs.append('PDF count')
-si=ROOT/'cpf-docs/deliverables/documentation/SOURCE_IDENTITY.json';req(si,'source identity')
-if si.is_file() and json.loads(si.read_text(encoding='utf-8')).get('sourceZipSha256')!='96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9': errs.append('source digest')
-pm=ROOT/'cpf-docs/deliverables/documentation/PACKAGE_MANIFEST.json';req(pm,'package manifest')
-if pm.is_file():
- m=json.loads(pm.read_text(encoding='utf-8'))
- if m.get('sourceZipSha256')!='96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9': errs.append('package source digest')
- if m.get('harnessVersion')!='2.5.0': errs.append('package harness version')
- for e in m.get('files',[]):
-  fp=ROOT/e['path'];req(fp,e['path'])
-  if fp.is_file() and sha(fp)!=e.get('sha256','').upper(): errs.append('package hash '+e['path'])
-sums=ROOT/'cpf-docs/deliverables/documentation/SHA256SUMS.txt';req(sums,'sha256sums')
-if sums.is_file():
- for line in sums.read_text(encoding='utf-8').splitlines():
-  if not line.strip(): continue
-  try: expected,rel=line.split('  ',1)
-  except ValueError: errs.append('bad checksum line'); continue
-  fp=ROOT/rel;req(fp,rel)
-  if fp.is_file() and sha(fp)!=expected.upper(): errs.append('checksum '+rel)
-roots=[r'C:\dev\projects\jck\202412_01_CPF',r'D:\WORK_CPF\202412_01_CPF']
-check=[ROOT/'README.md']+paths+list((ROOT/'cpf-docs/assets/product-docs').glob('*'))+list((ROOT/'cpf-docs/governance/documentation-harness').rglob('*'))+list((ROOT/'cpf-docs/deliverables/documentation').glob('*'))
-for p in check:
- if not p.is_file(): continue
- rel=p.relative_to(ROOT).as_posix().replace('/','\\')
- for base in roots:
-  if len(base+'\\'+rel)>150: errs.append('path>150 '+rel);break
-if errs:
- print('DOCUMENTATION=FAIL');[print('-',e) for e in errs];sys.exit(1)
-print('DOCUMENTATION=PASS');print('HARNESS=2.5.0');print('REQUIRED_ARTIFACTS=23');print('README_VISUALS=8');print('DOCX_USER_LINKS=0');print('PACKAGE_HASHES=PASS');print('PATH_OVER_150=0')
+run([sys.executable,str(H/'validators/validate_harness.py')])
+run([sys.executable,str(H/'validators/validate_quality_fixtures.py')])
+run([sys.executable,str(H/'validators/validate_readme.py'),str(ROOT/'README.md')])
+run([sys.executable,str(H/'validators/validate_docx_artifacts.py')])
+run([sys.executable,str(H/'validators/validate_reader_task_coverage.py')])
+run([sys.executable,str(H/'validators/validate_visual_assets.py')])
+run([sys.executable,str(H/'validators/validate_final_acceptance.py'),str(D/'FINAL_ACCEPTANCE.json')])
+docx=list((ROOT/'cpf-docs/guides').glob('*.docx'))+list((ROOT/'cpf-docs/deliverables').glob('*.docx'))
+pdf=list((ROOT/'cpf-docs/guides').glob('*.pdf'))+list((ROOT/'cpf-docs/deliverables').glob('*.pdf'))
+if len(docx)!=11 or len(pdf)!=11: raise SystemExit(f'artifact count mismatch DOCX={len(docx)} PDF={len(pdf)}')
+pm=json.loads((D/'PACKAGE_MANIFEST.json').read_text(encoding='utf-8'))
+for x in pm.get('files',[]):
+ p=ROOT/x['path'];
+ if not p.is_file(): raise SystemExit('manifest missing '+x['path'])
+ if p.stat().st_size!=x['sizeBytes'] or sha(p)!=x['sha256']: raise SystemExit('manifest mismatch '+x['path'])
+for line in (D/'SHA256SUMS.txt').read_text(encoding='utf-8').splitlines():
+ if not line.strip(): continue
+ h,rel=line.split('  ',1); p=ROOT/rel
+ if not p.is_file() or sha(p)!=h.upper(): raise SystemExit('checksum mismatch '+rel)
+for rel in ['APPLY.ps1','DELETE_ONLY.ps1']:
+ p=D/rel; txt=p.read_text(encoding='utf-8-sig')
+ if "TrimEnd('" in txt: raise SystemExit('Windows separator literal in root prefix '+rel)
+ if '[IO.Path]::DirectorySeparatorChar' not in txt or '$rootPrefix=$root.TrimEnd($sep)+$sep' not in txt or 'StartsWith($rootPrefix' not in txt:
+  raise SystemExit('Windows root containment guard missing '+rel)
+si=json.loads((D/'SOURCE_IDENTITY.json').read_text(encoding='utf-8'))
+if si.get('harnessVersion')!='2.9.0': raise SystemExit('source identity harness mismatch')
+# Current-only delivery wrapper hygiene: no stale versioned temp prefix or escaped-newline command text.
+apply_txt=(D/'APPLY.ps1').read_text(encoding='utf-8-sig')
+if 'cpf-doc-280-' in apply_txt or 'cpf-doc-290-' not in apply_txt: raise SystemExit('APPLY temp prefix not current 2.9.0')
+low=(D/'LOW_COST_VERIFY_COMMAND.txt').read_text(encoding='utf-8')
+if '\\n' in low or not low.endswith('\n'): raise SystemExit('LOW_COST_VERIFY_COMMAND newline encoding invalid')
+print('DOCUMENTATION_DELIVERY=PASS')
+print(f'DOCX={len(docx)} PDF={len(pdf)} MANIFEST_FILES={len(pm.get("files",[]))} HARNESS=2.9.0')

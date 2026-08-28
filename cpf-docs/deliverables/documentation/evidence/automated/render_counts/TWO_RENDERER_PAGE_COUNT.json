@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.9.0",
+  "status": "PASS",
+  "engines": [
+    "pdftoppm",
+    "pdfium"
+  ],
+  "totalPagesPerEngine": 101,
+  "documents": [
+    {
+      "name": "02_프레임워크_개발자_가이드",
+      "pages": 19,
+      "pdftoppm": 19,
+      "pdfium": 19
+    },
+    {
+      "name": "03_배치_개발자_가이드",
+      "pages": 13,
+      "pdftoppm": 13,
+      "pdfium": 13
+    },
+    {
+      "name": "04_운영자_매뉴얼",
+      "pages": 7,
+      "pdftoppm": 7,
+      "pdfium": 7
+    },
+    {
+      "name": "05_배치_운영_가이드",
+      "pages": 8,
+      "pdftoppm": 8,
+      "pdfium": 8
+    },
+    {
+      "name": "06_Gateway_개발_사용_가이드",
+      "pages": 8,
+      "pdftoppm": 8,
+      "pdfium": 8
+    },
+    {
+      "name": "07_Specification_기술_명세",
+      "pages": 11,
+      "pdftoppm": 11,
+      "pdfium": 11
+    },
+    {
+      "name": "아키텍처설계서",
+      "pages": 8,
+      "pdftoppm": 8,
+      "pdfium": 8
+    },
+    {
+      "name": "기술사양서",
+      "pages": 9,
+      "pdftoppm": 9,
+      "pdfium": 9
+    },
+    {
+      "name": "기술표준서",
+      "pages": 6,
+      "pdftoppm": 6,
+      "pdfium": 6
+    },
+    {
+      "name": "데이터베이스표준서",
+      "pages": 8,
+      "pdftoppm": 8,
+      "pdfium": 8
+    },
+    {
+      "name": "산출물목록",
+      "pages": 4,
+      "pdftoppm": 4,
+      "pdfium": 4
+    }
+  ]
+}

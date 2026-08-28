@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.8.0",
+  "harnessVersion": "2.9.0",
   "policy": "term presence is only a pre-check. Final PASS requires task-level actionability and manual evidence.",
   "artifacts": [
     {

@@ -1,4 +1,4 @@
-# CPF Documentation Hard Gate Policy — v2.8.0
+# CPF Documentation Hard Gate Policy — v2.9.0
 
 ## 1. 최종 PASS의 유일한 정의
 
@@ -42,7 +42,7 @@ Connector/Arrow는 대상 Box 외곽 Boundary에서 끝나야 한다. Target/Sou
 Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나만 유지한다. versioned folder, `_old`, `_backup`, `_history`, `_session`, stale snapshot을 남기지 않는다. 삭제는 `DELETE_MANIFEST.txt`의 exact Root-relative 경로만 사용한다.
 
 
-## v2.8.0 강제 보강
+## v2.9.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -50,3 +50,21 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 - README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
 - 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
 - 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.
+
+## Windows Root Containment Gate
+
+- Overlay 적용/삭제 PowerShell은 `GetFullPath`로 대상 경로를 확정하고 repository root + `DirectorySeparatorChar` 경계 안인지 확인한다.
+- Root containment prefix를 하드코딩된 backslash 문자열로 조립하여 정상 Root 상대경로를 `OUTSIDE ROOT`로 오판하는 구현을 금지한다.
+- `APPLY.ps1`과 `DELETE_ONLY.ps1`에 `DirectorySeparatorChar` 기반 root prefix가 없거나 `TrimEnd('...')` 형태의 separator literal이 다시 들어오면 Harness 검증을 FAIL한다.
+
+
+
+## Harness 2.9.0 Visual Quality Uplift
+
+- 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
+- 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
+- README는 900/1200/1440px에서 대메뉴 전환 호흡과 Header 단일 행을 확인한다. 폭이 부족한 Markdown 표는 유지하지 않고 독자 흐름에 맞는 prose/list/card로 바꾼다.
+- 진한 DOCX 표 Header는 텍스트 대비 4.5:1 이상이며 AUTO/검정 글자를 허용하지 않는다.
+- 마지막 페이지의 제목+한 문장, Source-only, 표 꼬리 1~2행, 의미 없는 대형 공백은 금지한다. 페이지 수를 줄이기 위해 전체 Font/Margin/Line spacing을 축소하지 않고 내용·국소 배치를 보정한다.
+- README Visual은 원본과 900/1200/1440px 삽입 Surface에서 text safe area·crop·boundary intrusion 0을 확인한다.
+- Windows VS Code built-in Markdown Preview Runtime은 가능한 Windows 환경에서 별도 실행한다. 실행하지 못한 경우 미검증으로 기록한다.

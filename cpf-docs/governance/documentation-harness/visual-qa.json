@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.8.0",
+  "harnessVersion": "2.9.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -164,7 +164,13 @@
     "informationArchitectureReaderNeedMismatch": 0,
     "longDocumentNavigationMissing": 0,
     "fixedWidthTableCausesWrap": 0,
-    "manualFreshEyesReviewMissing": 0
+    "manualFreshEyesReviewMissing": 0,
+    "darkTableHeaderAutomaticOrDarkText": 0,
+    "readmeViewerSectionBreathingInsufficient": 0,
+    "readmeHeaderWrapAt900or1200": 0,
+    "visualSafeAreaClipAtViewerWidth": 0,
+    "approvedBaselineQualityRegression": 0,
+    "windowsVsCodeMarkdownPreviewRuntimeFailure": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,

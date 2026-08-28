@@ -1,0 +1,1 @@
+[a11y] wrote report -> /mnt/data/cpf_docs8_work/cpf-docs/deliverables/documentation/evidence/automated/a11y/산출물목록.json | high=0 medium=0 low=0

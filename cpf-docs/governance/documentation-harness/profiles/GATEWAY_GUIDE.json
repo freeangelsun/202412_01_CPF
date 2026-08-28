@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.8.0",
+  "harnessVersion": "2.9.0",
   "documentId": "GATEWAY_GUIDE",
   "title": "CPF Gateway 개발/사용 가이드",
   "locked": true,

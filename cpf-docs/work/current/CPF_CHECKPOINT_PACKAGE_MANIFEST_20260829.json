@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "packageType": "CHECKPOINT_OVERLAY",
+  "completionStatus": "INCOMPLETE",
+  "baselineSourceIdentity": "e5a652fd0d3d85b764196d066a690065224048c72efcba034e97395a9382cca4",
+  "checkpointSourceIdentity": "1ebf45cd79a528d462c150a73686505a3f2daa7ad1074e5c3bc42a387eefa032",
+  "inventoryRows": 188,
+  "developerRequirementRows": 216,
+  "diffBeforeManifest": {
+    "add": 40,
+    "modify": 91,
+    "delete": 36
+  }
+}

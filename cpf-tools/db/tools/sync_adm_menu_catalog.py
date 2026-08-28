@@ -105,7 +105,7 @@ def main():
         {'column':'MENU_PATH','expression':'VALUES(MENU_PATH)'},{'column':'SORT_ORDER','expression':'VALUES(SORT_ORDER)'},
         {'column':'USE_YN','expression':'VALUES(USE_YN)'},{'column':'updated_by','expression':'VALUES(updated_by)'},
         {'column':'updated_at','expression':'CURRENT_TIMESTAMP'}],
-      'currentLogicalDatabase':'admDB','productionDefault':True,'currentTable':'ADM_MENU','currentTableName':'ADM_MENU',
+      'currentLogicalDatabase':'cpfDB','legacyLogicalDatabase':'admDB','productionDefault':True,'currentTable':'ADM_MENU','currentTableName':'ADM_MENU',
       'targetDatabaseRole':'CPF_PLATFORM_DB','logicalOwner':'admin'
     }
     # Keep first statement position for dependency order, remove later ADM_MENU statements.

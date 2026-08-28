@@ -60,7 +60,11 @@
           "generated-business-domains",
           "backoffice"
         ],
-        "backofficeDefaultPhysicalName": "mbwDB"
+        "backofficeDefaultPhysicalName": "mbwDB",
+        "generatedDomainDefaultPhysicalNames": {
+          "MBR": "mbrDB",
+          "EXS": "exsDB"
+        }
       },
       "REFERENCE_FIXTURE": {
         "physicalName": "referenceFixture",
@@ -71,6 +75,7 @@
       "cmnDB",
       "admDB",
       "batDB",
+      "bzaDB",
       "refDB"
     ],
     "crossOwnerForeignKeyPolicy": "FORBIDDEN_USE_OWNER_API_REFERENCE",
@@ -85,7 +90,13 @@
     "businessAtomicity": "Business outbox/inbox/idempotency/recovery stays in CUSTOMER_BUSINESS_DB; no XA-by-default move to cpfDB.",
     "bulkPayloadPolicy": "cpfDB stores policy/index/metadata only; unbounded log/trace/metric/file payload is externalized.",
     "tableMappingArtifact": "cpf-tools/db/canonical/platform-db-consolidation-map.csv",
-    "crossOwnerReferenceCount": 5
+    "crossOwnerReferenceCount": 5,
+    "productionPhysicalTargets": [
+      "cpfDB",
+      "mbwDB",
+      "mbrDB",
+      "exsDB"
+    ]
   },
   "tableCount": 235,
   "tables": [
@@ -268,7 +279,7 @@
       "comment": "ADM API 권한",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_api_permission",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -278,7 +289,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_CAPABILITY_NONCE",
@@ -391,7 +403,7 @@
       "comment": "ADM 승인 실행 HMAC capability cluster-safe single-use nonce ledger",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_capability_nonce",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -401,7 +413,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_EXECUTION",
@@ -605,7 +618,7 @@
       "comment": "ADM 승인 후 Owner Command 실행 상태",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_execution",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -615,7 +628,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_HISTORY",
@@ -751,7 +765,7 @@
       "comment": "ADM 승인 Immutable 이력",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_history",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -761,7 +775,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_PARTICIPANT",
@@ -976,7 +991,7 @@
       "comment": "ADM 승인 참여자 Snapshot",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_participant",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -986,7 +1001,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_POLICY",
@@ -1152,7 +1168,7 @@
       "comment": "ADM 위험조치 승인 정책 Version",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_policy",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -1162,7 +1178,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_POLICY_LOCK",
@@ -1228,7 +1245,7 @@
       "comment": "ADM 승인 정책 활성 유효기간 동시 생성 직렬화 lock bucket",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_policy_lock",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -1238,7 +1255,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_POLICY_STEP",
@@ -1411,7 +1429,7 @@
       "comment": "ADM 승인 정책 단계",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_policy_step",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -1421,7 +1439,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_APPROVAL_REQUEST",
@@ -1693,7 +1712,7 @@
       "comment": "ADM 위험조치 승인 요청",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_approval_request",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -1703,7 +1722,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_AUDIT_DELIVERY",
@@ -1975,7 +1995,7 @@
       "comment": "ADM 필수 감사 Delivery 원장",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_audit_delivery",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -1985,7 +2005,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_AUDIT_LOG",
@@ -2226,7 +2247,7 @@
       "comment": "ADM 감사 로그",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_audit_log",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -2236,7 +2257,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_BREAK_GLASS_SESSION",
@@ -2438,7 +2460,7 @@
       "comment": "ADM 범위/TTL 제한 Break-glass 세션",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_break_glass_session",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -2448,7 +2470,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_BUTTON",
@@ -2601,7 +2624,7 @@
       "comment": "ADM 메뉴별 버튼/행위",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_button",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -2611,7 +2634,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_DOWNLOAD_AUDIT_LOG",
@@ -2856,7 +2880,7 @@
       "comment": "ADM 다운로드 감사 로그",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_download_audit_log",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -2866,7 +2890,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_DYNAMIC_LOG_LEVEL_RULE",
@@ -3012,7 +3037,7 @@
       "comment": "ADM 동적 로그 레벨 규칙",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_dynamic_log_level_rule",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -3022,7 +3047,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_FILE_JOB",
@@ -3377,7 +3403,7 @@
       "comment": "ADM 비동기 대량 File Job 원장",
       "module": "admin",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_file_job",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -3387,7 +3413,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_FILE_JOB_ROW",
@@ -3507,7 +3534,7 @@
       "comment": "ADM File Job 행별 결과 원장",
       "module": "admin",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_file_job_row",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -3517,7 +3544,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_INCIDENT",
@@ -3718,7 +3746,7 @@
       "comment": "ADM Incident Lifecycle",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_incident",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -3728,7 +3756,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_INCIDENT_COMMAND",
@@ -3845,7 +3874,7 @@
       "comment": "ADM Notification Incident 멱등 Command 원장",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_incident_command",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -3855,7 +3884,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_INCIDENT_LIFECYCLE",
@@ -4144,7 +4174,7 @@
       "comment": "ADM Notification Incident 원장",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_incident_lifecycle",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -4154,7 +4184,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_INCIDENT_POLICY",
@@ -4338,7 +4369,7 @@
       "comment": "ADM Notification Incident 정책",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_incident_policy",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -4348,7 +4379,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_INCIDENT_SIGNAL",
@@ -4523,7 +4555,7 @@
       "comment": "ADM Notification Incident Signal 원장",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_incident_signal",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -4533,7 +4565,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_INCIDENT_TIMELINE",
@@ -4651,7 +4684,7 @@
       "comment": "ADM Notification Incident immutable Timeline",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_incident_timeline",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -4661,7 +4694,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_IP_ALLOWLIST",
@@ -4763,7 +4797,7 @@
       "comment": "ADM 관리자 IP 허용 목록",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_ip_allowlist",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -4773,7 +4807,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_LOG_EXPORT_ARTIFACT",
@@ -4907,7 +4942,7 @@
       "comment": "ADM 다중 인스턴스 공용 로그 Export Artifact",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_log_export_artifact",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -4917,7 +4952,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_MAINTENANCE_ACTION",
@@ -5058,7 +5094,7 @@
       "comment": "ADM Maintenance Command Audit",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_maintenance_action",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -5068,7 +5104,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_MAINTENANCE_WINDOW",
@@ -5225,7 +5262,7 @@
       "comment": "ADM Maintenance Window",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_maintenance_window",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -5235,7 +5272,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_MENU",
@@ -5362,7 +5400,7 @@
       "comment": "ADM 메뉴",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_menu",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -5372,7 +5410,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_MFA_OTP_SECRET",
@@ -5473,7 +5512,7 @@
       "comment": "ADM 운영자 MFA OTP secret 메타",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_mfa_otp_secret",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -5483,7 +5522,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_OPERATOR",
@@ -5694,7 +5734,7 @@
       "comment": "ADM 운영자",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_operator",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -5704,7 +5744,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_OPERATOR_PROFILE",
@@ -5936,7 +5977,7 @@
       "comment": "ADM 운영자 조직/직급 Profile",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_operator_profile",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -5946,7 +5987,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_OPERATOR_ROLE",
@@ -6042,7 +6084,7 @@
       "comment": "ADM 운영자 역할 매핑",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_operator_role",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -6052,7 +6094,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_OPERATOR_SESSION",
@@ -6206,7 +6249,7 @@
       "comment": "ADM 운영자 세션",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_operator_session",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -6216,7 +6259,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_ORGANIZATION",
@@ -6382,7 +6426,7 @@
       "comment": "ADM 운영 조직 Directory 기본 Adapter",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_organization",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -6392,7 +6436,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_PASSWORD_HISTORY",
@@ -6501,7 +6546,7 @@
       "comment": "ADM 비밀번호 변경 이력",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_password_history",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -6511,7 +6556,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_PASSWORD_POLICY",
@@ -6653,7 +6699,7 @@
       "comment": "ADM 비밀번호 정책",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_password_policy",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -6663,7 +6709,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_ROLE",
@@ -6768,7 +6815,7 @@
       "comment": "ADM 역할",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_role",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -6778,7 +6825,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_ROLE_API_PERMISSION",
@@ -6883,7 +6931,7 @@
       "comment": "ADM 역할별 API 권한",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_role_api_permission",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -6893,7 +6941,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_ROLE_BUTTON",
@@ -6998,7 +7047,7 @@
       "comment": "ADM 역할별 버튼/행위 권한",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_role_button",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -7008,7 +7057,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "ADM_ROLE_MENU",
@@ -7131,7 +7181,7 @@
       "comment": "ADM 역할별 메뉴 권한",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "adm_role_menu",
       "logicalOwner": "admin",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -7141,7 +7191,8 @@
       "migrationOwner": "admin",
       "runtimeConsumer": "admin",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "BAT_APPROVED_LAUNCH",
@@ -7274,7 +7325,7 @@
       "comment": "사전 승인된 불변 Spring Batch Launch Request",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "cpf_batch_approved_launch",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -7284,7 +7335,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_CENTER_CUT_CLAIM",
@@ -7428,7 +7480,7 @@
       "comment": "BAT center-cut item lease claim",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_center_cut_claim",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -7438,7 +7490,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_CENTER_CUT_EXECUTION",
@@ -7699,7 +7752,7 @@
       "comment": "BAT center-cut immutable execution policy",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_center_cut_execution",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -7709,7 +7762,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_CENTER_CUT_ITEM",
@@ -7950,7 +8004,7 @@
       "comment": "BAT 센터컷 처리 대상",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_center_cut_item",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -7960,7 +8014,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_CENTER_CUT_JOB",
@@ -8114,7 +8169,7 @@
       "comment": "BAT 센터컷 Job 정의",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_center_cut_job",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -8124,7 +8179,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_CENTER_CUT_PARAMETER",
@@ -8251,7 +8307,7 @@
       "comment": "BAT 센터컷 파라미터",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_center_cut_parameter",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -8261,7 +8317,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_CENTER_CUT_RATE_WINDOW",
@@ -8327,7 +8384,7 @@
       "comment": "BAT center-cut global rate window",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_center_cut_rate_window",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -8337,7 +8394,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_CENTER_CUT_RESULT",
@@ -8523,7 +8581,7 @@
       "comment": "BAT 센터컷 처리 결과",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_center_cut_result",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -8533,7 +8591,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_DEPLOYMENT_CELL",
@@ -8656,7 +8715,7 @@
       "comment": "BAT deployment cell desired state",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_deployment_cell",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -8666,7 +8725,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_DEPLOYMENT_EXECUTION",
@@ -8949,7 +9009,7 @@
       "comment": "BAT approved deployment execution",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_deployment_execution",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -8959,7 +9019,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_DEPLOYMENT_INSTANCE",
@@ -9086,7 +9147,7 @@
       "comment": "BAT deployment cell instance projection",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_deployment_instance",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -9096,7 +9157,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_DEPLOYMENT_INSTANCE_RESULT",
@@ -9213,7 +9275,7 @@
       "comment": "BAT per-instance deployment result",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_deployment_instance_result",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -9223,7 +9285,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_DEPLOYMENT_LOCK",
@@ -9284,7 +9347,7 @@
       "comment": "BAT deployment cell lease lock",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_deployment_lock",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -9294,7 +9357,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_DEPLOYMENT_PLAN",
@@ -9391,7 +9455,7 @@
       "comment": "BAT deployment plan",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_deployment_plan",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -9401,7 +9465,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION",
@@ -9963,7 +10028,7 @@
       "comment": "BAT 배치 실행 이력",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_execution",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -9973,7 +10038,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION_ATTEMPT",
@@ -10209,7 +10275,7 @@
       "comment": "BAT 실행별 재시도 및 결과 불명 원장",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_execution_attempt",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -10219,7 +10285,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION_CONTROL",
@@ -10506,7 +10573,7 @@
       "comment": "CPF 승인·멱등·Fencing 기반 Spring Batch 실행 Control Ledger",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "cpf_batch_execution_control",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -10516,7 +10583,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION_EPOCH",
@@ -10585,7 +10653,7 @@
       "comment": "Batch Job별 최신 Fencing Epoch Ledger",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "cpf_batch_execution_epoch",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -10595,7 +10663,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION_LEASE",
@@ -10818,7 +10887,7 @@
       "comment": "BAT 배치 worker 실행 claim과 lease",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_execution_lease",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -10828,7 +10897,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION_LINK",
@@ -10970,7 +11040,7 @@
       "comment": "CPF 실행과 Spring Batch Job/Step Metadata 연결 Projection",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "cpf_batch_execution_link",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -10980,7 +11050,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION_RESULT_DETAIL",
@@ -11163,7 +11234,7 @@
       "comment": "Batch Executor 상세 결과 원장",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_execution_result_detail",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -11173,7 +11244,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_EXECUTION_TARGET",
@@ -11377,7 +11449,7 @@
       "comment": "BAT 배치 수행 대상/대기 인스턴스",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_execution_target",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -11387,7 +11459,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_GHOST_EVENT",
@@ -11651,7 +11724,7 @@
       "comment": "BAT 배치 ghost 감지와 조치 이력",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_ghost_event",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -11661,7 +11734,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_INSTANCE",
@@ -11784,7 +11858,7 @@
       "comment": "BAT 배치 서버 인스턴스",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_instance",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -11794,7 +11868,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB",
@@ -11959,7 +12034,7 @@
       "comment": "BAT 배치 Job 기준",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -11969,7 +12044,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_DEFINITION_AUDIT",
@@ -12136,7 +12212,7 @@
       "comment": "BAT Job Definition 승인·상태 감사",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_definition_audit",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -12146,7 +12222,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_DEFINITION_VERSION",
@@ -12516,7 +12593,7 @@
       "comment": "BAT Versioned Job Definition 정본",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_definition_version",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -12526,7 +12603,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_DEPENDENCY",
@@ -12627,7 +12705,7 @@
       "comment": "BAT Versioned Job Dependency",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_dependency",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -12637,7 +12715,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_PACK",
@@ -12742,7 +12821,7 @@
       "comment": "BAT external job-pack catalog",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_pack",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -12752,7 +12831,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_PACK_JOB",
@@ -12827,7 +12907,7 @@
       "comment": "BAT job-pack job projection",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_pack_job",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -12837,7 +12917,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_PARAMETER_DEFINITION",
@@ -13041,7 +13122,7 @@
       "comment": "BAT Typed Parameter Schema",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_parameter_definition",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -13051,7 +13132,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_RELATION",
@@ -13225,7 +13307,7 @@
       "comment": "BAT 배치 선행/후행/트리거 관계",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_relation",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -13235,7 +13317,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_RUNTIME_PROJECTION",
@@ -13436,7 +13519,7 @@
       "comment": "Published Batch Definition Runtime 정본",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_runtime_projection",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -13446,7 +13529,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_JOB_RUNTIME_PROJECTION_OUTBOX",
@@ -13629,7 +13713,7 @@
       "comment": "Batch Runtime Projection Durable Outbox",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_job_runtime_projection_outbox",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -13639,7 +13723,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_LOCK",
@@ -13768,7 +13853,7 @@
       "comment": "BAT 배치 중복 실행 방지 잠금",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_lock",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -13778,7 +13863,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_ON_DEMAND_REQUEST",
@@ -14015,7 +14101,7 @@
       "comment": "BAT 온디맨드 배치 온라인 접수",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_on_demand_request",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -14025,7 +14111,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_OPERATION_LOG",
@@ -14181,7 +14268,7 @@
       "comment": "BAT 배치 운영 작업 로그",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_operation_log",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -14191,7 +14278,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_OPERATION_LOG_ARCHIVE",
@@ -14374,7 +14462,7 @@
       "comment": "BAT 운영 로그 보관소",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_operation_log_archive",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -14384,7 +14472,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_OPERATION_REQUEST",
@@ -14590,7 +14679,7 @@
       "comment": "BAT 위험조치 승인·멱등·UNKNOWN 복구 Ledger",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_operation_request",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -14600,7 +14689,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_RECONCILIATION_AUDIT",
@@ -14754,7 +14844,7 @@
       "comment": "Immutable BAT UNKNOWN-result reconciliation approval audit",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_reconciliation_audit",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -14764,7 +14854,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_RUNTIME_CAPABILITY",
@@ -14812,7 +14903,7 @@
       "comment": "BAT runtime capability projection",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_runtime_capability",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -14822,7 +14913,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_RUNTIME_COMMAND",
@@ -15061,7 +15153,7 @@
       "comment": "BAT approved runtime command",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_runtime_command",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15071,7 +15163,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_RUNTIME_COMMAND_ATTEMPT",
@@ -15199,7 +15292,7 @@
       "comment": "BAT runtime command execution attempt",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_runtime_command_attempt",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15209,7 +15302,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_RUNTIME_HEARTBEAT",
@@ -15345,7 +15439,7 @@
       "comment": "BAT runtime heartbeat event",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_runtime_heartbeat",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15355,7 +15449,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_RUNTIME_INSTANCE",
@@ -15582,7 +15677,7 @@
       "comment": "BAT standalone runtime instance registry",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_runtime_instance",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15592,7 +15687,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SB_JOB_EXECUTION",
@@ -15711,7 +15807,7 @@
       "comment": "Spring Batch 표준 JobExecution 저장소",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "BATCH_JOB_EXECUTION",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15721,7 +15817,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SB_JOB_EXECUTION_CONTEXT",
@@ -15777,7 +15874,7 @@
       "comment": "Spring Batch 표준 Job 컨텍스트 저장소",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "BATCH_JOB_EXECUTION_CONTEXT",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15787,7 +15884,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SB_JOB_EXECUTION_PARAMS",
@@ -15859,7 +15957,7 @@
       "comment": "Spring Batch 표준 Job 파라미터 저장소",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "BATCH_JOB_EXECUTION_PARAMS",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15869,7 +15967,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SB_JOB_INSTANCE",
@@ -15929,7 +16028,7 @@
       "comment": "Spring Batch 표준 JobInstance 저장소",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "BATCH_JOB_INSTANCE",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -15939,7 +16038,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SB_STEP_EXECUTION",
@@ -16139,7 +16239,7 @@
       "comment": "Spring Batch 표준 StepExecution 저장소",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "BATCH_STEP_EXECUTION",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -16149,7 +16249,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SB_STEP_EXECUTION_CONTEXT",
@@ -16205,7 +16306,7 @@
       "comment": "Spring Batch 표준 Step 컨텍스트 저장소",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "BATCH_STEP_EXECUTION_CONTEXT",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -16215,7 +16316,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SCHEDULE",
@@ -16446,7 +16548,7 @@
       "comment": "BAT 배치 스케줄",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_schedule",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -16456,7 +16558,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SCHEDULER_LEASE",
@@ -16533,7 +16636,7 @@
       "comment": "BAT scheduler leader lease",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_scheduler_lease",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -16543,7 +16646,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_SCHEDULE_TRIGGER",
@@ -16769,7 +16873,7 @@
       "comment": "BAT scheduled trigger evidence",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_schedule_trigger",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -16779,7 +16883,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_STEP_EXECUTION",
@@ -17091,7 +17196,7 @@
       "comment": "BAT 배치 Step 실행 이력",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_step_execution",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -17101,7 +17206,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_VERSION_COMPATIBILITY",
@@ -17198,7 +17304,7 @@
       "comment": "BAT artifact and schema compatibility contract",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_version_compatibility",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -17208,7 +17314,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "BAT_WORKER",
@@ -17434,7 +17541,7 @@
       "comment": "BAT 배치 worker heartbeat",
       "module": "bat",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "bat_worker",
       "logicalOwner": "batch",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -17444,7 +17551,8 @@
       "migrationOwner": "batch",
       "runtimeConsumer": "batch",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "name": "MBW_ADMIN_USER",
@@ -23380,7 +23488,7 @@
       "comment": "CMN 영업일/휴일 Override 제품 정본",
       "module": "cmn",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "cmnDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "cmn_business_calendar_day",
       "logicalOwner": "common",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -23390,7 +23498,8 @@
       "migrationOwner": "common",
       "runtimeConsumer": "common",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "name": "CMN_CACHE_REFRESH_CHECKPOINT",
@@ -24528,7 +24637,7 @@
       "comment": "CMN Template 변경 append-only 감사 원장",
       "module": "cmn",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "cmnDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "CMN_TEMPLATE_AUDIT",
       "logicalOwner": "common",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -24538,7 +24647,8 @@
       "migrationOwner": "common",
       "runtimeConsumer": "common",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "name": "CMN_TEMPLATE_DEFINITION",
@@ -24711,7 +24821,7 @@
       "comment": "CMN 알림·문서 Template 버전·승인·활성·감사 제품 정본",
       "module": "cmn",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "cmnDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "CMN_TEMPLATE_DEFINITION",
       "logicalOwner": "common",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -24721,7 +24831,8 @@
       "migrationOwner": "common",
       "runtimeConsumer": "common",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "name": "CPF_BROKER_DLQ",
@@ -43313,7 +43424,7 @@
       "comment": "REF 센터컷 샘플 결과",
       "module": "biz",
       "logicalDatabase": "referenceFixture",
-      "currentLogicalDatabase": "refDB",
+      "currentLogicalDatabase": "referenceFixture",
       "currentName": "ref_center_cut_sample_result",
       "logicalOwner": "reference-fixture",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
@@ -43323,7 +43434,8 @@
       "migrationOwner": "reference-fixture",
       "runtimeConsumer": "reference-fixture",
       "atomicityClass": "FIXTURE_ONLY",
-      "productionDefault": false
+      "productionDefault": false,
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "name": "REF_CENTER_CUT_SAMPLE_TARGET",
@@ -43531,7 +43643,7 @@
       "comment": "REF 센터컷 샘플 대상",
       "module": "biz",
       "logicalDatabase": "referenceFixture",
-      "currentLogicalDatabase": "refDB",
+      "currentLogicalDatabase": "referenceFixture",
       "currentName": "ref_center_cut_sample_target",
       "logicalOwner": "reference-fixture",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
@@ -43541,7 +43653,8 @@
       "migrationOwner": "reference-fixture",
       "runtimeConsumer": "reference-fixture",
       "atomicityClass": "FIXTURE_ONLY",
-      "productionDefault": false
+      "productionDefault": false,
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "name": "REF_CMN_SAMPLE_ITEM",
@@ -43727,7 +43840,7 @@
       "comment": "CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플",
       "module": "cmn",
       "logicalDatabase": "referenceFixture",
-      "currentLogicalDatabase": "cmnDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "cmn_sample_item",
       "logicalOwner": "reference-fixture",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
@@ -43737,7 +43850,8 @@
       "migrationOwner": "reference-fixture",
       "runtimeConsumer": "reference-fixture",
       "atomicityClass": "FIXTURE_ONLY",
-      "productionDefault": false
+      "productionDefault": false,
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "name": "REF_SAMPLE_ITEM",
@@ -43953,7 +44067,7 @@
       "comment": "REF Minimal Transaction Reference Sample",
       "module": "biz",
       "logicalDatabase": "referenceFixture",
-      "currentLogicalDatabase": "refDB",
+      "currentLogicalDatabase": "referenceFixture",
       "currentName": "ref_sample_item",
       "logicalOwner": "reference-fixture",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
@@ -43963,7 +44077,8 @@
       "migrationOwner": "reference-fixture",
       "runtimeConsumer": "reference-fixture",
       "atomicityClass": "FIXTURE_ONLY",
-      "productionDefault": false
+      "productionDefault": false,
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "name": "SEC_BFF_CREDENTIAL_VAULT",
@@ -44103,7 +44218,7 @@
       "comment": "ADM/Backoffice Web BFF Access/Refresh Token 암호화 Vault",
       "module": "adm",
       "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "currentName": "cpf_bff_credential_vault",
       "logicalOwner": "security",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
@@ -44113,7 +44228,8 @@
       "migrationOwner": "security",
       "runtimeConsumer": "security",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
-      "productionDefault": true
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "name": "SEC_JWT_KEY",

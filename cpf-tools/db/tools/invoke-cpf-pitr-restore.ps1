@@ -23,6 +23,18 @@ param(
     [string]$Root='.'
 )
 $ErrorActionPreference='Stop'
+
+# Child/native DB process에서도 UTF-8 계약을 유지합니다.
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
+    $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
+} elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {
+    $env:JAVA_TOOL_OPTIONS = ($env:JAVA_TOOL_OPTIONS.Trim() + ' ' + $CpfUtf8ChildJavaOptions)
+}
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PGCLIENTENCODING = 'UTF8'
+$env:NLS_LANG = '.AL32UTF8'
 if($PlanOnly -and $Execute){throw '-PlanOnly과 -Execute를 동시에 지정할 수 없습니다.'}
 if(-not $PlanOnly -and -not $Execute){$PlanOnly=$true}
 $rootPath=(Resolve-Path $Root).Path
@@ -75,7 +87,7 @@ try{
                     $args=@("--stop-datetime=$($target.ToString('yyyy-MM-dd HH:mm:ss'))")+@($resolved|Where-Object kind -eq 'binlog'|ForEach-Object path)
                     $p1=Start-Process -FilePath $binlog.Source -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardOutput $replay
                     if($p1.ExitCode -ne 0){throw "mariadb-binlog replay generation failed: exit=$($p1.ExitCode)"}
-                    $p2=Start-Process -FilePath $client.Source -ArgumentList @('--host',$Host,'--port',"$Port",'--user',$User,$database) -NoNewWindow -Wait -PassThru -RedirectStandardInput $replay
+                    $p2=Start-Process -FilePath $client.Source -ArgumentList @('--default-character-set=utf8mb4','--host',$Host,'--port',"$Port",'--user',$User,$database) -NoNewWindow -Wait -PassThru -RedirectStandardInput $replay
                     if($p2.ExitCode -ne 0){throw "MariaDB binlog replay failed: exit=$($p2.ExitCode)"}
                 } finally {if(Test-Path -LiteralPath $replay){Remove-Item -LiteralPath $replay -Force -ErrorAction SilentlyContinue}}
             }
@@ -118,7 +130,7 @@ try{
                 foreach($piece in @($resolved|Where-Object kind -eq 'rman-piece')){if(-not ([IO.Path]::GetFullPath($piece.path).StartsWith($catalogPrefix,[StringComparison]::OrdinalIgnoreCase))){throw 'Oracle RMAN piece가 catalog directory 밖에 있습니다.'}}
                 $escapedCatalog=$catalogPrefix.Replace("'","''")
                 $rman=Get-Command rman -ErrorAction SilentlyContinue;if(-not $rman){throw 'rman을 찾을 수 없습니다.'}
-                $psi=[Diagnostics.ProcessStartInfo]::new();$psi.FileName=$rman.Source;$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;[void]$psi.ArgumentList.Add('target');[void]$psi.ArgumentList.Add("/@$OracleConnectIdentifier")
+                $psi=[Diagnostics.ProcessStartInfo]::new();$psi.FileName=$rman.Source;$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$psi.StandardOutputEncoding=[Text.Encoding]::UTF8;$psi.StandardErrorEncoding=[Text.Encoding]::UTF8;[void]$psi.ArgumentList.Add('target');[void]$psi.ArgumentList.Add("/@$OracleConnectIdentifier")
                 $untilExpression="TO_DATE('$($target.ToString('yyyy-MM-dd HH:mm:ss'))','YYYY-MM-DD HH24:MI:SS')"
                 $script=(@(
                     "CATALOG START WITH '$escapedCatalog' NOPROMPT;",

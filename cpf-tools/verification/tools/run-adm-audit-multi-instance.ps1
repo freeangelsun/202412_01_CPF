@@ -5,6 +5,18 @@ param(
  [string]$LogDir='cpf-docs/evidence/runtime/audit-multi-instance'
 )
 $ErrorActionPreference='Stop'
+
+# Child process가 새 Windows process로 분리되어도 UTF-8 계약을 잃지 않도록 고정합니다.
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
+    $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
+} elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {
+    $env:JAVA_TOOL_OPTIONS = ($env:JAVA_TOOL_OPTIONS.Trim() + ' ' + $CpfUtf8ChildJavaOptions)
+}
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PGCLIENTENCODING = 'UTF8'
+$env:NLS_LANG = '.AL32UTF8'
 function Need([string]$Name){$v=[Environment]::GetEnvironmentVariable($Name);if([string]::IsNullOrWhiteSpace($v)){throw "필수 환경변수 누락: $Name"};return $v}
 $rootPath=(Resolve-Path -LiteralPath $Root).Path;$logRoot=Join-Path $rootPath $LogDir;New-Item -ItemType Directory -Force -Path $logRoot|Out-Null
 $dbUrl=Need 'CPF_AUDIT_DB_URL';$dbUser=Need 'CPF_AUDIT_DB_USER';$dbPassword=Need 'CPF_AUDIT_DB_PASSWORD';$writePath=Need 'CPF_AUDIT_WRITE_PATH';$queryPath=Need 'CPF_AUDIT_QUERY_PATH'

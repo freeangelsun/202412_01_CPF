@@ -104,6 +104,8 @@ DEALLOCATE PREPARE cpf_runtime_stmt;
     $processInfo.RedirectStandardInput = $true
     $processInfo.RedirectStandardOutput = $true
     $processInfo.RedirectStandardError = $true
+    $processInfo.StandardOutputEncoding = [Text.Encoding]::UTF8
+    $processInfo.StandardErrorEncoding = [Text.Encoding]::UTF8
     $processInfo.CreateNoWindow = $true
     foreach ($argument in @(
         "--protocol=TCP",

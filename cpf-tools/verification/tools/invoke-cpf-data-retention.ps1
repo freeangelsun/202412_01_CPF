@@ -14,12 +14,24 @@ param(
     [string]$Host='127.0.0.1',
     [int]$Port=0,
     [string]$User='root',
-    [string]$Database='batDB',
+    [string]$Database='cpfDB',
     [string]$OracleConnectIdentifier='',
     [string]$ResultPath='build/db-retention/retention-result.sanitized.json',
     [string]$Root='.'
 )
 $ErrorActionPreference='Stop'
+
+# Child/native DB process에서도 UTF-8 계약을 유지합니다.
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
+    $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
+} elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {
+    $env:JAVA_TOOL_OPTIONS = ($env:JAVA_TOOL_OPTIONS.Trim() + ' ' + $CpfUtf8ChildJavaOptions)
+}
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PGCLIENTENCODING = 'UTF8'
+$env:NLS_LANG = '.AL32UTF8'
 if($PlanOnly -and $Execute){throw '-PlanOnly과 -Execute를 동시에 지정할 수 없습니다.'}
 if(-not $PlanOnly -and -not $Execute){$PlanOnly=$true}
 $rootPath=(Resolve-Path $Root).Path
@@ -45,9 +57,9 @@ try{
         if($Port -le 0){$Port=Get-CpfVendorDefaultPort $Vendor}
         $output=Join-Path $work 'client.out'
         switch($Vendor){
-            'mariadb' {$client=Get-Command mariadb -ErrorAction SilentlyContinue;if(-not $client){throw 'mariadb client를 찾을 수 없습니다.'};$process=Start-Process -FilePath $client.Source -ArgumentList @('--host',$Host,'--port',"$Port",'--user',$User,$Database) -RedirectStandardInput $sql -RedirectStandardOutput $output -NoNewWindow -Wait -PassThru}
+            'mariadb' {$client=Get-Command mariadb -ErrorAction SilentlyContinue;if(-not $client){throw 'mariadb client를 찾을 수 없습니다.'};$process=Start-Process -FilePath $client.Source -ArgumentList @('--default-character-set=utf8mb4','--host',$Host,'--port',"$Port",'--user',$User,$Database) -RedirectStandardInput $sql -RedirectStandardOutput $output -NoNewWindow -Wait -PassThru}
             'postgresql' {$client=Get-Command psql -ErrorAction SilentlyContinue;if(-not $client){throw 'psql을 찾을 수 없습니다.'};$process=Start-Process -FilePath $client.Source -ArgumentList @('--host',$Host,'--port',"$Port",'--username',$User,'--dbname',$Database,'--file',$sql,'--set','ON_ERROR_STOP=1') -RedirectStandardOutput $output -NoNewWindow -Wait -PassThru}
-            'oracle' {$OracleConnectIdentifier=Assert-CpfBackupScalar $OracleConnectIdentifier 'OracleConnectIdentifier';$client=Get-Command sqlplus -ErrorAction SilentlyContinue;if(-not $client){throw 'sqlplus를 찾을 수 없습니다.'};$psi=[Diagnostics.ProcessStartInfo]::new();$psi.FileName=$client.Source;$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;foreach($arg in @('-L','-S','/nolog')){[void]$psi.ArgumentList.Add($arg)};$process=[Diagnostics.Process]::new();$process.StartInfo=$psi;if(-not $process.Start()){throw 'sqlplus process start failed'};$body="CONNECT /@$OracleConnectIdentifier`n"+(Get-Content -LiteralPath $sql -Raw -Encoding UTF8);$process.StandardInput.Write($body);$process.StandardInput.Close();$stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync();$process.WaitForExit();[IO.File]::WriteAllText($output,$stdout.GetAwaiter().GetResult()+"`n"+$stderr.GetAwaiter().GetResult(),[Text.UTF8Encoding]::new($false))}
+            'oracle' {$OracleConnectIdentifier=Assert-CpfBackupScalar $OracleConnectIdentifier 'OracleConnectIdentifier';$client=Get-Command sqlplus -ErrorAction SilentlyContinue;if(-not $client){throw 'sqlplus를 찾을 수 없습니다.'};$psi=[Diagnostics.ProcessStartInfo]::new();$psi.FileName=$client.Source;$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$psi.StandardOutputEncoding=[Text.Encoding]::UTF8;$psi.StandardErrorEncoding=[Text.Encoding]::UTF8;foreach($arg in @('-L','-S','/nolog')){[void]$psi.ArgumentList.Add($arg)};$process=[Diagnostics.Process]::new();$process.StartInfo=$psi;if(-not $process.Start()){throw 'sqlplus process start failed'};$body="CONNECT /@$OracleConnectIdentifier`n"+(Get-Content -LiteralPath $sql -Raw -Encoding UTF8);$process.StandardInput.Write($body);$process.StandardInput.Close();$stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync();$process.WaitForExit();[IO.File]::WriteAllText($output,$stdout.GetAwaiter().GetResult()+"`n"+$stderr.GetAwaiter().GetResult(),[Text.UTF8Encoding]::new($false))}
         }
         $clientExitCode=$process.ExitCode
         if($Vendor -eq 'oracle'){$process.Dispose()}

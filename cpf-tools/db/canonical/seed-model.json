@@ -1935,8 +1935,9 @@
       "sourceFile": "60_adm_seed_data.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "admDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -1985,12 +1986,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE",
       "currentTableName": "ADM_ROLE",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2044,12 +2046,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_MENU",
       "currentTableName": "ADM_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2113,12 +2116,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_BUTTON",
       "currentTableName": "ADM_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2192,12 +2196,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_PASSWORD_POLICY",
       "currentTableName": "ADM_PASSWORD_POLICY",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2243,12 +2248,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2294,12 +2300,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2345,12 +2352,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2396,12 +2404,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2447,12 +2456,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2488,12 +2498,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2529,12 +2540,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2570,12 +2582,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2611,12 +2624,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2652,12 +2666,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2726,12 +2741,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_API_PERMISSION",
       "currentTableName": "ADM_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2800,12 +2816,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_API_PERMISSION",
       "currentTableName": "ADM_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2841,12 +2858,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_API_PERMISSION",
       "currentTableName": "ADM_ROLE_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2902,20 +2920,22 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_BUTTON",
       "currentTableName": "ADM_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "update",
       "sql": "UPDATE ADM_ROLE_MENU SET WRITE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP WHERE MENU_ID='AUDIT_LOG' AND ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')",
-      "currentLogicalDatabase": "admDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -2951,12 +2971,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3013,12 +3034,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_API_PERMISSION",
       "currentTableName": "ADM_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3054,12 +3076,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_API_PERMISSION",
       "currentTableName": "ADM_ROLE_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3115,12 +3138,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_BUTTON",
       "currentTableName": "ADM_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3166,12 +3190,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3207,12 +3232,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3269,12 +3295,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_API_PERMISSION",
       "currentTableName": "ADM_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3310,12 +3337,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_API_PERMISSION",
       "currentTableName": "ADM_ROLE_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3379,12 +3407,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_BUTTON",
       "currentTableName": "ADM_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3430,12 +3459,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3471,12 +3501,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3545,12 +3576,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_API_PERMISSION",
       "currentTableName": "ADM_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "60_adm_seed_data.sql",
@@ -3586,19 +3618,21 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_API_PERMISSION",
       "currentTableName": "ADM_ROLE_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "55_cmn_seed_data.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "cmnDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "sourceFile": "55_cmn_seed_data.sql",
@@ -3658,12 +3692,13 @@
           "expression": "CURRENT_TIMESTAMP(3)"
         }
       ],
-      "currentLogicalDatabase": "cmnDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": false,
       "currentTable": "REF_CMN_SAMPLE_ITEM",
       "currentTableName": "REF_CMN_SAMPLE_ITEM",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
-      "logicalOwner": "reference-fixture"
+      "logicalOwner": "reference-fixture",
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "sourceFile": "58_reference_external_edu_seed.sql",
@@ -3948,8 +3983,9 @@
       "sourceFile": "58_reference_runtime_seed.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "batDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4008,12 +4044,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_INSTANCE",
       "currentTableName": "BAT_INSTANCE",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4092,12 +4129,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_WORKER",
       "currentTableName": "BAT_WORKER",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4151,12 +4189,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_JOB",
       "currentTableName": "BAT_JOB",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4235,12 +4274,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_SCHEDULE",
       "currentTableName": "BAT_SCHEDULE",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4293,12 +4333,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_JOB_RELATION",
       "currentTableName": "BAT_JOB_RELATION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4329,12 +4370,13 @@
       "conflictKey": null,
       "conflictColumns": [],
       "updates": [],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_EXECUTION",
       "currentTableName": "BAT_EXECUTION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4342,8 +4384,9 @@
       "statementKind": "set",
       "variable": "cpf_edu_execution_id",
       "expression": "(\n    SELECT execution_id\n    FROM cpfDB.BAT_EXECUTION\n    WHERE job_id = 'CPF_EDU_TASKLET_JOB'\n      AND requested_by = 'SYSTEM'\n      AND job_parameters = '{\"edu\":true}'\n    ORDER BY execution_id\n    LIMIT 1\n)",
-      "currentLogicalDatabase": "batDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4371,12 +4414,13 @@
       "conflictKey": null,
       "conflictColumns": [],
       "updates": [],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_STEP_EXECUTION",
       "currentTableName": "BAT_STEP_EXECUTION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4401,12 +4445,13 @@
       "conflictKey": null,
       "conflictColumns": [],
       "updates": [],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_EXECUTION_TARGET",
       "currentTableName": "BAT_EXECUTION_TARGET",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4457,19 +4502,21 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.CMN_BUSINESS_CALENDAR_DAY",
       "currentTableName": "CMN_BUSINESS_CALENDAR_DAY",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "common"
+      "logicalOwner": "common",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "batDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4523,12 +4570,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_JOB",
       "currentTableName": "BAT_JOB",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4582,12 +4630,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_JOB",
       "currentTableName": "BAT_JOB",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4656,12 +4705,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_CENTER_CUT_JOB",
       "currentTableName": "BAT_CENTER_CUT_JOB",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4730,12 +4780,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_CENTER_CUT_JOB",
       "currentTableName": "BAT_CENTER_CUT_JOB",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -4781,12 +4832,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_CENTER_CUT_PARAMETER",
       "currentTableName": "BAT_CENTER_CUT_PARAMETER",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -5257,8 +5309,9 @@
       "sourceFile": "58_reference_runtime_seed.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "batDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -5304,12 +5357,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "batDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "cpfDB.BAT_CENTER_CUT_PARAMETER",
       "currentTableName": "BAT_CENTER_CUT_PARAMETER",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "batch"
+      "logicalOwner": "batch",
+      "legacyLogicalDatabase": "batDB"
     },
     {
       "sourceFile": "58_reference_runtime_seed.sql",
@@ -5741,8 +5795,9 @@
       "sourceFile": "59_adm_local_seed.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "admDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "59_adm_local_seed.sql",
@@ -5781,12 +5836,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_IP_ALLOWLIST",
       "currentTableName": "ADM_IP_ALLOWLIST",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "59_adm_local_seed.sql",
@@ -5813,19 +5869,21 @@
       "conflictKey": null,
       "conflictColumns": [],
       "updates": [],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_AUDIT_LOG",
       "currentTableName": "ADM_AUDIT_LOG",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "70_test_data.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "cmnDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "sourceFile": "70_test_data.sql",
@@ -5890,35 +5948,39 @@
           "expression": "CURRENT_TIMESTAMP(3)"
         }
       ],
-      "currentLogicalDatabase": "cmnDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": false,
       "currentTable": "REF_CMN_SAMPLE_ITEM",
       "currentTableName": "REF_CMN_SAMPLE_ITEM",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
-      "logicalOwner": "reference-fixture"
+      "logicalOwner": "reference-fixture",
+      "legacyLogicalDatabase": "cmnDB"
     },
     {
       "sourceFile": "70_test_data.sql",
       "logicalDatabase": "referenceFixture",
       "statementKind": "use",
-      "currentLogicalDatabase": "refDB",
-      "productionDefault": false
+      "currentLogicalDatabase": "referenceFixture",
+      "productionDefault": false,
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "sourceFile": "70_test_data.sql",
       "logicalDatabase": "referenceFixture",
       "statementKind": "delete",
       "sql": "DELETE FROM REF_SAMPLE_ITEM WHERE sample_item_id BETWEEN 90001 AND 90008",
-      "currentLogicalDatabase": "refDB",
-      "productionDefault": false
+      "currentLogicalDatabase": "referenceFixture",
+      "productionDefault": false,
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "sourceFile": "70_test_data.sql",
       "logicalDatabase": "referenceFixture",
       "statementKind": "delete",
       "sql": "DELETE FROM REF_SAMPLE_ITEM WHERE sample_item_id BETWEEN 91000 AND 91999",
-      "currentLogicalDatabase": "refDB",
-      "productionDefault": false
+      "currentLogicalDatabase": "referenceFixture",
+      "productionDefault": false,
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "sourceFile": "70_test_data.sql",
@@ -5986,20 +6048,22 @@
           "expression": "VALUES(updated_at)"
         }
       ],
-      "currentLogicalDatabase": "refDB",
+      "currentLogicalDatabase": "referenceFixture",
       "productionDefault": false,
       "currentTable": "REF_SAMPLE_ITEM",
       "currentTableName": "REF_SAMPLE_ITEM",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
-      "logicalOwner": "reference-fixture"
+      "logicalOwner": "reference-fixture",
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "sourceFile": "70_test_data.sql",
       "logicalDatabase": "referenceFixture",
       "statementKind": "delete",
       "sql": "DELETE FROM REF_CENTER_CUT_SAMPLE_RESULT WHERE center_cut_job_id = 'CPF_REF_CENTER_CUT_SAMPLE_JOB'",
-      "currentLogicalDatabase": "refDB",
-      "productionDefault": false
+      "currentLogicalDatabase": "referenceFixture",
+      "productionDefault": false,
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "sourceFile": "70_test_data.sql",
@@ -6081,12 +6145,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "refDB",
+      "currentLogicalDatabase": "referenceFixture",
       "productionDefault": false,
       "currentTable": "REF_CENTER_CUT_SAMPLE_TARGET",
       "currentTableName": "REF_CENTER_CUT_SAMPLE_TARGET",
       "targetDatabaseRole": "REFERENCE_FIXTURE",
-      "logicalOwner": "reference-fixture"
+      "logicalOwner": "reference-fixture",
+      "legacyLogicalDatabase": "refDB"
     },
     {
       "sourceFile": "70_test_data.sql",
@@ -6283,8 +6348,9 @@
       "sourceFile": "70_test_data.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "use",
-      "currentLogicalDatabase": "admDB",
-      "productionDefault": true
+      "currentLogicalDatabase": "cpfDB",
+      "productionDefault": true,
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "70_test_data.sql",
@@ -6344,12 +6410,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_DYNAMIC_LOG_LEVEL_RULE",
       "currentTableName": "ADM_DYNAMIC_LOG_LEVEL_RULE",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "70_test_data.sql",
@@ -7152,12 +7219,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_BUTTON",
       "currentTableName": "ADM_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "61_adm_gateway_seed.sql",
@@ -7203,12 +7271,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_MENU",
       "currentTableName": "ADM_ROLE_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "61_adm_gateway_seed.sql",
@@ -7277,12 +7346,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_API_PERMISSION",
       "currentTableName": "ADM_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "61_adm_gateway_seed.sql",
@@ -7318,12 +7388,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_BUTTON",
       "currentTableName": "ADM_ROLE_BUTTON",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     },
     {
       "sourceFile": "61_adm_gateway_seed.sql",
@@ -7359,12 +7430,13 @@
           "expression": "CURRENT_TIMESTAMP"
         }
       ],
-      "currentLogicalDatabase": "admDB",
+      "currentLogicalDatabase": "cpfDB",
       "productionDefault": true,
       "currentTable": "ADM_ROLE_API_PERMISSION",
       "currentTableName": "ADM_ROLE_API_PERMISSION",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
+      "logicalOwner": "admin",
+      "legacyLogicalDatabase": "admDB"
     }
   ]
 }

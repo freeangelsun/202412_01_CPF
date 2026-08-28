@@ -1,9 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../../.." && pwd)
-if command -v python3 >/dev/null 2>&1; then PYTHON=python3
-elif command -v python >/dev/null 2>&1; then PYTHON=python
-else echo "CPF_CLI=FAIL Python 3 is required" >&2; exit 127
-fi
-exec "$PYTHON" "$ROOT/cpf-tools/runtime/cli/cpf.py" --root "$ROOT" "$@"
+CLI="$SCRIPT_DIR/lib/cpf-cli.jar"
+JAVA_BIN=${JAVA_HOME:+$JAVA_HOME/bin/java}
+if [ -z "${JAVA_BIN:-}" ]; then JAVA_BIN=java; fi
+[ -f "$CLI" ] || { echo "CPF_CLI=FAIL code=CPF-CLI-JAR-MISSING message=$CLI" >&2; exit 69; }
+exec "$JAVA_BIN" -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar "$CLI" "$@"

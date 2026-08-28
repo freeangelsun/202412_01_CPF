@@ -19,6 +19,18 @@ param(
     [string]$Root='.'
 )
 $ErrorActionPreference='Stop'
+
+# Child process가 새 Windows process로 분리되어도 UTF-8 계약을 잃지 않도록 고정합니다.
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
+    $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
+} elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {
+    $env:JAVA_TOOL_OPTIONS = ($env:JAVA_TOOL_OPTIONS.Trim() + ' ' + $CpfUtf8ChildJavaOptions)
+}
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PGCLIENTENCODING = 'UTF8'
+$env:NLS_LANG = '.AL32UTF8'
 $rootPath=(Resolve-Path $Root).Path
 . (Join-Path $rootPath 'cpf-tools/db/tools/database-profile-common.ps1')
 . (Join-Path $rootPath 'cpf-tools/db/tools/cpf-backup-lifecycle-common.ps1')
@@ -52,7 +64,7 @@ try{
         'mariadb' {
             $tool=Get-Command mariadb-dump -ErrorAction SilentlyContinue
             if(-not $tool){throw 'mariadb-dump를 찾을 수 없습니다.'}
-            $args=@('--single-transaction','--routines','--events','--triggers','--hex-blob','--skip-comments','--host',$DatabaseHost,'--port',"$Port",'--user',$User,$Database)
+            $args=@('--default-character-set=utf8mb4','--single-transaction','--routines','--events','--triggers','--hex-blob','--skip-comments','--host',$DatabaseHost,'--port',"$Port",'--user',$User,$Database)
             $process=Start-Process -FilePath $tool.Source -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardOutput $plain -RedirectStandardError $stderr
             if($process.ExitCode -ne 0){throw "backup command failed: vendor=mariadb exit=$($process.ExitCode)"}
             $nativeFormat='mariadb-logical-sql'

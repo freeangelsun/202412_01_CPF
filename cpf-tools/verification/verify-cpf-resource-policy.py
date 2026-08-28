@@ -124,10 +124,11 @@ def verify(root: Path) -> dict[str, object]:
 
     root_convention = root / "cpf-tools/build/cpf-root-conventions.gradle"
     start_local = root / "cpf-tools/runtime/tools/start-cpf-local.ps1"
+    runtime_engine = root / "cpf-tools/runtime/tools/cpf_local_runtime.py"
     helper = root / "cpf-tools/runtime/tools/cpf-resource-policy.ps1"
     gradlew = root / "gradlew"
     gradlew_bat = root / "gradlew.bat"
-    required_files = (root_convention, start_local, helper, gradlew, gradlew_bat)
+    required_files = (root_convention, start_local, runtime_engine, helper, gradlew, gradlew_bat)
     for source in required_files:
         if not source.is_file():
             errors.append(f"missing integration source: {source.relative_to(root)}")
@@ -147,17 +148,28 @@ def verify(root: Path) -> dict[str, object]:
 
     if start_local.is_file():
         text = start_local.read_text(encoding="utf-8")
+        # Unified CLI steering: OS scripts are thin compatibility wrappers.
+        # Resource semantics must live in the single cross-platform runtime engine.
+        for token in ("cpf_local_runtime.py", "start", "--profile", "--mode"):
+            if token not in text:
+                errors.append(f"start-cpf-local thin wrapper missing token={token}")
+
+    if runtime_engine.is_file():
+        text = runtime_engine.read_text(encoding="utf-8")
         for token in (
-            "cpf-resource-policy.ps1",
-            "Resolve-CpfResourcePolicy",
+            "gradle/cpf-runtime/common.properties",
+            "resolve_policy",
+            "runtime.web.xms",
             "runtime.web.xmx",
-            "runtime.batch.xmx",
+            "runtime.jvm.maxMetaspace",
+            "runtime.jvm.maxDirectMemory",
+            "runtime.jvm.reservedCodeCache",
             "MaxMetaspaceSize",
             "MaxDirectMemorySize",
             "ReservedCodeCacheSize",
         ):
             if token not in text:
-                errors.append(f"start-cpf-local missing resource contract token={token}")
+                errors.append(f"cpf_local_runtime missing resource contract token={token}")
 
     for wrapper in (gradlew, gradlew_bat):
         if wrapper.is_file():

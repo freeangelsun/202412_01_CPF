@@ -46,6 +46,8 @@ function Invoke-Docker([string[]]$Arguments,[string]$InputText=''){
     $psi.UseShellExecute=$false
     $psi.RedirectStandardOutput=$true
     $psi.RedirectStandardError=$true
+    $psi.StandardOutputEncoding=[Text.Encoding]::UTF8
+    $psi.StandardErrorEncoding=[Text.Encoding]::UTF8
     $psi.RedirectStandardInput=$true
     foreach($arg in $Arguments){[void]$psi.ArgumentList.Add($arg)}
     $p=[Diagnostics.Process]::new();$p.StartInfo=$psi;[void]$p.Start()

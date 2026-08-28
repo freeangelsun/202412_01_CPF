@@ -106,11 +106,11 @@ cpf domain diff --file C:/temp/payment-input.yaml --output cpf-payment
 설치된 환경은 Windows/Linux 모두 `cpf ...`를 사용합니다. Repository-local 실행만 launcher가 다릅니다.
 
 ```text
-Windows CURRENT  .\cpf-tools\runtime\cli\cpf.bat domain create --name payment --system-code PAY --business-feature transfer
+Windows CURRENT  .\cpf-tools\runtime\cli\cpf.cmd domain-new payment --system-code PAY --business-feature transfer
 Linux CURRENT    ./cpf-tools/runtime/cli/cpf domain create --name payment --system-code PAY --business-feature transfer
 ```
 
-`cpf-tools/runtime/cli/cpf`와 `cpf-tools/runtime/cli/cpf.bat`는 Repository-local thin wrapper입니다. 설치 후 논리 명령은 `cpf ...`입니다. Schema validation, naming, template selection, DB intent, diff, lifecycle state와 exit-code 의미는 OS-neutral Engine이 소유합니다. 따라서 같은 CLI 입력을 Windows와 Linux에서 생성했을 때 line-ending 같은 비의미 차이를 normalize한 결과가 같아야 합니다.
+`cpf-tools/runtime/cli/cpf`와 `cpf-tools/runtime/cli/cpf.cmd`는 Repository-local thin wrapper입니다. 설치 후 논리 명령은 `cpf ...`입니다. Schema validation, naming, template selection, DB intent, diff, lifecycle state와 exit-code 의미는 OS-neutral Engine이 소유합니다. 따라서 같은 CLI 입력을 Windows와 Linux에서 생성했을 때 line-ending 같은 비의미 차이를 normalize한 결과가 같아야 합니다.
 
 Generator Cross-platform Gate는 다음을 함께 확인합니다.
 

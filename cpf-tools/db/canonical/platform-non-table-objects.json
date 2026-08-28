@@ -42,34 +42,40 @@
     {
       "kind": "sequence",
       "module": "bat",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
       "name": "BATCH_JOB_INSTANCE_SEQ",
       "idTable": "BATCH_JOB_INSTANCE",
       "idColumn": "JOB_INSTANCE_ID",
       "legacyNames": [
         "BATCH_JOB_SEQ"
-      ]
+      ],
+      "legacyLogicalDatabase": "batDB",
+      "legacySourceFile": "35_bat_schema.sql"
     },
     {
       "kind": "sequence",
       "module": "bat",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
       "name": "BATCH_JOB_EXECUTION_SEQ",
       "idTable": "BATCH_JOB_EXECUTION",
       "idColumn": "JOB_EXECUTION_ID",
-      "legacyNames": []
+      "legacyNames": [],
+      "legacyLogicalDatabase": "batDB",
+      "legacySourceFile": "35_bat_schema.sql"
     },
     {
       "kind": "sequence",
       "module": "bat",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
       "name": "BATCH_STEP_EXECUTION_SEQ",
       "idTable": "BATCH_STEP_EXECUTION",
       "idColumn": "STEP_EXECUTION_ID",
-      "legacyNames": []
+      "legacyNames": [],
+      "legacyLogicalDatabase": "batDB",
+      "legacySourceFile": "35_bat_schema.sql"
     }
   ],
   "vendorDefinition": {

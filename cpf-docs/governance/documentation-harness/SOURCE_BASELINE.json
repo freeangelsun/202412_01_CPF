@@ -1,8 +1,8 @@
 {
-  "harnessVersion": "2.10.0",
-  "createdAtKst": "2026-08-28T23:51:00+09:00",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
-  "sha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
+  "harnessVersion": "2.9.0",
+  "createdAtKst": "2026-08-27T13:25:23+09:00",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_125420(1).zip",
+  "sha256": "96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9",
   "canonicalRequirements": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
   "starterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "publicProfiles": [
@@ -31,40 +31,22 @@
       "usageHintKo": "모든 CPF 애플리케이션의 공통 시작점"
     },
     {
-      "artifactId": "cpf-starter-common",
-      "displayNameKo": "공통 업무 기능",
-      "ownerGroup": "common",
-      "usageHintKo": "공통코드·파라미터·메시지·영업일 등 업무 공통 기능"
+      "artifactId": "cpf-starter-cache-caffeine",
+      "displayNameKo": "로컬 Cache · Caffeine",
+      "ownerGroup": "data",
+      "usageHintKo": "단일 인스턴스 로컬 Cache"
     },
     {
-      "artifactId": "cpf-starter-web-api",
-      "displayNameKo": "Web API Profile",
-      "ownerGroup": "profiles",
-      "usageHintKo": "일반 REST/Web API 서비스"
+      "artifactId": "cpf-starter-cache-redis",
+      "displayNameKo": "공유 Cache · Redis",
+      "ownerGroup": "data",
+      "usageHintKo": "Redis 기반 다중 인스턴스 Cache"
     },
     {
-      "artifactId": "cpf-starter-secure-api",
-      "displayNameKo": "보안 Web API Profile",
-      "ownerGroup": "profiles",
-      "usageHintKo": "인증·인가가 필요한 API 서비스"
-    },
-    {
-      "artifactId": "cpf-starter-bff",
-      "displayNameKo": "BFF Profile",
-      "ownerGroup": "profiles",
-      "usageHintKo": "브라우저 전용 Backend-for-Frontend"
-    },
-    {
-      "artifactId": "cpf-starter-event",
-      "displayNameKo": "Event Profile",
-      "ownerGroup": "profiles",
-      "usageHintKo": "이벤트/메시징 중심 서비스"
-    },
-    {
-      "artifactId": "cpf-starter-batch",
-      "displayNameKo": "Batch Profile",
-      "ownerGroup": "profiles",
-      "usageHintKo": "Batch Runtime을 사용하는 프로젝트 구성"
+      "artifactId": "cpf-starter-cache-valkey",
+      "displayNameKo": "공유 Cache · Valkey",
+      "ownerGroup": "data",
+      "usageHintKo": "Valkey 기반 다중 인스턴스 Cache"
     },
     {
       "artifactId": "cpf-starter-data-jdbc",
@@ -85,40 +67,40 @@
       "usageHintKo": "JPA 기반 영속성"
     },
     {
-      "artifactId": "cpf-starter-cache-caffeine",
-      "displayNameKo": "로컬 Cache · Caffeine",
-      "ownerGroup": "data",
-      "usageHintKo": "단일 인스턴스 로컬 Cache"
+      "artifactId": "cpf-starter-file-attachment",
+      "displayNameKo": "File · Attachment",
+      "ownerGroup": "file",
+      "usageHintKo": "업무 첨부파일 업로드·다운로드·검사·보관 정책을 사용하는 Public Provider Starter"
     },
     {
-      "artifactId": "cpf-starter-cache-redis",
-      "displayNameKo": "공유 Cache · Redis",
-      "ownerGroup": "data",
-      "usageHintKo": "Redis 기반 다중 인스턴스 Cache"
+      "artifactId": "cpf-starter-integration-fixed-length",
+      "displayNameKo": "Integration · Fixed Length",
+      "ownerGroup": "integration",
+      "usageHintKo": "고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다."
     },
     {
-      "artifactId": "cpf-starter-cache-valkey",
-      "displayNameKo": "공유 Cache · Valkey",
-      "ownerGroup": "data",
-      "usageHintKo": "Valkey 기반 다중 인스턴스 Cache"
+      "artifactId": "cpf-starter-integration-http",
+      "displayNameKo": "Integration · integration http",
+      "ownerGroup": "integration",
+      "usageHintKo": "선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다."
     },
     {
-      "artifactId": "cpf-starter-lock-valkey",
-      "displayNameKo": "분산 Lock · Valkey",
-      "ownerGroup": "data",
-      "usageHintKo": "Valkey 기반 분산 Lock"
+      "artifactId": "cpf-starter-integration-resilience",
+      "displayNameKo": "Integration · integration resilience",
+      "ownerGroup": "integration",
+      "usageHintKo": "선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다."
     },
     {
-      "artifactId": "cpf-starter-session-jdbc",
-      "displayNameKo": "공유 Session · JDBC",
-      "ownerGroup": "security",
-      "usageHintKo": "DB 기반 공유 Session"
+      "artifactId": "cpf-starter-messaging-ibm-mq",
+      "displayNameKo": "Messaging · IBM MQ",
+      "ownerGroup": "messaging",
+      "usageHintKo": "IBM MQ 연계"
     },
     {
-      "artifactId": "cpf-starter-session-valkey",
-      "displayNameKo": "공유 Session · Valkey",
-      "ownerGroup": "security",
-      "usageHintKo": "Valkey 기반 공유 Session"
+      "artifactId": "cpf-starter-messaging-jms",
+      "displayNameKo": "Messaging · JMS",
+      "ownerGroup": "messaging",
+      "usageHintKo": "표준 JMS Broker 사용"
     },
     {
       "artifactId": "cpf-starter-messaging-kafka",
@@ -133,22 +115,52 @@
       "usageHintKo": "RabbitMQ Producer/Consumer 사용"
     },
     {
-      "artifactId": "cpf-starter-messaging-jms",
-      "displayNameKo": "Messaging · JMS",
-      "ownerGroup": "messaging",
-      "usageHintKo": "표준 JMS Broker 사용"
+      "artifactId": "cpf-starter-batch",
+      "displayNameKo": "Batch Profile",
+      "ownerGroup": "profiles",
+      "usageHintKo": "Batch Runtime을 사용하는 프로젝트 구성"
     },
     {
-      "artifactId": "cpf-starter-messaging-ibm-mq",
-      "displayNameKo": "Messaging · IBM MQ",
-      "ownerGroup": "messaging",
-      "usageHintKo": "IBM MQ 연계"
+      "artifactId": "cpf-starter-bff",
+      "displayNameKo": "BFF Profile",
+      "ownerGroup": "profiles",
+      "usageHintKo": "브라우저 전용 Backend-for-Frontend"
     },
     {
-      "artifactId": "cpf-starter-object-storage-s3",
-      "displayNameKo": "Object Storage · S3",
-      "ownerGroup": "file",
-      "usageHintKo": "S3 호환 Object Storage 사용"
+      "artifactId": "cpf-starter-event",
+      "displayNameKo": "Event Profile",
+      "ownerGroup": "profiles",
+      "usageHintKo": "이벤트/메시징 중심 서비스"
+    },
+    {
+      "artifactId": "cpf-starter-secure-api",
+      "displayNameKo": "보안 Web API Profile",
+      "ownerGroup": "profiles",
+      "usageHintKo": "인증·인가가 필요한 API 서비스"
+    },
+    {
+      "artifactId": "cpf-starter-web-api",
+      "displayNameKo": "Web API Profile",
+      "ownerGroup": "profiles",
+      "usageHintKo": "일반 REST/Web API 서비스"
+    },
+    {
+      "artifactId": "cpf-starter-oidc",
+      "displayNameKo": "OIDC 로그인",
+      "ownerGroup": "security",
+      "usageHintKo": "OIDC 기반 사용자 로그인"
+    },
+    {
+      "artifactId": "cpf-starter-session-jdbc",
+      "displayNameKo": "공유 Session · JDBC",
+      "ownerGroup": "security",
+      "usageHintKo": "DB 기반 공유 Session"
+    },
+    {
+      "artifactId": "cpf-starter-lock-valkey",
+      "displayNameKo": "분산 Lock · Valkey",
+      "ownerGroup": "data",
+      "usageHintKo": "Valkey 기반 분산 Lock"
     },
     {
       "artifactId": "cpf-starter-graphql",
@@ -163,26 +175,26 @@
       "usageHintKo": "실시간 SSE 통신"
     },
     {
-      "artifactId": "cpf-starter-oidc",
-      "displayNameKo": "OIDC 로그인",
+      "artifactId": "cpf-starter-object-storage-s3",
+      "displayNameKo": "Object Storage · S3",
+      "ownerGroup": "file",
+      "usageHintKo": "S3 호환 Object Storage 사용"
+    },
+    {
+      "artifactId": "cpf-starter-session-valkey",
+      "displayNameKo": "공유 Session · Valkey",
       "ownerGroup": "security",
-      "usageHintKo": "OIDC 기반 사용자 로그인"
+      "usageHintKo": "Valkey 기반 공유 Session"
     },
     {
-      "artifactId": "cpf-starter-integration-http",
-      "displayNameKo": "Integration · integration http",
-      "ownerGroup": "integration",
-      "usageHintKo": "선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다."
-    },
-    {
-      "artifactId": "cpf-starter-integration-resilience",
-      "displayNameKo": "Integration · integration resilience",
-      "ownerGroup": "integration",
-      "usageHintKo": "선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다."
+      "artifactId": "cpf-starter-common",
+      "displayNameKo": "공통 업무 기능",
+      "ownerGroup": "common",
+      "usageHintKo": "공통코드·파라미터·메시지·영업일 등 업무 공통 기능"
     }
   ],
   "actualCliSurface": {
-    "crossPlatform": "cpf-tools/runtime/cli/cpf.py + cpf/cpf.bat",
+    "crossPlatform": "cpf-tools/runtime/cli/java/CpfCli.java + cpf/cpf.cmd/cpf.ps1",
     "groups": [
       "domain",
       "db",
@@ -229,19 +241,19 @@
     "산출물 세션은 최신 Source를 다시 Inventory하고 이 Baseline과 차이가 있으면 Source Drift를 기록한다.",
     "CLI는 실제 해당 Source에서 다시 추출한 뒤 사용자 문서에 적는다. Baseline 문자열을 무조건 재사용하지 않는다."
   ],
-  "verifiedAtKst": "2026-08-28T23:51:00+09:00",
+  "verifiedAtKst": "2026-08-27T13:25:23+09:00",
   "sourceType": "USER_PROVIDED_FINAL_SOURCE_ZIP",
   "repository": "https://github.com/freeangelsun/202412_01_CPF",
   "branch": "master",
   "sourceCommit": "UNAVAILABLE_IN_SUPPLIED_ZIP",
   "workingSourceAuthority": "USER_PROVIDED_FINAL_SOURCE_ZIP",
-  "sourceIdentity": "ZIP_SHA256:34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
+  "sourceIdentity": "ZIP_SHA256:96587736A2BDCA1CE11896982E8DE5A7432FAF0CDC560125528FE4A236A3ECF9",
   "documentationAssetsObserved": {
     "README": 1,
     "officialDocx": 11,
     "officialPdf": 11,
-    "productVisualPng": 9,
-    "documentationHarnessFilesBeforeRefinement": 79,
-    "sourceZipTotalFiles": 10447
+    "productVisualPng": 8,
+    "documentationHarnessFilesBeforeRefinement": 57,
+    "sourceZipTotalFiles": 10302
   }
 }

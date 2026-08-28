@@ -3,12 +3,14 @@ param(
   [string]$Action = 'build',
   [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path,
   [string]$Remote = '',
-  [string]$GeneratorArtifacts = ''
+  [string]$GeneratorArtifacts = '',
+  [ValidateSet('binary','source')]
+  [string]$Profile = 'binary'
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $python = Get-Command python -ErrorAction Stop
-$argsList = @((Join-Path $PSScriptRoot 'cpf_open_git.py'), $Action, '--root', $Root)
+$argsList = @((Join-Path $PSScriptRoot 'cpf_open_git.py'), $Action, '--root', $Root, '--profile', $Profile)
 if (-not [string]::IsNullOrWhiteSpace($Remote)) { $argsList += @('--remote', $Remote) }
 if (-not [string]::IsNullOrWhiteSpace($GeneratorArtifacts)) { $argsList += @('--generator-artifacts', $GeneratorArtifacts) }
 & $python.Source @argsList

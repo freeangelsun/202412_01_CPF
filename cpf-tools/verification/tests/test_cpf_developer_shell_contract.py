@@ -33,15 +33,15 @@ def test_single_developer_shell_exposes_only_clear_actions():
     text = PS1.read_text(encoding='utf-8')
     for action in ('help','build','test','verify-fast','verify-full','run-local','run-batch','status','stop','modules','resource'):
         assert f"'{action}'" in text
-    assert 'run-cpf-local-full-validation.ps1' in text
-    assert 'start-cpf-local.ps1' in text
-    assert 'status-cpf-local.ps1' in text
-    assert 'stop-cpf-local.ps1' in text
-    assert 'CPF_JAVA25_HOME' in text
-    assert 'Java 25' in text
-    assert 'function Read-CpfDevAction' in text
-    assert 'CPF 개발 메뉴' in text
-    assert "$Action = Read-CpfDevAction" in text
+    # Compatibility shell is intentionally thin: canonical behavior belongs to the
+    # exactly-one Java `cpf` CLI, never to PowerShell/Bash duplicates.
+    assert 'runtime\\cli\\cpf.ps1' in text or 'runtime/cli/cpf.ps1' in text
+    for forbidden in (
+        'run-cpf-local-full-validation.ps1', 'start-cpf-local.ps1',
+        'status-cpf-local.ps1', 'stop-cpf-local.ps1',
+        'function Read-CpfDevAction', 'CPF 개발 메뉴', 'gradlew', 'docker compose',
+    ):
+        assert forbidden not in text
     assert 'C:\\Users\\' not in text
 
 

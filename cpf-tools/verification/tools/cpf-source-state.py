@@ -70,6 +70,12 @@ def _include(rel: str, scope: str) -> bool:
     if _is_generated(rel):
         return False
     if scope == "source":
+        # The repository carries the current bootstrap CLI binary so a fresh clone can execute
+        # `cpf` before Gradle/Generator bootstrap. The JAR is reproducibly built from canonical
+        # CLI sources and embeds sourceIdentitySha256, therefore source scope must exclude the
+        # generated bootstrap binary to avoid a circular digest. Managed scope still protects it.
+        if rel in {"cpf-tools/runtime/cli/lib/cpf-cli.jar", "cpf-tools/runtime/cli/lib/cpf-cli.jar.sha256"}:
+            return False
         # Review/evidence metadata may contain the computed source identity itself; exclude it from
         # the product-byte identity to avoid a circular digest. Managed scope still protects it.
         if rel.startswith("cpf-docs/work/"):

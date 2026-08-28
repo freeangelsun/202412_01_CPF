@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 if($PSVersionTable.PSVersion.Major -lt 7){throw 'PowerShell 7 이상(pwsh)이 필요합니다.'}
-try{[Console]::InputEncoding=[Text.UTF8Encoding]::new($false);[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);$global:OutputEncoding=[Text.UTF8Encoding]::new($false)}catch{}
+try{[Console]::InputEncoding=[Text.UTF8Encoding]::new($false);[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);$OutputEncoding=[Text.UTF8Encoding]::new($false);$global:OutputEncoding=$OutputEncoding}catch{}
 $env:PYTHONUTF8='1';$env:PYTHONIOENCODING='utf-8'
 $RepoRoot=(Resolve-Path -LiteralPath $RepoRoot).Path
 if([string]::IsNullOrWhiteSpace($DockerSecretFile)){$DockerSecretFile=Join-Path $DockerRoot 'Secrets\cpf-runtime.env'}

@@ -61,7 +61,7 @@ if($Vendor -eq 'mariadb'){
     foreach($u in $users){$upper=$u.ToUpperInvariant();$sql += "DECLARE c NUMBER; BEGIN SELECT COUNT(*) INTO c FROM dba_users WHERE username='$upper'; IF c>0 THEN EXECUTE IMMEDIATE 'DROP USER $upper CASCADE'; END IF; END;`n/`n"}
     $sql += "EXIT`n"
     $psi=[Diagnostics.ProcessStartInfo]::new('sqlplus')
-    $psi.UseShellExecute=$false;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$psi.CreateNoWindow=$true
+    $psi.UseShellExecute=$false;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$psi.StandardOutputEncoding=[Text.Encoding]::UTF8;$psi.StandardErrorEncoding=[Text.Encoding]::UTF8;$psi.CreateNoWindow=$true
     [void]$psi.ArgumentList.Add('-L');[void]$psi.ArgumentList.Add('-S');[void]$psi.ArgumentList.Add('/nolog')
     $proc=[Diagnostics.Process]::new();$proc.StartInfo=$psi;[void]$proc.Start();$out=$proc.StandardOutput.ReadToEndAsync();$err=$proc.StandardError.ReadToEndAsync()
     try{$proc.StandardInput.Write($sql)}finally{$proc.StandardInput.Close()};$proc.WaitForExit()

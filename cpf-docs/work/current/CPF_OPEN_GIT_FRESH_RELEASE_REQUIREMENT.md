@@ -119,7 +119,7 @@ cpf-tools/release/open-git/**
 - Secret/Leakage Gate
 - Manifest/SHA
 - Fresh developer validation
-- READY\_TO\_COMMIT Gate
+- VERIFIED + 사용자 Git 반영 상태 분리 Gate
 - Release tests
 
 실행 결과는 다음처럼 직관적으로 보이게 한다.
@@ -456,44 +456,27 @@ Source 비공개:
 
 ---
 
-# 15. Binary / sources.jar / javadoc 정책
+# 15. Binary / Source Profile / sources.jar 정책
 
-`sources.jar`는 Source 공개다.
-
-Binary 허용과 Source 허용을 분리한다.
-
-기본 방향:
+기본 Open Git Profile은 **Binary Distribution(`binary`)**이며 Framework 구현 Source와 Framework `sources.jar`/`javadoc.jar`는 공개하지 않는다. `sources.jar`는 Source 공개 수단으로 사용하지 않는다.
 
 ```text
-cpf-common
-  Binary 허용
-  sources.jar/javadoc 허용 가능
+binary (default)
+  Public Framework/Starter Runtime Binary + BOM/POM/metadata/checksum/SBOM
+  Customer Development Source Tree 포함
+  Framework implementation Source = 0
+  Framework sources.jar = 0
+  javadoc.jar = 0
 
-Public Starter
-  Binary 허용
-  sources.jar/javadoc 허용 가능
-
-Public API/SPI
-  Binary 허용
-  필요한 범위 sources.jar 허용 가능
-
-Core internal implementation
-ADM
-Gateway
-Batch Runtime
-Worker
-Scheduler
-Agent
-Internal Provider
-  필요한 Binary만
-  Source Tree 금지
-  sources.jar 금지
-
+source (explicit optional)
+  binary 전체
+  + Canonical Public Source Allowlist의 승인 Public API/SPI/Annotation Source Tree만 framework-source/로 Projection
+  sources.jar/javadoc.jar = 0
 ```
 
-미분류 Artifact는 공개하지 않는다.
+Customer Development Source(Generated Domain, Backoffice, Sample/EDU, 고객 Config/SQL/Frontend/Test/Build)는 기본 Binary Profile에서도 실제 Source Tree로 제공한다. Framework Source 비공개와 고객 개발 Source 제공을 혼동하지 않는다.
 
-실제 Artifact별 policy를 canonical catalog와 publication source 기준으로 확정한다.
+Internal/Generator Engine/Development·QA Harness/Evidence/Secret/Internal Release Tool은 모든 Public Profile에서 금지하며 미분류 Artifact/Source는 공개하지 않는다. Artifact별 정책은 Canonical Artifact Catalog와 Default-Deny Release Policy를 따른다.
 
 ---
 
@@ -503,21 +486,21 @@ Internal Provider
 
 실제 Open Git Package에 노출된 모든 user-facing command와 option을 전수 Inventory한다.
 
-대표 목표 UX:
+대표 Open Git 고객 UX:
 
 ```text
 cpf bootstrap
+cpf domain-new <domain>
+cpf domain-sync [domain]
 cpf build
 cpf test
-cpf verify
+cpf run
 cpf status
 cpf stop
 cpf reset
-cpf domain new
-cpf domain sync
-cpf open-git
-
 ```
+
+Private CPF Framework 개발자의 Release UX는 같은 Unified CLI의 INTERNAL Capability인 `cpf release open-git ...`이며 Open Git Binary Profile에는 Projection하지 않는다.
 
 실제 공개 명령이 더 있으면 모두 검사한다.
 
@@ -732,9 +715,9 @@ cpf reset --confirm
 최소 의미:
 
 ```text
-01 Release root safety
-02 Previous cpf-release clean removal
-03 Source Identity
+01 Release root safety / cpf-release Private master tracked=0
+02 Previous cpf-release current-only clean regeneration
+03 Repository Root / Branch / HEAD / Working Tree / Source Identity capture
 04 Toolchain
 05 Framework Fresh Compile/Test
 06 Binary Publication
@@ -747,74 +730,53 @@ cpf reset --confirm
 13 Secret/Private Source/sources.jar Leakage
 14 Developer Command Validation
 15 Fresh Developer Acceptance
-16 Manifest/SHA/Evidence
-17 git add -A
-18 git diff --cached --check
-19 READY_TO_COMMIT
-
+16 Manifest/Checksum/SBOM/Evidence
+17 Open Git Working Tree read-only git status / git diff --check
+18 Git write-command negative (add/index/commit/push/reset/restore/stash/clean=0)
+19 VERIFIED
+20 User Review (Tool 자동 전이 금지)
 ```
 
 실제 구현에 따라 단계 수는 조정 가능하나 의미는 줄이지 않는다.
 
 ---
 
-# 25. READY\_TO\_COMMIT 판정
+# 25. VERIFIED / 사용자 Git 반영 상태 모델
 
-다음만으로 READY가 아니다.
-
-- package directory 생성
-- source copy 성공
-- build 한 번 성공
-- secret 검사 PASS
-- generator 실행 성공
-- help command PASS
-- 이전 Artifact 기반 Build
-- EDU test 미실행
-- Domain generate 후 compile/test 미실행
-- Fresh developer scenario 미실행
-
-READY는 다음이 모두 만족된 상태다.
+Release 상태는 다음을 구분한다.
 
 ```text
-Fresh package
-+ Fresh binary
-+ Fresh generation
-+ Fresh compile/test
-+ 공개/비공개 policy
-+ Developer command 전수 검증
-+ EDU test
-+ Fresh developer scenario
-+ Manifest/SHA
-+ staged diff safety
-
+GENERATED
+→ VERIFIED
+→ USER_REVIEWED
+→ GIT_COMMITTED
+→ GIT_PUSHED
 ```
+
+Tool/CLI가 자동으로 도달할 수 있는 최종 상태는 `VERIFIED`다. `USER_REVIEWED`, `GIT_COMMITTED`, `GIT_PUSHED`는 사용자 검토/행위 없이 자동 전이하지 않는다.
+
+`VERIFIED`는 Fresh package/binary/generation/build/test/runtime/fresh replay, 공개·비공개 정책, customer source completeness, Manifest/Checksum/SBOM, leakage 0, Git write 0이 모두 PASS한 상태다.
 
 ---
 
-# 26. 자동 commit/push 금지
+# 26. Git 반영 분리 / 자동 Git write 금지
 
-자동 Git 동작은 검증 수준까지만 허용한다.
+`cpf-release/`는 Open Git 전달 전용이며 Private CPF master Commit/Push 대상이 아니다. Private `.gitignore`와 Source Identity에서 제외한다.
 
-예:
-
-```text
-git add -A
-git diff --cached --check
-git status
-
-```
-
-실제:
+Release Tool/CLI/DevGPT/Codex는 사용자 승인 전 Private master와 Open Git fresh clone 모두에서 다음을 자동 실행하지 않는다.
 
 ```text
+git add
 git commit
 git push
-
+git reset
+git restore
+git stash
+git clean
+branch/tag/history write
 ```
 
-는 사용자가 최종 확인 후 직접 수행한다.
-
-Private master에도 자동 commit/push하지 않는다.
+검증 단계에서는 read-only `git status --short`, `git diff --check`, Branch/HEAD 조회만 허용한다. 필수 Release Gate가 모두 PASS한 뒤에만 Tool은 **사용자가 직접 실행할 Open Git Git 명령을 제시**할 수 있고 실행하지 않는다. CPF master용 Source Commit/Push와 Open Git Release Commit/Push는 명확히 분리한다.
 
 ---
 
@@ -901,7 +863,7 @@ cpf-release/**
 
 - Generated Domain / Backoffice 개발 Surface / EDU / Developer CLI Source 공개
 - ADM/Gateway/Batch/Internal Runtime Source 비공개
-- Binary/sources.jar policy 별도 적용
+- Binary 기본 Profile sources.jar/javadoc.jar=0 + Optional Source Allowlist Tree 정책 적용
 
 ## Developer UX
 
@@ -916,7 +878,7 @@ cpf-release/**
 - Secret/Leakage
 - Fresh Consumer
 - Manifest/SHA
-- READY\_TO\_COMMIT
+- VERIFIED + 사용자 Git 반영 상태 분리
 - 자동 commit/push 금지
 
 ---
@@ -934,7 +896,7 @@ cpf-release/**
 - EDU를 폴더 존재만으로 완료
 - user command 실제 실행검증 누락
 - `public`과 `open-git` 이중 정본 허용
-- `cpf-release/**`를 Git tracked source로 취급
+- `cpf-release/**`를 Private master Git tracked/commit 대상 source로 취급
 - Open Git 자동 commit/push 허용
 
 이런 Requirement가 사용자 Steering/최종 제품 목표와 충돌하면 **개발 정본 자체를 명확하게 currentize**한다.

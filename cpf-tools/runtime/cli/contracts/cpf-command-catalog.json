@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 2,
+  "owner": "cpf-tools/runtime/cli",
+  "officialInterface": "cpf",
+  "implementation": "java-jar",
+  "artifact": "cpf-cli.jar",
+  "canonicalSource": "cpf-tools/runtime/cli/java/CpfCli.java",
+  "publicCommands": [
+    {
+      "command": "bootstrap",
+      "contract": "cpf bootstrap",
+      "internalEngine": "cpf-tools/runtime/cli:internalBootstrap",
+      "publicEngine": "cpf-tools/runtime/bootstrap/CpfBootstrap"
+    },
+    {
+      "command": "domain-new",
+      "contract": "cpf domain-new <domain>",
+      "internalEngine": "cpf-tools/runtime/cli/cpf.py -> canonical generator engine",
+      "publicEngine": "CpfGeneratorLauncher -> published cpf-generator-cli"
+    },
+    {
+      "command": "domain-sync",
+      "contract": "cpf domain-sync [domain]",
+      "internalEngine": "cpf-tools/runtime/cli/cpf.py -> canonical generator engine",
+      "publicEngine": "CpfGeneratorLauncher -> published cpf-generator-cli"
+    },
+    {
+      "command": "build",
+      "contract": "cpf build",
+      "internalEngine": "Gradle cpfBuild",
+      "publicEngine": "Gradle cpfBuild"
+    },
+    {
+      "command": "test",
+      "contract": "cpf test",
+      "internalEngine": "Gradle cpfTest",
+      "publicEngine": "Gradle cpfTest"
+    },
+    {
+      "command": "run",
+      "contract": "cpf run",
+      "internalEngine": "cpf-tools/runtime/tools/cpf_local_runtime.py start",
+      "publicEngine": "cpf-tools/runtime/bootstrap/CpfBootstrap --run"
+    },
+    {
+      "command": "stop",
+      "contract": "cpf stop",
+      "internalEngine": "cpf-tools/runtime/tools/cpf_local_runtime.py stop",
+      "publicEngine": "cpf-tools/runtime/bootstrap/CpfBootstrap stop"
+    },
+    {
+      "command": "reset",
+      "contract": "cpf reset --confirm",
+      "internalEngine": "cpf-tools/runtime/tools/cpf_local_runtime.py reset",
+      "publicEngine": "cpf-tools/runtime/bootstrap/CpfBootstrap reset"
+    },
+    {
+      "command": "status",
+      "contract": "cpf status",
+      "internalEngine": "cpf-tools/runtime/tools/cpf_local_runtime.py status",
+      "publicEngine": "cpf-tools/runtime/cli runtime-state reader"
+    }
+  ],
+  "internalNamespaces": [
+    {
+      "namespace": "dev",
+      "commands": [
+        "build",
+        "test",
+        "targeted-test",
+        "full-validation",
+        "run-batch",
+        "modules",
+        "resource",
+        "db3"
+      ]
+    },
+    {
+      "namespace": "verify",
+      "commands": [
+        "all",
+        "generator",
+        "generated",
+        "db3",
+        "catalog",
+        "ownership",
+        "source"
+      ]
+    },
+    {
+      "namespace": "publish",
+      "commands": [
+        "framework"
+      ]
+    },
+    {
+      "namespace": "release",
+      "commands": [
+        "open-git"
+      ]
+    }
+  ],
+  "canonicalEngines": [
+    {
+      "owner": "cpf-tools/generator",
+      "engine": "cpf-tools/generator/engine/cpf_domain_generator.py",
+      "consumer": "cpf domain-new/domain-sync"
+    },
+    {
+      "owner": "cpf-tools/runtime/bootstrap",
+      "engine": "cpf-tools/runtime/bootstrap/CpfBootstrap.java",
+      "consumer": "PUBLIC cpf bootstrap/run/stop/reset"
+    },
+    {
+      "owner": "cpf-tools/runtime",
+      "engine": "cpf-tools/runtime/tools/cpf_local_runtime.py",
+      "consumer": "INTERNAL cpf run/status/stop/reset"
+    },
+    {
+      "owner": "cpf-tools/db",
+      "engine": "cpf-tools/db canonical initializer/migration/renderers",
+      "consumer": "cpf bootstrap + cpf dev/verify db3"
+    },
+    {
+      "owner": "Gradle root",
+      "engine": "cpfBuild/cpfTest/cpfVerifyTargeted/cpfModules/cpfResourcePolicy",
+      "consumer": "cpf build/test + cpf dev"
+    },
+    {
+      "owner": "cpf-tools/verification",
+      "engine": "cpf-tools/verification/tools/run-cpf-canonical-verifiers.py",
+      "consumer": "cpf verify all"
+    },
+    {
+      "owner": "cpf-tools/release",
+      "engine": "cpf-tools/release/open-git/cpf_open_git.py",
+      "consumer": "cpf release open-git"
+    }
+  ],
+  "profiles": {
+    "INTERNAL": {
+      "publicCommands": true,
+      "internalNamespaces": true,
+      "sourceWorkspace": true
+    },
+    "PUBLIC": {
+      "publicCommands": true,
+      "internalNamespaces": false,
+      "sourceWorkspace": false
+    }
+  },
+  "wrapperPolicy": "Java launch / argument forwarding / OS path only; business logic forbidden",
+  "legacyEntrypointPolicy": "LOW_LEVEL_ENGINE_OR_THIN_WRAPPER_ONLY",
+  "entrypointInventory": "cpf-tools/runtime/cli/contracts/cpf-tooling-entrypoint-inventory.json",
+  "releaseGitBoundary": {
+    "command": "cpf release open-git",
+    "privateRepositoryGit": "READ_ONLY_PROVENANCE_STATUS",
+    "privateReleaseRoot": "cpf-release/",
+    "privateReleaseTracked": false,
+    "openGitWorkingRepository": "FRESH_CLONE_READ_ONLY_STATUS_DIFF_UNTIL_USER_APPROVAL",
+    "toolMaxState": "VERIFIED",
+    "stateModel": [
+      "GENERATED",
+      "VERIFIED",
+      "USER_REVIEWED",
+      "GIT_COMMITTED",
+      "GIT_PUSHED"
+    ],
+    "gitAdd": "USER_ONLY_AFTER_VERIFIED_REVIEW",
+    "commitPush": "USER_ONLY_AFTER_VERIFIED_REVIEW",
+    "automaticGitWrite": false,
+    "privateMasterIncludesCpfRelease": false
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "policyId": "CPF-OPEN-GIT-PUBLIC-SOURCE-ALLOWLIST",
+  "defaultPolicy": "DENY",
+  "targetRoot": "framework-source",
+  "rules": [
+    {
+      "pattern": "cpf-core/src/main/java/com/cpf/core/api/**/*.java",
+      "classification": "OPEN_GIT_FRAMEWORK_PUBLIC_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-core/src/main/java/com/cpf/core/spi/**/*.java",
+      "classification": "OPEN_GIT_FRAMEWORK_PUBLIC_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-common/src/main/java/**/api/**/*.java",
+      "classification": "OPEN_GIT_FRAMEWORK_PUBLIC_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-common/src/main/java/**/spi/**/*.java",
+      "classification": "OPEN_GIT_FRAMEWORK_PUBLIC_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-starters/**/src/main/java/**/api/**/*.java",
+      "classification": "OPEN_GIT_FRAMEWORK_PUBLIC_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-starters/**/src/main/java/**/spi/**/*.java",
+      "classification": "OPEN_GIT_FRAMEWORK_PUBLIC_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/**/*.java",
+      "classification": "OPEN_GIT_FRAMEWORK_PUBLIC_SOURCE",
+      "required": true
+    }
+  ],
+  "forbiddenPathSegments": [
+    "internal",
+    "impl",
+    "implementation"
+  ],
+  "forbiddenPathPrefixes": [
+    "cpf-admin/",
+    "cpf-gateway/",
+    "cpf-batch/",
+    "cpf-tools/",
+    "cpf-docs/"
+  ],
+  "forbiddenFileSuffixes": [
+    ".class",
+    ".jar",
+    ".war"
+  ],
+  "notes": [
+    "Only explicit API/SPI/public annotation Java source is projected. No build scripts, internal implementation, tests, generated evidence, or repository metadata are copied."
+  ]
+}

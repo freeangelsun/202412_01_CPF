@@ -69,7 +69,7 @@ public final class InMemoryCpfMaskingPolicyStore implements CpfMaskingPolicyStor
     @Override public synchronized List<CpfMaskingPolicySnapshot> history(int limit) {
         int bounded = Math.max(1, Math.min(limit, maximumHistory));
         return versions.values().stream()
-                .sorted(Comparator.comparingLong(CpfMaskingPolicySnapshot::version).reversed())
+                .sorted(Comparator.comparingLong((CpfMaskingPolicySnapshot snapshot) -> snapshot.version()).reversed())
                 .limit(bounded)
                 .toList();
     }

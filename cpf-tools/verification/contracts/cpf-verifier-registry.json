@@ -1,11 +1,23 @@
 {
   "schemaVersion": 1,
-  "registryId": "cpf-current-canonical-static-verifiers-v2",
+  "registryId": "cpf-current-canonical-static-verifiers-v3",
   "rootArgumentPolicy": "Every registered Python verifier receives --root <repositoryRoot> exactly once.",
   "verifiers": [
     {
       "id": "current-final",
       "path": "cpf-tools/verification/tools/verify-cpf-current-final.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "physical-db-consolidation",
+      "path": "cpf-tools/verification/tools/verify-cpf-physical-db-consolidation.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "unified-cli",
+      "path": "cpf-tools/verification/tools/verify-cpf-unified-cli.py",
       "args": [],
       "required": true
     },

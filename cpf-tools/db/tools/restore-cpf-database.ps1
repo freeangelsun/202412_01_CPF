@@ -20,6 +20,18 @@ param(
     [string]$Root='.'
 )
 $ErrorActionPreference='Stop'
+
+# Native DB client가 별도 process로 실행되어도 UTF-8 계약을 유지합니다.
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
+    $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
+} elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {
+    $env:JAVA_TOOL_OPTIONS = ($env:JAVA_TOOL_OPTIONS.Trim() + ' ' + $CpfUtf8ChildJavaOptions)
+}
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PGCLIENTENCODING = 'UTF8'
+$env:NLS_LANG = '.AL32UTF8'
 if(-not $ConfirmRestore){throw 'Restore는 -ConfirmRestore 명시가 필요합니다.'}
 $rootPath=(Resolve-Path $Root).Path
 . (Join-Path $rootPath 'cpf-tools/db/tools/database-profile-common.ps1')
@@ -53,7 +65,7 @@ try{
         'mariadb' {
             $tool=Get-Command mariadb -ErrorAction SilentlyContinue
             if(-not $tool){throw 'mariadb client를 찾을 수 없습니다.'}
-            $args=@('--host',$Host,'--port',"$Port",'--user',$User,$Database)
+            $args=@('--default-character-set=utf8mb4','--host',$Host,'--port',"$Port",'--user',$User,$Database)
             $executionStarted=$true
             $process=Start-Process -FilePath $tool.Source -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardInput $plain
             if($process.ExitCode -ne 0){throw "restore command failed: vendor=mariadb exit=$($process.ExitCode)"}

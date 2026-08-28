@@ -1,33 +1,31 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "policyId": "CPF-OPEN-GIT-ARTIFACT",
   "artifactCatalog": "cpf-tools/release/cpf-final-artifact-catalog.json",
   "defaultBinaryPolicy": "ALLOW_PUBLISHED_PUBLIC_ARTIFACT",
   "sourceJarPolicy": {
     "default": "DENY",
-    "allowOwnerPathPrefixes": [
-      "cpf-common",
-      "cpf-starters/"
-    ],
+    "allowOwnerPathPrefixes": [],
     "denyOwnerPathPrefixes": [
       "cpf-core",
+      "cpf-common",
       "cpf-admin",
       "cpf-gateway",
       "cpf-batch",
+      "cpf-starters",
       "cpf-tools/runtime/"
     ]
   },
   "javadocJarPolicy": {
     "default": "DENY",
-    "allowOwnerPathPrefixes": [
-      "cpf-common",
-      "cpf-starters/"
-    ],
+    "allowOwnerPathPrefixes": [],
     "denyOwnerPathPrefixes": [
       "cpf-core",
+      "cpf-common",
       "cpf-admin",
       "cpf-gateway",
       "cpf-batch",
+      "cpf-starters",
       "cpf-tools/runtime/"
     ]
   },
@@ -49,15 +47,18 @@
   ],
   "binaryOnlyOwnerPrefixes": [
     "cpf-core",
+    "cpf-common",
     "cpf-admin",
     "cpf-gateway",
     "cpf-batch",
+    "cpf-starters",
     "cpf-tools/runtime/"
   ],
   "notes": [
-    "sources.jar and javadoc.jar are source disclosure and are denied by default.",
-    "Common and public Starter families are the only default source/javadoc disclosure families.",
-    "ADM/Gateway/Batch/Internal Runtime source trees and source/javadoc artifacts are never part of Open Git Release."
+    "Open Git is a customer development/execution distribution channel, not an open-source repository.",
+    "The default binary profile never publishes CPF framework implementation source, sources.jar, or javadoc.jar.",
+    "The optional source profile projects only canonical public API/SPI/annotation source from the explicit allowlist; internal modules/source, generator engine source, development/QA harness, evidence, secrets, and internal release tools are forbidden in every profile.",
+    "Every profile is freshly generated from one current sourceIdentitySha256 and keeps only the current release."
   ],
   "requiredBinaryContracts": [
     {
@@ -66,7 +67,7 @@
     },
     {
       "artifactId": "cpf-common",
-      "sourceDisclosure": "ALLOW"
+      "sourceDisclosure": "DENY"
     },
     {
       "artifactId": "cpf-batch-runtime",
@@ -80,5 +81,21 @@
       "artifactId": "cpf-generator-cli",
       "sourceDisclosure": "NOT_APPLICABLE"
     }
-  ]
+  ],
+  "defaultProfile": "binary",
+  "profiles": {
+    "binary": {
+      "frameworkImplementationSource": "DENY",
+      "sourcesJar": "DENY",
+      "javadocJar": "DENY",
+      "frameworkPublicSourceProjection": "DENY"
+    },
+    "source": {
+      "frameworkImplementationSource": "ALLOWLIST_ONLY",
+      "sourcesJar": "DENY",
+      "javadocJar": "DENY",
+      "frameworkPublicSourceProjection": "ALLOWLIST_ONLY",
+      "allowlist": "cpf-tools/release/open-git/open-git-public-source-allowlist.json"
+    }
+  }
 }

@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 if ([string]::IsNullOrWhiteSpace($env:CPF_MAVEN_REPOSITORY_URL)) { throw 'CPF_MAVEN_REPOSITORY_URL is required.' }
 if ([string]::IsNullOrWhiteSpace($env:CPF_VERSION)) { throw 'CPF_VERSION is required.' }
-foreach ($required in @('cpf-member','cpf-external','cpf-backoffice','cpf-backoffice-web','cpf-education','domains','bin')) {
+foreach ($required in @('cpf-member','cpf-external','cpf-backoffice','cpf-backoffice-web','cpf-education','bin')) {
     if (-not (Test-Path (Join-Path $Root $required))) { throw "CPF Open Git required path missing: $required" }
 }
 $forbidden = Get-ChildItem -LiteralPath $Root -Recurse -File -ErrorAction Stop | Where-Object { $_.Extension -in @('.jar','.war') -and $_.FullName -ne (Join-Path $Root 'gradle\wrapper\gradle-wrapper.jar') }

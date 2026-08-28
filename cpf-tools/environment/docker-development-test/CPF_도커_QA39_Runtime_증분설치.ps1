@@ -1,57 +1,26 @@
 [CmdletBinding()]
 param(
-    [string]$DockerRoot = 'C:\dev\Docker',
-    [string]$RepoRoot = 'C:\dev\projects\jck\202412_01_CPF',
-    [switch]$IncludeIbmMq
+    [string]$DockerRoot='C:\dev\Docker',
+    [string]$RepoRoot='C:\dev\projects\jck\202412_01_CPF',
+    [switch]$IncludeIbmMq,
+    [switch]$SkipPull
 )
-$ErrorActionPreference = 'Stop'
-Set-StrictMode -Version Latest
-$sourceRoot = $PSScriptRoot
-$cpfRoot = Join-Path $DockerRoot 'CPF'
-$secretRoot = Join-Path $DockerRoot 'Secrets'
-foreach ($path in @($cpfRoot,$secretRoot)) { if (-not (Test-Path -LiteralPath $path -PathType Container)) { throw "선행 Docker 경로가 없습니다: $path" } }
-$runtimeEnv = Join-Path $secretRoot 'cpf-runtime.env'
-$toolEnv = Join-Path $cpfRoot 'tool-images.env'
-foreach ($path in @($runtimeEnv,$toolEnv)) { if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "선행 환경 파일 누락: $path" } }
-$files = @('compose.qa39-runtime.yml','CPF_QA39_DOCKER_RUNTIME_MANIFEST.json','start-qa39-runtime.ps1','stop-qa39-runtime.ps1','cleanup-qa39-runtime.ps1','verify-qa39-runtime.ps1','run-qa39-runtime-validation.ps1','run-qa39-runtime-fault-smoke.ps1','repair-qa39-runtime-r2.ps1','repair-qa39-runtime-r3.ps1','CPF_도커_QA39_Runtime_증분설치.ps1')
-foreach ($name in $files) {
-    $source = Join-Path $sourceRoot $name
-    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "QA39 Runtime Source 누락: $source" }
-    Copy-Item -LiteralPath $source -Destination (Join-Path $cpfRoot $name) -Force
-}
-$providerEnv = Join-Path $cpfRoot 'qa39-provider-images.env'
-if (-not (Test-Path -LiteralPath $providerEnv -PathType Leaf)) {
-    [IO.File]::WriteAllLines($providerEnv, @(
-        'RABBITMQ_IMAGE=rabbitmq:4.1.8-management',
-        'ARTEMIS_IMAGE=apache/artemis:2.55.0',
-        'IBM_MQ_IMAGE=icr.io/ibm-messaging/mq:9.4.5.1-r1',
-        'PYTHON_FIXTURE_IMAGE=python:3.13.14-alpine3.24',
-        'MAILPIT_IMAGE=axllent/mailpit:v1.30.0'
-    ), [Text.UTF8Encoding]::new($false))
-}
-# QA39 secrets are never echoed and are never overwritten. Existing operator-owned values win.
-$secretNames = @('rabbitmq-password.txt','artemis-password.txt','mqAdminPassword','mqAppPassword')
-foreach ($name in $secretNames) {
-    $path = Join-Path $secretRoot $name
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-        $bytes = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
-        [IO.File]::WriteAllText($path, [Convert]::ToBase64String($bytes), [Text.UTF8Encoding]::new($false))
-    }
-}
-$runtimeText = [IO.File]::ReadAllText($runtimeEnv,[Text.UTF8Encoding]::new($false))
-$defaults = [ordered]@{CPF_RABBITMQ_USER='cpf';CPF_RABBITMQ_VHOST='/';CPF_ARTEMIS_USER='cpf';CPF_IBM_MQ_QMGR='QM1'}
-$append = @()
-foreach ($key in $defaults.Keys) { if ($runtimeText -notmatch "(?m)^$([regex]::Escape($key))=") { $append += "$key=$($defaults[$key])" } }
-if ($append.Count -gt 0) { [IO.File]::AppendAllText($runtimeEnv, (($append -join "`n") + "`n"), [Text.UTF8Encoding]::new($false)) }
-$compose = @('compose','--project-name','cpf','--env-file',$runtimeEnv,'--env-file',$toolEnv,'--env-file',$providerEnv,
-    '-f',(Join-Path $cpfRoot 'compose.yml'),'-f',(Join-Path $cpfRoot 'compose.redis.yml'),'-f',(Join-Path $cpfRoot 'compose.kafka.yml'),
-    '-f',(Join-Path $cpfRoot 'compose.integration.yml'),'-f',(Join-Path $cpfRoot 'compose.tooling.yml'),'-f',(Join-Path $cpfRoot 'compose.qa39-runtime.yml'))
-$profile = if ($IncludeIbmMq) { @('--profile','ibm-mq') } else { @() }
-& docker @compose @profile 'config' '--quiet'; if ($LASTEXITCODE -ne 0) { throw 'QA39 Compose config 검증 실패' }
-$services = @('rabbitmq','artemis','tcp-simulator','mailpit','wiremock','toxiproxy','otel-collector'); if ($IncludeIbmMq) { $services += 'ibm-mq' }
-& docker @compose @profile 'create' '--force-recreate' @services; if ($LASTEXITCODE -ne 0) { throw 'QA39 Container prepare 실패' }
-$containers = @('cpf-rabbitmq','cpf-artemis','cpf-tcp-simulator','cpf-mailpit','cpf-wiremock','cpf-toxiproxy','cpf-otel-collector'); if ($IncludeIbmMq) { $containers += 'cpf-ibm-mq' }
-foreach ($name in $containers) { & docker update --restart=no $name *> $null; if ($LASTEXITCODE -ne 0) { throw "restart=no 설정 실패: $name" } }
-$verifyArgs = @('-NoProfile','-File',(Join-Path $cpfRoot 'verify-qa39-runtime.ps1'),'-DockerRoot',$DockerRoot,'-RepoRoot',$RepoRoot,'-RequireStopped'); if ($IncludeIbmMq) { $verifyArgs += '-IncludeIbmMq' }
-& pwsh @verifyArgs; if ($LASTEXITCODE -ne 0) { throw 'QA39 정지 상태 검증 실패' }
-Write-Host 'CPF QA39 Runtime 증분 설치 완료 / Container Created-Stopped' -ForegroundColor Green
+$ErrorActionPreference='Stop';Set-StrictMode -Version Latest
+[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);$OutputEncoding=[Text.UTF8Encoding]::new($false)
+function Invoke-DockerChecked{param([string[]]$Arguments);& docker @Arguments;if($LASTEXITCODE-ne0){throw "Docker 단계 실패(exit=$LASTEXITCODE)"}}
+function New-Secret{param([string]$Path);if(Test-Path $Path -PathType Leaf){if((Get-Item $Path).Length-le0){throw "비어 있는 Secret: $Path"};return};$b=New-Object byte[] 32;[Security.Cryptography.RandomNumberGenerator]::Fill($b);[IO.File]::WriteAllText($Path,([Convert]::ToHexString($b).ToLowerInvariant()+"`n"),[Text.UTF8Encoding]::new($false))}
+$sourceRoot=Split-Path -Parent $MyInvocation.MyCommand.Path;$cpfRoot=Join-Path $DockerRoot 'CPF';$secretRoot=Join-Path $DockerRoot 'Secrets'
+if(-not(Test-Path $RepoRoot -PathType Container)){throw "Repository가 없습니다: $RepoRoot"};docker version *> $null;if($LASTEXITCODE-ne0){throw 'Docker Desktop이 실행 중이 아닙니다.'};New-Item -ItemType Directory -Force -Path $cpfRoot,$secretRoot|Out-Null
+foreach($name in @('compose.qa39-runtime.yml','CPF_도커_QA39_Runtime_증분설치.ps1','verify-qa39-runtime.ps1','start-qa39-runtime.ps1','stop-qa39-runtime.ps1','cleanup-qa39-runtime.ps1','run-qa39-runtime-validation.ps1','run-qa39-runtime-fault-smoke.ps1','repair-qa39-runtime-r3.ps1','CPF_QA39_DOCKER_RUNTIME_MANIFEST.json')){$src=Join-Path $sourceRoot $name;if(-not(Test-Path $src -PathType Leaf)){throw "Source 누락: $src"};Copy-Item $src (Join-Path $cpfRoot $name) -Force}
+$tcpSrc=Join-Path $sourceRoot 'fixtures\tcp';$tcpDst=Join-Path $cpfRoot 'fixtures\tcp';New-Item -ItemType Directory -Force -Path (Split-Path $tcpDst -Parent)|Out-Null;if(Test-Path $tcpDst){Remove-Item $tcpDst -Recurse -Force};Copy-Item $tcpSrc $tcpDst -Recurse -Force
+foreach($name in @('rabbitmq-password.txt','artemis-password.txt')){New-Secret (Join-Path $secretRoot $name)};if($IncludeIbmMq){New-Secret (Join-Path $secretRoot 'mqAdminPassword');New-Secret (Join-Path $secretRoot 'mqAppPassword')}
+$provider=[ordered]@{RABBITMQ_IMAGE='rabbitmq:4.1.3-management';ARTEMIS_IMAGE='apache/activemq-artemis:2.41.0-alpine';IBM_MQ_IMAGE='icr.io/ibm-messaging/mq:9.4.3.0-r1';PYTHON_FIXTURE_IMAGE='python:3.13-alpine';MAILPIT_IMAGE='axllent/mailpit:v1.27.8'}
+[IO.File]::WriteAllLines((Join-Path $cpfRoot 'qa39-provider-images.env'),@($provider.Keys|ForEach-Object{"$_=$($provider[$_])"}),[Text.UTF8Encoding]::new($false))
+if(-not$SkipPull){foreach($k in @('RABBITMQ_IMAGE','ARTEMIS_IMAGE','PYTHON_FIXTURE_IMAGE','MAILPIT_IMAGE')){Invoke-DockerChecked @('pull',$provider[$k])};if($IncludeIbmMq){Invoke-DockerChecked @('pull',$provider.IBM_MQ_IMAGE)}}
+$runtimeEnv=Join-Path $secretRoot 'cpf-runtime.env';$toolEnv=Join-Path $cpfRoot 'tool-images.env';$providerEnv=Join-Path $cpfRoot 'qa39-provider-images.env';foreach($p in @($runtimeEnv,$toolEnv,$providerEnv)){if(-not(Test-Path $p -PathType Leaf)){throw "환경파일 누락: $p"}}
+$compose=@('compose','--project-name','cpf','--env-file',$runtimeEnv,'--env-file',$toolEnv,'--env-file',$providerEnv,'-f',(Join-Path $cpfRoot 'compose.integration.yml'),'-f',(Join-Path $cpfRoot 'compose.tooling.yml'),'-f',(Join-Path $cpfRoot 'compose.qa39-runtime.yml'))
+$profile=if($IncludeIbmMq){@('--profile','ibm-mq')}else{@()};Invoke-DockerChecked ($compose+$profile+@('config','--quiet'))
+$services=@('rabbitmq','artemis','tcp-simulator','mailpit');if($IncludeIbmMq){$services+='ibm-mq'};Invoke-DockerChecked ($compose+$profile+@('create','--force-recreate')+$services)
+$names=@('cpf-rabbitmq','cpf-artemis','cpf-tcp-simulator','cpf-mailpit');if($IncludeIbmMq){$names+='cpf-ibm-mq'};foreach($name in $names){docker update --restart=no $name *> $null;if($LASTEXITCODE-ne0){throw "Restart Policy 설정 실패: $name"}}
+& (Join-Path $cpfRoot 'verify-qa39-runtime.ps1') -DockerRoot $DockerRoot -RepoRoot $RepoRoot -RequireStopped -IncludeIbmMq:$IncludeIbmMq
+if($LASTEXITCODE-ne0){throw "QA39 Runtime 설치 검증 실패(exit=$LASTEXITCODE)"};Write-Host 'CPF QA39 Runtime 증분 설치 완료 / Created-Stopped / restart=no' -ForegroundColor Green

@@ -1,4 +1,4 @@
 @echo off
 setlocal
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0bin\cpf.ps1" %*
+call "%~dp0bin\cpf.cmd" %*
 exit /b %ERRORLEVEL%

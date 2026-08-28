@@ -295,7 +295,7 @@ function Get-MariaMigration([object[]] $Objects) {
     $body.Add("-- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.")
     $body.Add("-- Spring Batch runtime must be stopped while sequence objects are replaced.")
     $body.Add("-- Existing sequence next values and persisted Spring Batch IDs are preserved as an exact monotonic lower bound.")
-    $body.Add("USE batDB;")
+    $body.Add("USE $([string] $Contract.migration.logicalDatabase);")
     $body.Add("")
     foreach ($object in $Objects) {
         $name = [string] $object.name
@@ -329,7 +329,7 @@ function Get-MariaRollback([object] $JobInstanceObject) {
     return @"
 -- Generated exact compatibility rollback for V$($Contract.migration.version).
 -- Spring Batch runtime must be stopped while sequence objects are replaced.
-USE batDB;
+USE $([string] $Contract.migration.logicalDatabase);
 
 SET @cpf_sequence_start = GREATEST(
     $start,
@@ -440,8 +440,10 @@ if ($Objects.Count -ne 3 -or @($Objects.name | Sort-Object -CaseSensitive -Uniqu
 }
 foreach ($object in $Objects) {
     if ([string] $object.kind -cne "sequence" -or
-            [string] $object.logicalDatabase -cne "batDB" -or
-            [string] $object.sourceFile -cne "35_bat_schema.sql") {
+            [string] $object.logicalDatabase -cne $CurrentLogicalDatabase -or
+            [string] $object.sourceFile -cne $CurrentSourceFile -or
+            [string] $object.legacyLogicalDatabase -cne [string] $Contract.migration.logicalDatabase -or
+            [string] $object.legacySourceFile -cne "35_bat_schema.sql") {
         throw "Invalid Spring Batch sequence ownership: $($object.name)"
     }
     Assert-Identifier ([string] $object.name) "sequence name"

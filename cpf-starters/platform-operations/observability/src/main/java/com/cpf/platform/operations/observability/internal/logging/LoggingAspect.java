@@ -194,10 +194,15 @@ public class LoggingAspect {
 
         try {
             Object result = joinPoint.proceed();
-            transactionSegment.success();
             LocalDateTime endTime = LocalDateTime.now(clock);
             long durationMs = elapsedMillis(startNanos);
             ResponseMetadata responseMetadata = resolveResponseMetadata(result, moduleId);
+            boolean success = responseMetadata.httpStatus() < 400;
+            if (success) {
+                transactionSegment.success();
+            } else {
+                transactionSegment.fail("HTTP_" + responseMetadata.httpStatus(), responseMetadata.responseCode());
+            }
             String rawResponse = CpfMaskingRuntime.mask(String.valueOf(result));
             String response = logPolicy.responseBodySave() ? rawResponse : null;
 
@@ -210,7 +215,7 @@ public class LoggingAspect {
                     spanId,
                     moduleId,
                     sequenceNo,
-                    workflowStatusName(workflowMetadata, true),
+                    workflowStatusName(workflowMetadata, success),
                     compensationYn(workflowMetadata),
                     responseMetadata.httpStatus(),
                     responseMetadata.responseCode(),
@@ -237,14 +242,14 @@ public class LoggingAspect {
                     menuId,
                     businessTransactionId,
                     businessTransactionName,
-                    "SUCCESS",
+                    success ? "SUCCESS" : "FAILURE",
                     transactionHeader,
                     httpMethod,
                     uri,
                     controller,
                     executionMetadata,
                     workflowMetadata,
-                    true,
+                    success,
                     parameters,
                     requestBody,
                     response,
@@ -263,7 +268,7 @@ public class LoggingAspect {
                     endTime,
                     durationMs);
             boolean traceSampled = traceSamplingPolicy.shouldSample(
-                    transactionId, businessTransactionId, moduleId, true, dynamicLogLevelRule);
+                    transactionId, businessTransactionId, moduleId, success, dynamicLogLevelRule);
             publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy, traceSampled), logPolicy);
 
             return result;
@@ -317,6 +322,10 @@ public class LoggingAspect {
                     errorMetadata.errorCode(),
                     errorMessage);
 
+            String errorResponse = logPolicy.responseBodySave()
+                    ? canonicalErrorResponse(errorMetadata, transactionId)
+                    : null;
+
             TransactionLogRecord record = buildLogRecord(
                     transactionId,
                     traceId,
@@ -337,7 +346,7 @@ public class LoggingAspect {
                     false,
                     parameters,
                     requestBody,
-                    null,
+                    errorResponse,
                     errorMetadata.httpStatus(),
                     errorMetadata.responseCode(),
                     errorMetadata.messageCode(),
@@ -973,8 +982,11 @@ public class LoggingAspect {
         int httpStatus = resolveHttpStatus(result, 200);
         Object body = result instanceof ResponseEntity<?> responseEntity ? responseEntity.getBody() : result;
         String normalizedModuleId = hasText(moduleId) && !"N/A".equals(moduleId) ? moduleId : "CPF";
-        String responseCode = bodyProperty(body, "statusCode");
-        String normalizedResponseCode = firstText(responseCode, "S" + normalizedModuleId + "000000");
+        String responseCode = firstText(bodyProperty(body, "statusCode"), bodyProperty(body, "code"));
+        String fallbackCode = httpStatus >= 400
+                ? "E" + normalizedModuleId + "990000"
+                : "S" + normalizedModuleId + "000000";
+        String normalizedResponseCode = firstText(responseCode, fallbackCode);
         CpfResolvedResponse resolved = responseCodeResolver.resolve(normalizedResponseCode, Locale.KOREAN, Map.of(), null);
         String messageCode = firstText(bodyProperty(body, "messageCode"), resolved.messageCode());
         String bodyMessage = firstText(bodyProperty(body, "messageContent"), bodyProperty(body, "message"));
@@ -1042,6 +1054,22 @@ public class LoggingAspect {
                 "요청 처리 중 내부 오류가 발생했습니다.",
                 internalMessage,
                 internalMessage);
+    }
+
+    private String canonicalErrorResponse(ErrorMetadata metadata, String transactionId) {
+        return "{\"code\":\"" + jsonEscape(metadata.responseCode())
+                + "\",\"message\":\"" + jsonEscape(metadata.externalMessage())
+                + "\",\"transactionId\":\"" + jsonEscape(transactionId)
+                + "\",\"executionId\":\""
+                + jsonEscape(com.cpf.core.api.context.CpfContexts.currentExecutionId()) + "\"}";
+    }
+
+    private String jsonEscape(String value) {
+        if (value == null) return "";
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n");
     }
 
     private String resolveExecUser(HttpServletRequest request) {

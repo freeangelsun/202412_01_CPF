@@ -5164,7 +5164,7 @@
   - 기존 `build/libs/`
   - 과거 JAR/POM/BOM
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5190,7 +5190,7 @@
   - Framework Publication
   - Open Git Release Policy
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5216,7 +5216,7 @@
   - Fresh Build/Publication
   - Fresh Generated Domain generation
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5240,7 +5240,7 @@
   - 제품 Source나 보호경로를 광범위하게 삭제하지 않는다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5263,7 +5263,7 @@
   - Framework JAR을 Open Git Git history에 Release마다 누적 commit하는 구조를 만들지 않는다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5289,7 +5289,7 @@
   - Local Maven 과거 artifact에 기대는 build
   - 이전 Release binary 재사용
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5315,7 +5315,7 @@
   - Scratch/Public Generated Domain
   - 향후 canonical Generated Customer Domain
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5341,7 +5341,7 @@
   - Generator-owned canonical input/state로 이동
   - central generator metadata로 이동
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5367,7 +5367,7 @@
   - Root cleanliness
   - canonical directory IA
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5392,7 +5392,7 @@
   - Backoffice UI도 canonical Source를 Projection할 수 있으나 Release workspace에서 fresh dependency install/build/test를 수행한다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5417,7 +5417,7 @@
   - 을 수행한다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5443,7 +5443,7 @@
   - README 존재
   - compile/test 미실행
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5469,7 +5469,7 @@
   - Public API/SPI
   - current Starter
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5495,7 +5495,7 @@
   - `cpf-education`
   - Developer-facing Generator/Setup/Build/Test/Domain CLI
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5521,7 +5521,7 @@
   - 실제 Artifact별 policy를 canonical catalog와 publication source 기준으로 확정한다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5547,7 +5547,7 @@
   - 긴 내부 script filename을 사용자가 외워야 하는 구조를 피한다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5573,7 +5573,7 @@
   - 장시간 작업 중 콘솔이 멈춘 것처럼 보이지 않게 한다.
   - 로그는 Timestamp별 저장하고 console에도 실시간 출력한다.
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5598,7 +5598,7 @@
   - 최종 성공 기준:
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5624,7 +5624,7 @@
   - 3. Open Git Package/Binary만으로 실행
   - 4. Private CPF Source 참조 없음
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5648,7 +5648,7 @@
   - 최소:
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5674,7 +5674,7 @@
   - feature structure
   - dependency
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5700,7 +5700,7 @@
   - 잘못된 CPF Version
   - 잘못된/중복 Domain name
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5725,7 +5725,7 @@
   - 확인이 없으면 안전하게 거부하고 ExitCode/이유/다음 명령을 알려준다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5748,7 +5748,7 @@
   - 실제 구현에 따라 단계 수는 조정 가능하나 의미는 줄이지 않는다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5774,7 +5774,7 @@
   - secret 검사 PASS
   - generator 실행 성공
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5800,7 +5800,7 @@
   - Private master에도 자동 commit/push하지 않는다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5826,7 +5826,7 @@
   - 정본 위치가 최신 Source에서 달라졌다면 실제 canonical owner를 찾아 동일 의미로 현행화한다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5852,7 +5852,7 @@
   - 기존 binary copy 금지
   - 매 Release Fresh Compile/Test/Publication
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5878,7 +5878,7 @@
   - `cpf-domain.yaml` 필수
   - `cpf-generator.lock.json` 필수
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5904,7 +5904,7 @@
   - Codex는 Codex 소유 검수/보완 영역을 중심으로 수정하며, QA의 최종 상태를 임의로 완료 처리하지 않는다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5928,7 +5928,7 @@
   - 가 동일한 의미를 가져야 한다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5951,7 +5951,7 @@
   - 임시 Release workaround로 Product defect를 숨기지 않는다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -5977,7 +5977,7 @@
   - MBR/EXS 수동정리만 수행
   - help만 확인
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -6003,7 +6003,7 @@
   - ExitCode
   - PASS/FAIL/미검증
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -6026,7 +6026,7 @@
   - 사용자 승인 없이 실제 제품 Source 삭제를 수행하지 않는다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -6052,7 +6052,7 @@
   - tag
   - reset
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -6078,7 +6078,7 @@
   - 기존 Generated Java Source copy를 사용하지 않았는가?
   - Backoffice Source Projection 후 Fresh Compile/Test했는가?
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -6102,7 +6102,7 @@
   - YES가 아니면 Open Git Release는 READY가 아니다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -6126,7 +6126,7 @@
   - NO이면 정본을 현행화한 뒤 다시 검수한다.
   - ---
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.
@@ -6148,7 +6148,7 @@
   - > Open Git Release는 최신 Private Source를 기준으로 매번 Clean하게 재구성하며, Framework Binary는 Fresh Build하고 Generated Customer Domain Java Source는 latest Generator로 Fresh Generate한다. Backoffice/EDU/UI처럼 사람이 유지하는 Canonical Source만 P...
   - 다시 강조한다: 개발 정본 현행화는 선택사항이 아니라 이번 Steering의 필수 Acceptance Criteria다.
 - **영향 Owner / Source:** `cpf-tools/release/open-git/**`, `cpf-tools/runtime/cli/**`, Generator/Generated Domain, Publication/Catalog/BOM, `cpf-education`, Backoffice, OpenAPI/UI, `.gitignore`, Canonical Requirement/Inventory.
-- **실제 Consumer:** Release 담당자 `cpf open-git*`, 외부 개발자 `cpf bootstrap/build/test/verify/status/stop/reset/domain new/domain sync`, Generated Domain/EDU/Backoffice consumer.
+- **실제 Consumer:** Release 담당자 `cpf release open-git*`, 외부 개발자 `cpf bootstrap/domain-new/domain-sync/build/test/run/status/stop/reset`, Generated Domain/EDU/Backoffice consumer.
 - **개발 상세 단계:**
   1. 이 Requirement의 현재 Source/Policy/Test/CLI/정본 Consumer를 전수 확인한다.
   2. 이미 구현된 부분은 유지하고, 빠진 Owner/Consumer/Failure Path만 Root Cause 단위로 수정한다.

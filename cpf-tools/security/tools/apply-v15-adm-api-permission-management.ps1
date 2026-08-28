@@ -17,7 +17,7 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($JdbcUrl)) {
-    $JdbcUrl = "jdbc:mariadb://localhost:3306/admDB"
+    $JdbcUrl = "jdbc:mariadb://localhost:3306/cpfDB"
 }
 if ([string]::IsNullOrWhiteSpace($Username)) {
     $Username = "cpf_adm_migration"

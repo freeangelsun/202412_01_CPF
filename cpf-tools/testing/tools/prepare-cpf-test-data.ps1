@@ -26,7 +26,7 @@ $executionStarted=$false
 try{
  if($Execute){
   if($ExpectedSqlSha256 -notmatch '^[0-9a-fA-F]{64}$' -or $ExpectedSqlSha256.ToLowerInvariant() -ne ([string]$meta.sha256)){throw "검토한 SQL SHA와 생성 SQL이 다릅니다: current=$($meta.sha256)"}
-  $psi=[Diagnostics.ProcessStartInfo]::new();$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$input=Get-Content -LiteralPath $sql -Raw -Encoding UTF8
+  $psi=[Diagnostics.ProcessStartInfo]::new();$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$psi.StandardOutputEncoding=[Text.Encoding]::UTF8;$psi.StandardErrorEncoding=[Text.Encoding]::UTF8;$input=Get-Content -LiteralPath $sql -Raw -Encoding UTF8
   switch($Vendor){
    'mariadb' {$tool=Get-Command mariadb -ErrorAction SilentlyContinue;if(-not $tool){throw 'mariadb client를 찾을 수 없습니다.'};$psi.FileName=$tool.Source;foreach($a in @('--host',$Host,'--port',"$Port",'--user',$User,$Database)){[void]$psi.ArgumentList.Add($a)}}
    'postgresql' {$tool=Get-Command psql -ErrorAction SilentlyContinue;if(-not $tool){throw 'psql을 찾을 수 없습니다.'};$psi.FileName=$tool.Source;foreach($a in @('-X','-q','--set=ON_ERROR_STOP=1','--host',$Host,'--port',"$Port",'--username',$User,'--dbname',$Database)){[void]$psi.ArgumentList.Add($a)}}

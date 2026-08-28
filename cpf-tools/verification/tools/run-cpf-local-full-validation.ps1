@@ -64,11 +64,20 @@ $utf8 = [Text.UTF8Encoding]::new($false)
 $env:PYTHONDONTWRITEBYTECODE = '1'
 $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
+$env:PGCLIENTENCODING = 'UTF8'
+$env:NLS_LANG = '.AL32UTF8'
+$javaUtf8Options = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
+    $env:JAVA_TOOL_OPTIONS = $javaUtf8Options
+} elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=') {
+    $env:JAVA_TOOL_OPTIONS = ($env:JAVA_TOOL_OPTIONS.Trim() + ' ' + $javaUtf8Options)
+}
 $env:CPF_RESOURCE_PROFILE = $ResourceProfile
 try {
     [Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
     [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
-    $global:OutputEncoding = [Text.UTF8Encoding]::new($false)
+    $OutputEncoding = [Text.UTF8Encoding]::new($false)
+    $global:OutputEncoding = $OutputEncoding
 } catch { Write-Warning "UTF-8 console initialization failed: $($_.Exception.Message)" }
 
 # FullLocal은 사용자가 로컬 검증을 여러 번 반복하지 않도록 비파괴 검증 범위를 최대화합니다.
@@ -152,32 +161,64 @@ function Invoke-CpfStage {
     $started = Get-Date
     [IO.File]::WriteAllText($log,"START=$($started.ToString('o'))`nWD=$WorkingDirectory`nCMD=$Executable $($Arguments -join ' ')`n",$script:utf8)
     Write-Host ("[{0:D2}] {1} ..." -f $script:seq,$Name) -ForegroundColor Cyan
-    $previousEnv=@{}
-    foreach($key in $Environment.Keys){
-        $previousEnv[$key]=[Environment]::GetEnvironmentVariable([string]$key,'Process')
-        [Environment]::SetEnvironmentVariable([string]$key,[string]$Environment[$key],'Process')
+
+    $psi=[Diagnostics.ProcessStartInfo]::new()
+    $isCmd=$Executable.EndsWith('.cmd',[StringComparison]::OrdinalIgnoreCase) -or $Executable.EndsWith('.bat',[StringComparison]::OrdinalIgnoreCase)
+    if($isCmd){
+        $commandProcessor=if([string]::IsNullOrWhiteSpace($env:ComSpec)){'cmd.exe'}else{$env:ComSpec}
+        $psi.FileName=$commandProcessor
+        [void]$psi.ArgumentList.Add('/d')
+        [void]$psi.ArgumentList.Add('/s')
+        [void]$psi.ArgumentList.Add('/c')
+        [void]$psi.ArgumentList.Add($Executable)
+    }else{
+        $psi.FileName=$Executable
     }
+    foreach($argument in $Arguments){[void]$psi.ArgumentList.Add([string]$argument)}
+    $psi.WorkingDirectory=$WorkingDirectory
+    $psi.UseShellExecute=$false
+    $psi.CreateNoWindow=$true
+    $psi.RedirectStandardOutput=$true
+    $psi.RedirectStandardError=$true
+    $psi.StandardOutputEncoding=$script:utf8
+    $psi.StandardErrorEncoding=$script:utf8
+    $psi.Environment['PYTHONUTF8']='1'
+    $psi.Environment['PYTHONIOENCODING']='utf-8'
+    $psi.Environment['PGCLIENTENCODING']='UTF8'
+    $psi.Environment['NLS_LANG']='.AL32UTF8'
+    foreach($key in $Environment.Keys){$psi.Environment[[string]$key]=[string]$Environment[$key]}
+
+    $process=[Diagnostics.Process]::new()
+    $process.StartInfo=$psi
     $rc=1
-    $old=$ErrorActionPreference
-    try {
-        $ErrorActionPreference='Continue'
-        Push-Location $WorkingDirectory
-        try {
-            & $Executable @Arguments 2>&1 | ForEach-Object { $line=$_.ToString(); Write-Host $line; Add-Content -LiteralPath $log -Value $line -Encoding UTF8 }
-            $rc=if($null -eq $LASTEXITCODE){0}else{[int]$LASTEXITCODE}
-        } finally { Pop-Location }
-    } catch {
-        Add-Content -LiteralPath $log -Value $_.Exception.ToString() -Encoding UTF8
+    try{
+        if(-not $process.Start()){throw "process start failed: $Executable"}
+        $stdoutTask=$process.StandardOutput.ReadToEndAsync()
+        $stderrTask=$process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        $stdout=$stdoutTask.GetAwaiter().GetResult()
+        $stderr=$stderrTask.GetAwaiter().GetResult()
+        foreach($text in @($stdout,$stderr)){
+            if([string]::IsNullOrEmpty($text)){continue}
+            $normalized=$text -replace "`r`n","`n"
+            foreach($line in $normalized -split "`n"){
+                if($line.Length -eq 0){continue}
+                Write-Host $line
+                [IO.File]::AppendAllText($log,$line+"`n",$script:utf8)
+            }
+        }
+        $rc=[int]$process.ExitCode
+    }catch{
+        [IO.File]::AppendAllText($log,$_.Exception.ToString()+"`n",$script:utf8)
         $rc=1
-    } finally {
-        foreach($key in $previousEnv.Keys){[Environment]::SetEnvironmentVariable([string]$key,$previousEnv[$key],'Process')}
-        $ErrorActionPreference=$old
+    }finally{
+        $process.Dispose()
     }
     $seconds=((Get-Date)-$started).TotalSeconds
     $status=if($rc -eq 0){'PASS'}else{'FAIL'}
     Ensure-CpfResultDirectories
     if(-not(Test-Path -LiteralPath $log -PathType Leaf)){[IO.File]::WriteAllText($log,"RECOVERED_STAGE_LOG=true`n",$script:utf8)}
-    Add-Content -LiteralPath $log -Value "`nEXIT_CODE=$rc`nEND=$((Get-Date).ToString('o'))" -Encoding UTF8
+    [IO.File]::AppendAllText($log,"`nEXIT_CODE=$rc`nEND=$((Get-Date).ToString('o'))`n",$script:utf8)
     Write-Host ("[{0:D2}] {1} -> {2} rc={3} {4:N1}s" -f $script:seq,$Name,$status,$rc,$seconds) -ForegroundColor $(if($rc -eq 0){'Green'}else{'Red'})
     Add-CpfResult $Name $status $rc $seconds $log
 }

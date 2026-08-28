@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""CPF cross-platform user CLI. Windows/Linux launcher가 동일 command surface를 호출한다."""
+"""CPF INTERNAL Tooling Engine. Official user interface is the Java `cpf` CLI; this module is never an OS/user launcher."""
 from __future__ import annotations
-import argparse, json, os, shutil, sys, tempfile, uuid, subprocess
+import argparse, json, os, shutil, sys, tempfile, uuid
 from pathlib import Path
 
 HERE=Path(__file__).resolve()
@@ -491,11 +491,11 @@ def setup_workspace_domain(root:Path, ns) -> dict:
       'developerContract':str(developer_contract),'dbProfile':str(profile) if profile else None,'project':str(output),
       'preview':preview,'sourceGeneration':generated.get('status'),
       'localDb':'NOT_EXECUTED','runtime':'NOT_EXECUTED',
-      'next':{'bootstrap':'cpf-bootstrap','sync':'cpf domain sync'}
+      'next':{'bootstrap':'cpf bootstrap','sync':'cpf domain-sync'}
     }
 
 def main()->int:
-    p=argparse.ArgumentParser(prog='cpf',description='Core Platform Framework cross-platform CLI')
+    p=argparse.ArgumentParser(prog='cpf-internal-engine',description='CPF internal Generator/verification engine consumed by the canonical Java cpf CLI')
     p.add_argument('--version',action='version',version=f'cpf {VERSION}')
     p.add_argument('--root',help='CPF repository root')
     sub=p.add_subparsers(dest='group',required=True)
@@ -557,14 +557,7 @@ def main()->int:
     va=vsub.add_parser('domain'); va.add_argument('--file',required=True); va.add_argument('--output')
     vsub.add_parser('all')
 
-    open_git=sub.add_parser('open-git',help='Open Git release package')
-    open_git.add_argument('command',nargs='?',default='build',choices=['build','check','status'])
-
     ns=p.parse_args(); root=repo_root(ns.root)
-    if ns.group=='open-git':
-        tool=root/'cpf-tools/release/open-git/cpf_open_git.py'
-        if not tool.is_file(): raise DomainError(f'Open Git release tool이 없습니다: {tool}')
-        return subprocess.run([sys.executable,str(tool),ns.command,'--root',str(root)],cwd=root,check=False).returncode
     if ns.group=='domain':
         if ns.command in {'generate','add','dry-run','validate','regenerate','generate-all','upgrade','restore','new'}:
             print(f'[CPF][DEPRECATED] domain {ns.command} is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.', file=sys.stderr)

@@ -4,15 +4,16 @@
 
 ## 사용자 명령
 
-최종 Canonical UX는 다음 세 가지입니다.
+최종 Canonical UX는 Unified Java CLI의 Internal Release Namespace입니다.
 
 ```text
-cpf open-git
-cpf open-git check
-cpf open-git status
+cpf release open-git
+cpf release open-git check --profile binary
+cpf release open-git status
+cpf release open-git build --profile source
 ```
 
-Runtime CLI에 `cpf open-git`이 이미 통합되어 있으며 아래 전용 진입점은 동일 계약의 호환 Wrapper입니다. 두 경로는 동일 Release Owner를 호출해야 하며 서로 다른 구현을 갖지 않습니다.
+`cpf-tools/release/open-git/cpf_open_git.py`와 OS별 release script는 Canonical Release Engine/저수준 자동화 진입점이며 별도 사용자 CLI가 아닙니다. 공식 사용자는 `cpf release open-git ...`만 사용합니다.
 
 ```powershell
 .\cpf-tools\release\open-git\cpf-open-git.ps1
@@ -47,5 +48,7 @@ cpf-release/
 - Private Git tracked path가 `cpf-release` 아래에 있으면 중단합니다.
 - Open Git Source는 Default-Deny입니다.
 - Open Git Source에 Framework 내부 Source/JAR/WAR를 넣지 않습니다.
-- Binary Repository의 sources/javadoc은 Default-Deny입니다.
-- 자동 commit/push는 절대 수행하지 않습니다.
+- Binary Repository의 Framework sources/javadoc은 모든 Public Profile에서 0건입니다. Optional `source` Profile은 allowlist Source Tree만 제공합니다.
+- `cpf-release/`는 Open Git 전달 전용 local-generated staging이며 Private CPF master Commit/Push 대상이 아닙니다.
+- Release Tool은 Private/Open Git 어디에서도 사용자 승인 전 `git add`/index staging/commit/push를 실행하지 않습니다.
+- Release Tool은 `VERIFIED`까지 생성하고, 필수 Gate PASS 후 사용자가 `cpf-release/open-git`을 검토해 Open Git에 직접 Commit/Push합니다.

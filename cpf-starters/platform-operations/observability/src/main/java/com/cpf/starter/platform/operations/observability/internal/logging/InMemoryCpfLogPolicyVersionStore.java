@@ -83,7 +83,7 @@ public final class InMemoryCpfLogPolicyVersionStore implements CpfLogPolicyVersi
         if (timeline == null) return List.of();
         int bounded = Math.max(1, Math.min(limit, maximumHistoryPerTarget));
         return timeline.values().stream()
-                .sorted(Comparator.comparingLong(CpfLogPolicyVersionSnapshot::version).reversed())
+                .sorted(Comparator.comparingLong((CpfLogPolicyVersionSnapshot snapshot) -> snapshot.version()).reversed())
                 .limit(bounded).toList();
     }
 
@@ -154,7 +154,7 @@ public final class InMemoryCpfLogPolicyVersionStore implements CpfLogPolicyVersi
     }
 
     private static CpfLogPolicyVersionSnapshot latest(Map<Long, CpfLogPolicyVersionSnapshot> timeline) {
-        return timeline.values().stream().max(Comparator.comparingLong(CpfLogPolicyVersionSnapshot::version))
+        return timeline.values().stream().max(Comparator.comparingLong((CpfLogPolicyVersionSnapshot snapshot) -> snapshot.version()))
                 .orElseThrow();
     }
     private void trim(LinkedHashMap<Long, CpfLogPolicyVersionSnapshot> timeline) {

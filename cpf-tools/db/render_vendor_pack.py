@@ -273,7 +273,7 @@ def render_verify(vendor, schema, role):
 def remap_seed_text(text: str, name_map: dict[str,str]) -> str:
     # Longest-first, word boundary current-name to target-name mapping; also strips old cpfDB qualifiers.
     out=text
-    out=re.sub(r"\b(?:cpfDB|cmnDB|admDB|batDB|refDB)\.", "", out, flags=re.I)
+    out=re.sub(r"\b(?:cpfDB|cmnDB|admDB|batDB|bzaDB|refDB)\.", "", out, flags=re.I)
     for old,new in sorted(name_map.items(), key=lambda kv: len(kv[0]), reverse=True):
         out=re.sub(rf"(?<![A-Za-z0-9_]){re.escape(old)}(?![A-Za-z0-9_])", new, out, flags=re.I)
     return out

@@ -38,6 +38,8 @@ function Get-GitBlobSha256([string] $BlobId) {
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
+    $startInfo.StandardOutputEncoding = [Text.Encoding]::UTF8
+    $startInfo.StandardErrorEncoding = [Text.Encoding]::UTF8
     foreach ($argument in @("-C", $Root, "cat-file", "blob", $BlobId)) {
         [void] $startInfo.ArgumentList.Add($argument)
     }

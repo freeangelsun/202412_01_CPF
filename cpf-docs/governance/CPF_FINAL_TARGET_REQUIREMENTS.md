@@ -851,7 +851,26 @@ Override 가능 범위, 권한, schema, metadata, default, secret 여부, dynami
 
 Public API/SPI, 주요 annotation/property에 개발자가 IDE에서 바로 이해할 수 있는 한글 JavaDoc/설명을 제공한다. 문서에는 “이 기능을 만들 때 무엇을 선택하면 되는가”가 한눈에 보여야 하며 불필요한 교과서식 설명을 늘리지 않는다.
 
-## 20. Local Bootstrap
+## 20. CPF Unified Tooling / Local Bootstrap
+
+### 20.1 Unified CLI Architecture
+
+CPF의 공식 Tooling Interface는 **`cpf` 단 하나**다. Open Git 고객, CPF Framework 개발자, Generator/Initializer/Build/Verification/Publication/Release 사용자가 별도 CLI 제품군을 사용하지 않는다. 차이는 별도 구현체가 아니라 동일 `cpf-cli.jar`의 Public/Internal Capability Projection으로 구분한다.
+
+- Canonical Source Owner는 `cpf-tools/runtime/cli/` exactly-one이다. Runtime 제품 Module(`cpf-core`, `cpf-common`, `cpf-admin`, `cpf-batch`)에 CLI 구현을 두지 않는다.
+- 실제 공통 구현은 Java `cpf-cli.jar`가 소유하고 Linux `cpf`, Windows `cpf.cmd`/`cpf.ps1`은 Java 실행과 OS 경로/인코딩 처리만 담당하는 Thin Wrapper다. PowerShell-only/Bash-only 구현을 금지한다.
+- PUBLIC Command는 최소 `bootstrap`, `domain-new`, `domain-sync`, `build`, `test`, `run`, `stop`, `reset`, `status`다. 외부 고객과 내부 Framework 개발자가 같은 Command Contract/옵션/Exit Code/Error/UTF-8 Log 계약을 사용한다.
+- INTERNAL Namespace는 `cpf dev ...`, `cpf verify ...`, `cpf publish ...`, `cpf release ...`처럼 같은 CLI 안에서 Capability로 제공한다. Open Git Binary Profile에는 INTERNAL Capability를 Projection하지 않으며 help 숨김만으로 처리하지 않고 실행 자체가 fail-closed되어야 한다.
+- Generator/Initializer/Gradle/DB/Runtime/Verification/Publication/Release Engine은 기존 Canonical Owner를 유지한다. CLI는 Consumer/Orchestrator이며 Engine Source를 복제하지 않는다.
+- Generator는 `cpf domain-new`, `cpf domain-sync`가 Canonical Generator Engine을 호출한다. DB/환경 Initializer는 `cpf bootstrap` 및 필요 시 `cpf db ...` 하위 Contract로 기존 DB Engine을 호출하며 Oracle/PostgreSQL/MariaDB와 `cpfDB/mbwDB/mbrDB/exsDB`만 Current Target으로 허용한다.
+- Legacy `cmnDB/admDB/batDB/refDB/bzaDB`는 CLI의 생성·초기화·Migration·Seed·Runtime Query Target이 될 수 없다.
+- 내부 Framework Golden Path도 가능한 범위에서 `cpf bootstrap → cpf build → cpf test → cpf domain-new/domain-sync → cpf run/status/stop`을 사용한다. 저수준 `.ps1/.sh/.cmd/.py`/Gradle Task/Java Main은 Engine·Debug·Automation 용도로 유지할 수 있으나 공식 Golden Path를 대체하지 않는다.
+- 기존 Entrypoint는 `CANONICAL_ENGINE / INTERNAL_ENGINE / CLI_CONSUMER / THIN_WRAPPER / MIGRATE_TO_CLI / DUPLICATE / DEAD`로 Inventory하고, Consumer 0 + Replacement 확인 뒤에만 Delete Manifest로 제거한다.
+- Canonical Command Catalog는 `cpf-tools/runtime/cli/contracts/cpf-command-catalog.json`, Artifact Catalog는 `cpf-tools/release/cpf-final-artifact-catalog.json`, Module/Owner Navigation은 `CPF_CANONICAL_PATH_AND_ROLE_MAP.md`를 정본으로 사용한다. 중복 Catalog를 만들지 않는다.
+- CLI 또는 연결 Engine의 변경은 Generator, Initializer, DB3, Build, Runtime, Batch, ADM/Backoffice, OpenAPI/Frontend, Sample/EDU, Publication/Open Git, Verification/Fresh Replay 영향도를 필수 검토한다.
+- 완료는 JAR/Wrapper/Command 존재가 아니라 Windows/Linux Fresh Lifecycle, Internal Framework Development Lifecycle, Open Git Fresh Lifecycle, UTF-8/경로/오류/UNKNOWN/복구/멱등성/Source Identity parity까지 실제 PASS한 경우에만 가능하다.
+
+### 20.2 Local Bootstrap
 
 Local Bootstrap은 Full Release QA가 아니라 **신규 개발환경을 실사용 가능하게 만드는 제품 기능**이다.
 
@@ -916,7 +935,7 @@ Public staging은 빈 디렉터리에서 default-deny로 생성한다.
 - accumulated CPF JAR
 - local cache/build output
 
-Public release tooling은 staging/validation/`READY_TO_COMMIT`까지 수행할 수 있지만 commit/push는 자동 수행하지 않는다.
+Public release tooling은 staging/validation/`VERIFIED`까지 수행한다. `git add`/index staging/commit/push는 사용자 최종 검토·승인 이전에 수행하지 않는다. `cpf-release/`는 Private CPF master의 Git 반영 대상이 아니며 Open Git 전달용 local-generated staging으로만 사용한다.
 
 ### 21.2 Public Binary Repository
 
@@ -944,23 +963,83 @@ repository URL/version은 중앙 설정으로 관리한다.
 
 ### 21.3 Open Git Release Packaging
 
-Open Git 릴리즈는 Private CPF Source에서 생성하는 **검증된 Projection**이며 독립 개발 정본이 아니다.
+CPF Open Git은 **Open Source Repository가 아니라 고객 개발·실행용 Current Release Distribution Repository**다. Private CPF Repository가 유일한 Framework 개발 정본이며 Open Git은 동일 Current Source Identity에서 매 Release Fresh 생성한 검증 Projection이다.
 
-- Private Repository Root의 생성 전용 디렉터리는 `cpf-release/`로 고정하고 Private Git 및 Source Identity에서 제외한다.
-- 실행할 때마다 기존 `cpf-release/`를 안전하게 전체 제거한 뒤 신규 생성한다. 이전 실행의 stale 파일을 재사용하지 않는다.
-- 최종 로컬 구조는 `cpf-release/open-git`, `cpf-release/binary-repository`, `cpf-release/reports`, `cpf-release/logs`를 기본으로 한다.
-- `open-git`은 Generated Customer Domain, Backoffice 고객 개발 Source, EDU Source, Developer Setup/Bootstrap/Build/Test/Domain 명령, 공개 문서·설정만 포함한다.
-- `cpf-core`, `cpf-common`, ADM, Gateway, Batch Runtime, Starter/Internal Provider 등 Framework 내부 구현 Source Tree는 Open Git에 포함하지 않는다.
-- Binary Repository는 Framework 사용에 필요한 Public BOM/API/SPI/Starter/Runtime/Generator artifact를 Maven-compatible 구조로 제공한다.
-- `sources.jar`/`javadoc.jar`도 Source 공개로 간주한다. 기본은 DENY이며 Common과 Public Starter 계열처럼 명시적으로 허용된 개발 계약만 공개한다. ADM/Gateway/Batch/Internal Runtime 계열은 binary-only다.
-- Open Git Source Workspace에는 누적 CPF JAR/WAR를 포함하지 않는다. Binary Repository는 별도 형제 Deliverable로 생성한다.
-- 공개 Surface와 Artifact는 Default-Deny 정책으로 분류하며 Private Source, internal/provider, governance/QA/evidence, secret/credential leakage를 Release Blocker로 처리한다.
-- Open Git Working Repository는 매 Release마다 Remote에서 fresh clone하고 검증된 Projection으로 동기화한다.
-- Release Tool은 `git add -A`, `git diff --cached --check`, `READY_TO_COMMIT`까지만 수행한다. commit/push는 자동 실행하지 않고 사용자가 최종 확인 후 직접 수행한다.
-- Release 담당자 명령은 짧고 일관되게 `cpf open-git`, `cpf open-git check`, `cpf open-git status`를 Canonical UX로 한다. 내부 구현 파일명은 Owner와 역할을 명확히 드러내되 사용자에게 장황한 경로 호출을 요구하지 않는다.
-- Open Git 개발자 Workspace는 `cpf bootstrap`, `cpf build`, `cpf test`, `cpf verify`, `cpf domain new`, `cpf domain sync`, `cpf status`, `cpf stop`, `cpf reset`을 Canonical 개발 명령으로 제공한다. 기존 개별 Script는 호환 Wrapper로만 둘 수 있으며 서로 다른 실행 계약을 중복 구현하지 않는다.
-- 개발자 명령은 장시간 실행 중 현재 단계/전체 단계와 실제 하위 실행 로그를 콘솔에 계속 표시하고 Timestamp 로그를 동시에 남긴다. 종료 시 PASS/FAIL, ExitCode, 시작/완료 시각, 로그 전체 경로, 실패 원인과 다음 행동을 표시한다.
-- `cpf bootstrap`은 Fresh Clone 개발자가 한 번에 환경 구성과 Build/Test/Runtime Health까지 진행할 수 있어야 하며 기본 성공 기준은 `CPF LOCAL DEVELOPMENT READY`다. `cpf reset`은 명시적 사용자 확인 없이는 Local Data 삭제를 시작하지 않는다.
+#### Release Profile과 공개 경계
+
+- 기본 Profile은 **`binary`**다. 별도 옵션이 없으면 반드시 Binary Distribution을 생성한다.
+- `binary`에는 CPF Framework 구현 Source Tree, Framework `sources.jar`, `javadoc.jar`, Internal Module/Source/Artifact, Generator Engine 내부 Source, Development/QA Harness, Governance/Requirement 원장, Evidence/Codex/DevGPT 자료, 내부 Release/CI Tooling Source, Secret/Credential/Key, 개인환경/Debug/Temp/Cache, stale/retired Runtime asset을 포함하지 않는다.
+- Binary 공개 대상은 Public Framework/Starter Runtime JAR, Public BOM/POM/Maven metadata, Public API/SPI/Annotation/Configuration/OpenAPI/Error/Security/Header/Batch/DB Vendor Contract, Artifact Catalog, Checksum/SBOM, 실행 Config/Script/문서다.
+- Framework Source 제공은 명시적 Optional **`source`** Profile에서만 허용한다. Source Profile도 Repository 전체 복사가 아니라 `open-git-public-source-allowlist.json`의 **Default-Deny Canonical Public Source Allowlist**에 명시 승인된 Public API/SPI/Annotation Source만 `framework-source/`에 Root-relative Projection한다.
+- `sources.jar`/`javadoc.jar`는 Profile과 무관하게 Open Git Binary Repository에서 **0건**이어야 한다. Source Profile은 Source JAR가 아니라 Allowlist Source Tree만 사용한다.
+- Source Profile에서도 Internal implementation, private security implementation, Generator/Template compiler 내부 구현, Build/Release infrastructure, Development/QA Harness, Evidence, Secret/고객 기밀자산은 금지한다. Denylist-only 방식으로 Source 공개 범위를 결정하지 않는다.
+
+#### 고객 개발 Source Tree
+
+- 고객이 직접 개발·수정·확장해야 하는 영역은 Binary JAR 또는 `sources.jar`로 치환하지 않고 **실제 Source Tree**로 제공한다.
+- 최소 포함 대상은 Generated Domain(`cpf-member`, `cpf-external` 및 향후 customer domain), Backoffice(MBW) 고객 업무개발 Backend/Frontend, Sample/EDU, 고객 Config, 고객 업무 SQL/Migration, Generated API Client, Test/Resource/Build Script다.
+- Generated Domain은 Fresh Generator로 다시 생성 가능해야 하며 `Generate → Build → Test → Runtime → Rerun Idempotency`를 검증한다. Controller/Service/Repository, 3단 Base/Business 구조, Config/Resource, DB SQL/Migration, Test, 필요한 Frontend/API Consumer와 Sample usage를 포함한다.
+- Backoffice는 `mbwDB` Owner의 고객 업무개발 Source Tree를 제공하고 CPF Platform 내부 구현 Source와 혼합하지 않는다.
+- Sample/EDU는 실제 실행 가능한 Source Tree로 제공하되 retired `cpf-reference/refDB` 구조를 재생성하거나 Current Runtime Target으로 노출하지 않는다.
+- 고객 수정 대상 Frontend는 Source, Generated Client, Build/Test 설정을 제공하고 외부 Runtime CDN/Font/Script에 의존하지 않는다.
+- **Framework 내부 Source Leakage=0과 Customer Development Source 누락=0을 동시에 만족**해야 한다. 둘 중 하나라도 위반하면 Release FAIL이다.
+
+#### Platform/ADM/Generator/DB 공개 원칙
+
+- `cpf-core`, `cpf-common`, `cpf-admin`, `cpf-batch` 핵심, Public Starter Runtime, Security/Logging/Audit/Transaction/Context/Gateway/DB Platform Runtime 등 CPF 제품 구현은 기본 Binary 제공 영역이다. 고객에게는 Public Contract와 Binary Artifact를 제공한다.
+- ADM은 CPF Platform 운영 제품으로 기본 Binary Profile에서 구현 Java Source를 공개하지 않고 필요한 Runtime Binary, Public/OpenAPI Contract, 운영 문서, 고객 Config만 제공한다. Source 제공 계약이 있으면 Source Profile allowlist에서 별도 승인한다.
+- Generator는 고객이 사용할 수 있는 `cpf domain-new`/`cpf domain-sync` 기능과 실행 Binary/계약/문서를 제공하되 Generator Engine/Template Compiler/내부 검증·Release Source는 공개하지 않는다.
+- Platform DB의 canonical Physical Runtime DB는 `cpfDB`, 고객 업무 DB는 `mbwDB/mbrDB/exsDB`다. Platform Initializer/Migration은 Binary Resource 또는 공식 Bootstrap 경로로 제공할 수 있고 고객 업무 DB SQL/Migration은 해당 Source Tree에 포함한다.
+- `cmnDB/admDB/batDB/refDB/bzaDB`는 Open Git Current Runtime의 active DB/Schema/DataSource/Migration/Seed/Upgrade/Rollback/Query Target으로 **0건**이어야 한다. Released immutable provenance가 Private Repository 내부에 존재해도 Open Git Current Runtime으로 Projection하지 않는다.
+
+#### Unified CLI / Bootstrap Golden Path
+
+- CPF 공식 Tooling Interface는 `cpf` 하나다. Open Git 고객과 CPF 내부 개발자는 같은 Java `cpf-cli.jar`, 같은 Command Contract, 같은 Canonical Generator/Initializer/Build/Runtime Engine을 사용한다.
+- PUBLIC 명령은 최소 `cpf bootstrap`, `cpf domain-new <domain>`, `cpf domain-sync [domain]`, `cpf build`, `cpf test`, `cpf run`, `cpf status`, `cpf stop`, `cpf reset`이다.
+- INTERNAL Namespace는 같은 CLI의 Capability로 `cpf dev ...`, `cpf verify ...`, `cpf publish ...`, `cpf release ...`를 제공한다. Open Git Binary Profile에는 INTERNAL Capability를 Projection하지 않으며 help 숨김이 아니라 실행 자체가 fail-closed되어야 한다.
+- Linux `cpf`, Windows `cpf.cmd`/`cpf.ps1`은 Java CLI 실행과 OS 경로 처리만 하는 Thin Wrapper다. PowerShell-only/Shell-only 기능 구현, Windows Bash 강제, Linux PowerShell 강제를 금지한다.
+- `cpf-cli.jar`는 공식 Java 25를 fail-closed 확인하며 Wrapper/JAR의 옵션, Exit Code, Error Contract, UTF-8 로그, Version/Source Identity를 일치시킨다.
+- `cpf bootstrap`은 Framework 구현 Source 없이 Binary Profile만으로 Current Binary Artifact 연결, Oracle/PostgreSQL/MariaDB 선택, 필요한 DB/Middleware 준비, Generated Domain 자동발견, Config 준비와 Runtime READY까지 수행한다. 수작업 JAR/Source 복사를 요구하지 않는다.
+- 파일 존재만으로 완료하지 않고 Fresh Release에서 `bootstrap → domain-new → domain-sync → build → test → run/READY → status → stop → reset → fresh replay`를 Windows/Linux에서 실제 검증한다. Java/version/Docker/DB/Middleware 미준비, 공백/한글/긴 경로, 부분 실패, retry/re-run/idempotency, UNKNOWN을 포함한다.
+
+#### Current-only Fresh Release
+
+- Private Repository Root의 생성 전용 디렉터리는 `cpf-release/`이며 Private Git 및 Product Source Identity에서 제외한다.
+- Release 시작 시 이전 `cpf-release/`를 안전하게 전체 재생성하여 **Current Release 한 본만 유지**한다. 이전 Release Binary/JAR/POM/Generated Source/ZIP/Handover/RERUN Evidence/날짜별 Copy/`_OLD`/`_BACKUP`/V1/V2 history를 누적하지 않는다.
+- Binary와 Source Profile은 반드시 **동일 Current `sourceIdentitySha256`**에서 각각 Fresh 생성한다. Binary/BOM/POM/Checksum/SBOM/Generated Domain Identity가 서로 다른 Source에서 만들어지면 FAIL이다.
+- Canonical Release Generator는 Public Binary Artifact Allowlist, Customer Development Source Allowlist, Public Source Allowlist, Internal Denylist, Secret/Leakage Denylist를 사용하고 Map 생성 전에 duplicate를 검사한다. Public BOM에 Internal Artifact가 노출되면 FAIL이다.
+- Open Git Working Repository는 매 Release마다 지정 Remote에서 fresh clone하고 검증된 Projection으로 동기화한다. 과거 Working Copy를 Current Release 입력으로 재사용하지 않는다.
+
+#### Git Write Boundary
+
+- **Private CPF Repository/master는 Release Source이지만 Git write target이 아니다.** `cpf release open-git`과 그 하위 Tool은 Private CPF Repository에서 `git add`, `git commit`, `git push`, branch/tag/reset/restore/stash/clean 등 Git write/history 변경을 수행하지 않는다. Private Git은 Repository Root, Current Branch, HEAD SHA, Working Tree 상태와 provenance를 읽기 위한 read-only 조회만 허용한다. Working Tree 변경이 존재해도 이를 임의 Reset/Restore/Clean하지 않으며 Current Local Source Identity를 기준으로 Release를 생성한다.
+- `cpf-release/`는 **Open Git 전달 전용 local-generated staging root**다. `/cpf-release/`는 Private master의 `.gitignore` 및 Product Source Identity에서 제외하고, Private master Commit/Push 대상에 포함하지 않는다. Release 정의/정책/Template/Tool의 정본을 `cpf-release/`에 두지 않는다.
+- Release Tool의 파일 생성/정리는 정확히 `<CPF_PROJECT_ROOT>/cpf-release/` 내부로 한정한다. 보호 경로와 Product Source를 삭제/덮어쓰지 않으며 이전 Release 제거는 Root-relative Delete Inventory/안전성 확인 후 current-only Fresh regeneration으로 수행한다.
+- **Release Tool/CLI/DevGPT/Codex는 Open Git fresh clone에서도 사용자 승인 전 `git add`, index staging, commit, push를 수행하지 않는다.** 검증 단계는 `git status --short`, `git diff --check`, manifest/checksum/leakage 등 read-only 검증까지만 수행한다.
+- Release 상태는 `GENERATED → VERIFIED → USER_REVIEWED → GIT_COMMITTED → GIT_PUSHED`를 구분한다. Tool이 자동으로 올릴 수 있는 최종 상태는 `VERIFIED`이며 `USER_REVIEWED/GIT_COMMITTED/GIT_PUSHED`는 사용자 행위 없이 자동 전이하지 않는다.
+- **Open Git Commit/Push는 필수 Release Gate가 모두 PASS한 뒤 사용자가 `cpf-release/open-git` 결과를 직접 검토하고 Open Git Repository에 수행한다.** CPF 개발 master Commit/Push와 Open Git Commit/Push는 별도 작업이며 `cpf-release/` 결과물을 Private master에 반영하지 않는다.
+- `VERIFIED` 결과에는 Repository Root, Current Branch, HEAD SHA, `git status --short`, Release Root/Profile/Source Identity, 파일·Artifact 수, Manifest/Checksum/SBOM, Static/Build/Test/Runtime/Fresh Replay/Leakage 결과, Delete Manifest 여부와 Open Git Working Tree 상태를 출력한다. 모든 필수 Gate가 PASS한 경우에만 사용자용 Open Git Commit/Push 명령을 제시하며 자동 실행하지 않는다.
+- Open Git Remote 대상은 Canonical repository policy와 일치해야 하며 잘못된 remote/권한/네트워크/dirty clone은 fail-closed한다.
+
+#### Fresh Release Physical Acceptance
+
+Binary Profile은 다음 전체 흐름을 실제 수행한다.
+
+`Fresh Framework Build → Public Binary Publication → Open Git Projection → Fresh Clone → cpf bootstrap → Generated Domain Fresh Generation/Sync → DB/Middleware 준비 → Build → Test → Runtime/READY → 실제 거래 → Status → Stop → Reset/Cleanup → Fresh Replay`
+
+Source Profile은 Binary 전체에 더해 Public Source Allowlist 정확성, Private/Internal Source Leakage 0, Public Source Build, Binary/Source Source Identity parity를 검증한다.
+
+최종 Leakage/Completeness Hard Gate는 최소 다음을 강제한다.
+
+- Binary Framework implementation Source=0
+- Binary/Source Repository `sources.jar`=0, `javadoc.jar`=0
+- Internal Source/Artifact/BOM=0
+- Generator Engine/Development·QA Harness/Evidence/Internal Release Tool/Secret/Credential/개인경로=0
+- stale Release/retired Runtime DB target/generated garbage=0
+- unclassified Surface/Artifact=0
+- Customer Development Source 누락=0
+- Binary/Source/CLI/Generated Domain Source Identity mismatch=0
+- Fresh Build/Test/Runtime/Fresh Replay FAIL/SKIP/NOT_EXECUTED/UNKNOWN=0
 
 ## 22. EDU Canonical 35
 
@@ -1290,7 +1369,7 @@ Current canonical 역할:
 | `TEST-BROKER` | repository-wide test ownership | 실제 Kafka·JMS/IBM MQ·RabbitMQ 지원 Matrix에서 ACK, transaction, duplicate, ordering, redelivery/rebalance, retry/DLQ, broker outage와 consumer crash를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-FAULT` | repository-wide test ownership | DB/network/broker/disk/process/time/response loss를 side-effect 전후에 주입해 idempotency·unknown·recovery·compensation을 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-EVIDENCE` | repository-wide test ownership | 모든 검증의 exact SHA, command, environment, time, exit code, report/artifact hash, sanitized 여부를 schema로 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
-| `REL-BUILD` | cpf-tools release/publication | fresh clone과 clean isolated cache에서 Java 25/Gradle build, dependency lock, BOM/POM/source/javadoc/reproducible artifact를 제공한다. Public consumer 검증은 `mavenLocal()`과 Private Repository 없이 Public Binary Repository만으로 수행한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
+| `REL-BUILD` | cpf-tools release/publication | fresh clone과 clean isolated cache에서 Java 25/Gradle build, dependency lock, BOM/POM/reproducible binary artifact를 제공한다. 기본 Binary Distribution에는 Framework Source와 sources/javadoc JAR가 없고 Public consumer 검증은 `mavenLocal()`과 Private Repository 없이 Public Binary Repository만으로 수행한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
 | `REL-DEPLOY` | cpf-tools release/deploy | signed artifact, environment/channel binding, install lock, rolling/canary/blue-green, health/smoke, selective rollback와 deployment reconciliation을 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
 | `REL-MIG` | cpf-tools release/deploy | 제품/DB/config/API/message/file schema의 install/upgrade/downgrade/forward recovery, compatibility window와 migration guide를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
 | `REL-COMPAT` | cpf-tools release/deploy | semantic version, compatibility range, deprecation, consumer matrix, rolling mixed-version, rollback와 unsupported combination fail-closed를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
@@ -1319,8 +1398,15 @@ Current canonical 역할:
 | `GEN-CUSTOM-LIB` | cpf-tools customer shared library generator | 고객사는 `cpf-common`을 수정하지 않고 회사 공통 함수·DTO·검증·공통 서비스를 독립 JAR 작업공간으로 생성할 수 있다. `cpf library create/attach/sync/verify`는 `customer-libraries/<name>`을 만들고 Java 25 build/publication 계약을 제공한다. Customer Library는 모든 Domain에 자동 주입하지 않으며 개발자가 선택한 Domain에만 Generated Gradle composite/dependency를 연결한다. 생성 Source와 CLI 도움말은 한글 설명을 기본으로 하고 `com.cpf.*` namespace 및 CPF Internal dependency를 fail-closed한다. | create/attach/sync/verify, Korean generated guidance, explicit domain consumer, idempotent sync, internal dependency negative, Java25 build/test/publication Evidence |
 | `DB-BINDING` | cpf-tools DB lifecycle + generated domain setup | Logical Domain Definition과 environment-specific DB Binding을 분리한다. Generated Domain의 logical DB ID는 기본 `<systemCode lower>DB`이고 Oracle/PostgreSQL/MariaDB 중 Domain별 vendor를 독립 선택한다. host/service/database/schema, migration principal, runtime principal, secret reference는 Binding이 소유하며 raw secret은 Source/Evidence에 금지한다. | DB3 binding matrix, migration/runtime account separation, secret scan, persistence=none/no-binding, required DB missing fail-close, vendor-change dry-run Evidence |
 | `MBW-WEB` | cpf-backoffice-web | Backoffice Web은 Frontend SPA + Spring Boot BFF Reference다. DB dependency, CPF Internal Java dependency, Business Domain Java project dependency는 0이어야 한다. Published OpenAPI/protocol schema로 생성된 HTTP Client 사용은 허용·권장하며 Browser session/cookie/CSRF와 server-side credential propagation은 BFF가 소유하고 Browser는 protected CPF Header를 작성하지 않는다. | dependency gate, OpenAPI generated client consumer, session/CSRF/security negative, Browser header spoof negative, Gateway→MBW E2E Evidence |
+| `CPF-LOGTX` | cpf-starters logging + transaction log persistence | 업무 Transaction의 성공/rollback/handled 4xx·5xx/exception과 무관하게 거래 DB Log Summary/Segment는 `cpfTransactionManager`의 독립 `REQUIRES_NEW` 경계로 요청·응답·상태·error metadata를 마스킹하여 보존한다. 업무 rollback으로 거래 추적이 함께 rollback되면 FAIL이며 DB log 장애는 durable fallback→recovery/replay로 추적성을 유지한다. | REQUIRES_NEW static gate, success/business rollback/handled error/exception runtime, File↔DB↔Segment↔Timeline transactionId parity, masking/secret, fallback/recovery Evidence |
 | `REL-PUBLIC-WORKSPACE` | cpf-tools release/public workspace | Public Git Workspace는 empty-directory default-deny staging으로 PUBLIC 분류된 developer source/config/script/docs만 포함하고 Private framework/internal/provider/governance/QA/evidence/secret과 누적 CPF JAR을 포함하지 않는다. commit/push는 자동화하지 않는다. | unclassified=0, private leakage=0, secret=0, manifest/hash, clean clone build/setup/bootstrap, manual commit boundary Evidence |
 | `REL-PUBLIC-BINARY` | publication/BOM/public artifact owners | Public Binary Repository는 Public BOM/API/Starter/Generator 및 공개 Runtime artifact를 버전·호환성·SBOM·서명과 함께 제공한다. Public Workspace는 이를 중앙 repository URL/version으로 소비하고 `mavenLocal()` 또는 Private repository에 의존하지 않는다. | isolated cache consumer build, BOM resolution, publication metadata/signature/SBOM, private repo/mavenLocal negative Evidence |
+| `REL-OPEN-GIT-BOOTSTRAP` | cpf-tools release/open-git + runtime/bootstrap | 기본 Binary Open Git Fresh 환경에서 Framework 구현 Source 없이 `cpf bootstrap → domain-new → domain-sync → build → test → run/READY → stop → reset → fresh replay`가 수작업 복사 없이 성공해야 한다. Bootstrap은 Oracle/PostgreSQL/MariaDB 선택, Generated Domain 자동발견, 필요한 DB/Middleware 준비와 Current Binary Artifact 연결을 소유한다. | Fresh binary lifecycle DB3 matrix, domain discovery, middleware readiness, READY, stop/reset/replay, failure/rerun Evidence |
+| `TOOL-UNIFIED-CLI` | cpf-tools runtime/cli + canonical tooling engines | CPF 공식 Tooling Interface는 exactly-one Java `cpf` CLI다. PUBLIC `bootstrap/domain-new/domain-sync/build/test/run/stop/reset/status`와 INTERNAL `dev/verify/publish/release` Namespace를 같은 Command Architecture로 제공하고 Generator/Initializer/Gradle/DB/Runtime/Verification/Publication/Release의 기존 Canonical Engine을 호출한다. 외부/내부 차이는 별도 CLI가 아니라 Capability/Profile Projection이며 Open Git은 PUBLIC만 노출한다. | exactly-one owner/source, command/artifact/owner catalog parity, internal capability negative in public jar, generator/bootstrap/build/test/runtime/DB3/publication/release consumers, Windows/Linux fresh lifecycle, internal/open-git golden path, duplicate/dead entrypoint 0 Evidence |
+| `REL-CLI-CROSSPLATFORM` | cpf-tools runtime/cli + release/open-git | CPF 공식 CLI는 단일 Java `cpf-cli.jar`를 실제 구현체로 사용하고 Linux `cpf`, Windows `cpf.cmd`/`cpf.ps1`은 Thin Wrapper로만 제공한다. PowerShell-only/Shell-only 구현을 금지하며 동일 command/options/exit/error/log contract, Java25, UTF-8, 경로, prerequisite failure, rerun/idempotency, version/sourceIdentity parity를 보장한다. | Java CLI jar build/run, wrapper thinness, Windows/Linux lifecycle parity, UTF-8/path/negative prerequisite, identity/version, Fresh Open Git Evidence |
+| `REL-OPEN-GIT-PROFILE` | cpf-tools release/open-git | Open Git은 고객 개발·실행 배포 채널이며 기본 `binary` Profile은 Framework 구현 Source와 sources/javadoc JAR 0건이다. Optional `source` Profile만 Default-Deny Canonical Public Source Allowlist의 Public API/SPI/Annotation Source를 Projection한다. 모든 Profile에서 Internal/Generator Engine/QA/Evidence/Secret/Internal Release Tool은 금지하고 동일 Current Source Identity에서 Fresh Build/Test/Runtime/Fresh Replay한다. Current Release 한 본만 유지한다. | binary/source profile contract, sources/javadoc=0, allowlist exact projection, internal/private leakage=0, same sourceIdentity, fresh release/replay Evidence |
+| `REL-OPEN-GIT-CUSTOMER-SOURCE` | cpf-tools release/open-git + generated/customer source owners | 기본 Binary Profile에서도 고객이 직접 개발하는 Generated Domain, Backoffice, Sample/EDU, 고객 Config/SQL/Migration/Frontend/Generated Client/Test/Build Source Tree를 실제 수정 가능한 형태로 제공한다. Framework 내부 구현 Source Leakage=0과 Customer Development Source 누락=0을 동시에 강제하며 고객 Source를 sources.jar나 Framework Binary로 치환하지 않는다. | customer source allowlist completeness, generated domain/backoffice/frontend/sample build+test+runtime, framework/internal leakage negative, DB owner/sql parity, missing-customer-source mutation Evidence |
+| `REL-OPEN-GIT-GIT-BOUNDARY` | cpf-tools release/open-git + unified CLI release namespace | `cpf-release/`는 Open Git 전달 전용 staging이며 Private CPF master의 Git/Source Identity에서 제외한다. `cpf release open-git`과 Tool/CLI/DevGPT/Codex는 Private master와 Open Git fresh clone 모두에서 사용자 승인 전 add/index staging/commit/push/branch/tag/reset/restore/stash/clean을 수행하지 않는다. Tool은 read-only status/diff/provenance와 Release 검증까지만 수행해 `VERIFIED`를 만들고, 사용자가 결과 확인 후 Open Git에서만 직접 commit/push한다. Private Working Tree가 dirty여도 임의 정리하지 않고 Current Source Identity를 기록한다. | private `/cpf-release/` tracked=0, private/Open-Git write-command negative, branch/HEAD/status/sourceIdentity capture, GENERATED→VERIFIED→USER_REVIEWED→GIT_COMMITTED→GIT_PUSHED state separation, wrong remote/dirty clone negative, user Git command generation-only, automatic add/commit/push=0 Evidence |
 | `DEVEX-BOOTSTRAP` | cpf-tools local bootstrap | Local Bootstrap은 Windows/Linux thin wrapper가 공유 engine을 호출하는 개발환경 제품 기능이다. Git/Java25/container runtime과 필요한 경우 Node를 확인하고 selected DB start→actual health→migration→seed→capability middleware→domain discovery→build/test→runtime health를 수행한다. silent OS install/admin escalation/PATH mutation을 금지하고 stop과 reset을 분리하며 idempotent re-run/domain add-remove rediscovery를 지원한다. | Windows/Linux contract, prerequisite negative, selected DB lifecycle, timeout/progress, stop data preserve/reset explicit, add/remove rediscovery, idempotent rerun Evidence |
 | `DEVEX-WINDOWS-PATH` | cpf-tools verification + repository path governance | Windows 개발환경 호환성을 위해 프로젝트 Root 상대경로와 파일명을 합친 전체 상대경로는 항상 200자를 초과하지 않는다. 장문 Evidence·Generated 경로는 안정적인 짧은 alias를 사용하고 원경로와 새 경로의 추적 Map을 보존한다. 200자 초과는 경고가 아니라 검증 실패이며 신규 Source·Evidence·Generator 출력에도 동일 Gate를 적용한다. | repository-wide relative path <=200, alias map, generated/evidence regression, Windows target-root projection, violation mutation Evidence |
 | `DEVEX-DOCKER-LIFECYCLE` | cpf-tools local/full runtime verification | Local/Full Runtime 검증은 필요한 CPF Docker 서비스를 실행 전 스스로 확인하고 내려가 있으면 필요한 서비스만 자동 기동한다. running 상태만으로 성공 처리하지 않고 health와 실제 기능 readiness를 확인하며 Stage 간 서비스 lifecycle을 중앙 조정한다. 검증기가 시작한 컨테이너는 성공·실패 모두 종료 단계에서 정리하고 사용자가 이미 실행 중이던 컨테이너는 보존한다. DB3·Kafka·Redis·Messaging·Fault fixture는 실제 거래·장애·복구 검증에 필요한 lifecycle을 각 검증 흐름이 책임진다. | down-state auto-start, health+functional readiness, existing-container preserve, owned cleanup on failure, DB3/Kafka/fault runtime lifecycle Evidence |

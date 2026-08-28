@@ -11,8 +11,7 @@ Framework 내부 구현 Source는 포함하지 않습니다. 업무 개발자가
 - `cpf-backoffice`: MBW Backoffice 업무 Domain Source
 - `cpf-backoffice-web`: 외부 Backoffice Channel/BFF Source
 - `cpf-education`: CPF 기능별 실행·학습 Source
-- `bin`: Bootstrap, Build, Test, Domain 생성·동기화 명령
-- `domains`: Canonical Domain Definition
+- `bin`: Java 기반 Unified `cpf` CLI와 Windows/Linux Thin Wrapper
 
 `cpf-core`, `cpf-common`, `cpf-admin`, `cpf-gateway`, `cpf-batch`, `cpf-starters` 내부 구현 Source는 이 Repository에 포함되지 않습니다.
 
@@ -23,7 +22,7 @@ Framework 내부 구현 Source는 포함하지 않습니다. 업무 개발자가
 ```powershell
 $env:CPF_MAVEN_REPOSITORY_URL='<cpf-binary-repository-url>'
 $env:CPF_VERSION='<cpf-version>'
-.\bin\cpf-bootstrap.ps1
+.\cpf.cmd bootstrap
 ```
 
 Linux:
@@ -31,21 +30,23 @@ Linux:
 ```bash
 export CPF_MAVEN_REPOSITORY_URL='<cpf-binary-repository-url>'
 export CPF_VERSION='<cpf-version>'
-./bin/cpf-bootstrap.sh
+./bin/cpf bootstrap
 ```
 
 ## 자주 쓰는 명령
 
 ```powershell
-.\bin\cpf-domain-new.ps1 -Name account -SystemCode ACC
-.\bin\cpf-domain-sync.ps1
-.\bin\cpf-build.ps1
-.\bin\cpf-test.ps1
-.\bin\cpf-stop.ps1
+.\cpf.cmd domain-new account --system-code ACC
+.\cpf.cmd domain-sync
+.\cpf.cmd build
+.\cpf.cmd test
+.\cpf.cmd stop
 ```
+
+Windows: `.\cpf.cmd reset --confirm-local-reset` / Linux: `./bin/cpf reset --confirm-local-reset`
 
 `reset`만 Local 개발 Data를 삭제할 수 있으며 명시적 확인 옵션이 필요합니다.
 
 ## 배포 경계
 
-이 Workspace는 CPF Private Source에서 Default-Deny 정책으로 매번 새로 생성됩니다. 자동 commit/push는 수행하지 않습니다. Release Gate가 `READY_TO_COMMIT`인 경우에만 사용자가 변경 내용을 확인하고 직접 Open Git에 commit/push합니다.
+이 Workspace는 CPF Private Source에서 Default-Deny 정책으로 매번 Fresh 생성됩니다. Release Tool은 `git add`/index staging/commit/push를 수행하지 않고 `VERIFIED`까지만 생성합니다. 모든 필수 Gate가 PASS한 뒤 사용자가 변경 내용을 직접 확인하고 이 Open Git Repository에서 Commit/Push합니다. 이 Release 결과는 CPF Private master에 Commit/Push하지 않습니다.

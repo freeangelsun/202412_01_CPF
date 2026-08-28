@@ -227,7 +227,7 @@ public final class JdbcCpfMaskingPolicyStoreHarness {
             calls++;
             failRead();
             return versions.values().stream()
-                    .sorted(Comparator.comparingLong(CpfMaskingPolicySnapshot::version).reversed())
+                    .sorted(Comparator.comparingLong((CpfMaskingPolicySnapshot snapshot) -> snapshot.version()).reversed())
                     .limit(limit)
                     .toList();
         }

@@ -55,6 +55,8 @@ function Invoke-PostgreSqlParse($Target, [string]$Username, [string]$Password, [
     $psi.RedirectStandardInput = $true
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
+    $psi.StandardOutputEncoding = [Text.Encoding]::UTF8
+    $psi.StandardErrorEncoding = [Text.Encoding]::UTF8
     $psi.CreateNoWindow = $true
     foreach ($arg in @('-X','-v','ON_ERROR_STOP=1','-h',[string]$Target.host,'-p',[string]$Target.port,'-U',$Username,'-d',[string]$Target.databaseName)) { [void]$psi.ArgumentList.Add($arg) }
     $psi.Environment['PGPASSWORD'] = $Password

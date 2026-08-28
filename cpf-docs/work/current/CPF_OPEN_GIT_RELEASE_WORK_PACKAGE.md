@@ -48,9 +48,9 @@ cpf-release/
 
 Framework 기능은 Maven-compatible Binary Repository로 사용한다.
 
-- Common/Public Starter 계열: Binary + 명시 허용 `sources.jar`/`javadoc.jar`
-- Core/ADM/Gateway/Batch/Internal Runtime: Binary-only
-- `sources.jar`/`javadoc.jar`는 Source 공개로 간주하고 Default-Deny
+- 기본 `binary`: Public Framework/Starter Binary + BOM/POM/Checksum/SBOM, Framework `sources.jar`/`javadoc.jar` 0건
+- Optional `source`: 동일 Binary + Canonical Public Source Allowlist의 승인 Source Tree만 `framework-source/`로 Projection
+- Core/Common/Admin/Gateway/Batch/Internal Runtime 구현 Source와 Internal Artifact는 기본 Binary에서 비공개
 - Public BOM/Generator/공개 Runtime Artifact 제공
 - Open Git Source Workspace 자체에는 누적 CPF JAR/WAR를 넣지 않음
 
@@ -61,28 +61,29 @@ Framework 기능은 Maven-compatible Binary Repository로 사용한다.
 Release 담당자 Canonical 명령:
 
 ```text
-cpf open-git
-cpf open-git check
-cpf open-git status
+cpf release open-git
+cpf release open-git check --profile binary
+cpf release open-git status
+cpf release open-git build --profile source
 ```
 
 Open Git 개발자 Canonical 명령:
 
 ```text
 cpf bootstrap
+cpf domain-new <domain>
+cpf domain-sync [domain]
 cpf build
 cpf test
-cpf verify
-cpf domain new <name> <SYSTEM_CODE>
-cpf domain sync
+cpf run
 cpf status
 cpf stop
-cpf reset --confirm
+cpf reset
 ```
 
-개발자 명령은 단일 Dispatcher를 정본으로 사용한다. 기존 `cpf-bootstrap`, `cpf-build`, `cpf-test` 등 개별 Script는 같은 Dispatcher를 호출하는 호환 Wrapper로만 제공해 실행 계약이 갈라지지 않게 한다. 장시간 작업은 진행 단계/전체 단계와 하위 명령 출력을 콘솔에 실시간 표시하고 Timestamp 로그를 동시에 저장한다. 종료 시 PASS/FAIL, ExitCode, 시작/완료 시각, 로그 전체 경로, 실패 원인과 다음 행동을 표시한다. `cpf bootstrap`의 기본 성공 기준은 `CPF LOCAL DEVELOPMENT READY`이며 Runtime 시작/Health 확인까지 포함한다. `cpf reset`은 명시 확인 전 destructive action을 수행하지 않는다.
+공식 Tooling Interface는 `cpf-tools` 소유의 exactly-one Java `cpf` CLI다. Linux `cpf`, Windows `cpf.cmd`/`cpf.ps1`은 Thin Wrapper이며 기존 개별 Script는 Canonical Engine 또는 동일 Java CLI를 호출하는 호환 alias로만 남긴다. 장시간 작업은 진행 단계/전체 단계와 하위 명령 출력을 콘솔에 실시간 표시하고 Timestamp 로그를 동시에 저장한다. 종료 시 PASS/FAIL, ExitCode, 시작/완료 시각, 로그 전체 경로, 실패 원인과 다음 행동을 표시한다. `cpf bootstrap`의 기본 성공 기준은 `CPF LOCAL DEVELOPMENT READY`이며 Runtime 시작/Health 확인까지 포함한다. `cpf reset`은 명시 확인 전 destructive action을 수행하지 않는다.
 
-Codex와 동시 수정 충돌을 피하기 위해 이번 Overlay에서는 기존 Runtime CLI를 직접 수정하지 않고 `cpf-tools/release/open-git/cpf-open-git.ps1`을 제공한다. Codex 종료 후 Release 담당자 CLI alias만 최소 통합한다.
+`cpf-tools/release/open-git/cpf_open_git.py`와 OS별 release script는 Unified CLI가 호출하는 Canonical Release Engine/저수준 자동화 Consumer다. 별도 Open Git CLI 제품군을 만들지 않는다.
 
 ## 7. Lifecycle
 
@@ -101,12 +102,14 @@ Codex와 동시 수정 충돌을 피하기 위해 이번 Overlay에서는 기존
 → Projection Sync
 → Fresh Workspace Build/Test
 → Manifest / SHA / Status
-→ git add -A
-→ git diff --cached --check
-→ READY_TO_COMMIT
+→ Open Git `git status --short` / `git diff --check` read-only 검증
+→ Git write-command negative
+→ VERIFIED
+→ 사용자 검토
+→ 사용자 직접 Open Git commit/push
 ```
 
-자동 commit/push는 수행하지 않는다.
+Release Tool은 `git add`/index staging/commit/push를 수행하지 않는다. `cpf-release/`는 Private master에 Commit/Push하지 않으며, 모든 Release Gate PASS 후 사용자가 Open Git에서 직접 Git 반영한다.
 
 ## 8. Acceptance Criteria
 
@@ -119,8 +122,8 @@ Codex와 동시 수정 충돌을 피하기 위해 이번 Overlay에서는 기존
 7. Common/Starter 외 금지 Owner의 `sources.jar`/`javadoc.jar`가 0건이다.
 8. Public Binary Artifact 좌표가 불명확하면 임의 생성하지 않고 Release Blocker로 판정한다.
 9. Fresh Open Git Clone과 isolated Binary Repository 기반 Build/Test가 성공한다.
-10. Manifest/SHA/Secret/Leakage/Git Diff Gate가 성공한다.
-11. Release Tool은 commit/push를 실행하지 않는다.
+10. Manifest/SHA/SBOM/Secret/Leakage/Git read-only Diff/Status Gate가 성공한다.
+11. Release Tool은 Private/Open Git 어디에서도 사용자 승인 전 `git add`/index staging/commit/push를 실행하지 않는다. `cpf-release/` Private master tracked=0을 fail-closed 검증한다.
 12. Codex 작업 중인 기존 Product/Gradle/Generator/Runtime Source를 이번 Overlay가 덮어쓰지 않는다.
 13. 개발자 Canonical 명령은 짧은 단일 Dispatcher로 제공되고 호환 Wrapper는 동일 계약을 재사용한다.
 14. 모든 장시간 개발 명령은 진행 단계/로그를 실시간 표시하고 PASS/FAIL, ExitCode, 시각, 로그 경로와 다음 행동을 출력한다.

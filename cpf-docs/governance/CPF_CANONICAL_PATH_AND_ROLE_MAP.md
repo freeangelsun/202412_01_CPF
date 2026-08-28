@@ -15,6 +15,9 @@
 | Gateway | `cpf-gateway/` | Edge/Trust/Route |
 | Public Starter/Capability | `cpf-starters/` | Runtime composition/Provider |
 | Generator/DB/Build/QA Tooling | `cpf-tools/` | product runtime owner로 사용 금지 |
+| Unified CLI | `cpf-tools/runtime/cli/` | exactly-one `cpf` Java CLI owner; Engine 복제 금지 |
+| Open Git Release Engine | `cpf-tools/release/open-git/` | Unified CLI INTERNAL `cpf release open-git`가 소비하는 canonical release engine |
+| Open Git Generated Staging | `cpf-release/` | local-generated Current Release 전용; Private master Git/Source Identity 제외; Open Git 사용자 반영 대상 |
 | Education | `cpf-education/` | Online 20 + Batch 15 |
 | Generated Business Domain | `cpf-<domain>/` | Feature-First |
 
@@ -42,6 +45,10 @@ Generator 입력 descriptor, lock/state/manifest/cache/evidence, `.cpf/`, DB Ven
 | 현재 개발 요청 | `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` |
 | Requirement 상태 | `cpf-docs/work/REQUIREMENT_STATUS.csv` |
 | Current Evidence | `cpf-docs/deliverables/TEST_AND_EVIDENCE.md` |
+| CLI Command Catalog | `cpf-tools/runtime/cli/contracts/cpf-command-catalog.json` |
+| Final Artifact Catalog | `cpf-tools/release/cpf-final-artifact-catalog.json` |
+| Open Git Current Requirement | `cpf-docs/work/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md` |
+| Open Git Current Work Package | `cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md` |
 | Open Issues | `cpf-docs/deliverables/OPEN_ISSUES.md` |
 | QA Rework Request | `cpf-docs/deliverables/QA_REWORK_REQUEST.md` |
 | Change/Delete/Package Manifest | `cpf-docs/deliverables/CHANGE_MANIFEST.csv`, `DELETE_MANIFEST.csv`, `PACKAGE_MANIFEST.json` |

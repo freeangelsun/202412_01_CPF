@@ -37,7 +37,10 @@ def main() -> int:
 
     file_writer_path = "cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/file/CpfFileLogWriter.java"
     async_writer_path = "cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/file/CpfAsyncFileLogWriter.java"
+    logging_aspect_path = "cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/LoggingAspect.java"
+    logging_aspect_test_path = "cpf-starters/platform-operations/observability/src/test/java/com/cpf/platform/operations/observability/internal/logging/LoggingAspectCanonicalContextTest.java"
     db_service_path = "cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/TransactionLogService.java"
+    segment_service_path = "cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/segment/TransactionSegmentPersistenceService.java"
     db_listener_path = "cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/TransactionLogListener.java"
     db_adapter_path = "cpf-starters/data/persistence/mybatis/src/main/java/com/cpf/data/persistence/mybatis/logging/MyBatisTransactionLogPersistenceAdapter.java"
     timeline_path = "cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/segment/CpfTransactionTimelineQueryFacade.java"
@@ -88,8 +91,38 @@ def main() -> int:
         "fileWriterSnapshot()",
     ), failures)
 
+    logging_aspect = require_file(root, logging_aspect_path, failures)
+    require_tokens(logging_aspect, logging_aspect_path, (
+        "boolean success = responseMetadata.httpStatus() < 400",
+        'transactionSegment.fail("HTTP_" + responseMetadata.httpStatus()',
+        'success ? "SUCCESS" : "FAILURE"',
+        "canonicalErrorResponse(errorMetadata, transactionId)",
+        "errorMetadata.httpStatus()",
+        "errorMetadata.responseCode()",
+        "errorMetadata.messageCode()",
+        "CpfMaskingRuntime.mask",
+    ), failures)
+
+    logging_aspect_test = require_file(root, logging_aspect_test_path, failures)
+    require_tokens(logging_aspect_test, logging_aspect_test_path, (
+        "classifiesHandledHttpErrorAsFailureAndPersistsResponse",
+        "persistsCanonicalErrorResponseWhenBusinessOperationThrows",
+        'assertEquals("FAILURE"',
+        "assertEquals(409",
+        "assertNotNull(record.getResponse())",
+    ), failures)
+
+    segment_service = require_file(root, segment_service_path, failures)
+    require_tokens(segment_service, segment_service_path, (
+        'transactionManager = "cpfTransactionManager"',
+        "Propagation.REQUIRES_NEW",
+        "insertSegment",
+        "updateSegment",
+    ), failures)
+
     db_service = require_file(root, db_service_path, failures)
     require_tokens(db_service, db_service_path, (
+        'transactionManager = "cpfTransactionManager"',
         "Propagation.REQUIRES_NEW",
         "logPolicy.dbLogEnabled()",
         "existsRecoveryEvent",

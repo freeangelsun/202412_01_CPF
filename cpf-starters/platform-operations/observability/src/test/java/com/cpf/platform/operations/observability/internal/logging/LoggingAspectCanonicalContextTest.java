@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.http.ResponseEntity;
 
 /** Canonical Core Context가 summary와 persisted Segment consumer에 그대로 투영되는지 검증합니다. */
 class LoggingAspectCanonicalContextTest {
@@ -100,6 +101,47 @@ class LoggingAspectCanonicalContextTest {
         assertEquals("FAILURE", event.get().getRecord().getLogType());
     }
 
+
+    @Test
+    void classifiesHandledHttpErrorAsFailureAndPersistsResponse() throws Throwable {
+        RecordingSegmentPort segments = new RecordingSegmentPort();
+        AtomicReference<TransactionLogEvent> event = new AtomicReference<>();
+        LoggingAspect aspect = aspect(segments, event);
+        ProceedingJoinPoint joinPoint = joinPointWithResult(ResponseEntity.status(409)
+                .body(new ErrorBody("ECPF409001", "conflict")));
+
+        try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(context()))) {
+            Object result = aspect.logTransaction(joinPoint);
+            assertTrue(result instanceof ResponseEntity<?>);
+        }
+
+        assertFalse(segments.scope.success);
+        assertEquals("HTTP_409", segments.scope.failureCode);
+        assertEquals("FAILURE", event.get().getRecord().getLogType());
+        assertEquals(409, event.get().getRecord().getHttpStatus());
+        assertEquals("ECPF409001", event.get().getRecord().getResponseCode());
+        assertNotNull(event.get().getRecord().getResponse());
+    }
+
+    @Test
+    void persistsCanonicalErrorResponseWhenBusinessOperationThrows() throws Throwable {
+        RecordingSegmentPort segments = new RecordingSegmentPort();
+        AtomicReference<TransactionLogEvent> event = new AtomicReference<>();
+        LoggingAspect aspect = aspect(segments, event);
+        ProceedingJoinPoint joinPoint = joinPoint(true);
+
+        try (AutoCloseable _ = CpfContexts.bind(CpfContextSnapshot.capture(context()))) {
+            assertThrows(IllegalStateException.class, () -> aspect.logTransaction(joinPoint));
+        }
+
+        TransactionLogRecord record = event.get().getRecord();
+        assertEquals("FAILURE", record.getLogType());
+        assertNotNull(record.getResponse());
+        assertTrue(record.getResponse().contains("\"code\":\"ECPF990000\""));
+        assertTrue(record.getResponse().contains("\"transactionId\":\"tx-canonical-001\""));
+        assertFalse(record.getResponse().contains("business-failed"));
+    }
+
     private static LoggingAspect aspect(
             RecordingSegmentPort segments,
             AtomicReference<TransactionLogEvent> event) {
@@ -129,6 +171,22 @@ class LoggingAspectCanonicalContextTest {
         else when(joinPoint.proceed()).thenReturn("ok");
         return joinPoint;
     }
+
+
+    private static ProceedingJoinPoint joinPointWithResult(Object result) throws Throwable {
+        Method method = SampleOperation.class.getDeclaredMethod("execute");
+        MethodSignature signature = mock(MethodSignature.class);
+        when(signature.getMethod()).thenReturn(method);
+        when(signature.toShortString()).thenReturn("SampleOperation.execute()");
+        ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(joinPoint.getTarget()).thenReturn(new SampleOperation());
+        when(joinPoint.getArgs()).thenReturn(new Object[0]);
+        when(joinPoint.proceed()).thenReturn(result);
+        return joinPoint;
+    }
+
+    private record ErrorBody(String code, String message) { }
 
     private static CpfContext context() {
         return new CpfContext(

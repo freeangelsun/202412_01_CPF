@@ -21,7 +21,9 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import xml.etree.ElementTree as ET
+import zipfile
 from urllib.parse import unquote
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,6 +37,7 @@ class OpenGitReleaseError(RuntimeError):
 TOOL_REL = Path("cpf-tools/release/open-git")
 SURFACE_POLICY_REL = TOOL_REL / "open-git-surface-policy.json"
 ARTIFACT_POLICY_REL = TOOL_REL / "open-git-artifact-policy.json"
+PUBLIC_SOURCE_ALLOWLIST_REL = TOOL_REL / "open-git-public-source-allowlist.json"
 LEGACY_PUBLIC_REL = Path("cpf-tools/release/public")
 RELEASE_DIR_NAME = "cpf-release"
 OPEN_GIT_DIR_NAME = "open-git"
@@ -244,18 +247,39 @@ def canonical_source_state(root: Path) -> dict[str, Any]:
         raise OpenGitReleaseError(f"cannot parse CPF source identity: {exc}") from exc
 
 
-def require_clean_private_git(root: Path) -> str:
+def private_git_context(root: Path) -> dict[str, Any]:
+    """Read private Git provenance without mutating or requiring a clean tree.
+
+    The current Local Working Tree is a valid Source Authority for CPF release work.
+    Git is provenance only.  cpf-release itself must never be tracked by the private
+    development repository.
+    """
     git = shutil.which("git")
     if not git or not (root / ".git").exists():
-        # ZIP/offline QA mode: canonical source identity remains authoritative.
-        return "NO_GIT_OFFLINE_SOURCE"
+        return {
+            "head": "NO_GIT_OFFLINE_SOURCE",
+            "branch": "NO_GIT_OFFLINE_SOURCE",
+            "statusShort": [],
+            "dirty": False,
+            "releaseTracked": False,
+        }
     inside = run([git, "rev-parse", "--is-inside-work-tree"], root, capture=True)
     if inside.lower() != "true":
         raise OpenGitReleaseError("private source is not a Git working tree")
-    dirty = run([git, "status", "--porcelain=v1", "--untracked-files=all"], root, capture=True)
-    if dirty:
-        raise OpenGitReleaseError("private source working tree must be clean before Open Git release preparation")
-    return run([git, "rev-parse", "HEAD"], root, capture=True)
+    tracked = run([git, "ls-files", RELEASE_DIR_NAME], root, capture=True)
+    if tracked:
+        raise OpenGitReleaseError("cpf-release must not be tracked by the private development repository")
+    status_text = run([git, "status", "--short", "--untracked-files=all"], root, capture=True)
+    status_lines = [line for line in status_text.splitlines() if line.strip()]
+    branch = run([git, "rev-parse", "--abbrev-ref", "HEAD"], root, capture=True)
+    head = run([git, "rev-parse", "HEAD"], root, capture=True)
+    return {
+        "head": head,
+        "branch": branch,
+        "statusShort": status_lines,
+        "dirty": bool(status_lines),
+        "releaseTracked": False,
+    }
 
 
 def canonical_remote(root: Path, explicit: str | None) -> str:
@@ -348,7 +372,7 @@ def _repo_coordinate(repo: Path, path: Path) -> tuple[str, str] | None:
     return group, artifact
 
 
-def sanitize_binary_repository(root: Path, raw_repo: Path, final_repo: Path) -> dict[str, Any]:
+def sanitize_binary_repository(root: Path, raw_repo: Path, final_repo: Path, profile: str = "binary") -> dict[str, Any]:
     if final_repo.exists():
         shutil.rmtree(final_repo)
     shutil.copytree(raw_repo, final_repo)
@@ -371,14 +395,9 @@ def sanitize_binary_repository(root: Path, raw_repo: Path, final_repo: Path) -> 
             path.unlink()
             continue
         owner = str(row.get("ownerPath") or "")
-        config = policy["sourceJarPolicy" if kind == "sources" else "javadocJarPolicy"]
-        if _owner_allowed(owner, config):
-            if kind == "sources":
-                kept_sources += 1
-            else:
-                kept_javadocs += 1
-            continue
-        removed.append({"path": path.relative_to(final_repo).as_posix(), "kind": kind, "ownerPath": owner, "artifactId": str(row.get("artifactId") or "")})
+        # Both profiles publish framework binaries only. Source Profile exposes source
+        # through an explicit source-tree allowlist, never through sources/javadoc JARs.
+        removed.append({"path": path.relative_to(final_repo).as_posix(), "kind": kind, "ownerPath": owner, "artifactId": str(row.get("artifactId") or ""), "profile": profile})
         path.unlink()
 
     return {
@@ -432,7 +451,7 @@ def _artifact_exists(repo: Path, group: str, artifact: str, version: str) -> boo
     return base.is_dir() and any(p.is_dir() for p in base.iterdir())
 
 
-def verify_binary_repository(root: Path, repo: Path, version: str) -> dict[str, Any]:
+def verify_binary_repository(root: Path, repo: Path, version: str, profile: str = "binary") -> dict[str, Any]:
     if not repo.is_dir():
         raise OpenGitReleaseError(f"Open Git binary repository missing: {repo}")
     policy = load_json(root / ARTIFACT_POLICY_REL)
@@ -461,9 +480,7 @@ def verify_binary_repository(root: Path, repo: Path, version: str) -> dict[str, 
                 findings.append(f"unclassified {kind} artifact: {path.relative_to(repo)}")
                 continue
             owner = str(row.get("ownerPath") or "")
-            config = policy["sourceJarPolicy" if kind == "sources" else "javadocJarPolicy"]
-            if not _owner_allowed(owner, config):
-                findings.append(f"forbidden {kind} artifact owner={owner}: {path.relative_to(repo)}")
+            findings.append(f"forbidden {kind} artifact in Open Git {profile} profile owner={owner}: {path.relative_to(repo)}")
             if kind == "sources": source_count += 1
             else: javadoc_count += 1
         else:
@@ -510,7 +527,74 @@ def verify_binary_repository(root: Path, repo: Path, version: str) -> dict[str, 
     }
 
 
-def verify_open_git_tree(open_git: Path) -> dict[str, Any]:
+def _public_source_matches(root: Path, allowlist: dict[str, Any]) -> list[Path]:
+    files: set[Path] = set()
+    for rule in allowlist.get("rules", []):
+        pattern = str(rule.get("pattern") or "").replace("\\", "/")
+        matches = sorted(p for p in root.glob(pattern) if p.is_file())
+        if rule.get("required") and not matches:
+            raise OpenGitReleaseError(f"required public source allowlist rule matched 0 files: {pattern}")
+        files.update(matches)
+    return sorted(files)
+
+
+def project_optional_framework_sources(root: Path, open_git: Path, profile: str) -> dict[str, Any]:
+    target = open_git / "framework-source"
+    if target.exists():
+        shutil.rmtree(target)
+    if profile == "binary":
+        return {"profile": profile, "fileCount": 0, "target": None}
+    if profile != "source":
+        raise OpenGitReleaseError(f"unsupported Open Git release profile: {profile}")
+    allowlist = load_json(root / PUBLIC_SOURCE_ALLOWLIST_REL)
+    if allowlist.get("defaultPolicy") != "DENY":
+        raise OpenGitReleaseError("Open Git public source allowlist must be default-deny")
+    forbidden_segments = set(map(str, allowlist.get("forbiddenPathSegments", [])))
+    forbidden_prefixes = tuple(map(str, allowlist.get("forbiddenPathPrefixes", [])))
+    files = _public_source_matches(root, allowlist)
+    copied = 0
+    for source in files:
+        rel = source.relative_to(root).as_posix()
+        parts = set(source.relative_to(root).parts)
+        if rel.startswith(forbidden_prefixes) or parts.intersection(forbidden_segments):
+            raise OpenGitReleaseError(f"forbidden internal source matched public allowlist: {rel}")
+        if source.suffix.lower() != ".java":
+            raise OpenGitReleaseError(f"non-Java framework source matched public allowlist: {rel}")
+        dest = target / source.relative_to(root)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, dest)
+        copied += 1
+    if copied == 0:
+        raise OpenGitReleaseError("Open Git source profile produced no framework public source")
+    return {"profile": profile, "fileCount": copied, "target": str(target)}
+
+
+def verify_framework_source_projection(root: Path, open_git: Path, profile: str) -> dict[str, Any]:
+    target = open_git / "framework-source"
+    if profile == "binary":
+        if target.exists():
+            raise OpenGitReleaseError("binary profile must not contain framework-source")
+        return {"profile": profile, "fileCount": 0}
+    allowlist = load_json(root / PUBLIC_SOURCE_ALLOWLIST_REL)
+    expected = {p.relative_to(root).as_posix() for p in _public_source_matches(root, allowlist)}
+    if not target.is_dir():
+        raise OpenGitReleaseError("source profile framework-source projection missing")
+    actual = {p.relative_to(target).as_posix() for p in target.rglob("*.java") if p.is_file()}
+    if actual != expected:
+        missing = sorted(expected - actual)[:20]
+        extra = sorted(actual - expected)[:20]
+        raise OpenGitReleaseError(f"source profile allowlist projection drift missing={missing} extra={extra}")
+    for rel in sorted(actual):
+        parts = set(Path(rel).parts)
+        if parts.intersection(set(map(str, allowlist.get("forbiddenPathSegments", [])))):
+            raise OpenGitReleaseError(f"internal source leaked into source profile: {rel}")
+    non_java = [p.relative_to(target).as_posix() for p in target.rglob("*") if p.is_file() and p.suffix.lower() != ".java"]
+    if non_java:
+        raise OpenGitReleaseError(f"non-source file leaked into framework-source: {non_java[:20]}")
+    return {"profile": profile, "fileCount": len(actual)}
+
+
+def verify_open_git_tree(root: Path, open_git: Path, profile: str = "binary") -> dict[str, Any]:
     required = ["cpf-member", "cpf-external", "cpf-backoffice", "cpf-backoffice-web", "cpf-education", "bin"]
     missing = [item for item in required if not (open_git / item).exists()]
     if missing:
@@ -519,6 +603,7 @@ def verify_open_git_tree(open_git: Path) -> dict[str, Any]:
     leaked = [name for name in forbidden_roots if (open_git / name).exists()]
     if leaked:
         raise OpenGitReleaseError(f"private framework source leaked into Open Git: {leaked}")
+    framework_source = verify_framework_source_projection(root, open_git, profile)
     if (open_git / "domains").exists():
         raise OpenGitReleaseError("duplicate Open Git domains catalog is forbidden; physical cpf-<domain> projects are authoritative")
     for project in ("cpf-member", "cpf-external", "cpf-backoffice"):
@@ -533,7 +618,7 @@ def verify_open_git_tree(open_git: Path) -> dict[str, Any]:
         if not path.is_file() or path.suffix.lower() not in {".jar", ".war"}:
             continue
         rel = path.relative_to(open_git).as_posix()
-        if rel == "gradle/wrapper/gradle-wrapper.jar":
+        if rel in {"gradle/wrapper/gradle-wrapper.jar", "bin/lib/cpf-cli.jar"}:
             continue
         archives.append(rel)
     if archives:
@@ -541,7 +626,7 @@ def verify_open_git_tree(open_git: Path) -> dict[str, Any]:
     edu_build = open_git / "cpf-education/build.gradle"
     if edu_build.is_file() and "project(" in edu_build.read_text(encoding="utf-8"):
         raise OpenGitReleaseError("Open Git EDU build must consume published CPF artifacts, not private project dependencies")
-    return {"status": "PASS", "requiredPaths": len(required), "forbiddenRootLeakage": 0, "jarWarCount": 0}
+    return {"status": "PASS", "profile": profile, "requiredPaths": len(required), "forbiddenRootLeakage": 0, "jarWarCount": 0, "frameworkSourceFiles": framework_source.get("fileCount", 0)}
 
 
 def write_file_manifest(root: Path, target: Path, output: Path) -> int:
@@ -576,23 +661,83 @@ def write_status_md(path: Path, result: dict[str, Any]) -> None:
         "",
         f"- Status: **{result.get('result', result.get('status'))}**",
         f"- Source Identity: `{result.get('sourceIdentitySha256', '')}`",
+        f"- Private Repository Root: `{result.get('privateRepositoryRoot', '')}`",
+        f"- Private Git Branch: `{result.get('privateGitBranch', '')}`",
         f"- Private Git SHA: `{result.get('privateGitSha', '')}`",
+        f"- Private Working Tree Dirty: {result.get('privateGitDirty', False)}",
+        f"- Private cpf-release Tracked: {result.get('privateMasterReleaseTracked', False)}",
         f"- Platform Version: `{result.get('platformVersion', '')}`",
+        f"- Release Profile: `{result.get('releaseProfile', 'binary')}`",
         f"- Open Git Files: {result.get('openGitFileCount', 0)}",
         f"- Binary Repository Files: {result.get('binaryFileCount', 0)}",
-        f"- Changed Files Ready to Commit: {result.get('changedFiles', 0)}",
+        f"- Open Git Working Tree Changes: {result.get('changedFiles', 0)}",
         f"- Commit Executed: {result.get('commitExecuted', False)}",
         f"- Push Executed: {result.get('pushExecuted', False)}",
+        f"- User Review Required: {result.get('userReviewRequired', True)}",
+        "",
+        "## Private Git Status --short",
+        "",
+        *( ["```text", *result.get('privateGitStatusShort', []), "```"] if result.get('privateGitStatusShort') else ["`(clean or Git unavailable in offline source)`"] ),
         "",
         "## Paths",
         "",
         f"- Open Git: `{result.get('openGit', '')}`",
         f"- Binary Repository: `{result.get('binaryRepository', '')}`",
         "",
-        "Open Git commit/push는 자동 실행하지 않습니다. `READY_TO_COMMIT` 이후 사용자가 직접 확인하고 수행합니다.",
+        "Release Tool은 git add/commit/push를 실행하지 않습니다. VERIFIED 결과를 사용자가 검토한 뒤 cpf-release/open-git에서 직접 Git 반영합니다.",
     ]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+
+def write_user_git_commands(path: Path, result: dict[str, Any]) -> None:
+    """Write executable user-review Git commands without executing Git writes.
+
+    These commands target only the Fresh Open Git working repository. cpf-release is
+    never a Private master commit target. The file is generated only after VERIFIED.
+    """
+    if result.get("result") not in {"VERIFIED", "VERIFIED_NO_CHANGES"}:
+        return
+    open_git = str(result.get("openGit") or "").replace("'", "''")
+    lines = [
+        "# CPF Open Git — User Git Commands",
+        "",
+        "> Release Tool은 아래 명령을 실행하지 않습니다. 모든 Release Gate PASS와 사용자 검토 후 Open Git에서만 직접 실행합니다.",
+        "> `cpf-release/` 결과는 CPF Private master Commit/Push 대상이 아닙니다.",
+        "",
+        "## PowerShell",
+        "",
+        "```powershell",
+        f"Set-Location -LiteralPath '{open_git}'",
+        "git status --short",
+        "git diff --check",
+        "$branch=(git branch --show-current).Trim(); if([string]::IsNullOrWhiteSpace($branch)){throw 'OPEN GIT BRANCH NOT RESOLVED'}",
+        "git add -A",
+        "git diff --cached --check",
+        "git status --short",
+        'git commit -m "CPF Open Git $(Get-Date -Format yyyyMMdd_HHmmss)"',
+        "git push origin $branch",
+        'Write-Host "PUSHED_SHA=$((git rev-parse HEAD).Trim())"',
+        "git status --short",
+        "```",
+        "",
+        "## POSIX shell",
+        "",
+        "```bash",
+        f"cd -- '{open_git}'",
+        "git status --short",
+        "git diff --check",
+        'branch=$(git branch --show-current); test -n "$branch"',
+        "git add -A",
+        "git diff --cached --check",
+        "git status --short",
+        'git commit -m "CPF Open Git $(date +%Y%m%d_%H%M%S)"',
+        'git push origin "$branch"',
+        "printf 'PUSHED_SHA=%s\\n' \"$(git rev-parse HEAD)\"",
+        "git status --short",
+        "```",
+    ]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 def platform_version(root: Path) -> str:
     props = root / "gradle/cpf-platform.properties"
@@ -605,6 +750,87 @@ def platform_version(root: Path) -> str:
 
 def _legacy_backend(root: Path):
     return load_module(root / LEGACY_PUBLIC_REL / "publish-cpf-public-repository.py", "cpf_legacy_public_release_backend")
+
+
+def build_cross_platform_cli(root: Path, staging: Path, source_identity: str, version: str) -> dict[str, Any]:
+    """Build the single Java CPF CLI implementation into the Open Git workspace.
+
+    The default Binary Profile must never project these Java sources. Only the compiled
+    cpf-cli.jar plus thin OS wrappers are customer-visible.
+    """
+    sources = [
+        root / "cpf-tools/runtime/cli/java/CpfCli.java",
+        root / "cpf-tools/runtime/bootstrap/CpfBootstrap.java",
+        root / "cpf-tools/runtime/cli/java/CpfGeneratorLauncher.java",
+    ]
+    missing = [str(path.relative_to(root)) for path in sources if not path.is_file()]
+    if missing:
+        raise OpenGitReleaseError(f"CPF Java CLI source missing: {missing}")
+    java_home = os.environ.get("JAVA_HOME", "").strip()
+    javac = Path(java_home) / "bin" / ("javac.exe" if os.name == "nt" else "javac") if java_home else Path(shutil.which("javac") or "")
+    jar = Path(java_home) / "bin" / ("jar.exe" if os.name == "nt" else "jar") if java_home else Path(shutil.which("jar") or "")
+    if not javac.is_file() or not jar.is_file():
+        raise OpenGitReleaseError("Java JDK javac/jar is required to build cpf-cli.jar")
+    target = staging / "bin/lib/cpf-cli.jar"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="cpf-open-git-cli-") as td:
+        work = Path(td); classes = work / "classes"; classes.mkdir()
+        javac_version = run([str(javac), "-version"], root, capture=True)
+        match = re.search(r"(?:javac\s+)?(\d+)(?:[.\s]|$)", javac_version)
+        if not match or int(match.group(1)) != 25:
+            raise OpenGitReleaseError(f"Java 25 javac is required to build cpf-cli.jar, actual={javac_version or 'UNKNOWN'}")
+        run([str(javac), "--release", "25", "-encoding", "UTF-8", "-Xlint:all", "-Werror", "-d", str(classes), *map(str, sources)], root)
+        (classes / "cpf-cli.properties").write_text(
+            f"version={version}\nsourceIdentitySha256={source_identity}\ncapabilityProfile=PUBLIC\nrequiredJavaFeature=25\n", encoding="utf-8", newline="\n"
+        )
+        run([str(jar), "--create", "--file", str(target), "--main-class", "CpfCli", "-C", str(classes), "."], root)
+    if not target.is_file():
+        raise OpenGitReleaseError("cpf-cli.jar build did not produce output")
+    return {"status": "PASS", "path": "bin/lib/cpf-cli.jar", "sha256": sha256(target), "sourceIdentitySha256": source_identity}
+
+
+def verify_cross_platform_cli(open_git: Path, expected_source_identity: str | None = None) -> dict[str, Any]:
+    required = ["bin/cpf", "bin/cpf.cmd", "bin/cpf.ps1", "bin/lib/cpf-cli.jar"]
+    missing = [path for path in required if not (open_git / path).is_file()]
+    if missing:
+        raise OpenGitReleaseError(f"CPF cross-platform CLI missing: {missing}")
+    forbidden_sources = [
+        path.relative_to(open_git).as_posix()
+        for path in open_git.rglob("*.java")
+        if "framework-source" not in path.relative_to(open_git).parts
+    ]
+    if forbidden_sources:
+        raise OpenGitReleaseError(f"CPF CLI/internal Java source leaked into Open Git: {forbidden_sources[:20]}")
+    shell = (open_git / "bin/cpf").read_text(encoding="utf-8")
+    cmd = (open_git / "bin/cpf.cmd").read_text(encoding="utf-8")
+    ps1 = (open_git / "bin/cpf.ps1").read_text(encoding="utf-8")
+    for name, text in (("bin/cpf", shell), ("bin/cpf.cmd", cmd), ("bin/cpf.ps1", ps1)):
+        if "cpf-cli.jar" not in text or "java" not in text.lower():
+            raise OpenGitReleaseError(f"CPF wrapper is not Java CLI thin wrapper: {name}")
+        forbidden_logic = ("docker compose", "gradlew", "domain new", "domain sync")
+        if any(token in text.lower() for token in forbidden_logic):
+            raise OpenGitReleaseError(f"CPF wrapper contains duplicated business logic: {name}")
+    cli_jar = open_git / "bin/lib/cpf-cli.jar"
+    with zipfile.ZipFile(cli_jar) as archive:
+        names = set(archive.namelist())
+        leaked = sorted(name for name in names if name.endswith(".java"))
+        if leaked:
+            raise OpenGitReleaseError(f"CPF CLI implementation source leaked inside cpf-cli.jar: {leaked[:20]}")
+        required_classes = {"CpfCli.class", "CpfBootstrap.class", "CpfGeneratorLauncher.class", "cpf-cli.properties"}
+        missing_entries = sorted(required_classes - names)
+        if missing_entries:
+            raise OpenGitReleaseError(f"cpf-cli.jar canonical implementation entries missing: {missing_entries}")
+    java = shutil.which("java")
+    version_result = None
+    if java:
+        cp = subprocess.run([java, "-jar", str(cli_jar), "version"], cwd=open_git,
+                            text=True, encoding="utf-8", errors="replace", capture_output=True, check=False)
+        if cp.returncode != 0:
+            raise OpenGitReleaseError(f"cpf-cli.jar version execution failed: {cp.stdout}{cp.stderr}")
+        version_result = cp.stdout
+        if expected_source_identity and f"SOURCE_IDENTITY={expected_source_identity}" not in cp.stdout:
+            raise OpenGitReleaseError("cpf-cli.jar Source Identity mismatch")
+    return {"status": "PASS", "requiredFiles": len(required), "javaExecution": "PASS" if version_result is not None else "NOT_EXECUTED", "sourceLeakage": 0}
 
 
 def _prepare_workspace(root: Path, staging: Path, source_identity: str, env: dict[str, str]) -> dict[str, Any]:
@@ -620,8 +846,10 @@ def _prepare_workspace(root: Path, staging: Path, source_identity: str, env: dic
     return ready
 
 
-def build_release(root: Path, remote_arg: str | None, generator_artifacts: str | None, *, skip_build: bool = False) -> dict[str, Any]:
+def build_release(root: Path, remote_arg: str | None, generator_artifacts: str | None, *, profile: str = "binary", skip_build: bool = False) -> dict[str, Any]:
     root = ensure_private_root(root)
+    if profile not in {"binary", "source"}:
+        raise OpenGitReleaseError(f"unsupported Open Git release profile: {profile}")
 
     # Every accepted build attempt invalidates the previous generated release first.
     # Safety checks run before deletion and cleanup is restricted to exact <CPF_ROOT>/cpf-release.
@@ -638,14 +866,15 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     final_repo = release / BINARY_DIR_NAME
     open_git = release / OPEN_GIT_DIR_NAME
 
-    release_stage(2, "Private Source 확인", "Clean Working Tree / Source Identity / Version / Remote")
-    private_git_sha = require_clean_private_git(root)
+    release_stage(2, "Private Source 확인", "Local Working Tree / Git provenance / Source Identity / Version / Remote")
+    private_git = private_git_context(root)
+    private_git_sha = str(private_git["head"])
     source_state = canonical_source_state(root)
     source_identity = str(source_state["contentSha256"])
     version = platform_version(root)
     remote = canonical_remote(root, remote_arg)
 
-    release_stage(3, "Artifact 공개 정책 확인", "Binary / sources.jar / javadoc.jar Default-Deny")
+    release_stage(3, "Artifact 공개 정책 확인", f"profile={profile} / sources.jar=DENY / javadoc.jar=DENY")
     verify_artifact_catalog_contract(root)
 
     backend = _legacy_backend(root)
@@ -668,18 +897,21 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     old_verifier = root / LEGACY_PUBLIC_REL / "verify-cpf-public-binary-repository.py"
     run([sys.executable, str(old_verifier), "--root", str(root), "--repository", str(raw_repo), "--version", version], root)
 
-    release_stage(8, "Artifact 공개 필터 적용", "허용된 Binary/Source/Javadoc만 유지")
-    sanitize_result = sanitize_binary_repository(root, raw_repo, final_repo)
+    release_stage(8, "Artifact 공개 필터 적용", f"profile={profile} / Binary만 유지")
+    sanitize_result = sanitize_binary_repository(root, raw_repo, final_repo, profile)
 
     release_stage(9, "최종 Binary Repository 검증", "Maven 좌표 / Dependency / Source disclosure")
-    binary_result = verify_binary_repository(root, final_repo, version)
+    binary_result = verify_binary_repository(root, final_repo, version, profile)
 
     release_stage(10, "Open Git Source Projection", "Generated Domain / Backoffice / EDU / Developer Command")
     env = dict(os.environ)
     env["CPF_MAVEN_REPOSITORY_URL"] = final_repo.resolve().as_uri()
     env["CPF_VERSION"] = version
     ready = _prepare_workspace(root, staging, source_identity, env)
-    verify_open_git_tree(staging)
+    cli_result = build_cross_platform_cli(root, staging, source_identity, version)
+    source_projection = project_optional_framework_sources(root, staging, profile)
+    verify_open_git_tree(root, staging, profile)
+    verify_cross_platform_cli(staging, source_identity)
 
     release_stage(11, "Open Git Fresh Clone", "이전 Open Git Working Copy 재사용 금지")
     git = shutil.which("git") or "git"
@@ -687,7 +919,8 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     if run([git, "status", "--porcelain=v1", "--untracked-files=all"], open_git, capture=True):
         raise OpenGitReleaseError("fresh Open Git clone unexpectedly dirty")
     backend.sync_public_surface(staging, open_git)
-    verify_open_git_tree(open_git)
+    verify_open_git_tree(root, open_git, profile)
+    verify_cross_platform_cli(open_git, source_identity)
 
     release_stage(12, "Fresh Workspace Build/Test", "Open Git + isolated Binary Repository")
     verifier = open_git / "tools" / ("verify-open-git-workspace.ps1" if os.name == "nt" else "verify-open-git-workspace.sh")
@@ -699,12 +932,12 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     else:
         run(["bash", str(verifier)], open_git, env=env)
 
-    release_stage(13, "Open Git Staged Diff 검증", "git add -A / diff --cached --check; commit/push 미실행")
-    run([git, "add", "-A"], open_git)
-    run([git, "diff", "--cached", "--check"], open_git)
-    changed = [line for line in run([git, "diff", "--cached", "--name-only"], open_git, capture=True).splitlines() if line.strip()]
+    release_stage(13, "Open Git Working Tree 검증", "Git index/write 없이 diff/status 확인; 사용자 검토 전 add/commit/push 금지")
+    run([git, "diff", "--check"], open_git)
+    open_git_status = run([git, "status", "--short", "--untracked-files=all"], open_git, capture=True)
+    changed = [line for line in open_git_status.splitlines() if line.strip()]
 
-    release_stage(14, "Manifest / SHA / Status", "사용자 검토 가능한 최종 Release 결과 생성")
+    release_stage(14, "Manifest / SHA / Status", "VERIFIED 결과와 사용자 Git 반영용 read-only 정보 생성")
     open_file_count = write_file_manifest(root, open_git, reports / "OPEN_GIT_FILE_MANIFEST.csv")
     binary_file_count = write_artifact_manifest(final_repo, reports / "OPEN_GIT_ARTIFACT_MANIFEST.csv")
     write_json(reports / "OPEN_GIT_ARTIFACT_FILTER_RESULT.json", sanitize_result)
@@ -713,41 +946,53 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     result = {
         "schemaVersion": 1,
         "status": "PASS",
-        "result": "READY_TO_COMMIT" if changed else "NO_CHANGES",
+        "result": "VERIFIED" if changed else "VERIFIED_NO_CHANGES",
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "sourceIdentitySha256": source_identity,
+        "privateRepositoryRoot": str(root),
         "sourceFileCount": source_state.get("fileCount"),
         "privateGitSha": private_git_sha,
+        "privateGitBranch": private_git.get("branch"),
+        "privateGitStatusShort": private_git.get("statusShort", []),
+        "privateGitDirty": private_git.get("dirty", False),
+        "privateMasterReleaseTracked": private_git.get("releaseTracked", False),
         "platformVersion": version,
+        "releaseProfile": profile,
+        "frameworkSourceProjection": source_projection,
         "releaseRoot": str(release),
         "openGit": str(open_git),
         "binaryRepository": str(final_repo),
         "openGitFileCount": open_file_count,
         "binaryFileCount": binary_file_count,
         "changedFiles": len(changed),
+        "openGitStatusShort": changed,
         "publicStagingFileCount": ready.get("fileCount"),
         "generatorDistribution": generator_result,
+        "crossPlatformCli": cli_result,
         "sourceJarCount": binary_result.get("sourceJarCount"),
         "javadocJarCount": binary_result.get("javadocJarCount"),
+        "gitAddExecuted": False,
         "commitExecuted": False,
         "pushExecuted": False,
+        "userReviewRequired": True,
     }
     write_json(reports / "OPEN_GIT_RELEASE_STATUS.json", result)
     write_status_md(reports / "OPEN_GIT_RELEASE_STATUS.md", result)
+    write_user_git_commands(reports / "OPEN_GIT_USER_GIT_COMMANDS.md", result)
     # Successful release leaves only user-visible deliverables/reports/logs.
     shutil.rmtree(work)
     return result
 
 
-def check_release(root: Path) -> dict[str, Any]:
+def check_release(root: Path, profile: str = "binary") -> dict[str, Any]:
     root = ensure_private_root(root)
     release = verify_release_root_safety(root)
     open_git = release / OPEN_GIT_DIR_NAME
     binary = release / BINARY_DIR_NAME
     version = platform_version(root)
-    open_result = verify_open_git_tree(open_git)
-    binary_result = verify_binary_repository(root, binary, version)
-    result = {"status": "PASS", "openGit": open_result, "binaryRepository": binary_result, "commitExecuted": False, "pushExecuted": False}
+    open_result = verify_open_git_tree(root, open_git, profile)
+    binary_result = verify_binary_repository(root, binary, version, profile)
+    result = {"status": "PASS", "releaseProfile": profile, "openGit": open_result, "binaryRepository": binary_result, "commitExecuted": False, "pushExecuted": False}
     print(json.dumps(result, ensure_ascii=False))
     return result
 
@@ -762,6 +1007,7 @@ def status_release(root: Path) -> dict[str, Any]:
     print("--------------------")
     print(f"Source        : {'PASS' if result.get('sourceIdentitySha256') else 'FAIL'}")
     print(f"Package       : {result.get('status', 'UNKNOWN')}")
+    print(f"Profile       : {result.get('releaseProfile', 'binary')}")
     print(f"Binary        : {'PASS' if result.get('binaryFileCount', 0) else 'FAIL'}")
     print(f"Git Diff      : {result.get('changedFiles', 0)} files")
     print(f"Status        : {result.get('result', result.get('status', 'UNKNOWN'))}")
@@ -796,10 +1042,13 @@ def _upsert_owned_section(text: str, marker: str, next_anchor: str, block: str) 
 
 
 def setup_integration(root: Path) -> dict[str, Any]:
-    """Safely integrate the generated-release exclusion and canonical requirement.
+    """Currentize only generated-release integration owned by this release engine.
 
-    The function performs narrow textual insertions only; it never overwrites the
-    whole file from a stale baseline. This is intentionally safe to run after Codex.
+    Unified CPF CLI and governance are canonical product source. This compatibility
+    setup must never inject a second ``open-git`` CLI or overwrite current steering.
+    It may only add the generated ``cpf-release/`` exclusion when absent, then it
+    fail-closed validates that ``cpf release open-git`` is already wired through the
+    exactly-one Java CLI and canonical command catalog.
     """
     root = ensure_private_root(root)
     changed: list[str] = []
@@ -807,74 +1056,59 @@ def setup_integration(root: Path) -> dict[str, Any]:
     ignore = root / ".gitignore"
     text = ignore.read_text(encoding="utf-8-sig") if ignore.is_file() else ""
     if "/cpf-release/" not in {line.strip() for line in text.splitlines()}:
-        if text and not text.endswith("\n"): text += "\n"
+        if text and not text.endswith("\n"):
+            text += "\n"
         text += "\n# CPF Open Git release output (generated, never private-source tracked)\n/cpf-release/\n"
         ignore.write_text(text, encoding="utf-8")
         changed.append(".gitignore")
 
     source_state = root / "cpf-tools/verification/tools/cpf-source-state.py"
-    text = source_state.read_text(encoding="utf-8")
-    if '"cpf-release"' not in text:
+    source_text = source_state.read_text(encoding="utf-8")
+    if '"cpf-release"' not in source_text:
         anchor = 'GENERATED_PARTS = {'
-        if anchor not in text:
+        if anchor not in source_text:
             raise OpenGitReleaseError("cpf-source-state GENERATED_PARTS anchor missing")
-        text = text.replace(anchor, anchor + '\n    "cpf-release",', 1)
-        source_state.write_text(text, encoding="utf-8")
+        source_text = source_text.replace(anchor, anchor + '\n    "cpf-release",', 1)
+        source_state.write_text(source_text, encoding="utf-8")
         changed.append("cpf-tools/verification/tools/cpf-source-state.py")
 
-    cli = root / "cpf-tools/runtime/cli/cpf.py"
-    cli_text = cli.read_text(encoding="utf-8")
-    if "sub.add_parser('open-git'" not in cli_text:
-        import_anchor = "import argparse, json, os, shutil, sys, tempfile, uuid"
-        parser_anchor = "    vsub.add_parser('all')"
-        dispatch_anchor = "    ns=p.parse_args(); root=repo_root(ns.root)"
-        if import_anchor not in cli_text or parser_anchor not in cli_text or dispatch_anchor not in cli_text:
-            raise OpenGitReleaseError("CPF CLI integration anchor changed; refusing broad rewrite")
-        cli_text = cli_text.replace(import_anchor, import_anchor + ", subprocess", 1)
-        cli_text = cli_text.replace(
-            parser_anchor,
-            parser_anchor + "\n\n    open_git=sub.add_parser('open-git',help='Open Git release package')\n    open_git.add_argument('command',nargs='?',default='build',choices=['build','check','status'])",
-            1,
-        )
-        dispatch = dispatch_anchor + "\n    if ns.group=='open-git':\n        tool=root/'cpf-tools/release/open-git/cpf_open_git.py'\n        if not tool.is_file(): raise DomainError(f'Open Git release tool이 없습니다: {tool}')\n        return subprocess.run([sys.executable,str(tool),ns.command,'--root',str(root)],cwd=root,check=False).returncode"
-        cli_text = cli_text.replace(dispatch_anchor, dispatch, 1)
-        cli.write_text(cli_text, encoding="utf-8")
-        changed.append("cpf-tools/runtime/cli/cpf.py")
+    java_cli = root / "cpf-tools/runtime/cli/java/CpfCli.java"
+    if not java_cli.is_file():
+        raise OpenGitReleaseError("Unified CPF Java CLI source is missing")
+    java_text = java_cli.read_text(encoding="utf-8")
+    if "cpf release open-git" not in java_text or '"release"' not in java_text:
+        raise OpenGitReleaseError("Unified CPF CLI does not own 'cpf release open-git'")
+
+    command_catalog = root / "cpf-tools/runtime/cli/contracts/cpf-command-catalog.json"
+    if not command_catalog.is_file():
+        raise OpenGitReleaseError("Canonical CPF command catalog is missing")
+    catalog = load_json(command_catalog)
+    release_namespaces = [row for row in catalog.get("internalNamespaces", []) if row.get("namespace") == "release"]
+    if len(release_namespaces) != 1 or "open-git" not in release_namespaces[0].get("commands", []):
+        raise OpenGitReleaseError("Canonical command catalog does not declare internal 'release open-git'")
+
+    legacy_cli = root / "cpf-tools/runtime/cli/cpf.py"
+    if legacy_cli.is_file() and "sub.add_parser('open-git'" in legacy_cli.read_text(encoding="utf-8"):
+        raise OpenGitReleaseError("legacy independent 'cpf open-git' surface is still active")
 
     canonical = root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
-    text = canonical.read_text(encoding="utf-8")
-    marker = "### 21.3 Open Git Release Packaging"
-    block = """### 21.3 Open Git Release Packaging
-
-Open Git 릴리즈는 Private CPF Source에서 생성하는 **검증된 Projection**이며 독립 개발 정본이 아니다.
-
-- Private Repository Root의 생성 전용 디렉터리는 `cpf-release/`로 고정하고 Private Git 및 Source Identity에서 제외한다.
-- 실행할 때마다 기존 `cpf-release/`를 안전하게 전체 제거한 뒤 신규 생성한다. 이전 실행의 stale 파일을 재사용하지 않는다.
-- 최종 로컬 구조는 `cpf-release/open-git`, `cpf-release/binary-repository`, `cpf-release/reports`, `cpf-release/logs`를 기본으로 한다.
-- `open-git`은 Generated Customer Domain, Backoffice 고객 개발 Source, EDU Source, Developer Setup/Bootstrap/Build/Test/Domain 명령, 공개 문서·설정만 포함한다.
-- `cpf-core`, `cpf-common`, ADM, Gateway, Batch Runtime, Starter/Internal Provider 등 Framework 내부 구현 Source Tree는 Open Git에 포함하지 않는다.
-- Binary Repository는 Framework 사용에 필요한 Public BOM/API/SPI/Starter/Runtime/Generator artifact를 Maven-compatible 구조로 제공한다.
-- `sources.jar`/`javadoc.jar`도 Source 공개로 간주한다. 기본은 DENY이며 Common과 Public Starter 계열처럼 명시적으로 허용된 개발 계약만 공개한다. ADM/Gateway/Batch/Internal Runtime 계열은 binary-only다.
-- Open Git Source Workspace에는 누적 CPF JAR/WAR를 포함하지 않는다. Binary Repository는 별도 형제 Deliverable로 생성한다.
-- 공개 Surface와 Artifact는 Default-Deny 정책으로 분류하며 Private Source, internal/provider, governance/QA/evidence, secret/credential leakage를 Release Blocker로 처리한다.
-- Open Git Working Repository는 매 Release마다 Remote에서 fresh clone하고 검증된 Projection으로 동기화한다.
-- Release Tool은 `git add -A`, `git diff --cached --check`, `READY_TO_COMMIT`까지만 수행한다. commit/push는 자동 실행하지 않고 사용자가 최종 확인 후 직접 수행한다.
-- Release 담당자 명령은 짧고 일관되게 `cpf open-git`, `cpf open-git check`, `cpf open-git status`를 Canonical UX로 한다. 내부 구현 파일명은 Owner와 역할을 명확히 드러내되 사용자에게 장황한 경로 호출을 요구하지 않는다.
-- Open Git 개발자 Workspace는 `cpf bootstrap`, `cpf build`, `cpf test`, `cpf verify`, `cpf domain new`, `cpf domain sync`, `cpf status`, `cpf stop`, `cpf reset`을 Canonical 개발 명령으로 제공한다. 기존 개별 Script는 호환 Wrapper로만 둘 수 있으며 서로 다른 실행 계약을 중복 구현하지 않는다.
-- 개발자 명령은 장시간 실행 중 현재 단계/전체 단계와 실제 하위 실행 로그를 콘솔에 계속 표시하고 Timestamp 로그를 동시에 남긴다. 종료 시 PASS/FAIL, ExitCode, 시작/완료 시각, 로그 전체 경로, 실패 원인과 다음 행동을 표시한다.
-- `cpf bootstrap`은 Fresh Clone 개발자가 한 번에 환경 구성과 Build/Test/Runtime Health까지 진행할 수 있어야 하며 기본 성공 기준은 `CPF LOCAL DEVELOPMENT READY`다. `cpf reset`은 명시적 사용자 확인 없이는 Local Data 삭제를 시작하지 않는다.
-"""
-    text2 = _upsert_owned_section(text, marker, "## 22. EDU Canonical 35", block)
-    if text2 != text:
-        canonical.write_text(text2, encoding="utf-8")
-        changed.append("cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md")
+    canonical_text = canonical.read_text(encoding="utf-8")
+    if "### 21.3 Open Git Release Packaging" not in canonical_text or "cpf release open-git" not in canonical_text:
+        raise OpenGitReleaseError("Current Open Git canonical steering is not integrated")
 
     work_package = root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md"
-    if not work_package.exists():
-        work_package.write_text(WORK_PACKAGE_TEXT, encoding="utf-8")
-        changed.append("cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md")
+    if not work_package.is_file():
+        raise OpenGitReleaseError("Current Open Git work package is missing")
 
-    result = {"status": "PASS", "changed": changed, "commitExecuted": False, "pushExecuted": False}
+    result = {
+        "status": "PASS",
+        "changed": changed,
+        "canonicalCli": "cpf release open-git",
+        "gitAddExecuted": False,
+        "commitExecuted": False,
+        "pushExecuted": False,
+        "userReviewRequired": True,
+    }
     print(json.dumps(result, ensure_ascii=False))
     return result
 
@@ -886,9 +1120,9 @@ WORK_PACKAGE_TEXT = """# CPF Open Git Release Work Package
 - Canonical Requirement: `CPF_FINAL_TARGET_REQUIREMENTS.md` 21.3
 - Generated Root: `cpf-release/`
 - Private Git: `/cpf-release/` 전체 제외
-- Lifecycle: 기존 생성물 안전 전체 제거 → Fresh 생성 → Fresh Open Git clone → 검증 → `READY_TO_COMMIT`
+- Lifecycle: 기존 생성물 안전 전체 제거 → Fresh 생성 → Fresh Open Git clone → 검증 → `VERIFIED` → 사용자 검토 → 사용자 직접 Open Git commit/push
 - Automatic commit/push: 금지
-- Developer UX: `cpf bootstrap/build/test/verify/domain/status/stop/reset` 단일 명령 체계, 진행 단계 + Timestamp Log + PASS/FAIL + ExitCode + 다음 행동 출력
+- Developer UX: Java 기반 단일 `cpf` CLI. Public `bootstrap/domain-new/domain-sync/build/test/run/stop/reset/status`, Internal `dev/verify/publish/release` Namespace
 
 ## 공개 Source
 
@@ -896,7 +1130,7 @@ Generated Customer Domain, MBW Backoffice/Backoffice Web 개발 Source, `cpf-edu
 
 ## Binary 공개
 
-Framework 내부 Source Tree는 공개하지 않고 Maven-compatible Binary Repository로 소비한다. `sources.jar`와 `javadoc.jar`는 공개 Source로 간주해 Default-Deny하며 Common/Public Starter 계열만 명시 허용한다. Core/ADM/Gateway/Batch/Internal Runtime은 binary-only다.
+Framework 내부 Source Tree는 공개하지 않고 Maven-compatible Binary Repository로 소비한다. 기본 `binary` Profile은 Framework `sources.jar`/`javadoc.jar`를 0건으로 강제한다. Optional `source` Profile은 Canonical Public Source Allowlist의 승인 Source Tree만 별도 Projection한다.
 
 ## Acceptance
 
@@ -906,8 +1140,8 @@ Framework 내부 Source Tree는 공개하지 않고 Maven-compatible Binary Repo
 4. Binary Repository에서 허용되지 않은 sources/javadoc artifact가 0건이다.
 5. EDU/Generated Domain/Backoffice/Developer Command가 실제 Open Git Projection에 존재한다.
 6. Fresh Open Git clone 검증과 isolated Binary Repository 기반 Build/Test가 성공한다.
-7. Secret/Leakage/Manifest/SHA/Git diff gate를 통과한다.
-8. Tool은 commit/push를 실행하지 않는다.
+7. Secret/Leakage/Manifest/SHA/Git working-tree read-only gate를 통과한다.
+8. Tool은 git add/commit/push를 실행하지 않는다. `cpf-release/`는 Private master에 반영하지 않는다.
 9. Canonical 개발 명령은 짧은 단일 Dispatcher로 제공되고 기존 개별 Script는 동일 계약의 호환 Wrapper로 동작한다.
 10. 모든 장시간 개발 명령은 진행 단계와 로그를 실시간 표시하고 종료 시 PASS/FAIL, ExitCode, 시각, 로그 경로와 다음 행동을 출력한다.
 11. `cpf reset`은 명시 확인 전 destructive action을 수행하지 않는다.
@@ -917,6 +1151,9 @@ Framework 내부 Source Tree는 공개하지 않고 Maven-compatible Binary Repo
 def print_release_summary(result: dict[str, Any]) -> None:
     print("CPF Open Git Release")
     print("--------------------")
+    print(f"Root          : {result.get('privateRepositoryRoot', '')}")
+    print(f"Branch        : {result.get('privateGitBranch', '')}")
+    print(f"HEAD          : {result.get('privateGitSha', '')}")
     print(f"Source        : {'PASS' if result.get('sourceIdentitySha256') else result.get('status', 'UNKNOWN')}")
     print(f"Package       : {result.get('status', 'UNKNOWN')}")
     print(f"Binary        : {'PASS' if result.get('binaryFileCount', 0) else 'N/A'}")
@@ -933,13 +1170,14 @@ def main() -> int:
     parser.add_argument("--root", default=".")
     parser.add_argument("--remote")
     parser.add_argument("--generator-artifacts")
+    parser.add_argument("--profile", default="binary", choices=("binary", "source"), help="Open Git release profile; default is binary")
     args = parser.parse_args()
     root = Path(args.root).resolve()
     try:
         if args.action == "build":
-            result = build_release(root, args.remote, args.generator_artifacts)
+            result = build_release(root, args.remote, args.generator_artifacts, profile=args.profile)
         elif args.action == "check":
-            result = check_release(root)
+            result = check_release(root, args.profile)
         elif args.action == "status":
             result = status_release(root)
         else:

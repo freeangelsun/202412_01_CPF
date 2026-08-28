@@ -72,10 +72,10 @@ def test_release_template_bin_scripts_are_product_source(tmp_path: Path):
     # 제외하면 안 된다.
     template_bin = tmp_path / "cpf-tools" / "release" / "public" / "templates" / "bin"
     template_bin.mkdir(parents=True)
-    (template_bin / "cpf-bootstrap.sh").write_text("#!/bin/sh\necho bootstrap\n", encoding="utf-8")
+    (template_bin / "cpf").write_text("#!/bin/sh\nexec java -jar lib/cpf-cli.jar \"$@\"\n", encoding="utf-8")
     result = module.snapshot(tmp_path, "source")
     paths = {row["path"] for row in result["files"]}
-    assert "cpf-tools/release/public/templates/bin/cpf-bootstrap.sh" in paths
+    assert "cpf-tools/release/public/templates/bin/cpf" in paths
 
 
 def test_jvm_crash_and_heap_dump_artifacts_do_not_change_any_identity_scope(tmp_path: Path):

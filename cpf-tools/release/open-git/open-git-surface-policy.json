@@ -250,106 +250,6 @@
       "classification": "OPEN_GIT_DEPLOY_ASSET"
     },
     {
-      "source": "cpf-tools/runtime/bootstrap/CpfBootstrap.java",
-      "target": "bin/CpfBootstrap.java",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-bootstrap.ps1",
-      "target": "bin/cpf-bootstrap.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-bootstrap.sh",
-      "target": "bin/cpf-bootstrap.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-stop.ps1",
-      "target": "bin/cpf-stop.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-stop.sh",
-      "target": "bin/cpf-stop.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-reset.ps1",
-      "target": "bin/cpf-reset.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-reset.sh",
-      "target": "bin/cpf-reset.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-build.ps1",
-      "target": "bin/cpf-build.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-build.sh",
-      "target": "bin/cpf-build.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-test.ps1",
-      "target": "bin/cpf-test.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-test.sh",
-      "target": "bin/cpf-test.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/CpfGeneratorLauncher.java",
-      "target": "bin/CpfGeneratorLauncher.java",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-domain-new.ps1",
-      "target": "bin/cpf-domain-new.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-domain-new.sh",
-      "target": "bin/cpf-domain-new.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-domain-sync.ps1",
-      "target": "bin/cpf-domain-sync.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf-domain-sync.sh",
-      "target": "bin/cpf-domain-sync.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/open-git/templates/cpf.cmd",
-      "target": "cpf.cmd",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/open-git/templates/cpf",
-      "target": "cpf",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf.ps1",
-      "target": "bin/cpf.ps1",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
-      "source": "cpf-tools/release/public/templates/bin/cpf.sh",
-      "target": "bin/cpf.sh",
-      "classification": "OPEN_GIT_USER_SCRIPT"
-    },
-    {
       "source": "cpf-tools/release/open-git/templates/tools/verify-open-git-workspace.ps1",
       "target": "tools/verify-open-git-workspace.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
@@ -368,6 +268,31 @@
       "source": "cpf-tools/release/open-git/templates/cpf-education/build.gradle",
       "target": "cpf-education/build.gradle",
       "classification": "OPEN_GIT_EDUCATION_BUILD"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/cpf",
+      "target": "cpf",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/cpf.cmd",
+      "target": "cpf.cmd",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf",
+      "target": "bin/cpf",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf.cmd",
+      "target": "bin/cpf.cmd",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf.ps1",
+      "target": "bin/cpf.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
     }
   ],
   "allowedClassifications": [
@@ -381,7 +306,8 @@
     "OPEN_GIT_BOOTSTRAP",
     "OPEN_GIT_DEPLOY_ASSET",
     "PUBLIC_RELEASE_METADATA",
-    "PUBLIC_GENERATED_SOURCE"
+    "PUBLIC_GENERATED_SOURCE",
+    "OPEN_GIT_CLI_BINARY"
   ],
   "forbiddenPathPrefixes": [
     "cpf-core/",
@@ -428,5 +354,30 @@
       "name": "backoffice",
       "physicalProject": "cpf-backoffice"
     }
-  ]
+  ],
+  "gitWriteBoundary": {
+    "privateRepository": "READ_ONLY",
+    "privateForbiddenOperations": [
+      "add",
+      "commit",
+      "push",
+      "branch",
+      "tag",
+      "reset",
+      "restore",
+      "stash",
+      "clean"
+    ],
+    "openGitWorkingRepository": "STAGE_DIFF_ONLY",
+    "openGitAllowedToolOperations": [
+      "clone",
+      "status",
+      "add",
+      "diff"
+    ],
+    "commitPushOwner": "USER",
+    "automaticCommit": false,
+    "automaticPush": false,
+    "privateStateMustMatchBeforeAfter": true
+  }
 }

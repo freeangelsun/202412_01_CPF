@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import pytest
 import re
 import shutil
 import subprocess
@@ -40,11 +41,14 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
         "cpf-member/gradle.properties",
         "cpf-external/gradle.properties",
         "cpf-backoffice/gradle.properties",
-        "bin/cpf-bootstrap.ps1",
-        "bin/cpf-domain-new.ps1",
+        "bin/cpf",
+        "bin/cpf.cmd",
+        "bin/cpf.ps1",
         "tools/verify-open-git-workspace.ps1",
     ):
         assert (staging / required).exists(), required
+    for legacy in ("cpf-bootstrap", "cpf-domain-new", "cpf-domain-sync", "cpf-build", "cpf-test", "cpf-stop", "cpf-reset"):
+        assert not (staging / legacy).exists(), legacy
 
     assert not (staging / "domains").exists()
     assert not list(staging.rglob("cpf-domain.yaml"))
@@ -72,7 +76,7 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
     ]
     assert unexpected_archives == []
     assert "project(" not in (staging / "cpf-education/build.gradle").read_text(encoding="utf-8")
-    assert MODULE.verify_open_git_tree(staging)["status"] == "PASS"
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
 
 
 def test_binary_source_and_javadoc_policy_is_default_deny(tmp_path: Path):
@@ -92,16 +96,16 @@ def test_binary_source_and_javadoc_policy_is_default_deny(tmp_path: Path):
         path.write_bytes(b"test")
 
     result = MODULE.sanitize_binary_repository(ROOT, raw, final)
-    assert (final / paths["common-source"].relative_to(raw)).is_file()
-    assert (final / paths["common-javadoc"].relative_to(raw)).is_file()
+    assert not (final / paths["common-source"].relative_to(raw)).exists()
+    assert not (final / paths["common-javadoc"].relative_to(raw)).exists()
     assert not (final / paths["core-source"].relative_to(raw)).exists()
     assert not (final / paths["batch-source"].relative_to(raw)).exists()
     assert (final / paths["common-binary"].relative_to(raw)).is_file()
     assert (final / paths["core-binary"].relative_to(raw)).is_file()
-    assert result["keptSources"] == 1
-    assert result["keptJavadocs"] == 1
+    assert result["keptSources"] == 0
+    assert result["keptJavadocs"] == 0
     removed = {row["artifactId"] for row in result["removedSourceOrJavadoc"]}
-    assert {"cpf-core", "cpf-batch-api"}.issubset(removed)
+    assert {"cpf-common", "cpf-core", "cpf-batch-api"}.issubset(removed)
 
 
 def test_release_rebuild_deletes_only_exact_generated_root(tmp_path: Path):
@@ -152,7 +156,8 @@ def test_release_cleanup_refuses_symlink(tmp_path: Path, monkeypatch):
 def test_setup_integration_is_narrow_and_idempotent(tmp_path: Path):
     root = tmp_path / "cpf"
     (root / "cpf-tools/verification/tools").mkdir(parents=True)
-    (root / "cpf-tools/runtime/cli").mkdir(parents=True)
+    (root / "cpf-tools/runtime/cli/java").mkdir(parents=True)
+    (root / "cpf-tools/runtime/cli/contracts").mkdir(parents=True)
     (root / "cpf-docs/governance").mkdir(parents=True)
     (root / "cpf-docs/work/current").mkdir(parents=True)
     (root / "settings.gradle").write_text("rootProject.name='x'\n", encoding="utf-8")
@@ -160,20 +165,27 @@ def test_setup_integration_is_narrow_and_idempotent(tmp_path: Path):
     (root / "cpf-tools/verification/tools/cpf-source-state.py").write_text(
         'GENERATED_PARTS = {\n    ".git",\n}\n', encoding="utf-8"
     )
-    cli = root / "cpf-tools/runtime/cli/cpf.py"
-    cli.write_text(
-        "import argparse, json, os, shutil, sys, tempfile, uuid\n"
-        "def main():\n"
-        "    p=argparse.ArgumentParser()\n"
-        "    sub=p.add_subparsers(dest='group',required=True)\n"
-        "    verify=sub.add_parser('verify')\n"
-        "    vsub=verify.add_subparsers(dest='command',required=True)\n"
-        "    vsub.add_parser('all')\n"
-        "    ns=p.parse_args(); root=repo_root(ns.root)\n",
+    legacy_cli = root / "cpf-tools/runtime/cli/cpf.py"
+    legacy_cli.write_text("# low-level generator engine; no Open Git surface\n", encoding="utf-8")
+    java_cli = root / "cpf-tools/runtime/cli/java/CpfCli.java"
+    java_cli.write_text(
+        'final class CpfCli { static final String HELP = "cpf release open-git"; String ns = "release"; }\n',
+        encoding="utf-8",
+    )
+    (root / "cpf-tools/runtime/cli/contracts/cpf-command-catalog.json").write_text(
+        json.dumps({
+            "internalNamespaces": [{"namespace": "release", "commands": ["open-git"]}]
+        }),
         encoding="utf-8",
     )
     canonical = root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
-    canonical.write_text("# Canonical\n\n## 22. EDU Canonical 35\n", encoding="utf-8")
+    canonical.write_text(
+        "# Canonical\n\n### 21.3 Open Git Release Packaging\n\n- `cpf release open-git`\n\n## 22. EDU Canonical 35\n",
+        encoding="utf-8",
+    )
+    (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text(
+        "# Current Open Git Work Package\n", encoding="utf-8"
+    )
 
     first = MODULE.setup_integration(root)
     second = MODULE.setup_integration(root)
@@ -184,11 +196,39 @@ def test_setup_integration_is_narrow_and_idempotent(tmp_path: Path):
     assert '"cpf-release"' in (root / "cpf-tools/verification/tools/cpf-source-state.py").read_text(encoding="utf-8")
     text = canonical.read_text(encoding="utf-8")
     assert text.count("### 21.3 Open Git Release Packaging") == 1
-    cli_text = cli.read_text(encoding="utf-8")
-    assert "sub.add_parser('open-git'" in cli_text
-    assert "choices=['build','check','status']" in cli_text
-    assert "subprocess.run([sys.executable,str(tool),ns.command" in cli_text
+    assert "sub.add_parser('open-git'" not in legacy_cli.read_text(encoding="utf-8")
+    assert "cpf release open-git" in java_cli.read_text(encoding="utf-8")
+    assert first["canonicalCli"] == "cpf release open-git"
     assert (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").is_file()
+
+
+def test_setup_integration_rejects_legacy_independent_open_git_surface(tmp_path: Path):
+    root = tmp_path / "cpf"
+    (root / "cpf-tools/verification/tools").mkdir(parents=True)
+    (root / "cpf-tools/runtime/cli/java").mkdir(parents=True)
+    (root / "cpf-tools/runtime/cli/contracts").mkdir(parents=True)
+    (root / "cpf-docs/governance").mkdir(parents=True)
+    (root / "cpf-docs/work/current").mkdir(parents=True)
+    (root / "settings.gradle").write_text("rootProject.name='x'\n", encoding="utf-8")
+    (root / ".gitignore").write_text("/cpf-release/\n", encoding="utf-8")
+    (root / "cpf-tools/verification/tools/cpf-source-state.py").write_text(
+        'GENERATED_PARTS = {\n    "cpf-release",\n}\n', encoding="utf-8"
+    )
+    (root / "cpf-tools/runtime/cli/java/CpfCli.java").write_text(
+        'final class CpfCli { static final String HELP = "cpf release open-git"; String ns = "release"; }\n', encoding="utf-8"
+    )
+    (root / "cpf-tools/runtime/cli/contracts/cpf-command-catalog.json").write_text(
+        json.dumps({"internalNamespaces":[{"namespace":"release","commands":["open-git"]}]}), encoding="utf-8"
+    )
+    (root / "cpf-tools/runtime/cli/cpf.py").write_text(
+        "open_git=sub.add_parser('open-git')\n", encoding="utf-8"
+    )
+    (root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md").write_text(
+        "### 21.3 Open Git Release Packaging\n`cpf release open-git`\n", encoding="utf-8"
+    )
+    (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text("# current\n", encoding="utf-8")
+    with pytest.raises(MODULE.OpenGitReleaseError, match="legacy independent"):
+        MODULE.setup_integration(root)
 
 
 def test_policies_are_default_deny_and_manual_push_only():
@@ -198,8 +238,10 @@ def test_policies_are_default_deny_and_manual_push_only():
     assert artifact["sourceJarPolicy"]["default"] == "DENY"
     assert artifact["javadocJarPolicy"]["default"] == "DENY"
     source = TOOL.read_text(encoding="utf-8")
-    assert "git, \"commit\"" not in source
-    assert "git, \"push\"" not in source
+    assert 'run([git, "add"' not in source
+    assert 'run([git, "commit"' not in source
+    assert 'run([git, "push"' not in source
+    assert '"gitAddExecuted": False' in source
     assert '"commitExecuted": False' in source
     assert '"pushExecuted": False' in source
 
@@ -285,53 +327,24 @@ def test_open_git_short_cli_and_compatibility_wrappers_are_canonical(tmp_path: P
     ]
     cp = subprocess.run(command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True)
     assert cp.returncode == 0, cp.stdout + cp.stderr
-
-    for required in (
-        "cpf",
-        "cpf.cmd",
-        "bin/cpf.ps1",
-        "bin/cpf.sh",
-        "bin/cpf-bootstrap.ps1",
-        "bin/cpf-bootstrap.sh",
-        "bin/cpf-build.ps1",
-        "bin/cpf-build.sh",
-        "bin/cpf-test.ps1",
-        "bin/cpf-test.sh",
-        "bin/cpf-domain-new.ps1",
-        "bin/cpf-domain-new.sh",
-        "bin/cpf-domain-sync.ps1",
-        "bin/cpf-domain-sync.sh",
-    ):
+    for required in ("cpf", "cpf.cmd", "bin/cpf", "bin/cpf.cmd", "bin/cpf.ps1"):
         assert (staging / required).is_file(), required
-
-    shell = (staging / "bin/cpf.sh").read_text(encoding="utf-8")
-    assert "CPF Command Result" in shell
-    assert "CPF COMMAND FAILED" in shell
-    assert "CPF LOCAL DEVELOPMENT READY" in shell
-    assert "cpfBuild" in shell and "cpfTest" in shell and "cpfVerify" in shell
-    assert "CpfBootstrap.java\" build" not in shell
-    assert "--workspace" not in shell
-    assert "--timeout-seconds" not in shell
-    assert "--start-runtime" not in shell
-
-    if sys.platform == "win32":
-        shell_executable = shutil.which("pwsh") or shutil.which("powershell")
-        assert shell_executable, "PowerShell is required for the native Windows CLI regression"
-        help_command = [shell_executable, "-NoProfile", "-File", str(staging / "bin/cpf.ps1"), "help"]
-    else:
-        help_command = ["bash", str(staging / "bin/cpf.sh"), "help"]
-    help_result = subprocess.run(help_command, cwd=staging, text=True, encoding="utf-8", errors="replace", capture_output=True)
-    assert help_result.returncode == 0, help_result.stdout + help_result.stderr
-    assert "domain new <name> <SYSTEM_CODE>" in help_result.stdout
-    assert "reset --confirm" in help_result.stdout
-
+    for legacy in ("cpf-bootstrap", "cpf-domain-new", "cpf-domain-sync", "cpf-build", "cpf-test", "cpf-stop", "cpf-reset"):
+        assert not (staging / legacy).exists(), legacy
+    for wrapper in ("bin/cpf", "bin/cpf.cmd", "bin/cpf.ps1"):
+        text=(staging/wrapper).read_text(encoding="utf-8")
+        assert "cpf-cli.jar" in text
+        assert "gradlew" not in text.lower()
+        assert "docker compose" not in text.lower()
+    assert not (staging / "bin/CpfBootstrap.java").exists()
+    assert not (staging / "bin/CpfGeneratorLauncher.java").exists()
 
 def test_open_git_release_build_progress_and_failure_guidance_are_visible():
     source = TOOL.read_text(encoding="utf-8")
     assert 'BUILD_STAGE_TOTAL = 14' in source
     assert 'Release Root 안전 확인' in source
     assert 'Fresh Workspace Build/Test' in source
-    assert 'Open Git Staged Diff 검증' in source
+    assert 'Open Git Working Tree 검증' in source
     assert 'CPF OPEN GIT RELEASE FAILED' in source
     assert 'ExitCode' in source
     assert 'Next      :' in source
@@ -383,7 +396,7 @@ def test_open_git_rebuild_cleans_previous_release_before_contract_validation(tmp
     stale.parent.mkdir(parents=True)
     stale.write_text("old", encoding="utf-8")
 
-    monkeypatch.setattr(MODULE, "require_clean_private_git", lambda _root: "NO_GIT")
+    monkeypatch.setattr(MODULE, "private_git_context", lambda _root: {"head":"NO_GIT","branch":"NO_GIT","statusShort":[],"dirty":False,"releaseTracked":False})
     monkeypatch.setattr(MODULE, "canonical_source_state", lambda _root: {"contentSha256": "x", "fileCount": 1})
     monkeypatch.setattr(MODULE, "platform_version", lambda _root: "1.0.0")
     monkeypatch.setattr(MODULE, "canonical_remote", lambda _root, _remote: "https://example.invalid/cpf-team/cpf-framework.git")
@@ -401,32 +414,179 @@ def test_open_git_rebuild_cleans_previous_release_before_contract_validation(tmp
 def test_setup_currentizes_only_owned_canonical_section(tmp_path: Path):
     root = tmp_path / "cpf"
     (root / "cpf-tools/verification/tools").mkdir(parents=True)
-    (root / "cpf-tools/runtime/cli").mkdir(parents=True)
+    (root / "cpf-tools/runtime/cli/java").mkdir(parents=True)
+    (root / "cpf-tools/runtime/cli/contracts").mkdir(parents=True)
     (root / "cpf-docs/governance").mkdir(parents=True)
     (root / "cpf-docs/work/current").mkdir(parents=True)
     (root / "settings.gradle").write_text("rootProject.name='x'\n", encoding="utf-8")
     (root / ".gitignore").write_text("# existing\n", encoding="utf-8")
     (root / "cpf-tools/verification/tools/cpf-source-state.py").write_text('GENERATED_PARTS = {\n    ".git",\n}\n', encoding="utf-8")
-    (root / "cpf-tools/runtime/cli/cpf.py").write_text(
-        "import argparse, json, os, shutil, sys, tempfile, uuid\n"
-        "def main():\n"
-        "    p=argparse.ArgumentParser()\n"
-        "    sub=p.add_subparsers(dest='group',required=True)\n"
-        "    verify=sub.add_parser('verify')\n"
-        "    vsub=verify.add_subparsers(dest='command',required=True)\n"
-        "    vsub.add_parser('all')\n"
-        "    ns=p.parse_args(); root=repo_root(ns.root)\n",
+    (root / "cpf-tools/runtime/cli/java/CpfCli.java").write_text(
+        'final class CpfCli { static final String HELP = "cpf release open-git"; String ns = "release"; }\n',
         encoding="utf-8",
     )
+    (root / "cpf-tools/runtime/cli/contracts/cpf-command-catalog.json").write_text(
+        json.dumps({"internalNamespaces":[{"namespace":"release","commands":["open-git"]}]}), encoding="utf-8"
+    )
+    # Legacy Python is retained only as an internal engine and must not own an
+    # independent Open Git CLI surface.
+    (root / "cpf-tools/runtime/cli/cpf.py").write_text("# internal engine only\n", encoding="utf-8")
     canonical = root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
-    canonical.write_text("# Canonical\n\n## 22. EDU Canonical 35\nKEEP-EDU\n", encoding="utf-8")
-    MODULE.setup_integration(root)
-    text = canonical.read_text(encoding="utf-8")
-    text = text.replace("Open Git 개발자 Workspace는", "OLD Open Git 개발자 Workspace는", 1)
-    canonical.write_text(text, encoding="utf-8")
+    canonical.write_text(
+        "# Canonical\n\n### 21.3 Open Git Release Packaging\n"
+        "cpf release open-git\nOpen Git 개발자 Workspace는 `cpf bootstrap`으로 시작한다.\n"
+        "\n## 22. EDU Canonical 35\nKEEP-EDU\n", encoding="utf-8"
+    )
+    (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text("# current\n", encoding="utf-8")
+    first = MODULE.setup_integration(root)
+    assert first["status"] == "PASS"
+    assert "/cpf-release/" in (root / ".gitignore").read_text(encoding="utf-8")
     result = MODULE.setup_integration(root)
+    assert result["status"] == "PASS"
+    # setup is compatibility-only: it must not rewrite canonical product steering.
     updated = canonical.read_text(encoding="utf-8")
-    assert "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md" in result["changed"]
-    assert "OLD Open Git 개발자 Workspace는" not in updated
     assert "Open Git 개발자 Workspace는 `cpf bootstrap`" in updated
     assert "## 22. EDU Canonical 35\nKEEP-EDU" in updated
+
+def test_cross_platform_cli_is_single_java_implementation(tmp_path: Path, monkeypatch):
+    staging = tmp_path / "staging"
+    for source, target in (
+        (ROOT / "cpf-tools/release/open-git/templates/bin/cpf", staging / "bin/cpf"),
+        (ROOT / "cpf-tools/release/open-git/templates/bin/cpf.cmd", staging / "bin/cpf.cmd"),
+        (ROOT / "cpf-tools/release/open-git/templates/bin/cpf.ps1", staging / "bin/cpf.ps1"),
+    ):
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    original_run=MODULE.run
+    def fake_java25_probe(cmd, cwd, *, capture=False, env=None):
+        if len(cmd) >= 2 and str(cmd[0]).endswith("javac") and cmd[1] == "-version":
+            return "javac 25.0.3"
+        if str(cmd[0]).endswith("javac") and "--release" in cmd:
+            adjusted=list(cmd); adjusted[adjusted.index("--release")+1]="21"
+            return original_run(adjusted, cwd, capture=capture, env=env)
+        return original_run(cmd, cwd, capture=capture, env=env)
+    monkeypatch.setattr(MODULE, "run", fake_java25_probe)
+    result = MODULE.build_cross_platform_cli(ROOT, staging, "a" * 64, "9.9.9-test")
+    assert result["status"] == "PASS"
+    assert (staging / "bin/lib/cpf-cli.jar").is_file()
+    verified = MODULE.verify_cross_platform_cli(staging, "a" * 64)
+    assert verified["status"] == "PASS"
+    cp = subprocess.run(
+        [shutil.which("java") or "java", "-jar", str(staging / "bin/lib/cpf-cli.jar"), "version"],
+        cwd=staging, text=True, encoding="utf-8", errors="replace", capture_output=True, check=False,
+    )
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    assert "CPF_CLI_VERSION=9.9.9-test" in cp.stdout
+    assert "SOURCE_IDENTITY=" + "a" * 64 in cp.stdout
+
+
+def test_cli_wrappers_are_thin_and_no_powershell_or_bash_dependency_crosses_os():
+    shell = (ROOT / "cpf-tools/release/open-git/templates/bin/cpf").read_text(encoding="utf-8")
+    cmd = (ROOT / "cpf-tools/release/open-git/templates/bin/cpf.cmd").read_text(encoding="utf-8")
+    ps1 = (ROOT / "cpf-tools/release/open-git/templates/bin/cpf.ps1").read_text(encoding="utf-8")
+    assert "cpf-cli.jar" in shell and "java" in shell
+    assert "cpf-cli.jar" in cmd and "java" in cmd.lower()
+    assert "cpf-cli.jar" in ps1 and "java" in ps1.lower()
+    assert "powershell" not in shell.lower()
+    assert "bash" not in cmd.lower() and "bash" not in ps1.lower()
+    for text in (shell, cmd, ps1):
+        assert "docker compose" not in text.lower()
+        assert "gradlew" not in text.lower()
+        assert "domain new" not in text.lower()
+
+
+def test_cross_platform_cli_build_requires_java25(monkeypatch, tmp_path: Path):
+    staging = tmp_path / "staging"; (staging / "bin").mkdir(parents=True)
+    original_run = MODULE.run
+    def fake_old_javac(cmd, cwd, *, capture=False, env=None):
+        if len(cmd) >= 2 and str(cmd[0]).endswith("javac") and cmd[1] == "-version":
+            return "javac 21.0.11"
+        return original_run(cmd, cwd, capture=capture, env=env)
+    monkeypatch.setattr(MODULE, "run", fake_old_javac)
+    try:
+        MODULE.build_cross_platform_cli(ROOT, staging, "b" * 64, "9.9.9-test")
+        assert False, "non-Java25 compiler must fail closed"
+    except MODULE.OpenGitReleaseError as exc:
+        assert "Java 25 javac is required" in str(exc)
+
+
+def test_cross_platform_cli_source_owns_public_commands_and_java25_gate():
+    source = (ROOT / "cpf-tools/runtime/cli/java/CpfCli.java").read_text(encoding="utf-8")
+    for command in ("bootstrap", "domain-new", "domain-sync", "build", "test", "run", "stop", "reset", "status", "version"):
+        assert f'"{command}"' in source
+    assert "requireJava25Then" in source
+    assert "CPF-CLI-JAVA-VERSION" in source
+    assert "domainNew" in source and "--name" in source and "--system-code" in source
+    assert '"--confirm".equals(arg) ? "--confirm-local-reset"' in source
+    assert "StandardCharsets.UTF_8" in source
+
+def test_cross_platform_cli_public_surface_has_no_java_implementation_sources():
+    for policy_name in (
+        "cpf-tools/release/open-git/open-git-surface-policy.json",
+        "cpf-tools/release/public/cpf-public-surface-policy.json",
+    ):
+        policy = json.loads((ROOT / policy_name).read_text(encoding="utf-8"))
+        rules = policy.get("templateRules", []) + policy.get("sourceRules", [])
+        targets = {str(row.get("target", "")) for row in rules}
+        assert "bin/CpfCli.java" not in targets
+        assert "bin/CpfBootstrap.java" not in targets
+        assert "bin/CpfGeneratorLauncher.java" not in targets
+
+
+def test_open_git_git_boundary_is_read_only_until_user_review():
+    source = TOOL.read_text(encoding="utf-8")
+    assert 'run([git, "add"' not in source
+    assert 'run([git, "commit"' not in source
+    assert 'run([git, "push"' not in source
+    assert 'git, "status", "--short"' in source
+    assert 'git, "diff", "--check"' in source
+    assert '"result": "VERIFIED"' in source
+    assert '"userReviewRequired": True' in source
+
+    final_target = (ROOT / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md").read_text(encoding="utf-8")
+    fresh_requirement = (ROOT / "cpf-docs/work/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md").read_text(encoding="utf-8")
+    work_package = (ROOT / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").read_text(encoding="utf-8")
+    command_catalog = json.loads((ROOT / "cpf-tools/runtime/cli/contracts/cpf-command-catalog.json").read_text(encoding="utf-8"))
+
+    for text in (final_target, fresh_requirement, work_package):
+        assert "READY_TO_COMMIT" not in text
+        assert "READY_FOR_USER_COMMIT" not in text
+    assert "Private master" in final_target
+    assert "VERIFIED" in final_target
+    boundary = command_catalog["releaseGitBoundary"]
+    assert boundary["privateRepositoryGit"] == "READ_ONLY_PROVENANCE_STATUS"
+    assert boundary["openGitWorkingRepository"] == "FRESH_CLONE_READ_ONLY_STATUS_DIFF_UNTIL_USER_APPROVAL"
+    assert boundary["toolMaxState"] == "VERIFIED"
+    assert boundary["automaticGitWrite"] is False
+    assert boundary["privateMasterIncludesCpfRelease"] is False
+
+
+def test_private_git_context_allows_dirty_working_tree_without_cleanup(monkeypatch, tmp_path: Path):
+    root = tmp_path / "cpf"
+    root.mkdir()
+    (root / ".git").mkdir()
+    commands = []
+
+    def fake_run(cmd, cwd, *, capture=False, env=None):
+        commands.append(tuple(cmd))
+        if cmd[1:3] == ["rev-parse", "--is-inside-work-tree"]:
+            return "true"
+        if cmd[1:3] == ["ls-files", MODULE.RELEASE_DIR_NAME]:
+            return ""
+        if cmd[1:3] == ["status", "--short"]:
+            return " M cpf-tools/example.txt"
+        if cmd[1:3] == ["rev-parse", "--abbrev-ref"]:
+            return "master"
+        if cmd[1:3] == ["rev-parse", "HEAD"]:
+            return "abc123"
+        raise AssertionError(cmd)
+
+    monkeypatch.setattr(MODULE.shutil, "which", lambda name: "git" if name == "git" else None)
+    monkeypatch.setattr(MODULE, "run", fake_run)
+    result = MODULE.private_git_context(root)
+    assert result["dirty"] is True
+    assert result["statusShort"] == [" M cpf-tools/example.txt"]
+    assert result["head"] == "abc123"
+    assert result["branch"] == "master"
+    forbidden = {"add", "commit", "push", "reset", "restore", "stash", "clean"}
+    assert not any(any(part in forbidden for part in cmd) for cmd in commands)

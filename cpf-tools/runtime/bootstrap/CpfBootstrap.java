@@ -408,7 +408,7 @@ public final class CpfBootstrap {
     private void applyTrackedSql(Domain d, String db, String user, String container, String vendor, String password) throws Exception {
         Path base = root.resolve("build/cpf-local").resolve(d.name).resolve("db3").resolve(vendor);
         Files.createDirectories(base);
-        List<String> render=List.of("java", root.resolve("bin/CpfGeneratorLauncher.java").toString(), "db", "render", "--file", root.relativize(d.contract).toString(), "--vendor", vendor, "--output", base.toString());
+        List<String> render=List.of(javaExecutable(), "-Dfile.encoding=UTF-8", "-cp", root.resolve("bin/lib/cpf-cli.jar").toString(), "CpfGeneratorLauncher", "db", "render", "--file", root.relativize(d.contract).toString(), "--vendor", vendor, "--output", base.toString());
         runChecked(render, baseEnv, Math.max(timeoutSeconds,120), null, true);
         List<Path> migrations;
         try(var stream=Files.list(base)){ migrations=stream.filter(p->p.getFileName().toString().startsWith("V")&&p.getFileName().toString().endsWith(".sql")).sorted().toList(); }
@@ -628,6 +628,13 @@ public final class CpfBootstrap {
     private static String envOrDefault(String env,String fallback){ return firstNonBlank(System.getenv(env),fallback); }
     private static String firstNonBlank(String... values){ for(String v:values) if(v!=null&&!v.isBlank()) return v.trim(); return ""; }
     private static boolean isWindows(){ return System.getProperty("os.name","").toLowerCase(Locale.ROOT).contains("win"); }
+
+    private static String javaExecutable(){
+        Path java=Path.of(System.getProperty("java.home"),"bin",isWindows()?"java.exe":"java");
+        if(!Files.isRegularFile(java)) throw new IllegalStateException("Java executable missing: "+java);
+        return java.toString();
+    }
+
     private static Path locateRoot(){ Path p=Path.of(System.getProperty("user.dir")).toAbsolutePath(); while(p!=null){ if(Files.isRegularFile(p.resolve("settings.gradle"))&&Files.isDirectory(p.resolve("config"))) return p; p=p.getParent(); } throw new IllegalStateException("CPF Public Workspace root not found"); }
     private static String readDefaultTimeout(Path root){ Properties p=new Properties(); Path f=root.resolve("config/cpf-workspace.properties"); try{ if(Files.isRegularFile(f)) try(Reader r=Files.newBufferedReader(f)){p.load(r);} }catch(Exception ignored){} return p.getProperty("cpf.bootstrap.timeout-seconds","300"); }
     private static Map<String,String> parseArgs(String[] args){ Map<String,String> m=new LinkedHashMap<>(); String command="bootstrap"; for(int i=0;i<args.length;i++){ String a=args[i]; if(!a.startsWith("--")&&!a.startsWith("-")){command=a;continue;} if(a.equals("--db")&&i+1<args.length)m.put("db",args[++i]); else if(a.equals("--timeout")&&i+1<args.length)m.put("timeout",args[++i]); else if(a.equals("--run"))m.put("run","true"); else if(a.equals("--full"))m.put("full","true"); else if(a.equals("--confirm-local-reset"))m.put("confirm-local-reset","true"); else throw new IllegalArgumentException("unknown option="+a);} m.put("command",command); return m; }

@@ -16,7 +16,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 /**
- * CMN 단일 샘플 테이블을 검증할 때만 cmnDB 연결을 활성화합니다.
+ * CMN 단일 샘플 테이블을 검증할 때만 비운영 sample datasource를 활성화합니다. 물리 DB 기본값은 cpfDB/referenceFixture 계약을 따르며 cmnDB를 생성하지 않습니다.
  *
  * <p>cpf-common의 기본 동작은 DB-less입니다. 이 설정은 개발·EDU·통합 테스트에서
  * 연결, CRUD, paging, 낙관적 잠금과 transaction을 검증하는 명시적 sample profile에만

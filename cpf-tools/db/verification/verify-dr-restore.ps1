@@ -40,7 +40,7 @@ elseif($RunPlatformVerify){
     if(-not (Test-Path -LiteralPath $queryPath -PathType Leaf)){throw "Vendor verify SQL이 없습니다: $queryPath"}
     $query=Get-Content -LiteralPath $queryPath -Raw -Encoding UTF8
 }
-$psi=[Diagnostics.ProcessStartInfo]::new();$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true
+$psi=[Diagnostics.ProcessStartInfo]::new();$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardInput=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$psi.StandardOutputEncoding=[Text.Encoding]::UTF8;$psi.StandardErrorEncoding=[Text.Encoding]::UTF8
 $input=$query
 switch($Vendor){
     'mariadb' {

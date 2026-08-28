@@ -402,6 +402,30 @@
       "documentationArtifactException": "Gradle tooling is consumed as a plugin/bootstrap tool; Java compile-time source/Javadoc publication is not the supported API surface."
     },
     {
+      "artifactId": "cpf-cli",
+      "ownerPath": "cpf-tools/runtime/cli",
+      "kind": "unified-developer-tooling",
+      "producer": "cpf-tools/runtime/cli/build-cpf-cli.py",
+      "outputPattern": "cpf-tools/runtime/cli/lib/cpf-cli.jar",
+      "requiredAttestations": [
+        "sha256",
+        "source-identity",
+        "command-catalog",
+        "cross-platform-wrapper-contract"
+      ],
+      "consumer": "internal-framework-developer-and-open-git-public-workspace",
+      "visibility": "profile-projected-tooling",
+      "publicationClass": "PUBLIC_TOOLING",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.tooling",
+      "capabilityProfiles": [
+        "INTERNAL",
+        "PUBLIC"
+      ],
+      "documentationArtifactException": "Exactly-one Java CPF CLI implementation. Binary profile publishes the JAR and thin wrappers, never CLI implementation source or sources/javadoc JAR."
+    },
+    {
       "artifactId": "cpf-generator-cli",
       "ownerPath": "cpf-tools/generator/distribution",
       "kind": "developer-tooling",
@@ -412,7 +436,7 @@
         "classifier-manifest",
         "clean-public-consumer"
       ],
-      "consumer": "public-developer-workspace-domain-new-sync",
+      "consumer": "cpf-unified-cli-domain-new-sync",
       "visibility": "public-tooling",
       "publicationClass": "PUBLIC_TOOLING",
       "publishSources": false,

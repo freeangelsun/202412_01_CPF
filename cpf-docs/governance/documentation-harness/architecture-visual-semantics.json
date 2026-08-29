@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.13.0",
+  "asset": "cpf-docs/assets/product-docs/architecture.png",
+  "assetSha256": "6DDC54EBEDC9CB4D74D39BBB1557884A2D814A4883C65AFB3EAAE3C25D80B8AA",
+  "canonicalSources": [
+    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md::2.1 Canonical Owner Map",
+    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md::12 Backoffice — MBW Business Domain",
+    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md::13 Backoffice Web — Channel/BFF Reference",
+    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md::17 ADM — Platform Control Plane"
+  ],
+  "zones": {
+    "CHANNEL_EDGE": {
+      "allowed": [
+        "web-api",
+        "cpf-backoffice-web",
+        "cpf-gateway"
+      ],
+      "forbidden": [
+        "cpf-backoffice",
+        "cpf-admin",
+        "cpf-batch"
+      ]
+    },
+    "BUSINESS_DOMAIN_CPF": {
+      "allowed": [
+        "generated-domain",
+        "cpf-backoffice",
+        "public-starter",
+        "cpf-common",
+        "cpf-core"
+      ],
+      "forbidden": [
+        "cpf-backoffice-web",
+        "cpf-gateway",
+        "cpf-admin"
+      ]
+    },
+    "PLATFORM_OPERATIONS_RUNTIME": {
+      "allowed": [
+        "cpf-admin",
+        "cpf-batch",
+        "trace-health-audit-recovery"
+      ],
+      "forbidden": [
+        "cpf-backoffice",
+        "cpf-backoffice-web",
+        "cpf-gateway",
+        "generated-domain"
+      ]
+    }
+  },
+  "nodes": {
+    "web-api": {
+      "zone": "CHANNEL_EDGE",
+      "role": "external-or-trusted-entry"
+    },
+    "cpf-backoffice-web": {
+      "zone": "CHANNEL_EDGE",
+      "role": "db-less-channel-bff"
+    },
+    "cpf-gateway": {
+      "zone": "CHANNEL_EDGE",
+      "role": "optional-edge-gateway"
+    },
+    "generated-domain": {
+      "zone": "BUSINESS_DOMAIN_CPF",
+      "role": "business-owner-domain"
+    },
+    "cpf-backoffice": {
+      "zone": "BUSINESS_DOMAIN_CPF",
+      "role": "optional-prebuilt-business-domain"
+    },
+    "public-starter": {
+      "zone": "BUSINESS_DOMAIN_CPF",
+      "role": "public-capability-entry"
+    },
+    "cpf-common": {
+      "zone": "BUSINESS_DOMAIN_CPF",
+      "role": "customer-business-common"
+    },
+    "cpf-core": {
+      "zone": "BUSINESS_DOMAIN_CPF",
+      "role": "topology-independent-kernel"
+    },
+    "cpf-admin": {
+      "zone": "PLATFORM_OPERATIONS_RUNTIME",
+      "role": "platform-control-plane"
+    },
+    "cpf-batch": {
+      "zone": "PLATFORM_OPERATIONS_RUNTIME",
+      "role": "batch-runtime"
+    },
+    "trace-health-audit-recovery": {
+      "zone": "PLATFORM_OPERATIONS_RUNTIME",
+      "role": "operations-observability-recovery"
+    }
+  },
+  "flows": {
+    "backofficeBrowserFlow": [
+      "cpf-backoffice-web",
+      "cpf-gateway",
+      "cpf-backoffice"
+    ],
+    "generalEntryFlow": [
+      "web-api",
+      "cpf-gateway",
+      "generated-domain"
+    ]
+  },
+  "hardRules": {
+    "cpfBackofficeIsPlatformControlPlane": false,
+    "cpfBackofficeWebHasDatabase": false,
+    "cpfBackofficeWebDependsOnBusinessDomainJavaProject": false,
+    "internalDomainCallThroughGateway": false,
+    "backofficeAndBffConflated": false
+  }
+}

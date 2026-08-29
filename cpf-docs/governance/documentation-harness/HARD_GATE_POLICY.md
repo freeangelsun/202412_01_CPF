@@ -1,4 +1,4 @@
-# CPF Documentation Hard Gate Policy — v2.12.0
+# CPF Documentation Hard Gate Policy — v2.13.0
 
 ## 1. 최종 PASS의 유일한 정의
 
@@ -42,7 +42,7 @@ Connector/Arrow는 대상 Box 외곽 Boundary에서 끝나야 한다. Target/Sou
 Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나만 유지한다. versioned folder, `_old`, `_backup`, `_history`, `_session`, stale snapshot을 남기지 않는다. 삭제는 `DELETE_MANIFEST.txt`의 exact Root-relative 경로만 사용한다.
 
 
-## v2.12.0 강제 보강
+## v2.13.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -59,7 +59,7 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 
 
 
-## Harness 2.12.0 Visual Quality Uplift
+## Harness 2.13.0 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
@@ -68,3 +68,11 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 - 마지막 페이지의 제목+한 문장, Source-only, 표 꼬리 1~2행, 의미 없는 대형 공백은 금지한다. 페이지 수를 줄이기 위해 전체 Font/Margin/Line spacing을 축소하지 않고 내용·국소 배치를 보정한다.
 - README Visual은 원본과 900/1200/1440px 삽입 Surface에서 text safe area·crop·boundary intrusion 0을 확인한다.
 - Windows VS Code built-in Markdown Preview Runtime은 가능한 Windows 환경에서 별도 실행한다. 실행하지 못한 경우 미검증으로 기록한다.
+
+## Architecture Visual / PDF Openability Hard Gate
+
+- Architecture Figure에서 `cpf-backoffice`를 Operations/Edge로 분류하면 FAIL입니다.
+- `cpf-backoffice-web` Channel/BFF와 `cpf-backoffice` Business Domain을 합쳐 표현하면 FAIL입니다.
+- Architecture Figure 변경 시 `architecture-visual-semantics.json`과 이미지 SHA를 함께 갱신합니다.
+- 공식 PDF는 `validate_pdf_openability.py`에서 Header/EOF/암호화/Parser/Page Count/첫·마지막 Page Render를 모두 통과해야 합니다. VS Code Text Editor에서 Binary로 보이는 현상은 Viewer association과 구분해 판정합니다.
+

@@ -1,4 +1,4 @@
-# README Visual Storyboard — v2.12.0
+# README Visual Storyboard — v2.13.0
 
 README는 **다크 브로셔형 제품 간판**이다. 목차를 두지 않고 제품 H1 하나로 시작한다. H2는 독자의 질문과 Source-backed Coverage가 필요한 만큼 사용하며 **상한을 두지 않는다.**
 
@@ -33,3 +33,8 @@ Coverage가 더 필요하면 Section을 추가한다. 전체 길이/섹션 수 �
 - 파일명만 적은 Alt Text, 빈 Alt Text, `그림 설명/그림 해석` 라벨은 FAIL
 
 한글 설명은 Figure를 못 보더라도 핵심 구조·관계·결과를 이해할 수 있어야 한다.
+
+## Architecture Map Semantic Ownership
+
+README Architecture Map은 Channel/Edge(`cpf-backoffice-web`, Gateway), Business Domain(Generated Domain, `cpf-backoffice`), Platform Operations/Runtime(`cpf-admin`, `cpf-batch`)을 서로 다른 영역으로 표현합니다. `cpf-backoffice`를 Operations/Edge에 배치하거나 `cpf-backoffice-web`과 합쳐 표현하지 않습니다.
+

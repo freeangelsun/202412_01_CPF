@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "artifact": "",
   "baselineState": "",
   "baselineRef": "",
@@ -99,7 +99,11 @@
     "heavyBlockWallCount": 0,
     "stackedCodeBlocksCount": 0,
     "denseCenteredHeroCount": 0,
-    "pagePackingCount": 0
+    "pagePackingCount": 0,
+    "architectureOwnerMisclassificationCount": 0,
+    "backofficeOperationsMisplacementCount": 0,
+    "backofficeBffConflationCount": 0,
+    "pdfOpenabilityFailureCount": 0
   },
   "manualGates": {
     "readerTaskFit": "NOT_EXECUTED",

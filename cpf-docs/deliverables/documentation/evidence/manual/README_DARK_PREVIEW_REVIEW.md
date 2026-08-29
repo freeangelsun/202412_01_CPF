@@ -1,4 +1,4 @@
-# README Dark Preview Review — Harness 2.12.0
+# README Dark Preview Review — Harness 2.13.0
 
 - Current README: H1 1 / H2 12 / informative visuals 9.
 - Fresh dark previews rendered at **900px, 1200px, 1440px** after final README currentization.

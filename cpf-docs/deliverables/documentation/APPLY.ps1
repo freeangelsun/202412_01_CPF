@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((git rev-parse --show-toplevel).Trim());Set-Location $root
 $ZipPath=[IO.Path]::GetFullPath($ZipPath)
 if(!(Test-Path -LiteralPath $ZipPath -PathType Leaf)){throw "ZIP NOT FOUND: $ZipPath"}
-$tmp=Join-Path $env:TEMP ('cpf-doc-2120-'+[guid]::NewGuid().ToString('N'));New-Item -ItemType Directory -Path $tmp -Force|Out-Null
+$tmp=Join-Path $env:TEMP ('cpf-doc-2130-'+[guid]::NewGuid().ToString('N'));New-Item -ItemType Directory -Path $tmp -Force|Out-Null
 try{
   Expand-Archive -LiteralPath $ZipPath -DestinationPath $tmp -Force
   $m=Join-Path $tmp 'cpf-docs\deliverables\documentation\DELETE_MANIFEST.txt'
@@ -18,5 +18,5 @@ try{
     if(Test-Path -LiteralPath $p){Remove-Item -LiteralPath $p -Recurse -Force;Write-Host "DELETED=$r"}
   }
   Get-ChildItem -LiteralPath $tmp -Force|ForEach-Object{Copy-Item -LiteralPath $_.FullName -Destination $root -Recurse -Force}
-  Write-Host "[CPF][DOC] APPLIED=2.12.0 ZIP=$ZipPath"
+  Write-Host "[CPF][DOC] APPLIED=2.13.0 ZIP=$ZipPath"
 } finally {Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue}

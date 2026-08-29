@@ -2,8 +2,8 @@
 HAR-212-001,Harness purpose: current Source-to-reader executable artifacts,완료,완료,Source currentization + final acceptance,완료,완료
 HAR-212-002,Reader actionability / selection-to-action / working example hard gates,완료,완료,reader/readability validators + reviews,완료,완료
 HAR-212-003,Failure/UNKNOWN recovery closure,완료,완료,reader task validator + artifacts,완료,완료
-HAR-212-004,Visual comfort / density / section and tail balance,완료,완료,visual comfort/page composition + 116-page review,완료,완료
-HAR-212-005,False-green negative fixture expansion,완료,완료,100/100 PASS,완료,완료
+HAR-212-004,Visual comfort / density / section and tail balance,완료,완료,visual comfort/page composition + 117-page review,완료,완료
+HAR-212-005,False-green negative fixture expansion,완료,완료,104/104 PASS,완료,완료
 HAR-212-006,Latest source alignment/currentization,완료,완료,"10,039 fingerprint stable; 414 refs; 26 public artifacts",완료,완료
-HAR-212-007,A11y/PDF/cross-renderer final validation,완료,완료,A11y 0; preflight 0; PDFium/Poppler 116,완료,완료
+HAR-212-007,A11y/PDF/cross-renderer final validation,완료,완료,A11y 0; preflight 0; PDFium/Poppler 117,완료,완료
 HAR-212-008,Fresh replay/package integrity,완료,미검증,Final replay result recorded after package build,완료,미검증

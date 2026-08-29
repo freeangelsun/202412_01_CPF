@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -52,7 +52,10 @@
         "cpf-core/cpf-common/cpf-admin/cpf-backoffice/cpf-batch/cpf-starters 역할",
         "Generated Domain 위치",
         "Gateway는 External Boundary에서 선택적으로 사용",
-        "내부 Domain 호출은 Gateway 비경유"
+        "내부 Domain 호출은 Gateway 비경유",
+        "cpf-backoffice-web은 Channel/BFF이며 DB/CPF Internal Java dependency 0",
+        "cpf-backoffice는 Optional Prebuilt Business Domain이며 Platform Control Plane이 아님",
+        "cpf-admin과 cpf-batch는 Platform Operations/Runtime 영역"
       ],
       "figures": [
         "README_ARCHITECTURE_MAP"
@@ -62,7 +65,10 @@
       "tables": [],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
-      "acceptance": [],
+      "acceptance": [
+        "Architecture Visual Semantic Gate PASS",
+        "Backoffice/BFF conflation 0"
+      ],
       "renderPolicy": "coverage blueprint; merge/split only for scanability; benefit-only headings forbidden"
     },
     {

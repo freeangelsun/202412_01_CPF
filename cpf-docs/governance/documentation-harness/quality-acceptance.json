@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -198,6 +198,18 @@
       "type": "AUTOMATED",
       "required": true,
       "pass": "모든 Manual/Hybrid stage에 evidenceRef가 존재하고 실제 파일/기록이 있으며 NOT_EXECUTED/BLOCKED/UNKNOWN 0"
+    },
+    {
+      "id": "ARCHITECTURE_VISUAL_SEMANTIC_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "Architecture Figure의 Module/Zone/Flow가 Canonical Owner Map과 일치하고 cpf-backoffice와 cpf-backoffice-web 역할이 분리됨"
+    },
+    {
+      "id": "PDF_OPENABILITY_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "공식 PDF 11종이 pypdf/PyMuPDF 및 사용 가능한 pdfinfo에서 열리고 첫/마지막 페이지가 실제 render됨"
     },
     {
       "id": "FINAL_ACCEPTANCE_AGGREGATOR_PASS",

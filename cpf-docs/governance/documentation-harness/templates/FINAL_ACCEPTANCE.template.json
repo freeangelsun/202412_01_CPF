@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "source": {
     "file": "",
     "sha256": "",
@@ -55,7 +55,9 @@
     "SELECTION_TO_ACTION_PASS": "NOT_EXECUTED",
     "DEVELOPER_WORKING_EXAMPLE_PASS": "NOT_EXECUTED",
     "VISUAL_COMFORT_AND_DENSITY_PASS": "NOT_EXECUTED",
-    "SOURCE_ALIGNMENT_PASS": "NOT_EXECUTED"
+    "SOURCE_ALIGNMENT_PASS": "NOT_EXECUTED",
+    "ARCHITECTURE_VISUAL_SEMANTIC_PASS": "NOT_EXECUTED",
+    "PDF_OPENABILITY_PASS": "NOT_EXECUTED"
   },
   "gateEvidence": {
     "HARNESS_SCHEMA_PASS": [],
@@ -105,7 +107,9 @@
     "SELECTION_TO_ACTION_PASS": [],
     "DEVELOPER_WORKING_EXAMPLE_PASS": [],
     "VISUAL_COMFORT_AND_DENSITY_PASS": [],
-    "SOURCE_ALIGNMENT_PASS": []
+    "SOURCE_ALIGNMENT_PASS": [],
+    "ARCHITECTURE_VISUAL_SEMANTIC_PASS": [],
+    "PDF_OPENABILITY_PASS": []
   },
   "artifactReviews": [],
   "unresolvedCriticalFindings": [],

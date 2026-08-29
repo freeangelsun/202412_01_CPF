@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "locked": true,
   "commonRulesRef": "visual-system.json",
   "presets": {
@@ -288,5 +288,9 @@
     "colorOnlyMeaning": "forbidden",
     "embeddedEffectiveTextPtMin": 10.5,
     "coarseGroupOnlyManifest": "forbidden"
+  },
+  "semanticHardGates": {
+    "architectureOwnerZoneParity": "architecture-visual-semantics.json",
+    "backofficeBffConflation": "FORBIDDEN"
   }
 }

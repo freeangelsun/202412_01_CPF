@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -182,7 +182,11 @@
     "heavyBlockWall": 0,
     "uniformManualScoresWithoutEvidence": 0,
     "genericReaderPassEvidence": 0,
-    "pagePackedForLength": 0
+    "pagePackedForLength": 0,
+    "architectureVisualOwnerMisclassified": 0,
+    "backofficePlacedInOperationsEdge": 0,
+    "backofficeBffConflated": 0,
+    "pdfOpenabilityFailure": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,

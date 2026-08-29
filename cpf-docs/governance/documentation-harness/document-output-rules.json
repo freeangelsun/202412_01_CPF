@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "locked": true,
   "README": {
     "toc": "forbidden",
@@ -226,5 +226,11 @@
     "pageCountCompression": "FORBIDDEN",
     "fontShrinkForLength": "FORBIDDEN",
     "marginShrinkForLength": "FORBIDDEN"
+  },
+  "PDF": {
+    "openability": "HARD_GATE: header+EOF+pypdf+PyMuPDF+first/last render; Git LFS pointer forbidden"
+  },
+  "VISUAL": {
+    "architectureSemantic": "HARD_GATE: canonical Owner/Zone/Flow parity; cpf-backoffice != Operations/Edge; cpf-backoffice-web != Business Domain"
   }
 }

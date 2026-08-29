@@ -1,4 +1,4 @@
-# CPF Documentation Harness 2.12.0 current-only exact stale delete manifest
+# CPF Documentation Harness 2.13.0 current-only exact stale delete manifest
 # Root-relative exact paths only. No wildcard. Protected current paths are never listed.
 cpf-docs/governance/documentation-harness-v2.3.0
 cpf-docs/governance/documentation-harness-v2.4.0

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "locked": true,
   "purpose": "사람이 실제로 읽고 행동할 수 있는 내용 완결성과, 과밀하지 않은 시각적 호흡을 자동/수동 Gate로 강제한다.",
   "global": {

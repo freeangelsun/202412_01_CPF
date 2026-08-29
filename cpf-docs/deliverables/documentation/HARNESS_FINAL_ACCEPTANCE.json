@@ -1,9 +1,9 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "status": "PASS",
   "documentationFinalAcceptance": "cpf-docs/deliverables/documentation/FINAL_ACCEPTANCE.json",
-  "negativeFixtures": 100,
+  "negativeFixtures": 104,
   "sourceAlignment": "PASS",
   "sourceCurrentization": "PASS",
   "readerActionability": "PASS",
@@ -13,5 +13,9 @@
     "windowsPowerShellWrappers": "미검증 - Linux container only",
     "windowsVsCodeBuiltInMarkdownPreview": "미검증 - Windows VS Code WebView unavailable in Linux container"
   },
-  "reviewedAt": "2026-08-29T10:25:02+09:00"
+  "reviewedAt": "2026-08-29T10:25:02+09:00",
+  "gates": {
+    "ARCHITECTURE_VISUAL_SEMANTIC_PASS": "PASS",
+    "PDF_OPENABILITY_PASS": "PASS"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "baselineSourceSha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
   "reviewPolicy": "CURRENT_ONLY; PATCH_FIRST; original PNG + 900/1200/1440 README surfaces manually reviewed; crop/boundary/header-wrap false-green forbidden",
   "assets": [
@@ -72,7 +72,7 @@
     },
     {
       "asset": "cpf-docs/assets/product-docs/architecture.png",
-      "sha256": "C17484D0385A0E38A7CBF0271CEF3451B811676B7510D3984A9170D30194DB9E",
+      "sha256": "6DDC54EBEDC9CB4D74D39BBB1557884A2D814A4883C65AFB3EAAE3C25D80B8AA",
       "grammar": "cpf_product_visual",
       "canvas": {
         "width": 1600,
@@ -134,7 +134,11 @@
           "boundaryIntrusion": 0,
           "contrastPass": true
         }
-      ]
+      ],
+      "semanticModel": "cpf-docs/governance/documentation-harness/architecture-visual-semantics.json",
+      "semanticOwnerParity": true,
+      "backofficeZone": "BUSINESS_DOMAIN_CPF",
+      "backofficeWebZone": "CHANNEL_EDGE"
     },
     {
       "asset": "cpf-docs/assets/product-docs/invoke.png",
@@ -468,7 +472,7 @@
     },
     {
       "asset": "cpf-docs/assets/product-docs/gateway.png",
-      "sha256": "8E9E8A3D87EDCB0AA74385DEFA930E5D74C095DD651A5E65B94E7EC67D75D896",
+      "sha256": "9D02E6A2075699C08BD2B3F0C55A9F922DEE533B32AF4E2A6C9F36538A8D8F28",
       "grammar": "cpf_product_visual",
       "canvas": {
         "width": 1600,

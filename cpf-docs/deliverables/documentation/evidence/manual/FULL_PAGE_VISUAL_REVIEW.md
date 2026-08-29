@@ -1,7 +1,7 @@
-# Full Page Visual Review — Harness 2.12.0
+# Full Page Visual Review — Harness 2.13.0
 
-- Final DOCX set: **11 documents / 116 pages** rendered fresh from the current DOCX files.
-- Final PDF set: **11 documents / 116 pages**.
+- Final DOCX set: **11 documents / 117 pages** rendered fresh from the current DOCX files.
+- Final PDF set: **11 documents / 117 pages**.
 - Every page is represented in the final DOCX/PDF render contact review; high-risk pages (selection/action tables, code continuation, section starts, dense pages, final pages) were additionally opened individually during correction loops.
 - Hard findings after the final correction loop: clipping 0, overlap 0, broken Korean glyph 0, dark-header/black-text 0, table-header wrap hard failure 0, source-only orphan page 0, major-section orphan 0, heavy-block wall hard failure 0.
 - Visual comfort uses increased body/heading spacing and table padding; page count was allowed to grow rather than globally shrinking fonts or margins.
@@ -23,4 +23,4 @@
 
 ## Result
 
-**PASS — current 2.12.0 final render only.**
+**PASS — current 2.13.0 final render only.**

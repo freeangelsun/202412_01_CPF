@@ -1,4 +1,4 @@
-# Reader Review — Harness 2.12.0
+# Reader Review — Harness 2.13.0
 
 All **12 reader-facing artifacts** were reviewed against a concrete task chain rather than keyword presence: reader question → selection/when-to-use → prerequisite/config → actual action/consumer → normal result → failure/UNKNOWN boundary → recovery/reconcile where applicable → verification/result check → deeper reference.
 

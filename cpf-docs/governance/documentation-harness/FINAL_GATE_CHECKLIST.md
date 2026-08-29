@@ -1,4 +1,4 @@
-# CPF Documentation 최종 Gate Checklist — Harness v2.12.0
+# CPF Documentation 최종 Gate Checklist — Harness v2.13.0
 
 **한 항목이라도 미실행·FAIL·BLOCKED·UNKNOWN이면 최종 PASS 불가.** 마지막 판정은 `validate_final_acceptance`가 수행한다.
 
@@ -101,7 +101,7 @@
 - [ ] `AUTOMATED_PASS_ONLY/NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED` 상태 0
 
 
-## v2.12.0 강제 보강
+## v2.13.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -117,4 +117,13 @@
 - [ ] 실패/UNKNOWN 뒤 복구/다음 행동과 검증이 닫혔는가
 - [ ] 긴 Flat List 7개, 장문 Bullet 6개, Heavy Block 4개, 설명 없는 Code 3개 이상 연속이 0건인가
 - [ ] 전페이지/README 900·1200·1440 육안검수에서 답답함·평면 계층·과밀이 0건인가
+
+### Architecture Visual Semantic / PDF Openability
+
+- [ ] `cpf-backoffice`가 Business Domain 영역에 있고 Platform Operations/Edge에 없음
+- [ ] `cpf-backoffice-web` Channel/BFF와 `cpf-backoffice` Business Domain이 분리됨
+- [ ] `cpf-admin`/`cpf-batch`/`cpf-gateway` Owner Zone이 Canonical Map과 일치
+- [ ] Architecture Figure SHA와 `architecture-visual-semantics.json` 일치
+- [ ] 공식 PDF 11종이 pypdf + PyMuPDF에서 Open되고 첫/마지막 Page가 Render됨
+- [ ] PDF가 Git LFS pointer/HTML 오류 응답/암호화 파일이 아님
 

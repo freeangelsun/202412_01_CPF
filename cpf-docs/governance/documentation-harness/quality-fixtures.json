@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -997,6 +997,51 @@
         "spacingReducedForPageCount": true
       },
       "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "ARCH_VIS_BACKOFFICE_IN_OPERATIONS_101",
+      "expect": "FAIL",
+      "mustTrigger": "backofficePlacedInOperationsEdge",
+      "input": {
+        "node": "cpf-backoffice",
+        "zone": "PLATFORM_OPERATIONS_RUNTIME"
+      },
+      "reason": "cpf-backoffice는 Optional Prebuilt Business Domain이며 Platform Control Plane/Operations Node가 아님"
+    },
+    {
+      "id": "ARCH_VIS_BFF_CONFLATION_102",
+      "expect": "FAIL",
+      "mustTrigger": "backofficeBffConflated",
+      "input": {
+        "singleNodeLabels": [
+          "cpf-backoffice",
+          "cpf-backoffice-web"
+        ],
+        "conflated": true
+      },
+      "reason": "Business Domain과 DB-less Channel/BFF Owner를 단일 Node로 합치면 책임 경계가 왜곡됨"
+    },
+    {
+      "id": "ARCH_VIS_OWNER_MISCLASSIFIED_103",
+      "expect": "FAIL",
+      "mustTrigger": "architectureVisualOwnerMisclassified",
+      "input": {
+        "node": "cpf-admin",
+        "actualZone": "BUSINESS_DOMAIN_CPF",
+        "expectedZone": "PLATFORM_OPERATIONS_RUNTIME"
+      },
+      "reason": "Architecture Figure의 Module Zone은 Canonical Owner Map과 일치해야 함"
+    },
+    {
+      "id": "PDF_LFS_OR_NONOPENABLE_104",
+      "expect": "FAIL",
+      "mustTrigger": "pdfOpenabilityFailure",
+      "input": {
+        "pdfHeaderValid": false,
+        "parserOpen": false,
+        "firstLastRender": false
+      },
+      "reason": "확장자만 PDF인 파일 또는 Viewer/Parser에서 열리지 않는 PDF 전달 금지"
     }
   ]
 }

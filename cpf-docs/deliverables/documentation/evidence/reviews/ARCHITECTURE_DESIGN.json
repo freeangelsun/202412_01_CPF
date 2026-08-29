@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "artifactId": "ARCHITECTURE_DESIGN",
   "artifact": "cpf-docs/deliverables/아키텍처설계서.docx",
   "baselineState": "2.9.0 patch-first baseline + latest 191735 source currentization",
@@ -20,7 +20,7 @@
   "intentionallyRegeneratedBlocks": [
     "DOCX/PDF render outputs"
   ],
-  "regenerationJustification": "Latest source-backed content and Harness 2.12 visual/actionability gates require deterministic fresh render.",
+  "regenerationJustification": "Latest source-backed content and Harness 2.13 visual/actionability and semantic/openability gates require deterministic fresh render.",
   "automated": {
     "harnessSchema": "PASS",
     "artifactStructure": "PASS",
@@ -146,13 +146,13 @@
   ],
   "unresolvedCriticalFindings": [],
   "scanPassEvidence": [
-    "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review — Scan pass: hierarchy, density, page rhythm and obvious crop/overlap reviewed."
+    "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review — Scan pass: hierarchy, density, page rhythm and obvious crop/overlap reviewed."
   ],
   "detailPassEvidence": [
-    "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review — Detail pass: tables, section starts, last pages, code/source blocks and header contrast reviewed."
+    "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review — Detail pass: tables, section starts, last pages, code/source blocks and header contrast reviewed."
   ],
   "readerPassEvidence": [
-    "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review — Reader pass: three concrete tasks traced from question/selection to action and result check."
+    "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review — Reader pass: three concrete tasks traced from question/selection to action and result check."
   ],
   "readerTaskTraces": [
     {
@@ -182,28 +182,28 @@
   ],
   "dimensionEvidence": {
     "reader_actionability": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ],
     "selection_to_action": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ],
     "working_example_fit": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ],
     "failure_recovery_closure": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ],
     "visual_comfort": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ],
     "information_hierarchy": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ],
     "flat_list_density": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ],
     "heavy_block_rhythm": [
-      "아키텍처설계서: 9 pages fresh DOCX render + PDFium/Poppler review"
+      "아키텍처설계서: 10 pages fresh DOCX render + PDFium/Poppler review"
     ]
   },
   "scoreUniformityJustification": "Scores are evidence-backed dimension ratings from the final fresh render; repeated values reflect the fixed 1..5 rubric, while the pattern intentionally varies by dimension rather than blanket scoring.",

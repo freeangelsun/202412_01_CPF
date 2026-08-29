@@ -1,4 +1,4 @@
-# Content Currentization — Harness 2.12.0
+# Content Currentization — Harness 2.13.0
 
 Documentation was rebuilt patch-first against `CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip` (SHA-256 `34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5`). The supplied ZIP contains no `.git`, so exact Git SHA is `UNAVAILABLE_IN_SUPPLIED_ZIP`.
 

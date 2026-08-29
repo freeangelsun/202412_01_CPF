@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "documentId": "ARCHITECTURE_DESIGN",
   "title": "CPF 아키텍처설계서",
   "locked": true,
@@ -323,5 +323,13 @@
       "reference"
     ],
     "rule": "해당 Persona가 문서만 따라 실제 업무를 끝낼 수 있어야 한다. 각 단계가 다른 문서에 있으면 직접 연결되는 Reference와 이동 이유를 제공한다."
+  },
+  "architectureVisualSemanticContract": {
+    "canonicalRef": "architecture-visual-semantics.json",
+    "cpfBackofficeZone": "BUSINESS_DOMAIN_CPF",
+    "cpfBackofficeWebZone": "CHANNEL_EDGE",
+    "cpfAdminZone": "PLATFORM_OPERATIONS_RUNTIME",
+    "cpfBatchZone": "PLATFORM_OPERATIONS_RUNTIME",
+    "backofficeAndBffConflation": "FORBIDDEN"
   }
 }

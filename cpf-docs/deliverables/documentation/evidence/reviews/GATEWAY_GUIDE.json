@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "artifactId": "GATEWAY_GUIDE",
   "artifact": "cpf-docs/guides/06_Gateway_개발_사용_가이드.docx",
   "baselineState": "2.9.0 patch-first baseline + latest 191735 source currentization",
@@ -20,7 +20,7 @@
   "intentionallyRegeneratedBlocks": [
     "DOCX/PDF render outputs"
   ],
-  "regenerationJustification": "Latest source-backed content and Harness 2.12 visual/actionability gates require deterministic fresh render.",
+  "regenerationJustification": "Latest source-backed content and Harness 2.13 visual/actionability and semantic/openability gates require deterministic fresh render.",
   "automated": {
     "harnessSchema": "PASS",
     "artifactStructure": "PASS",

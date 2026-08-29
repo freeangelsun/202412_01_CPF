@@ -1,4 +1,4 @@
-# Open Issues — Documentation 2.12.0
+# Open Issues — Documentation 2.13.0
 
 No known source/document/harness validation failure remains in the Linux final validation environment.
 

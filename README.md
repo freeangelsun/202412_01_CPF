@@ -18,7 +18,7 @@ CPF는 Spring Boot 기반 업무 시스템의 Context, Transaction, Security, Lo
 
 <img src="cpf-docs/assets/product-docs/architecture.png" alt="CPF 전체 Architecture - Entry, Business Domain, Public Starter, Framework, Operations, DB3 Owner 경계" width="100%" />
 
-업무 Source와 데이터의 Owner는 Generated/Prebuilt Domain에 남습니다. CPF는 Owner를 대신하지 않고 **호출 방법, 기술 Capability, 실패 의미, 복구 방법, 운영 식별자**를 공통화합니다. Gateway와 Backoffice는 필요한 경우 선택하는 경계이며 내부 Domain 간 호출을 우회시키지 않습니다.
+업무 Source와 데이터의 Owner는 Generated Domain과 `cpf-backoffice` 같은 Business Domain에 남습니다. CPF는 Owner를 대신하지 않고 **호출 방법, 기술 Capability, 실패 의미, 복구 방법, 운영 식별자**를 공통화합니다. `cpf-backoffice-web`은 Channel/BFF, Gateway는 선택형 Edge이며, `cpf-backoffice`는 플랫폼 운영 영역이 아니라 선택형 Prebuilt Business Domain입니다.
 
 > **CPF가 표준화하는 것은 업무 자체가 아니라 업무를 둘러싼 반복 기술 경계입니다.** 프로젝트마다 다시 만들던 Context 전달, 오류 분류, Retry/Idempotency, Security/Audit, Batch 복구, DB Migration, 운영 추적을 같은 규칙으로 연결해 업무 Domain은 업무 규칙과 데이터 소유에 집중하게 합니다.
 
@@ -123,7 +123,7 @@ Oracle·PostgreSQL·MariaDB를 공식 DB Vendor로 사용하고, Canonical Sourc
 
 Gateway는 외부 Entry에 인증·Route·Rate Limit 같은 Policy가 필요할 때 선택합니다. Trusted Entry에서는 Gateway 없는 Topology도 가능하며, 어느 경우에도 내부 Domain 호출을 Gateway로 되돌리지 않습니다.
 
-Backoffice도 업무 원장을 복제하거나 직접 소유하지 않고 Owner Domain의 API/호출 계약을 사용합니다. 따라서 Gateway·Backoffice를 제거하거나 교체해도 Core Business Domain의 소유권과 호출 계약이 흔들리지 않습니다.
+`cpf-backoffice-web`은 Browser session/CSRF와 Public HTTP Client를 소유하는 DB-less Channel/BFF입니다. `cpf-backoffice`는 MBW 업무관리 기능을 소유하는 **Optional Prebuilt Business Domain**이며 플랫폼 Control Plane이 아닙니다. Member/Account 등 다른 Owner Domain 기능이 필요하면 Repository/DB를 우회하지 않고 공식 Public Contract로 호출합니다.
 
 <br><br>
 

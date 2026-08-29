@@ -1,4 +1,4 @@
-# CPF 문서 품질 엔지니어링 표준 — Harness v2.12.0
+# CPF 문서 품질 엔지니어링 표준 — Harness v2.13.0
 
 ## 1. 최종 품질 정의
 
@@ -118,7 +118,7 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 평균 점수가 높아도 Critical Finding 1건이면 FAIL이다. Contact Sheet만으로 전페이지 수동 검수를 대체하지 않는다. 모든 required Gate=PASS, Manual Evidence 존재, Critical Finding=0, Artifact Review 승인 상태가 충족된 경우에만 최종 완료다.
 
 
-## v2.12.0 강제 보강
+## v2.13.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -128,7 +128,7 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 - 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.
 
 
-## Harness 2.12.0 Visual Quality Uplift
+## Harness 2.13.0 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
@@ -140,4 +140,8 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 ## Reader-Executable / Visual Comfort Hard Gate
 
 `READABILITY_AND_ACTIONABILITY_STANDARD.md`를 적용한다. API/선택표/키워드 존재만으로 완료하지 않고 Selection-to-Action, 실제 Consumer/Working Example, 실패·복구, 검증까지 닫는다. 전체 문서는 긴 Flat List와 Heavy Block 적층을 피하고 의미 그룹과 여백으로 과밀하지 않게 구성한다.
+
+## Architecture 의미 정합성과 PDF 열림 품질
+
+공식 문서의 Architecture Visual은 Source/정본의 Owner Map을 그대로 반영해야 합니다. 시각적으로 균형 잡힌 Figure라도 Module을 잘못된 Layer에 배치하면 품질 PASS가 아닙니다. `cpf-backoffice`는 업무 관리자 Business Domain, `cpf-backoffice-web`은 Channel/BFF, `cpf-admin`은 Platform Operations, `cpf-gateway`는 Edge로 구분합니다. 공식 PDF는 독립 Parser/Renderer에서 실제 Open/Render되는지 검증합니다.
 

@@ -1,4 +1,4 @@
-# TEST AND EVIDENCE — Documentation Harness 2.12.0
+# TEST AND EVIDENCE — Documentation Harness 2.13.0
 
 ## Source identity
 
@@ -10,8 +10,8 @@
 
 ## Executed gates
 
-- Harness self validation: PASS — version 2.12.0
-- Negative fixtures: **100/100 PASS**
+- Harness self validation: PASS — version 2.13.0
+- Negative fixtures: **104/104 PASS**
 - Source alignment: PASS — inventory sample refs 414 / public developer artifacts 26
 - README: PASS — H1 1 / H2 12 / visuals 9
 - Reader task coverage: PASS — 12 artifacts
@@ -20,8 +20,8 @@
 - Visual comfort and rendered-page composition: hard failure 0
 - DOCX Accessibility: **11/11, findings 0**
 - PDF Preflight: **11/11, warnings 0**
-- PDFium: **11 PDFs / 116 pages PASS**
-- Poppler: **11 PDFs / 116 pages PASS**
+- PDFium: **11 PDFs / 117 pages PASS**
+- Poppler: **11 PDFs / 117 pages PASS**
 - README dark preview: **900/1200/1440 PASS**, 9 visuals each
 - Fresh-eyes/manual review: 12/12 artifact manifests, 3 reader task traces each
 

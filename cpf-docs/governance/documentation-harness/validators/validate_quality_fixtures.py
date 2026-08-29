@@ -83,6 +83,10 @@ def evaluate(x):
     if trig=='uniformManualScoresWithoutEvidence': return int(i.get('scoreCount',0))>=10 and int(i.get('sameScoreCount',0))/max(1,int(i.get('scoreCount',1)))>=0.8 and i.get('dimensionEvidencePresent') is not True
     if trig=='genericReaderPassEvidence': return int(i.get('readerTaskTraceCount',0))<3
     if trig=='pagePackedForLength': return i.get('spacingReducedForPageCount') is True
+    if trig=='architectureVisualOwnerMisclassified': return bool(i.get('node')) and i.get('actualZone')!=i.get('expectedZone')
+    if trig=='backofficePlacedInOperationsEdge': return i.get('node')=='cpf-backoffice' and i.get('zone') in ('PLATFORM_OPERATIONS_RUNTIME','CHANNEL_EDGE','OPERATIONS_EDGE')
+    if trig=='backofficeBffConflated': return i.get('conflated') is True and set(i.get('singleNodeLabels',[]))>={'cpf-backoffice','cpf-backoffice-web'}
+    if trig=='pdfOpenabilityFailure': return i.get('pdfHeaderValid') is not True or i.get('parserOpen') is not True or i.get('firstLastRender') is not True
     return False
 
 errors=[]

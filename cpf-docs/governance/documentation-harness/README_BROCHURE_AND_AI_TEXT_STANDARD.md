@@ -1,4 +1,4 @@
-# README Brochure & AI Text Standard — v2.12.0
+# README Brochure & AI Text Standard — v2.13.0
 
 README는 단순 Reference 문서가 아니라 **CPF의 첫 인상을 만드는 다크 브로셔형 제품 간판**이다. 동시에 이미지에 의존하지 않고 AI·검색·텍스트 독자가 내용을 이해할 수 있어야 한다.
 

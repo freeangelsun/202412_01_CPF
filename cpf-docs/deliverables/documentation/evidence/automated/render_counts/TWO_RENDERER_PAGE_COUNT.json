@@ -1,8 +1,8 @@
 {
-  "harnessVersion": "2.12.0",
+  "harnessVersion": "2.13.0",
   "pdfDocuments": 11,
-  "pdfiumPages": 116,
-  "popplerPages": 116,
+  "pdfiumPages": 117,
+  "popplerPages": 117,
   "documentPageCounts": {
     "프레임워크 개발자 가이드": 23,
     "배치 개발자 가이드": 16,
@@ -16,5 +16,6 @@
     "데이터베이스표준서": 9,
     "산출물목록": 4
   },
-  "status": "PASS"
+  "status": "PASS",
+  "match": true
 }

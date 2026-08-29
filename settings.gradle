@@ -102,7 +102,9 @@ if (!providers.gradleProperty('cpfManagedGradleRoot').isPresent()) {
 }
 
 include ':cpf-common'
-include ':framework:core', ':apps:admin', ':apps:admin-runtime', ':apps:backoffice-web', ':runtime:gateway', ':apps:education', ':internal:testing:testkit', ':runtime:local', ':runtime:local-batch'
+include ':framework:core', ':apps:admin', ':apps:admin-runtime', ':runtime:gateway', ':apps:education', ':internal:testing:testkit', ':runtime:local', ':runtime:local-batch'
+def cpfBackofficeWebPresent = file('cpf-backoffice-web/settings.gradle').isFile()
+if (cpfBackofficeWebPresent) { include ':apps:backoffice-web' }
 // Optional Prebuilt Business Domain: Backoffice(MBW)는 Generated Business Domain과 동일한 Online 계약을 사용합니다.
 def cpfBackofficePresent = file('cpf-backoffice/online/build.gradle').isFile()
 if (cpfBackofficePresent) {
@@ -117,7 +119,7 @@ project(':apps:education').projectDir = file('cpf-education')
 project(':internal:testing:testkit').projectDir = file('cpf-tools/testing/cpf-testkit')
 project(':apps:admin').projectDir = file('cpf-admin')
 project(':apps:admin-runtime').projectDir = file('cpf-admin/runtime')
-project(':apps:backoffice-web').projectDir = file('cpf-backoffice-web')
+if (cpfBackofficeWebPresent) { project(':apps:backoffice-web').projectDir = file('cpf-backoffice-web') }
 if (cpfBackofficePresent) {
     project(':apps:backoffice').projectDir = file('cpf-backoffice/online')
 }

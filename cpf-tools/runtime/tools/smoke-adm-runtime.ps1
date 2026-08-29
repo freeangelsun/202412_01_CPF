@@ -710,20 +710,20 @@ try {
 
     $centerCutEndpoints = @(
         "/adm/api/center-cut/jobs",
-        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB",
-        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/parameters",
-        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/summary",
-        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/targets?limit=20",
-        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/results?limit=20"
+        "/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB",
+        "/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB/parameters",
+        "/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB/summary",
+        "/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB/targets?limit=20",
+        "/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB/results?limit=20"
     )
     $checkedCenterCutEndpoints = New-Object System.Collections.Generic.List[string]
     foreach ($endpoint in $centerCutEndpoints) {
         Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl$endpoint" -Headers $headers | Out-Null
         $checkedCenterCutEndpoints.Add($endpoint)
     }
-    $centerCutSummary = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/summary" -Headers $headers
-    $centerCutTargets = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/targets?limit=20" -Headers $headers)
-    $centerCutResults = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/results?limit=20" -Headers $headers)
+    $centerCutSummary = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB/summary" -Headers $headers
+    $centerCutTargets = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB/targets?limit=20" -Headers $headers)
+    $centerCutResults = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_BAT_CENTER_CUT_JOB/results?limit=20" -Headers $headers)
     $hasTransactionId = @($centerCutTargets | Where-Object { $_.transactionId }).Count -gt 0
     $hasTransactionSegmentId = @($centerCutTargets | Where-Object { $_.transactionSegmentId }).Count -gt 0
     $hasFailureReason = @($centerCutTargets | Where-Object { $_.lastErrorMessage }).Count -gt 0

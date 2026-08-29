@@ -33,9 +33,8 @@
       "61_adm_gateway_seed.sql"
     ],
     "optionalSampleSeedFiles": [
-      "55_cmn_seed_data.sql",
-      "58_reference_external_edu_seed.sql",
-      "58_reference_runtime_seed.sql",
+      "58_education_external_seed.sql",
+      "58_runtime_sample_seed.sql",
       "59_adm_local_seed.sql"
     ],
     "testSeedFiles": [
@@ -83,9 +82,8 @@
       "61_adm_gateway_seed.sql"
     ],
     "optionalSampleSeedFiles": [
-      "55_cmn_seed_data.sql",
-      "58_reference_external_edu_seed.sql",
-      "58_reference_runtime_seed.sql",
+      "58_education_external_seed.sql",
+      "58_runtime_sample_seed.sql",
       "59_adm_local_seed.sql"
     ],
     "testSeedFiles": [
@@ -114,9 +112,8 @@
       "61_adm_gateway_seed.sql"
     ],
     "optionalSampleSeedFiles": [
-      "55_cmn_seed_data.sql",
-      "58_reference_external_edu_seed.sql",
-      "58_reference_runtime_seed.sql",
+      "58_education_external_seed.sql",
+      "58_runtime_sample_seed.sql",
       "59_adm_local_seed.sql"
     ],
     "testSeedFiles": [

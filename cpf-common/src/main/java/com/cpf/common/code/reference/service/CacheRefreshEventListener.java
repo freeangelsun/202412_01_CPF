@@ -176,7 +176,7 @@ public class CacheRefreshEventListener {
             case "responseCodeCache" -> response.refreshResponseCodes();
             case "configCache" -> config.refreshConfigs();
             case "businessCalendar", "commonTemplate" -> {
-                // Calendar and Template providers read canonical cmnDB on every request and do not
+                // Calendar and Template providers read canonical cpfDB common store on every request and do not
                 // retain a local snapshot. Their durable events are still consumed by every
                 // instance so the shared checkpoint cannot stall after a committed mutation.
             }

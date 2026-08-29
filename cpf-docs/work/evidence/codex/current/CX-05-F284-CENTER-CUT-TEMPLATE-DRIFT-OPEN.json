@@ -1,8 +1,0 @@
-{
-  "finding": "CX-F-284",
-  "status": "IN_PROGRESS",
-  "sourceIdentity": "857c3ad44f1594ff843e85f2e387a0f8febd1685ea6c08375168fa843fb0891d",
-  "rootCause": "The canonical BAT runtime template centercut-item-load-work omits parent_segment_id while all generated vendor query leaves currently contain it after F276. A later official regeneration would silently remove the required lineage field.",
-  "impact": "Header6/CEC lineage could regress during DB3 regeneration even though current generated leaves pass.",
-  "requiredFix": "Currentize the canonical template, regenerate all DB3 query packs, and assert template/vendor byte parity plus exact Work mapping."
-}

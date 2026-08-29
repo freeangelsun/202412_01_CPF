@@ -49,9 +49,9 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
     @Operation(operationId = "getAdmReadiness", summary = "ADM Readiness 조회")
     public ResponseEntity<Map<String, Object>> readiness() {
         Map<String, Object> checks = new LinkedHashMap<>();
-        checks.put("admDB", checkDatabase(admJdbcTemplate));
+        checks.put("admDataStore", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
-        boolean admDbUp = "UP".equals(checks.get("admDB"));
+        boolean admDbUp = "UP".equals(checks.get("admDataStore"));
         String sessionStore = persistencePolicy.memoryEnabled() ? "MEMORY" : (admDbUp ? "UP" : "DOWN");
         checks.put("sessionStore", sessionStore);
         boolean sessionReady = persistencePolicy.memoryEnabled() || "UP".equals(sessionStore);

@@ -1,10 +1,7 @@
 -- CPF generated SQL bundle: 00_verify.sql
--- 목적: 설치 Object와 제품 Seed를 변경 없이 검증
--- 정본은 database-source-plan.json의 mariadb.sourceRoot 아래 번호별 분리 SQL입니다.
--- 분리 SQL 변경 후 pwsh -File cpf-tools/db/tools/build-all-install-sql.ps1 로 재생성합니다.
--- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql
--- ============================================================================
+-- Source plan: cpf-tools/db/config/database-source-plan.json
+
+-- ===== BEGIN 99_smoke_check.sql =====
 -- AUTO-GENERATED from CPF canonical schema/profile contracts
 -- vendor=mariadb; each logical section executes in its profile-selected physical database.
 -- DO NOT EDIT generated verify SQL directly.
@@ -348,28 +345,6 @@ SELECT 'cpfDB.adm_operator_status_constraint' AS check_name,
 FROM information_schema.table_constraints
 WHERE table_schema=DATABASE() AND UPPER(table_name)='ADM_OPERATOR' AND constraint_name='ck_adm_operator_status';
 
--- CPF_LOGICAL_DATABASE=referenceFixture
-SELECT 'referenceFixture.table_count' AS check_name,
-       IF(COUNT(*) = 4, 1, 0) AS passed
-FROM information_schema.tables
-WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';
-
-SELECT 'referenceFixture.table_engine_collation' AS check_name,
-       IF(COUNT(*) = 0, 1, 0) AS passed
-FROM information_schema.tables
-WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
-  AND (UPPER(COALESCE(engine, '')) <> 'INNODB'
-       OR LOWER(COALESCE(table_collation, '')) <> 'utf8mb4_unicode_ci');
-
-SELECT 'referenceFixture.runtime_transaction_id_contract' AS check_name,
-       IF(COUNT(*) = 3 AND COALESCE(SUM(CASE
-           WHEN UPPER(table_name) = 'REF_CENTER_CUT_SAMPLE_RESULT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
-           WHEN UPPER(table_name) = 'REF_CENTER_CUT_SAMPLE_TARGET' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
-           WHEN UPPER(table_name) = 'REF_SAMPLE_ITEM' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
-           ELSE 0 END), 0) = 3, 1, 0) AS passed
-FROM information_schema.columns
-WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';
-
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,
        IF(COUNT(*) = 30, 1, 0) AS passed
@@ -458,3 +433,4 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
            1, 0
        ) AS passed;
 -- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
+-- ===== END 99_smoke_check.sql =====

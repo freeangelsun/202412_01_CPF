@@ -105,22 +105,12 @@ $runtime = Join-Path $Root 'cpf-tools/db/vendor/mariadb/migration/flyway'
 Rebuild-Pack $source
 Rebuild-Pack $runtime
 
-# PostgreSQL/Oracle은 물리 DB별 Flyway history가 독립적이다. 현재 production Pack은
-# Profile로 요구하고, retired Domain을 포함한 immutable historical pack도 디렉터리에서 발견해 보존한다.
-# REFERENCE_FIXTURE는 current snapshot의 비운영 물리 대상이며 immutable refDB lineage를
-# 소비하므로 referenceFixture라는 동일 이름의 historical migration pack을 요구하지 않는다.
+# PostgreSQL/Oracle historical migration packs are discovered under their migration roots.
+# Current production physical targets come only from the enabled Current profile.
 $profile = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/db/config/database-install.default.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-$canonicalSchema = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/db/canonical/platform-schema.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-$referenceFixtureDatabase = [string]$canonicalSchema.canonicalPolicy.platformDatabaseArchitecture.REFERENCE_FIXTURE.physicalName
-if ([string]::IsNullOrWhiteSpace($referenceFixtureDatabase)) {
-    throw 'Canonical REFERENCE_FIXTURE physicalName is required for migration-pack ownership.'
-}
 $requiredProductionDatabases = @(
     $profile.modules.PSObject.Properties |
-        Where-Object {
-            [bool]$_.Value.enabled -and
-            [string]$_.Value.logicalDatabase -cne $referenceFixtureDatabase
-        } |
+        Where-Object { [bool]$_.Value.enabled } |
         ForEach-Object { [string]$_.Value.logicalDatabase } |
         Sort-Object -Unique
 )

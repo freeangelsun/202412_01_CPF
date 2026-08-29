@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+CLI="$ROOT/bin/lib/cpf-cli.jar"
+[ -f "$CLI" ] || { echo "[CPF][WRAPPER] cpf-cli.jar missing: $CLI" >&2; exit 69; }
+exec java -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -jar "$CLI" "$@"

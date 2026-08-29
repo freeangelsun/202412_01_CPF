@@ -3,7 +3,7 @@
 
 This tool never commits or pushes. It prepares an isolated Maven-compatible binary
 repository, a default-deny public staging tree, and a persistent fresh public clone
-outside the private CPF root. The final clone is left READY_TO_COMMIT for explicit
+outside the private CPF root. The final clone is left VERIFIED for explicit
 user review and manual commit/push.
 """
 from __future__ import annotations
@@ -287,11 +287,10 @@ def publish(root:Path,remote:str,exclude_backoffice:bool,output_root:str|None,ge
     verifier=clone/'tools'/('verify-public-workspace.ps1' if os.name=='nt' else 'verify-public-workspace.sh')
     if os.name=='nt': run(['pwsh','-NoProfile','-File',str(verifier)],clone,env=env)
     else: run(['bash',str(verifier)],clone,env=env)
-    run([git,'add','-A'],clone)
-    run([git,'diff','--cached','--check'],clone)
-    changed=run([git,'diff','--cached','--name-only'],clone,True).splitlines()
+    run([git,'diff','--check'],clone)
+    changed=run([git,'status','--short'],clone,True).splitlines()
     result={
-      'status':'PASS','result':'READY_TO_COMMIT' if changed else 'NO_CHANGES',
+      'status':'PASS','result':'VERIFIED' if changed else 'VERIFIED_NO_CHANGES','userReviewRequired':True,
       'sourceSha':source_sha,'platformVersion':version,'pushExecuted':False,'commitExecuted':False,
       'releaseRoot':str(release),'binaryRepository':str(binary_repo),'staging':str(staging),'clone':str(clone),
       'changedFiles':len(changed),'publicFileCount':ready.get('fileCount'),'generatorDistribution':generator_result

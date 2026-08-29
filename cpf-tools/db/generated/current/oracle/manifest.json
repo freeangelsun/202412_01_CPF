@@ -4,23 +4,19 @@
   "generated": true,
   "owner": "cpf-tools/db",
   "canonical": {
-    "platformSchemaVersion": 58,
-    "seedModelVersion": 47,
-    "nonTableObjectVersion": 1
+    "platformSchemaVersion": 59,
+    "seedModelVersion": 49,
+    "nonTableObjectVersion": 2
   },
   "artifacts": {
-    "cpf-platform-schema.sql": "59006b0f6ac29644fbc8dee3f5d29e587336069d8eb907df0b520254bee6ec24",
-    "cpf-platform-seed.sql": "4ce27695828c89593c310baac432b2780468ee60d6ea268fdacb7ce8857ff796",
+    "cpf-platform-schema.sql": "9ae4b013f83d1b051430daf7a56c8fd691815e0a621cb2f66168f30c71e21b7a",
+    "cpf-platform-seed.sql": "def10f541a8b9dd6d95413352b50bfb8e0915d7670e7ec0745b11f3cc1373bbf",
     "cpf-platform-verify.sql": "2d3c71218b8a522410effc155aafb65afa41a21b70e281f855fda3244aec7e4c",
     "cpf-platform-rollback.sql": "ecf2fee19a7468e45b3a048f642810dc08c98c3cfb25077f571a74b5f035381e",
-    "backoffice-schema.sql": "b256effc7d41de62940fbc509dab01f87cbd9eba2088b333316c60bbd54b48eb",
+    "backoffice-schema.sql": "90b80aa69a8360d865720bc0634682da215a9e70a7e2468f3b5b03c6772f062e",
     "backoffice-seed.sql": "18b26bcc6f187ab4cad6a05361af9e20b644e554469e581ed80ed9d6a7d2ac95",
     "backoffice-verify.sql": "a5fe7193db0b34b4dbb6dc96073ff8123b0ce7dd766bc6c6afb4da0605e0a323",
     "backoffice-rollback.sql": "71bf2e595b987c6a6e6222abc7057318456ba22fe8153d5519a719a0a76a314b",
-    "reference-fixture-schema.sql": "b782b64f7f72c5f8f3e3b4e97a19e9317dabf951594df686c2416a8782b35c88",
-    "reference-fixture-seed.sql": "9b4ac4b24867dc99bf6821ad83f1df5cbb0639072b540cde45b36532cddb9f01",
-    "reference-fixture-verify.sql": "2daf38f39b2c095eb6889b20b18f408d1724c4b08ba0975228ca2ae373f2d9a6",
-    "reference-fixture-rollback.sql": "343b3f8881299895dec1a7a6576e74e5bd21485a4ee1cb3f0833c60e06d11ae6",
     "non-table-objects.sql": "cbe1ff0a1852a7cc5c21279d76ed0cfb32faab9f068c92ef4bde463f917a8bf1"
   },
   "historicalMigrationImmutable": true,

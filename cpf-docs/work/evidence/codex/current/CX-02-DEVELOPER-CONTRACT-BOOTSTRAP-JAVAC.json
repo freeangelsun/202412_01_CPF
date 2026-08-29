@@ -1,9 +1,0 @@
-{
-  "track": "CX-02-DEVELOPER-CONTRACT-BOOTSTRAP-JAVAC",
-  "finishedAt": "2026-08-22T22:50:59.9024944+09:00",
-  "sourceIdentity": "cf210433655014115074a108964596ff26d9193a9d210aa9ffb463e075bf798c",
-  "command": "javac --release 25 (runtime Bootstrap and public template Bootstrap, separate external outputs)",
-  "exitCode": 0,
-  "results": {"runtimeBootstrap": "PASS", "publicTemplateBootstrap": "PASS"},
-  "outputRoot": "C:/Users/fly10/AppData/Local/CPF/validation/f109-bootstrap-javac"
-}

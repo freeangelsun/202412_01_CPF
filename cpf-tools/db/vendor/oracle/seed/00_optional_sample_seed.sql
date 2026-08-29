@@ -1,29 +1,9 @@
 -- CPF generated lifecycle bundle; vendor=oracle
 -- Source plan: cpf-tools/db/config/database-source-plan.json
 
--- ===== BEGIN 55_cmn_seed_data.sql =====
+-- ===== BEGIN 58_education_external_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
--- vendor=oracle; source=55_cmn_seed_data.sql
--- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
--- DO NOT EDIT generated seed directly.
-
--- CPF_LOGICAL_DATABASE=cpfDB
--- CPF_LOGICAL_DATABASE=referenceFixture
-MERGE INTO REF_CMN_SAMPLE_ITEM tgt
-USING (SELECT 'CMN-SAMPLE-001' AS sample_key, 'CPF CMN 기본 샘플' AS item_name, 'DATABASE' AS category_code, 'ACTIVE' AS status_code, 'connection migration crud search offset slice cursor' AS searchable_text, NULL AS owner_reference, 10 AS sort_order, 0 AS version_no, 'CMN_SAMPLE' AS created_by, 'CMN_SAMPLE' AS updated_by FROM dual) src
-ON (tgt.sample_key=src.sample_key)
-WHEN MATCHED THEN UPDATE SET tgt.item_name=src.item_name, tgt.category_code=src.category_code, tgt.status_code=src.status_code, tgt.searchable_text=src.searchable_text, tgt.owner_reference=src.owner_reference, tgt.sort_order=src.sort_order, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, created_by, updated_by) VALUES (src.sample_key, src.item_name, src.category_code, src.status_code, src.searchable_text, src.owner_reference, src.sort_order, src.version_no, src.created_by, src.updated_by);
-MERGE INTO REF_CMN_SAMPLE_ITEM tgt
-USING (SELECT 'CMN-SAMPLE-002' AS sample_key, 'CPF CMN 비활성 샘플' AS item_name, 'VALIDATION' AS category_code, 'INACTIVE' AS status_code, 'validation duplicate optimistic-lock rollback' AS searchable_text, NULL AS owner_reference, 20 AS sort_order, 0 AS version_no, 'CMN_SAMPLE' AS created_by, 'CMN_SAMPLE' AS updated_by FROM dual) src
-ON (tgt.sample_key=src.sample_key)
-WHEN MATCHED THEN UPDATE SET tgt.item_name=src.item_name, tgt.category_code=src.category_code, tgt.status_code=src.status_code, tgt.searchable_text=src.searchable_text, tgt.owner_reference=src.owner_reference, tgt.sort_order=src.sort_order, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, created_by, updated_by) VALUES (src.sample_key, src.item_name, src.category_code, src.status_code, src.searchable_text, src.owner_reference, src.sort_order, src.version_no, src.created_by, src.updated_by);
--- ===== END 55_cmn_seed_data.sql =====
-
--- ===== BEGIN 58_reference_external_edu_seed.sql =====
--- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
--- vendor=oracle; source=58_reference_external_edu_seed.sql
+-- vendor=oracle; source=58_education_external_seed.sql
 -- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
@@ -48,11 +28,11 @@ USING (SELECT 'EDU' AS service_id, 'EDU-EXTERNAL-SIMULATOR' AS endpoint_code, 'P
 ON (tgt.service_id=src.service_id AND tgt.endpoint_code=src.endpoint_code AND tgt.priority=src.priority)
 WHEN MATCHED THEN UPDATE SET tgt.routing_mode=src.routing_mode, tgt.load_balance_type=src.load_balance_type, tgt.failover_enabled_yn=src.failover_enabled_yn, tgt.health_check_required_yn=src.health_check_required_yn, tgt.active_yn=src.active_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.routing_mode, src.load_balance_type, src.failover_enabled_yn, src.health_check_required_yn, src.active_yn, src.priority, src.created_by, src.updated_by);
--- ===== END 58_reference_external_edu_seed.sql =====
+-- ===== END 58_education_external_seed.sql =====
 
--- ===== BEGIN 58_reference_runtime_seed.sql =====
+-- ===== BEGIN 58_runtime_sample_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
--- vendor=oracle; source=58_reference_runtime_seed.sql
+-- vendor=oracle; source=58_runtime_sample_seed.sql
 -- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
@@ -212,18 +192,8 @@ USING (SELECT 'CPF_BAT_CENTER_CUT_JOB' AS job_id, 'CPF BAT 센터컷 smoke Job' 
 ON (tgt.job_id=src.job_id)
 WHEN MATCHED THEN UPDATE SET tgt.job_name=src.job_name, tgt.job_type=src.job_type, tgt.description=src.description, tgt.restartable_yn=src.restartable_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by) VALUES (src.job_id, src.job_name, src.job_type, src.description, src.restartable_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BAT_JOB tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS job_id, 'CPF REF 업무 DB 센터컷 샘플 Job' AS job_name, 'TASKLET' AS job_type, 'REF 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.' AS description, 'Y' AS restartable_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.job_id=src.job_id)
-WHEN MATCHED THEN UPDATE SET tgt.job_name=src.job_name, tgt.job_type=src.job_type, tgt.description=src.description, tgt.restartable_yn=src.restartable_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by) VALUES (src.job_id, src.job_name, src.job_type, src.description, src.restartable_yn, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO BAT_CENTER_CUT_JOB tgt
 USING (SELECT 'CPF_BAT_CENTER_CUT_JOB' AS center_cut_job_id, 'CPF_BAT_CENTER_CUT_JOB' AS batch_job_id, 'CPF Domain Invocation 센터컷 Job' AS center_cut_job_name, 'cpfParameterSnapshotCenterCutTargetProvider' AS provider_key, 'cpfDomainInvocationCenterCutHandler' AS handler_key, 10 AS chunk_size, 3 AS retry_limit, 'Y' AS use_yn, '불변 실행 Parameter의 실제 업무 대상을 DB Work Item으로 만들고 CPF 공식 Domain Invocation으로 처리합니다.' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id)
-WHEN MATCHED THEN UPDATE SET tgt.batch_job_id=src.batch_job_id, tgt.center_cut_job_name=src.center_cut_job_name, tgt.provider_key=src.provider_key, tgt.handler_key=src.handler_key, tgt.chunk_size=src.chunk_size, tgt.retry_limit=src.retry_limit, tgt.use_yn=src.use_yn, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by) VALUES (src.center_cut_job_id, src.batch_job_id, src.center_cut_job_name, src.provider_key, src.handler_key, src.chunk_size, src.retry_limit, src.use_yn, src.description, src.created_by, src.updated_by);
-MERGE INTO BAT_CENTER_CUT_JOB tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS batch_job_id, 'CPF REF 업무 DB 센터컷 샘플 Job' AS center_cut_job_name, 'refCenterCutTargetProvider' AS provider_key, 'refCenterCutHandler' AS handler_key, 10 AS chunk_size, 3 AS retry_limit, 'Y' AS use_yn, 'CPF 표준 계약과 REF 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.center_cut_job_id=src.center_cut_job_id)
 WHEN MATCHED THEN UPDATE SET tgt.batch_job_id=src.batch_job_id, tgt.center_cut_job_name=src.center_cut_job_name, tgt.provider_key=src.provider_key, tgt.handler_key=src.handler_key, tgt.chunk_size=src.chunk_size, tgt.retry_limit=src.retry_limit, tgt.use_yn=src.use_yn, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by) VALUES (src.center_cut_job_id, src.batch_job_id, src.center_cut_job_name, src.provider_key, src.handler_key, src.chunk_size, src.retry_limit, src.use_yn, src.description, src.created_by, src.updated_by);
@@ -301,26 +271,6 @@ WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
 );
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'businessDatePattern' AS parameter_key, 'D+0' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'defaultLimit' AS parameter_key, '10' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'targetTable' AS parameter_key, 'REF_CENTER_CUT_SAMPLE_TARGET' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'resultTable' AS parameter_key, 'REF_CENTER_CUT_SAMPLE_RESULT' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
 -- CPF_LOGICAL_DATABASE=mbwDB
 MERGE INTO MBW_ORGANIZATION tgt
 USING (SELECT 'SAMPLE_ROOT' AS organization_code, NULL AS parent_organization_code, '샘플 본부' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
@@ -391,7 +341,7 @@ USING (SELECT 'SAMPLE_STANDARD_APPROVAL' AS policy_code, 1 AS policy_version, 1 
 ON (tgt.policy_code=src.policy_code AND tgt.policy_version=src.policy_version AND tgt.step_no=src.step_no AND tgt.target_type=src.target_type AND tgt.target_code=src.target_code)
 WHEN MATCHED THEN UPDATE SET tgt.step_type=src.step_type, tgt.decision_rule=src.decision_rule, tgt.required_count=src.required_count, tgt.required_yn=src.required_yn, tgt.sort_order=src.sort_order, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (policy_code, policy_version, step_no, step_type, target_type, target_code, decision_rule, required_count, required_yn, sort_order, created_by, updated_by) VALUES (src.policy_code, src.policy_version, src.step_no, src.step_type, src.target_type, src.target_code, src.decision_rule, src.required_count, src.required_yn, src.sort_order, src.created_by, src.updated_by);
--- ===== END 58_reference_runtime_seed.sql =====
+-- ===== END 58_runtime_sample_seed.sql =====
 
 -- ===== BEGIN 59_adm_local_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json

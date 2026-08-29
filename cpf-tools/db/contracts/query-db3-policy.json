@@ -93,36 +93,6 @@
       "testId": "NXT3-QUERY-001-BATCH-ADAPTER"
     },
     {
-      "pattern": "cpf-education/src/main/java/**/CmnSampleSqlDialect.java",
-      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
-      "reason": "EDU가 DB Tool 소유 REFERENCE_FIXTURE를 소비하기 위해 공식 DB3 DML resource를 선택하는 교육 Adapter",
-      "testId": "NXT3-EDU-DB-CONSUMER"
-    },
-    {
-      "pattern": "cpf-education/src/main/resources/sql/common/sample/*-oracle.sql",
-      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
-      "reason": "DB Tool 소유 REF_CMN_SAMPLE_ITEM을 소비하는 Oracle 교육 DML",
-      "testId": "NXT3-EDU-DB-CONSUMER"
-    },
-    {
-      "pattern": "cpf-education/src/main/resources/sql/common/sample/*-postgresql.sql",
-      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
-      "reason": "DB Tool 소유 REF_CMN_SAMPLE_ITEM을 소비하는 PostgreSQL 교육 DML",
-      "testId": "NXT3-EDU-DB-CONSUMER"
-    },
-    {
-      "pattern": "cpf-education/src/main/resources/sql/common/sample/*-mariadb.sql",
-      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
-      "reason": "DB Tool 소유 REF_CMN_SAMPLE_ITEM을 소비하는 MariaDB 교육 DML",
-      "testId": "NXT3-EDU-DB-CONSUMER"
-    },
-    {
-      "pattern": "cpf-tools/generator/generate-reference-db-verify.py",
-      "owner": "CPF_GENERATOR_REFERENCE_FIXTURE_VERIFY_TOOL",
-      "reason": "DB Tool generated reference fixture 검증 SQL을 생성하는 내부 Generator Tool",
-      "testId": "NXT3-QUERY-001-GENERATOR-VERIFY"
-    },
-    {
       "pattern": "cpf-tools/governance/tools/**",
       "owner": "CPF_GOVERNANCE_DB3_VALIDATOR",
       "reason": "Governance Tool이 금지 dialect/vendor token을 검출하기 위해 DB vendor 문자열을 정의하는 검증 Owner",

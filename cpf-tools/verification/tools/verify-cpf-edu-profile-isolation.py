@@ -19,7 +19,7 @@ def validate(root:Path):
  if not fixture.is_file():errors.append(f'missing explicit EDU fixture: {REQUIRED_FIXTURE}')
  else:
   text=fixture.read_text(encoding='utf-8')
-  for token in ['CPF_EDU_TASKLET_JOB','CPF_EDU_TASKLET_DAILY','CPF_REF_CENTER_CUT_SAMPLE_JOB']:
+  for token in ['CPF_EDU_TASKLET_JOB','CPF_EDU_TASKLET_DAILY']:
    if token not in text:errors.append(f'EDU fixture missing protected identifier: {token}')
  for base in [root/'cpf-admin/frontend/src',root/'cpf-admin/src/main']:
   if not base.exists():continue

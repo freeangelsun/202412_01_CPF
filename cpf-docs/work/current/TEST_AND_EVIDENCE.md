@@ -1,84 +1,76 @@
-# CPF Developer GPT Test & Evidence — 2026-08-27 — C 개발/QA 관리_1_8
+# CPF TEST AND EVIDENCE — Current
 
-## Source Identity
+## 1. Source Identity
 
-- Input ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_121653.zip`
-- Input ZIP SHA-256: `59297cc5afa5d8b1eb217332dfa3a205ceb5bbe24e6f20eef92b1b01c3d247f8`
-- Input Product Source Identity: `7d25511f04c49952709489499ed637661649fe8673983302f088efc97f5c8304`
-- User Full Runtime execution Source Identity: `b9aac7877adce6b7cce5a0ae556fcaa0b9f775a1f11c8268cebd9533244c9c09` / 8,435 files
-- Current DevGPT Product Source Identity: `b41abc892e6652ef8461ece1b3daa1057acfbf153185fe8e67ea70a6e20de4af`
-- Current Product Source: `8,340` files / `40,742,487` bytes
-- Canonical Product Requirement: `208`
-- Developer Closure Inventory: `169` rows
-- Physical Runtime가 끝나지 않아 Overall은 `미검증`이다.
+- Baseline Source ZIP SHA-256: `e24d2596fc404c6761725cf5b5a4a618038dae4f1e177d4171296f6204d20802`
+- Baseline Product Source Identity: `b33471236f57a30eba48c9cc582789ee33f81cd8b67194a9e710b06877b4d68e` / 8,409 source files
+- Current Product Source Identity: `398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717` / 8,320 source files
+- Identity policy: `GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES`
+- Git provenance: supplied ZIP에는 `.git`이 없으므로 local overlay 적용 후 read-only Git root/branch/HEAD/status로 확인한다.
 
-## DevGPT 실행환경
+## 2. Current exact-source Static / Contract 결과
 
-- Linux x86_64
-- OpenJDK 21.0.11
-- Python 3.13.5
-- Node 22.16.0 / npm 10.9.2
-- Gradle 9.1 distribution cache 없음, 외부망 차단 → Java25/Gradle 물리 Build는 `BLOCKED_EXTERNAL`
+| Gate/Test | Result | Interpretation |
+|---|---|---|
+| `verify-cpf-current-final.py` | PASS | Current Canonical / EDU / operation / delete governance |
+| `verify_nxt3_hygiene.py` | PASS | Delete Manifest, protected path, current hygiene |
+| `verify_nxt3_repository_garbage.py` | PASS | Current-only garbage decision integrity |
+| UTF-8 Runtime Boundary | PASS | ProcessStartInfo 27 / redirected 27 / Start-Process 10 / mojibake source 0 |
+| Physical DB Consolidation | PASS | Current Physical DB = cpfDB/mbwDB/mbrDB/exsDB; retired active target 0 |
+| Unified CLI | PASS | Public `bootstrap/build/doctor/domain-new/domain-sync/help/reset/run/status/stop/test/version`; internal namespace 분리 |
+| Requirement Progress / Projection | PASS 218/218 | Developer Requirement ledger와 canonical projection 일치 |
+| Open Git/Public Release pytest | **48 PASS / 0 FAIL** | replay 및 current source contract regression |
+| DB unit/contract | **142 PASS / 2 SKIP / 0 FAIL** | 22개 파일을 3개 묶음으로 분리 실행 |
+| DB verification | **87/87 PASS** | DB lifecycle/verifier contract |
+| Runtime tools | **72 PASS / 2 SKIP / 0 FAIL** | 환경/선택형 SKIP은 Physical PASS로 승격하지 않음 |
+| Generator replay subset | **20 PASS / 9 SKIP / 0 FAIL** | 첫 7개 파일 replay 결과; 장기 setup/sync는 sandbox timeout. 기존 동일 Source targeted/mutation 결과는 별도 참고 |
 
-## 실제 실행 결과
+## 3. Fresh Replay
 
-| 검증 | 실제 결과 | 판정 |
-|---|---:|---|
-| User Windows Full Runtime (입력 Evidence) | PASS 129 / FAIL 18 / SKIP_ENV 1 / NOT_EXECUTED 7 / RC 1 | FAIL — current Source 자동승계 금지 |
-| DB Python full regression | 228 passed / 2 environment skipped | PASS_WITH_ENV_SKIPS |
-| Testing Tools 90 files split | 404 passed / 22 environment skipped / 2 subtests passed | PASS_WITH_ENV_SKIPS |
-| Generator verification | 47 passed / 10 environment skipped / 6 subtests passed | PASS_WITH_ENV_SKIPS |
-| Release/Open Git tests | 53 passed | PASS |
-| Runtime Tools tests | 72 passed / 2 environment skipped / 7 subtests passed | PASS_WITH_ENV_SKIPS |
-| NXT3 23-gate coverage | runner first 18 PASS before executor timeout + remaining 5 individually PASS | PASS_COVERAGE / MONOLITHIC_NOT_OBSERVED |
-| Current Final verifier | failures 0 | PASS |
-| NXT3 Hygiene | protected delete 0 / directory delete 0 | PASS |
-| NXT3 Garbage | decision 1129 / delete 301 / ephemeral cache 0 / failures 0 | PASS |
-| Security Context semantic verifier | failures 0 | PASS |
-| Execution Scope exhaustive | status PASS | PASS |
-| Batch Standalone/Profile | roles 5 / shells 20 / profiles 15 / checks 35 | PASS_STATIC_ONLY |
-| Spring Java Hygiene | 2,449 main Java / failures 0 | PASS |
-| VSCode source-regression gate | 3 passed; 2026-08-27 known diagnostics reintroduction fail-closed | PASS |
-| VSCode verifier negative/positive | actual 50/18E/29W dump fails; zero E/W fixture passes | PASS |
-| Approved Delete Manifest isolated replay | selected 312 / deleted 6 / already absent 306 / replacement missing 0 / unsafe 0 | PASS |
-| Gradle Java25 Root Build | Gradle9.1 distribution unavailable in DevGPT environment | BLOCKED_EXTERNAL |
-| Fresh VSCode Error/Warning | Windows VSCode unavailable | NOT_EXECUTED |
-| DB3 Physical lifecycle | Docker/vendor runtime unavailable here | NOT_EXECUTED |
-| One-WAS/real logging/Runtime OpenAPI/Browser/Performance | Windows/Docker/Browser environment unavailable here | NOT_EXECUTED |
-| Actual Open Git Fresh Binary Release | Java25 publication environment unavailable here | NOT_EXECUTED |
-| Fresh Replay | Final physical first pass 미완료 | NOT_EXECUTED |
+- Baseline 전체 Tree + Overlay 적용 후 Delete Manifest 실행: **PASS**
+- Delete Manifest: **2,038행**, 모두 `approved=true / user_approved=true / precondition=SATISFIED / lifecycle=PENDING_USER_EXECUTION`
+- Fresh Replay에서 실제 삭제된 baseline 파일: **1,725건** / already missing 313건
+- Replay Product Source Identity: `398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717` — **exact match**
+- Replay ↔ Current full file comparison: **8,832 files / missing 0 / extra 0 / changed 0**
+- Replay Current/Hygiene/Garbage/UTF-8/DB4/CLI/Requirement Gate: **PASS**
+- Replay Open Git/Public Release: **48/48 PASS**
+- Replay DB: **142 PASS / 2 SKIP + 87 PASS / FAIL 0**
+- Replay Runtime Tools: **72 PASS / 2 SKIP / FAIL 0**
 
-## 이번에 보정한 주요 Root Cause / False Green
+Final package replay는 **PASS**이며 Product Source Identity와 full tree가 current 작업본에 exact match했다.
 
-- 최신 VSCode 50 diagnostics를 18 Error/29 Warning/3 기타로 재기준화하고 ADM Comparator/generic/import/API/constructor drift를 보정.
-- Security request-scope verifier가 `session` 변수명 literal을 강제하던 False Red를 hashed-session semantic contract로 교체.
-- Execution Scope external Temp Evidence `relative_to(root)` 실패를 content-addressed external identity로 보정.
-- Oracle SQLPlus failure diagnostic/secret transport 강화와 stale literal Test를 의미 기반으로 currentize.
-- Oracle seed logical mutation과 row-wise MERGE physical expansion을 동일 statement count로 비교하던 False Red 제거.
-- Oracle Spring Batch verify를 전체 `user_sequences`가 아니라 관리 `BAT_SB_` namespace 기준으로 currentize.
-- 최신 입력 ZIP에서 누락된 Batch 5-role Windows/Linux run/stop Shell 20개를 복원하고 Source-state 보존 회귀를 추가했으며, Root `.gitignore`의 전역 `bin/` 규칙에서 `cpf-batch/*/bin/**`를 제품 Source로 명시적 예외 처리해 Git 추적 누락까지 보정.
-- Frontend OOM의 750MB ceiling을 제품 1GB 상한 안의 1000MB로 조정하고 Node/npm exact toolchain을 fail-closed로 검증.
-- Required Full Runtime에 Fresh VSCode 0/0, mandatory Performance load/soak, Actual Open Git Fresh Release, mandatory stage completeness, exact managed diff, 동일 Source Fresh Replay를 추가.
-- Full Runtime PowerShell/Python child I/O를 UTF-8로 고정하여 mojibake 재발 방지.
+## 4. Current-only / Legacy Zero
 
-## 통합 Runner Timeout 처리
+- `referenceFixture/refDB` Current schema/seed/provision/verify/runtime 경로 제거.
+- Current DB Canonical 231 tables.
+- `admDB/batDB/bzaDB/cmnDB/refDB` active runtime target 0.
+- 날짜/세션/checkpoint/RERUN/Handover/Completion stale current 자료 제거.
+- Codex current evidence 1,581개를 검사한 결과 Current Product Source Identity match 0건 → 사용자 승인 Current-only cleanup으로 제거. Codex 상태 컬럼 자체는 수정하지 않음.
+- 일반 `backup` 기능 테스트 4개는 현행 Backup 기능 계약이므로 Legacy filename으로 오판하지 않고 유지.
 
-장시간 pytest/NXT3 monolithic 호출이 assistant 실행 제한에 걸린 경우 해당 호출 자체를 PASS로 기록하지 않았다. 동일 파일/Stage를 독립 묶음으로 다시 실행했다. 현재 Source에서는 Runner가 18개 연속 PASS 후 외부 executor timeout에 걸렸고, 남은 5개 Gate를 개별 실행해 모두 PASS했다. 따라서 23개 Gate coverage는 PASS지만 현재 Source의 monolithic runner completion 자체를 PASS로 기록하지 않는다.
+## 5. Physical Acceptance — 성공 처리하지 않은 항목
 
-## BLOCKED_EXTERNAL / 필수 재실행
+- Java 25.0.3 Root Gradle build/test/publication/SBOM
+- Fresh VS Code Java25/Gradle Import Error 0 / Warning 0
+- Oracle/PostgreSQL/MariaDB actual DB3 Fresh→Seed→Runtime→Upgrade→Rollback/Recovery→Reapply→Fresh Replay
+- Windows/Linux Unified CLI actual lifecycle / UTF-8 / path / prerequisite negative
+- Batch 5-role + Worker×2 kill/takeover/fencing/UNKNOWN/reconcile
+- One-WAS actual transaction + rollback-surviving DB logging + file/db/segment/timeline correlation
+- ADM/Backoffice Runtime OpenAPI + Frontend/Browser E2E/a11y/error states
+- signed Performance live/load/soak
+- Actual `cpf-release/` Fresh Binary/Source Release + public CLI lifecycle + leakage 0
+- Full Runtime `FAIL=0 / mandatory SKIP_ENV=0 / NOT_EXECUTED=0 / unresolved UNKNOWN=0`
+- Source/Managed drift 0 + Physical Same Source Fresh Replay
+- Codex current-source independent verification
 
-1. Windows Java25/Gradle9.1 clean Root Build/Test/Publication/SBOM + Generated Domains.
-2. Fresh VSCode Gradle/JDT Problems Error 0 / Warning 0.
-3. DB3 Physical Fresh/Upgrade/Rollback/Reapply/Fault/Cleanup.
-4. Batch 5-role + Worker×2 kill/takeover/fencing/UNKNOWN/reconcile.
-5. One-WAS + File/DB/Transaction/Segment/Timeline correlation.
-6. Runtime OpenAPI + frontend build/test + Browser E2E/a11y.
-7. signed Performance Live + required load/soak.
-8. Actual Open Git Fresh Binary Release/Golden Path.
-9. Source/Managed drift 0 + 동일 Source Fresh Replay.
+## 6. Environment
 
-미실행 결과는 PASS로 기록하지 않는다.
+- Assistant sandbox: Java 21, Python 3.13, Node 22.16
+- Java25: unavailable
+- Docker: unavailable
+- PowerShell/pwsh: unavailable
+- 사용자 Windows Java25 환경용 runner: `cpf-docs/work/current/CPF_FINAL_LOCAL_APPLY_RUNTIME_COMMANDS.md`
 
-## Fresh Baseline + Overlay 재검증
+## 7. 판정
 
-원본 `CPF_FULL_SOURCE_FOR_NEXT_QA_20260827_121653.zip`에 이 세션 Overlay를 다시 적용한 독립 Snapshot에서 NXT3 23/23, DB 228/2 env skip, Testing Tools 403/22 env skip/2 subtests, Generator 47/10 env skip/6 subtests, Release 53, Runtime Tools 72/2 env skip/7 subtests를 재현했다. 이후 VSCode Warning Source 보강과 회귀 Test 1건이 추가되어 현재 Source의 Testing Tools 집계는 404 passed이며 해당 변경은 Targeted 3/3 및 Current Final/Hygiene/Garbage/Java Hygiene로 재검증했다. 최종 Overlay는 이 최신 Source에서 다시 Fresh Apply/Hash 검증한다.
+**DevGPT Source/Static Closure는 완료했다. 전체 QA/Physical Completion은 미검증이다.** 미실행 Runtime을 PASS로 기록하지 않는다.

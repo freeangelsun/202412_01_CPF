@@ -1,7 +1,0 @@
-{
-  "track": "CX-02-F109-SCRATCH-DEPENDENCY-UPGRADE",
-  "finishedAt": "2026-08-22T23:06:04.5619673+09:00",
-  "sourceIdentity": "d5077f82e2f89c5fbf2cde4a196a73fe7b119db088c33c6fd20b91b470150fc0",
-  "upgrade": {"exitCode": 0, "changed": ["settings.gradle"], "added": [], "removed": [], "verify": "PASS"},
-  "diff": {"exitCode": 0, "clean": true, "missing": [], "changed": [], "staleGenerated": [], "extraUser": [], "legacyMetadata": []}
-}

@@ -92,7 +92,7 @@ try {
     $result.login.status = "PASSED"
 
     $headers = @{ Authorization = "Bearer $($login.accessToken)" }
-    $jobId = "CPF_REF_CENTER_CUT_SAMPLE_JOB"
+    $jobId = "CPF_BAT_CENTER_CUT_JOB"
     $endpoints = @(
         "/adm/api/center-cut/jobs",
         "/adm/api/center-cut/jobs/$jobId",

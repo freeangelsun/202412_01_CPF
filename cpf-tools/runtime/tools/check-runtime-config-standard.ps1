@@ -60,9 +60,9 @@ $expectedLocalPorts = @{
     GWY = 8070
 }
 $schemaByModule = @{
-    ADM = "admDB"
+    ADM = "cpfDB"
     MBW = "mbwDB"
-    BAT = "batDB"
+    BAT = "cpfDB"
     EDU = "cpfDB"
     GWY = "cpfDB"
 }

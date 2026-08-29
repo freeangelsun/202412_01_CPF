@@ -43,9 +43,9 @@ class MariaDbProfileVerifyContractTest(unittest.TestCase):
         self.assertEqual("10_cpf_schema.sql", contract["canonicalPolicy"]["currentSourceFile"])
         self.assertTrue(contract["canonicalPolicy"]["historicalMigrationImmutable"])
         self.assertTrue(all(item["logicalDatabase"] == "cpfDB" for item in contract["objects"]))
-        self.assertTrue(all(item["legacyLogicalDatabase"] == "batDB" for item in contract["objects"]))
+        self.assertTrue(all("legacyLogicalDatabase" not in item for item in contract["objects"]))
         self.assertTrue(all(item["sourceFile"] == "10_cpf_schema.sql" for item in contract["objects"]))
-        self.assertTrue(all(item["legacySourceFile"] == "35_bat_schema.sql" for item in contract["objects"]))
+        self.assertTrue(all("legacySourceFile" not in item for item in contract["objects"]))
         current = (ROOT / "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql").read_text(encoding="utf-8-sig")
         retired_source = (ROOT / "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql").read_text(encoding="utf-8-sig")
         for sequence in ("BAT_SB_JOB_INSTANCE_SEQ", "BAT_SB_JOB_EXECUTION_SEQ", "BAT_SB_STEP_EXECUTION_SEQ"):

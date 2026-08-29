@@ -1,4 +1,4 @@
-﻿id,priority,development_status,verification_status,scope,next_closure
+id,priority,development_status,verification_status,scope,next_closure
 SPECIAL-01,P0,재검수 중,미검증,FullLocal E2E,다음 Windows FullLocal 전체 135+ 단계 FAIL 0 / 필수 SKIP 0
 SPECIAL-02,P0,개발 완료,재검수 중,FullLocal Orchestrator,stage durability/NOT_EXECUTED/StrictExit/source-state 보정; Windows aggregate 재검수
 SPECIAL-03,P1,개발 완료,미검증,Java25 Gradle/Publication,Java25 build/test/publication/SBOM
@@ -10,7 +10,7 @@ SPECIAL-08,P0,개발 완료,미검증,Local 1-WAS,start/transaction/restart/shut
 SPECIAL-09,P0,개발 완료,미검증,Integrated Logging,FileLog↔DB↔ADM same transactionId/traceId
 SPECIAL-10,P0,개발 완료,재검수 중,Secret Masking,static contracts PASS; live File/DB/stdout/browser scan required
 SPECIAL-11,P0,개발 완료,미검증,ADM Browser,npm ci/verify/E2E/A11y/error states
-SPECIAL-12,P0,개발 완료,미검증,BZA Browser,npm ci/verify/E2E/A11y/error states
+SPECIAL-12,P0,개발 완료,미검증,Backoffice(MBW) Browser,npm ci/verify/E2E/A11y/error states
 SPECIAL-13,P1,개발 완료,재검수 중,Controller/OpenAPI/Client/UI,ADM321/BZA96 static pass; live UI consumer required
 SPECIAL-14,P1,개발 완료,재검수 중,Domain/External/Tx boundary,Golden Path/contract gate implemented; remote runtime required
 SPECIAL-15,P0,개발 완료,재검수 중,UNKNOWN/Retry/Idempotency/Reconcile,Batch targeted PASS; live messaging/batch/domain required

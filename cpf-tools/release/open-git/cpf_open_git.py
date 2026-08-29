@@ -595,7 +595,7 @@ def verify_framework_source_projection(root: Path, open_git: Path, profile: str)
 
 
 def verify_open_git_tree(root: Path, open_git: Path, profile: str = "binary") -> dict[str, Any]:
-    required = ["cpf-member", "cpf-external", "cpf-backoffice", "cpf-backoffice-web", "cpf-education", "bin"]
+    required = ["cpf-education", "bin"]
     missing = [item for item in required if not (open_git / item).exists()]
     if missing:
         raise OpenGitReleaseError(f"Open Git required paths missing: {missing}")
@@ -606,27 +606,33 @@ def verify_open_git_tree(root: Path, open_git: Path, profile: str = "binary") ->
     framework_source = verify_framework_source_projection(root, open_git, profile)
     if (open_git / "domains").exists():
         raise OpenGitReleaseError("duplicate Open Git domains catalog is forbidden; physical cpf-<domain> projects are authoritative")
-    for project in ("cpf-member", "cpf-external", "cpf-backoffice"):
-        contract = open_git / project / "gradle.properties"
-        if not contract.is_file() or "cpf.domain.contractVersion=1" not in contract.read_text(encoding="utf-8-sig"):
-            raise OpenGitReleaseError(f"Open Git Domain Developer contract missing/invalid: {project}/gradle.properties")
+    selected_domains=[]; seen_names=set(); seen_codes=set()
+    for project in sorted(p for p in open_git.glob("cpf-*") if p.is_dir()):
+        contract=project/"gradle.properties"
+        if not contract.is_file(): continue
+        values={}
+        for raw in contract.read_text(encoding="utf-8-sig").splitlines():
+            line=raw.strip()
+            if not line or line.startswith("#") or "=" not in line: continue
+            k,v=line.split("=",1); values[k.strip()]=v.strip()
+        if values.get("cpf.domain.contractVersion")!="1": continue
+        name=values.get("cpf.domain.name",""); code=values.get("cpf.domain.systemCode","")
+        if project.name!=f"cpf-{name}" or not code: raise OpenGitReleaseError(f"Open Git Domain Developer contract invalid: {project.name}")
+        if name in seen_names or code in seen_codes: raise OpenGitReleaseError(f"duplicate Open Git Domain identity: {name}/{code}")
+        seen_names.add(name); seen_codes.add(code); selected_domains.append(project.name)
         for forbidden in ("cpf-domain.yaml", "cpf-generator.lock.json"):
-            if (open_git / project / forbidden).exists():
-                raise OpenGitReleaseError(f"Generator metadata leaked into Open Git: {project}/{forbidden}")
+            if (project / forbidden).exists(): raise OpenGitReleaseError(f"Generator metadata leaked into Open Git: {project.name}/{forbidden}")
     archives = []
     for path in open_git.rglob("*"):
-        if not path.is_file() or path.suffix.lower() not in {".jar", ".war"}:
-            continue
+        if not path.is_file() or path.suffix.lower() not in {".jar", ".war"}: continue
         rel = path.relative_to(open_git).as_posix()
-        if rel in {"gradle/wrapper/gradle-wrapper.jar", "bin/lib/cpf-cli.jar"}:
-            continue
+        if rel in {"gradle/wrapper/gradle-wrapper.jar", "bin/lib/cpf-cli.jar"}: continue
         archives.append(rel)
-    if archives:
-        raise OpenGitReleaseError(f"Open Git Source Workspace contains accumulated CPF/application JAR/WAR: {archives[:20]}")
+    if archives: raise OpenGitReleaseError(f"Open Git Source Workspace contains accumulated CPF/application JAR/WAR: {archives[:20]}")
     edu_build = open_git / "cpf-education/build.gradle"
     if edu_build.is_file() and "project(" in edu_build.read_text(encoding="utf-8"):
         raise OpenGitReleaseError("Open Git EDU build must consume published CPF artifacts, not private project dependencies")
-    return {"status": "PASS", "profile": profile, "requiredPaths": len(required), "forbiddenRootLeakage": 0, "jarWarCount": 0, "frameworkSourceFiles": framework_source.get("fileCount", 0)}
+    return {"status":"PASS","profile":profile,"requiredPaths":len(required),"selectedDomains":selected_domains,"domainState":"NOT_SELECTED" if not selected_domains else "SELECTED","forbiddenRootLeakage":0,"jarWarCount":0,"frameworkSourceFiles":framework_source.get("fileCount",0)}
 
 
 def write_file_manifest(root: Path, target: Path, output: Path) -> int:

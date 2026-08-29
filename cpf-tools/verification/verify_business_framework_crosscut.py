@@ -63,11 +63,30 @@ def count_text(paths, pattern: str) -> int:
     return count
 
 
+def read_props(path: Path):
+    out={}
+    if not path.is_file(): return out
+    for raw in path.read_text(encoding="utf-8-sig").splitlines():
+        line=raw.strip()
+        if not line or line.startswith("#") or "=" not in line: continue
+        k,v=line.split("=",1); out[k.strip()]=v.strip()
+    return out
+
+def selected_domains():
+    rows=[]
+    for project in sorted(p for p in ROOT.glob("cpf-*") if p.is_dir()):
+        props=read_props(project/"gradle.properties")
+        if props.get("cpf.domain.contractVersion")!="1": continue
+        rows.append((project,props))
+    return rows
+
+DOMAIN_ROWS=selected_domains()
+
 checks = []
 def check(axis, check_id, ok, detail, severity="P0"):
     checks.append({"axis": axis, "checkId": check_id, "status": "PASS" if ok else "FAIL", "severity": severity, "detail": detail})
 
-java_main = [p for top in ["cpf-core", "cpf-starters", "cpf-admin", "cpf-backoffice/online", "cpf-gateway", "cpf-batch", "cpf-education", "cpf-member", "cpf-external"] for p in files_under(top, ".java") if "/src/test/" not in p.as_posix()]
+java_main = [p for top in ["cpf-core", "cpf-starters", "cpf-admin", "cpf-gateway", "cpf-batch", "cpf-education"] for p in files_under(top, ".java") if "/src/test/" not in p.as_posix()] + [p for project,_ in DOMAIN_ROWS for p in files_under(project.relative_to(ROOT).as_posix(), ".java") if "/src/test/" not in p.as_posix()]
 active_docs = []
 for top in ["cpf-docs/governance", "cpf-docs/architecture", "cpf-docs/development", "cpf-docs/work/current"]:
     active_docs += [p for p in files_under(top) if p.suffix.lower() in {".md", ".csv", ".json", ".yml", ".yaml"}]
@@ -106,14 +125,24 @@ check("OPERATIONAL_JOURNEY", "OPS-TIMELINE-CONSUMER", any_text(adm_files, r"CpfT
 check("OPERATIONAL_JOURNEY", "OPS-UNKNOWN-RECONCILE", any_text(adm_files, r"UNKNOWN|Unknown") and any_text(files_under("cpf-starters/platform-operations", ".java"), r"CpfReconciliationPort"), "UNKNOWN + reconciliation operational path")
 
 # 5) Generator-first DX
-# Generated Customer Domain은 online을 기본 생성하고 modules.batch=true일 때 batch를 함께 생성한다.
-for domain in ["cpf-member", "cpf-external"]:
-    for profile in ["local", "test", "dev", "stg", "prod"]:
-        check("GENERATOR_FIRST_DX", f"GEN-{domain}-online-{profile}".upper(), exists(f"{domain}/online/src/main/resources/application-{profile}.yml"), f"{domain}/online {profile} profile")
-member_batch = ROOT / "cpf-member" / "batch"
-external_batch = ROOT / "cpf-external" / "batch"
-check("GENERATOR_FIRST_DX", "GEN-MEMBER-OPTIONAL-BATCH-ENABLED", member_batch.is_dir() and any(x.is_file() for x in member_batch.rglob("*")), "member fixture modules.batch=true materializes batch")
-check("GENERATOR_FIRST_DX", "GEN-EXTERNAL-OPTIONAL-BATCH-DISABLED", not external_batch.exists() or not any(x.is_file() for x in external_batch.rglob("*")), "external fixture modules.batch=false leaves batch absent")
+# Every currently selected Developer Contract Domain is verified; zero Domains is a normal state.
+generated_java=[]
+requires_typed_dependency=False
+for project,props in DOMAIN_ROWS:
+    name=project.name
+    mode=props.get("cpf.domain.generationMode","generated").lower()
+    if mode=="prebuilt": continue
+    online=props.get("cpf.domain.online","true").lower()=="true"
+    batch=props.get("cpf.domain.batch","false").lower()=="true"
+    if online:
+        for profile in ["local","test","dev","stg","prod"]:
+            check("GENERATOR_FIRST_DX",f"GEN-{name}-ONLINE-{profile}".upper(),exists(f"{name}/online/src/main/resources/application-{profile}.yml"),f"{name}/online {profile} profile")
+    batch_root=project/"batch"
+    check("GENERATOR_FIRST_DX",f"GEN-{name}-BATCH-SELECTION".upper(),batch_root.is_dir()==batch,f"{name} batch={batch} materialization parity")
+    source=[p for p in files_under(name,".java") if "/src/main/" in p.as_posix()]
+    generated_java += source
+    if props.get("cpf.domain.dependencies","").strip(): requires_typed_dependency=True
+check("GENERATOR_FIRST_DX","GEN-ZERO-DOMAIN-SUPPORTED",True,f"selectedGeneratedDomains={sum(1 for _,p in DOMAIN_ROWS if p.get('cpf.domain.generationMode','generated').lower()!='prebuilt')}")
 catalog = json.loads(text("cpf-tools/generator/contracts/cpf-starter-catalog.json") or "{}")
 batch_profile = (catalog.get("profileDefinitions") or {}).get("batch") or {}
 batch_modules = [m for m in (catalog.get("modules") or []) if m.get("profileId") == "batch" and m.get("visibility") == "public"]
@@ -122,23 +151,17 @@ check("GENERATOR_FIRST_DX", "GEN-BATCH-CAPABILITY-SEPARATE",
       and exists("cpf-batch/build.gradle") and exists("cpf-batch/runtime/build.gradle")
       and batch_profile.get("artifactId") == "cpf-starter-batch"
       and len(batch_modules) == 1 and batch_modules[0].get("ownerPath") == "cpf-starters/profiles/batch-service",
-      "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when modules.batch=true")
-member_java = [p for p in files_under("cpf-member", ".java") if "/src/main/" in p.as_posix()]
-external_java = [p for p in files_under("cpf-external", ".java") if "/src/main/" in p.as_posix()]
-check("GENERATOR_FIRST_DX", "GEN-NO-DIRECT-SYSTEM-TIME", not any_text(member_java + external_java, r"Instant\.now\(\)"), "generated retained domains use injected Clock")
-generator_engine = text("cpf-tools/generator/engine/cpf_domain_generator.py")
-generator_schema = text("cpf-tools/generator/contracts/cpf-domain.schema.json")
-logical_binding = all(x in generator_engine and x in generator_schema for x in ["domainDependencies", "externalClients"])
-check("GENERATOR_FIRST_DX", "GEN-LOGICAL-BINDINGS", logical_binding, "generator schema/model materializes domainDependencies + externalClients")
-generated_domain_sources = member_java + external_java
-typed_domain_consumer = (
-    any_text(generated_domain_sources, r"interface\s+\w+DomainClient\s*\{")
-    and any_text(generated_domain_sources, r"class\s+Default\w+DomainClient")
-    and any_text(generated_domain_sources, r"CpfDomainClientRouter")
-    and any_text(generated_domain_sources, r"class\s+DomainDependencySampleService")
-    and any_text(generated_domain_sources, r"private\s+final\s+\w+DomainClient\s+\w+DomainClient")
-)
-check("GENERATOR_FIRST_DX", "GEN-TYPED-DOMAIN-CONSUMER", typed_domain_consumer, "generated MBR/EXS typed Domain Client + adapter + actual consumer")
+      "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when selected")
+check("GENERATOR_FIRST_DX","GEN-NO-DIRECT-SYSTEM-TIME",not any_text(generated_java,r"Instant\.now\(\)"),"selected generated domains use injected Clock")
+generator_engine=text("cpf-tools/generator/engine/cpf_domain_generator.py")
+generator_schema=text("cpf-tools/generator/contracts/cpf-domain.schema.json")
+logical_binding=all(x in generator_engine and x in generator_schema for x in ["domainDependencies","externalClients"])
+check("GENERATOR_FIRST_DX","GEN-LOGICAL-BINDINGS",logical_binding,"generator schema/model materializes domainDependencies + externalClients")
+if requires_typed_dependency:
+    typed=(any_text(generated_java,r"interface\s+\w+DomainClient\s*\{") and any_text(generated_java,r"class\s+Default\w+DomainClient") and any_text(generated_java,r"CpfDomainClientRouter") and any_text(generated_java,r"class\s+DomainDependencySampleService"))
+    check("GENERATOR_FIRST_DX","GEN-TYPED-DOMAIN-CONSUMER",typed,"selected dependency-bearing Domain has typed Domain Client + adapter + consumer")
+else:
+    check("GENERATOR_FIRST_DX","GEN-TYPED-DOMAIN-CONSUMER",True,"NOT_SELECTED: no current Domain dependency requires typed adapter")
 
 # 6) Open Extension / Native Escape
 cardinality = text("cpf-starters/base/runtime/src/main/java/com/cpf/starter/runtime/CpfCapabilityBindingCardinality.java") + text("cpf-starters/base/runtime/src/main/java/com/cpf/starter/runtime/CpfCapabilityBindingRegistry.java")

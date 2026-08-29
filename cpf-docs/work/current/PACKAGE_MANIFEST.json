@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 3,
+  "packageType": "CPF_C_DEV_QA_2_2_SOURCE_CLOSURE",
+  "completionStatus": "SOURCE_STATIC_CLOSURE_COMPLETE_PHYSICAL_PENDING",
+  "baselineZipSha256": "e24d2596fc404c6761725cf5b5a4a618038dae4f1e177d4171296f6204d20802",
+  "baselineSourceIdentity": "b33471236f57a30eba48c9cc582789ee33f81cd8b67194a9e710b06877b4d68e",
+  "currentSourceIdentity": "398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717",
+  "sourceFileCount": 8320,
+  "canonicalInventoryRows": 190,
+  "developerRequirementRows": 218,
+  "deleteManifestRows": 2038,
+  "changeCounts": {
+    "add": 77,
+    "modify": 132,
+    "delete": 1725
+  },
+  "overlayFileCount": 209,
+  "staticClosure": {
+    "currentFinal": "PASS",
+    "hygiene": "PASS",
+    "garbage": "PASS",
+    "utf8": "PASS",
+    "physicalDb4": "PASS",
+    "unifiedCli": "PASS",
+    "requirementProjection": "PASS",
+    "openGitPublicRelease": "48/48 PASS",
+    "db": "229 PASS / 2 SKIP / 0 FAIL",
+    "runtimeTools": "72 PASS / 2 SKIP / 0 FAIL"
+  },
+  "freshReplay": {
+    "status": "PASS",
+    "sourceIdentityExactMatch": true,
+    "fullTreeExactMatch": true,
+    "currentFileCount": 8832,
+    "replayFileCount": 8832,
+    "missing": 0,
+    "extra": 0,
+    "changed": 0,
+    "deletedFromBaseline": 1725,
+    "alreadyMissing": 313
+  },
+  "physicalAcceptance": "PENDING_EXTERNAL_ENVIRONMENT"
+}

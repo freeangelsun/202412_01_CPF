@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse, json, re, sys, zipfile
 from pathlib import Path
 
-PUBLIC={'bootstrap','domain-new','domain-sync','build','test','run','stop','reset','status'}
+PUBLIC={'bootstrap','domain-new','domain-sync','build','test','run','stop','reset','status','doctor','version','help'}
 INTERNAL={'dev','verify','publish','release'}
 CLASSIFICATIONS={'CANONICAL_ENGINE','INTERNAL_ENGINE','CLI_CONSUMER','THIN_WRAPPER','MIGRATE_TO_CLI','DUPLICATE','DEAD'}
 
@@ -17,7 +17,7 @@ def main()->int:
         text=src.read_text(encoding='utf-8')
         for cmd in PUBLIC|INTERNAL:
             if f'"{cmd}"' not in text: fail.append('CLI_COMMAND_MISSING:'+cmd)
-        for token in ('StandardCharsets.UTF_8','CPF-CLI-JAVA-VERSION','capabilityProfile','internalEnabled','cpf_local_runtime.py','run-cpf-canonical-verifiers.py'):
+        for token in ('StandardCharsets.UTF_8','CPF-CLI-JAVA-VERSION','capabilityProfile','internalEnabled','cpf_local_runtime.py','run-cpf-canonical-verifiers.py','domainState','--json','--strict'):
             if token not in text: fail.append('CLI_CONTRACT_MISSING:'+token)
     if not catalog.is_file(): fail.append('COMMAND_CATALOG_MISSING')
     else:

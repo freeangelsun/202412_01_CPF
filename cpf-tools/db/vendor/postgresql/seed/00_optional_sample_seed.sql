@@ -1,23 +1,9 @@
 -- CPF generated lifecycle bundle; vendor=postgresql
 -- Source plan: cpf-tools/db/config/database-source-plan.json
 
--- ===== BEGIN 55_cmn_seed_data.sql =====
+-- ===== BEGIN 58_education_external_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
--- vendor=postgresql; source=55_cmn_seed_data.sql
--- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
--- DO NOT EDIT generated seed directly.
-
--- CPF_LOGICAL_DATABASE=cpfDB
--- CPF_LOGICAL_DATABASE=referenceFixture
-INSERT INTO REF_CMN_SAMPLE_ITEM (sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, created_by, updated_by)
-VALUES ('CMN-SAMPLE-001', 'CPF CMN 기본 샘플', 'DATABASE', 'ACTIVE', 'connection migration crud search offset slice cursor', NULL, 10, 0, 'CMN_SAMPLE', 'CMN_SAMPLE'),
-    ('CMN-SAMPLE-002', 'CPF CMN 비활성 샘플', 'VALIDATION', 'INACTIVE', 'validation duplicate optimistic-lock rollback', NULL, 20, 0, 'CMN_SAMPLE', 'CMN_SAMPLE')
-ON CONFLICT (sample_key) DO UPDATE SET item_name=EXCLUDED.item_name, category_code=EXCLUDED.category_code, status_code=EXCLUDED.status_code, searchable_text=EXCLUDED.searchable_text, owner_reference=EXCLUDED.owner_reference, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
--- ===== END 55_cmn_seed_data.sql =====
-
--- ===== BEGIN 58_reference_external_edu_seed.sql =====
--- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
--- vendor=postgresql; source=58_reference_external_edu_seed.sql
+-- vendor=postgresql; source=58_education_external_seed.sql
 -- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
@@ -44,11 +30,11 @@ VALUES (
     'EDU', 'EDU-EXTERNAL-SIMULATOR', 'PRIMARY', 'WEIGHT', 'N', 'N', 'Y', 100, 'SEED', 'SEED'
 )
 ON CONFLICT (service_id, endpoint_code, priority) DO UPDATE SET routing_mode=EXCLUDED.routing_mode, load_balance_type=EXCLUDED.load_balance_type, failover_enabled_yn=EXCLUDED.failover_enabled_yn, health_check_required_yn=EXCLUDED.health_check_required_yn, active_yn=EXCLUDED.active_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
--- ===== END 58_reference_external_edu_seed.sql =====
+-- ===== END 58_education_external_seed.sql =====
 
--- ===== BEGIN 58_reference_runtime_seed.sql =====
+-- ===== BEGIN 58_runtime_sample_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
--- vendor=postgresql; source=58_reference_runtime_seed.sql
+-- vendor=postgresql; source=58_runtime_sample_seed.sql
 -- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
@@ -207,18 +193,6 @@ VALUES (
     'SYSTEM'
 )
 ON CONFLICT (job_id) DO UPDATE SET job_name=EXCLUDED.job_name, job_type=EXCLUDED.job_type, description=EXCLUDED.description, restartable_yn=EXCLUDED.restartable_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
-INSERT INTO BAT_JOB (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
-VALUES (
-    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
-    'CPF REF 업무 DB 센터컷 샘플 Job',
-    'TASKLET',
-    'REF 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.',
-    'Y',
-    'Y',
-    'SYSTEM',
-    'SYSTEM'
-)
-ON CONFLICT (job_id) DO UPDATE SET job_name=EXCLUDED.job_name, job_type=EXCLUDED.job_type, description=EXCLUDED.description, restartable_yn=EXCLUDED.restartable_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 INSERT INTO BAT_CENTER_CUT_JOB (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by)
 VALUES (
     'CPF_BAT_CENTER_CUT_JOB',
@@ -230,21 +204,6 @@ VALUES (
     3,
     'Y',
     '불변 실행 Parameter의 실제 업무 대상을 DB Work Item으로 만들고 CPF 공식 Domain Invocation으로 처리합니다.',
-    'SYSTEM',
-    'SYSTEM'
-)
-ON CONFLICT (center_cut_job_id) DO UPDATE SET batch_job_id=EXCLUDED.batch_job_id, center_cut_job_name=EXCLUDED.center_cut_job_name, provider_key=EXCLUDED.provider_key, handler_key=EXCLUDED.handler_key, chunk_size=EXCLUDED.chunk_size, retry_limit=EXCLUDED.retry_limit, use_yn=EXCLUDED.use_yn, description=EXCLUDED.description, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
-INSERT INTO BAT_CENTER_CUT_JOB (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by)
-VALUES (
-    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
-    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
-    'CPF REF 업무 DB 센터컷 샘플 Job',
-    'refCenterCutTargetProvider',
-    'refCenterCutHandler',
-    10,
-    3,
-    'Y',
-    'CPF 표준 계약과 REF 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.',
     'SYSTEM',
     'SYSTEM'
 )
@@ -289,12 +248,6 @@ WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
 );
-INSERT INTO BAT_CENTER_CUT_PARAMETER (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by)
-VALUES ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'targetTable', 'REF_CENTER_CUT_SAMPLE_TARGET', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'resultTable', 'REF_CENTER_CUT_SAMPLE_RESULT', 'N', 'Y', 'SYSTEM', 'SYSTEM')
-ON CONFLICT (center_cut_job_id, parameter_key) DO UPDATE SET parameter_value=EXCLUDED.parameter_value, encrypted_yn=EXCLUDED.encrypted_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 -- CPF_LOGICAL_DATABASE=mbwDB
 INSERT INTO MBW_ORGANIZATION (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by)
 VALUES ('SAMPLE_ROOT', NULL, '샘플 본부', 'COMPANY', 10, CURRENT_TIMESTAMP, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -346,7 +299,7 @@ VALUES (
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
 ON CONFLICT (policy_code, policy_version, step_no, target_type, target_code) DO UPDATE SET step_type=EXCLUDED.step_type, decision_rule=EXCLUDED.decision_rule, required_count=EXCLUDED.required_count, required_yn=EXCLUDED.required_yn, sort_order=EXCLUDED.sort_order, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
--- ===== END 58_reference_runtime_seed.sql =====
+-- ===== END 58_runtime_sample_seed.sql =====
 
 -- ===== BEGIN 59_adm_local_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json

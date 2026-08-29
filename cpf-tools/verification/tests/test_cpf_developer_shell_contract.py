@@ -10,15 +10,15 @@ SH = ROOT / 'cpf-tools/build/tools/cpf-dev.sh'
 def test_canonical_gradle_entrypoints_are_short_and_grouped():
     text = CONVENTION.read_text(encoding='utf-8')
     required = {
-        'cpfBuild': 'CPF 10 | 빌드',
-        'cpfTest': 'CPF 10 | 빌드',
-        'cpfVerifyFast': 'CPF 20 | 검증',
-        'cpfVerifyFullLocal': 'CPF 20 | 검증',
-        'cpfHelp': 'CPF 00 | 시작',
-        'cpfRunLocal': 'CPF 30 | 실행',
-        'cpfRunBatch': 'CPF 30 | 실행',
-        'cpfModules': 'CPF 40 | 구성',
-        'cpfResourcePolicy': 'CPF 50 | 설정',
+        'cpfBuild': 'CPF Build',
+        'cpfTest': 'CPF Test',
+        'cpfVerifyFast': 'CPF Verification',
+        'cpfVerifyFullLocal': 'CPF Verification',
+        'cpfHelp': 'CPF Configuration/Discovery',
+        'cpfRunLocal': 'CPF Runtime',
+        'cpfRunBatch': 'CPF Runtime',
+        'cpfModules': 'CPF Configuration/Discovery',
+        'cpfResourcePolicy': 'CPF Configuration/Discovery',
     }
     for task, group in required.items():
         assert task in text, task

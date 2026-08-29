@@ -84,7 +84,8 @@
       "publicationClass": "PRIVATE_RUNTIME",
       "publishSources": false,
       "publishJavadoc": false,
-      "documentationArtifactException": "Backoffice implementation is a private optional prebuilt business-domain runtime; external compile-time consumers use public CPF contracts, not this implementation JAR."
+      "documentationArtifactException": "Backoffice implementation is a private optional prebuilt business-domain runtime; external compile-time consumers use public CPF contracts, not this implementation JAR.",
+      "presencePolicy": "OPTIONAL_IF_OWNER_PRESENT"
     },
     {
       "artifactId": "cpf-gateway",
@@ -131,19 +132,6 @@
       "kind": "runtime",
       "producer": "gradle:assemble",
       "outputPattern": "cpf-tools/runtime/cpf-local-batch-runtime/build/libs/*.jar",
-      "requiredAttestations": [
-        "sha256",
-        "cyclonedx-sbom",
-        "license-review"
-      ],
-      "consumer": "repository-module-or-deployment"
-    },
-    {
-      "artifactId": "cpf-member",
-      "ownerPath": "cpf-member",
-      "kind": "generated-domain",
-      "producer": "gradle:assemble",
-      "outputPattern": "cpf-member/build/libs/*.jar",
       "requiredAttestations": [
         "sha256",
         "cyclonedx-sbom",
@@ -308,7 +296,7 @@
     {
       "artifactId": "cpf-backoffice-web",
       "ownerPath": "cpf-backoffice-web",
-      "kind": "reference-runtime",
+      "kind": "optional-backoffice-channel",
       "producer": "gradle:bootJar",
       "outputPattern": "cpf-backoffice-web/build/libs/*.jar",
       "requiredAttestations": [
@@ -322,7 +310,8 @@
       "publicationClass": "PUBLIC_RUNTIME",
       "publishSources": false,
       "publishJavadoc": false,
-      "documentationArtifactException": "Deployable reference application; external compile-time Java API is not its contract. Source is distributed through the default-deny Public Developer Workspace."
+      "documentationArtifactException": "Deployable reference application; external compile-time Java API is not its contract. Source is distributed through the default-deny Public Developer Workspace.",
+      "presencePolicy": "OPTIONAL_IF_OWNER_PRESENT"
     },
     {
       "artifactId": "cpf-db-oracle-pack",
@@ -2295,5 +2284,15 @@
     "versionParity": "main=pom=sources=javadoc=public-bom-reference",
     "javadocFailurePolicy": "fail-closed",
     "sourceLeakagePolicy": "internal/private implementation is release-blocker"
+  },
+  "generatedDomainProjection": {
+    "contractVersion": "1",
+    "rootPattern": "cpf-*",
+    "minimumSelectedDomains": 0,
+    "absentState": "NOT_SELECTED",
+    "artifactId": "project-directory-name",
+    "ownerPath": "discovered-domain-root",
+    "publication": "CALCULATED_FROM_CURRENT_DOMAIN_CATALOG",
+    "fixedDomainArtifactIdsForbidden": true
   }
 }

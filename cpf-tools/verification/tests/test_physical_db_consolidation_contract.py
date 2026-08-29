@@ -20,7 +20,7 @@ def test_current_repository_physical_db_contract_passes():
     module = load_verifier()
     failures, info = module.verify(ROOT)
     assert failures == []
-    assert info["activeLegacyReferenceCount"] == 0
+    assert info == {}
 
 
 def test_legacy_jdbc_target_is_detected(tmp_path: Path):
@@ -35,9 +35,9 @@ def test_historical_plain_metadata_is_not_actionable():
     assert module.actionable_legacy_hits(sample) == []
 
 
-def test_canonical_policy_is_exact_four_plus_nonprod_fixture():
+def test_canonical_policy_is_exact_current_four_without_reference_fixture():
     data = json.loads((ROOT / "cpf-tools/db/canonical/platform-schema.json").read_text(encoding="utf-8"))
     policy = data["canonicalPolicy"]
     assert set(policy["productionPhysicalTargets"]) == {"cpfDB", "mbwDB", "mbrDB", "exsDB"}
     assert set(policy["removedProductionPhysicalTargets"]) == {"cmnDB", "admDB", "batDB", "bzaDB", "refDB"}
-    assert policy["platformDatabaseArchitecture"]["REFERENCE_FIXTURE"]["productionDefault"] is False
+    assert "REFERENCE_FIXTURE" not in policy["platformDatabaseArchitecture"]

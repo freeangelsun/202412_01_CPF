@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "identityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+  "baselineZipSha256": "e24d2596fc404c6761725cf5b5a4a618038dae4f1e177d4171296f6204d20802",
+  "baselineSource": {
+    "contentSha256": "b33471236f57a30eba48c9cc582789ee33f81cd8b67194a9e710b06877b4d68e",
+    "fileCount": 8409,
+    "totalBytes": 43921953
+  },
+  "currentSource": {
+    "contentSha256": "398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717",
+    "fileCount": 8320,
+    "totalBytes": 43322137
+  },
+  "diff": {
+    "add": 77,
+    "modify": 132,
+    "delete": 1725
+  },
+  "deleteManifestRows": 2038,
+  "canonicalInventoryRows": 190,
+  "developerRequirementRows": 218,
+  "gitProvenance": "UNAVAILABLE_IN_SUPPLIED_ZIP; verify read-only after local overlay apply",
+  "fullTreeCurrentFileCount": 8832,
+  "freshReplay": {
+    "status": "PASS",
+    "currentFileCount": 8832,
+    "replayFileCount": 8832,
+    "missing": 0,
+    "extra": 0,
+    "changed": 0,
+    "baselineDeletesApplied": 1725,
+    "alreadyMissingDeleteRows": 313
+  }
+}

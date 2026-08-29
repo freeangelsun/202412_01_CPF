@@ -201,10 +201,30 @@ for p in product_files(ROOT/'deploy')+product_files(ROOT/'cpf-tools'):
     if p.suffix.lower() not in {'.py','.ps1','.sh','.cmd','.bat','.env','.yml','.yaml','.json','.properties','.md'}: continue
     legacy_key='CPF_'+'INSTANCE_ID'
     if legacy_key in text(p): fail(f'legacy runtime instance env key:{p.relative_to(ROOT)}')
-# generated IA
-if not (ROOT/'cpf-member/online').is_dir() or not (ROOT/'cpf-member/batch').is_dir(): fail('cpf-member must contain online+batch')
-if not (ROOT/'cpf-external/online').is_dir(): fail('cpf-external online missing')
-if (ROOT/'cpf-external/batch').exists() and product_files(ROOT/'cpf-external/batch'): fail('cpf-external batch must be absent for batch=false fixture')
+# Generated/Customer Domain IA — current Developer Contract discovery; zero selected domains is valid.
+def _domain_props(path):
+    out={}
+    for raw in path.read_text(encoding='utf-8-sig').splitlines():
+        line=raw.strip()
+        if not line or line.startswith('#') or '=' not in line: continue
+        k,v=line.split('=',1); out[k.strip()]=v.strip()
+    return out
+selected_domains=[]
+for project in sorted(p for p in ROOT.glob('cpf-*') if p.is_dir()):
+    gp=project/'gradle.properties'
+    if not gp.is_file(): continue
+    props=_domain_props(gp)
+    if props.get('cpf.domain.contractVersion')!='1': continue
+    selected_domains.append(project.name)
+    name=props.get('cpf.domain.name',''); code=props.get('cpf.domain.systemCode','')
+    if project.name!=f'cpf-{name}' or not code: fail(f'invalid Domain Developer contract:{project.name}')
+    online=props.get('cpf.domain.online','true').lower()=='true'; batch=props.get('cpf.domain.batch','false').lower()=='true'
+    if online and not (project/'online').is_dir(): fail(f'{project.name} online selected but missing')
+    if (not online) and (project/'online').exists() and product_files(project/'online'): fail(f'{project.name} online not selected but source exists')
+    if batch and not (project/'batch').is_dir(): fail(f'{project.name} batch selected but missing')
+    if (not batch) and (project/'batch').exists() and product_files(project/'batch'): fail(f'{project.name} batch not selected but source exists')
+INFO['selectedDomainCount']=len(selected_domains)
+INFO['selectedDomains']=selected_domains
 # Generator current policy descriptions
 for rel in ('cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-docs/development/GENERATOR_GUIDE.md','cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'):
     t=text(ROOT/rel)

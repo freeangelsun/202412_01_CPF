@@ -33,7 +33,6 @@ final class CpfJdbcDataSourceRegistry implements CpfDataSourceRegistry {
         String conventional = switch (role) {
             case CPF_PLATFORM_DB -> "cpfPlatformDataSource";
             case CUSTOMER_BUSINESS_DB -> "cpfCustomerBusinessDataSource";
-            case REFERENCE_FIXTURE -> "cpfReferenceFixtureDataSource";
         };
         if (beanFactory.containsBean(conventional) && beanFactory.isTypeMatch(conventional, DataSource.class)) {
             return beanFactory.getBean(conventional, DataSource.class);

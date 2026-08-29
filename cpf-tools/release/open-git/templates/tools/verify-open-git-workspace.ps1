@@ -1,24 +1,18 @@
-$ErrorActionPreference = 'Stop'
-Set-StrictMode -Version Latest
-$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-if ([string]::IsNullOrWhiteSpace($env:CPF_MAVEN_REPOSITORY_URL)) { throw 'CPF_MAVEN_REPOSITORY_URL is required.' }
-if ([string]::IsNullOrWhiteSpace($env:CPF_VERSION)) { throw 'CPF_VERSION is required.' }
-foreach ($required in @('cpf-member','cpf-external','cpf-backoffice','cpf-backoffice-web','cpf-education','bin')) {
-    if (-not (Test-Path (Join-Path $Root $required))) { throw "CPF Open Git required path missing: $required" }
+$ErrorActionPreference='Stop'
+$Root=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+foreach($required in @('cpf-education','bin')){if(!(Test-Path -LiteralPath (Join-Path $Root $required))){throw "[CPF][OPEN-GIT][FAIL] required path missing: $required"}}
+$count=0
+Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' | ForEach-Object {
+  $contract=Join-Path $_.FullName 'gradle.properties'; if(!(Test-Path -LiteralPath $contract -PathType Leaf)){return}
+  $props=@{}; Get-Content -LiteralPath $contract -Encoding UTF8 | ForEach-Object { $line=$_.Trim(); if($line -and !$line.StartsWith('#') -and $line.Contains('=')){ $k,$v=$line.Split('=',2); $props[$k.Trim()]=$v.Trim() } }
+  if($props['cpf.domain.contractVersion'] -ne '1'){return}
+  if($_.Name -ne ('cpf-'+$props['cpf.domain.name'])){throw "[CPF][OPEN-GIT][FAIL] domain root/name mismatch: $($_.FullName)"}
+  foreach($forbidden in @('cpf-domain.yaml','cpf-generator.lock.json')){if(Test-Path -LiteralPath (Join-Path $_.FullName $forbidden)){throw "[CPF][OPEN-GIT][FAIL] generator metadata leaked: $($_.Name)/$forbidden"}}
+  $count++
 }
-$forbidden = Get-ChildItem -LiteralPath $Root -Recurse -File -ErrorAction Stop | Where-Object { $_.Extension -in @('.jar','.war') -and $_.FullName -ne (Join-Path $Root 'gradle\wrapper\gradle-wrapper.jar') }
-if ($forbidden) { throw ('CPF Open Git Source Workspace must not contain accumulated CPF/application JAR/WAR: ' + (($forbidden | Select-Object -First 20 -ExpandProperty FullName) -join ', ')) }
-& (Join-Path $Root 'gradlew.bat') cpfVerify --no-daemon
-if ($LASTEXITCODE -ne 0) { throw "CPF Open Git Gradle verify failed: exit=$LASTEXITCODE" }
-$Frontend = Join-Path $Root 'cpf-backoffice-web/frontend'
-if (Test-Path (Join-Path $Frontend 'package.json') -PathType Leaf) {
-    if ($null -eq (Get-Command npm -ErrorAction SilentlyContinue)) { throw 'npm is required for Backoffice Web frontend verification.' }
-    Push-Location $Frontend
-    try {
-        & npm ci --ignore-scripts
-        if ($LASTEXITCODE -ne 0) { throw "npm ci failed: exit=$LASTEXITCODE" }
-        & npm run verify
-        if ($LASTEXITCODE -ne 0) { throw "npm verify failed: exit=$LASTEXITCODE" }
-    } finally { Pop-Location }
+$Frontend=Join-Path $Root 'cpf-backoffice-web\frontend'
+if(Test-Path -LiteralPath (Join-Path $Frontend 'package.json')){
+  $npm=Get-Command npm.cmd,npm -ErrorAction SilentlyContinue | Select-Object -First 1; if(!$npm){throw '[CPF][OPEN-GIT][FAIL] npm missing for selected Backoffice frontend'}
+  Push-Location $Frontend; try{& $npm.Source ci --ignore-scripts; if($LASTEXITCODE-ne0){throw 'npm ci failed'};& $npm.Source run verify;if($LASTEXITCODE-ne0){throw 'npm verify failed'}}finally{Pop-Location}
 }
-Write-Host '[CPF][OPEN-GIT] WORKSPACE_VERIFY=PASS'
+$state=if($count-eq0){'NOT_SELECTED'}else{'SELECTED'}; Write-Host "CPF_OPEN_GIT_WORKSPACE=PASS DOMAIN_COUNT=$count DOMAIN_STATE=$state"

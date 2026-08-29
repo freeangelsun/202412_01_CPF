@@ -348,28 +348,6 @@ SELECT 'cpfDB.adm_operator_status_constraint' AS check_name,
 FROM information_schema.table_constraints
 WHERE table_schema=DATABASE() AND UPPER(table_name)='ADM_OPERATOR' AND constraint_name='ck_adm_operator_status';
 
--- CPF_LOGICAL_DATABASE=referenceFixture
-SELECT 'referenceFixture.table_count' AS check_name,
-       IF(COUNT(*) = 4, 1, 0) AS passed
-FROM information_schema.tables
-WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';
-
-SELECT 'referenceFixture.table_engine_collation' AS check_name,
-       IF(COUNT(*) = 0, 1, 0) AS passed
-FROM information_schema.tables
-WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
-  AND (UPPER(COALESCE(engine, '')) <> 'INNODB'
-       OR LOWER(COALESCE(table_collation, '')) <> 'utf8mb4_unicode_ci');
-
-SELECT 'referenceFixture.runtime_transaction_id_contract' AS check_name,
-       IF(COUNT(*) = 3 AND COALESCE(SUM(CASE
-           WHEN UPPER(table_name) = 'REF_CENTER_CUT_SAMPLE_RESULT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
-           WHEN UPPER(table_name) = 'REF_CENTER_CUT_SAMPLE_TARGET' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
-           WHEN UPPER(table_name) = 'REF_SAMPLE_ITEM' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
-           ELSE 0 END), 0) = 3, 1, 0) AS passed
-FROM information_schema.columns
-WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';
-
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,
        IF(COUNT(*) = 30, 1, 0) AS passed

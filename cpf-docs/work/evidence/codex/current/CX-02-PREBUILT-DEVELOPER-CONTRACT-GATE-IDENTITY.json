@@ -1,7 +1,0 @@
-{
-  "track": "CX-02-PREBUILT-DEVELOPER-CONTRACT-GATE-IDENTITY",
-  "finding": "CX-F-109",
-  "result": "SOURCE_FIXED_PARTIAL",
-  "sourceIdentity": {"sha256": "b9ccfb2cc054b65cb3057092d3aa160a3387a2e98d6a0f979ff51a6ba757684b", "sha1": "8cdb97e9f6217caf8b2e33fab7410eee17620d91", "fileCount": 8228, "totalBytes": 75800932},
-  "contract": "Prebuilt validation requires exact gradle.properties semantics and cannot report verified while forbidden legacy metadata remains."
-}

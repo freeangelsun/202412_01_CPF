@@ -21,18 +21,18 @@ class AdmCenterCutControllerTest {
 
     @Test
     void findJobsDelegatesToOperationService() {
-        when(service.findJobs()).thenReturn(List.of(Map.of("centerCutJobId", "CPF_REF_CENTER_CUT_SAMPLE_JOB")));
+        when(service.findJobs()).thenReturn(List.of(Map.of("centerCutJobId", "CPF_BAT_CENTER_CUT_JOB")));
 
         ResponseEntity<List<Map<String, Object>>> response = controller.findJobs();
 
         assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0)).containsEntry("centerCutJobId", "CPF_REF_CENTER_CUT_SAMPLE_JOB");
+        assertThat(response.getBody().get(0)).containsEntry("centerCutJobId", "CPF_BAT_CENTER_CUT_JOB");
         verify(service).findJobs();
     }
 
     @Test
     void findTargetsAcceptsStatusAndLimitFilters() {
-        when(service.findTargets("CPF_REF_CENTER_CUT_SAMPLE_JOB", "FAILED", 20))
+        when(service.findTargets("CPF_BAT_CENTER_CUT_JOB", "FAILED", 20))
                 .thenReturn(List.of(Map.of(
                         "statusCode", "FAILED",
                         "transactionId", "20260615120000000REFlocal010000001",
@@ -41,13 +41,13 @@ class AdmCenterCutControllerTest {
                         "lastErrorMessage", "교육용 강제 실패")));
 
         ResponseEntity<List<Map<String, Object>>> response =
-                controller.findTargets("CPF_REF_CENTER_CUT_SAMPLE_JOB", "FAILED", 20);
+                controller.findTargets("CPF_BAT_CENTER_CUT_JOB", "FAILED", 20);
 
         assertThat(response.getBody()).singleElement().satisfies(item ->
                 assertThat(item)
                         .containsEntry("statusCode", "FAILED")
                         .containsEntry("lastErrorMessage", "교육용 강제 실패"));
-        verify(service).findTargets("CPF_REF_CENTER_CUT_SAMPLE_JOB", "FAILED", 20);
+        verify(service).findTargets("CPF_BAT_CENTER_CUT_JOB", "FAILED", 20);
     }
 
     @Test

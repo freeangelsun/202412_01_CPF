@@ -100,16 +100,7 @@ try {
         $profile.modules.admin.databaseName = "admToolFixture"
         $profile.modules.admin.schemaName = "admToolSchema"
         $profile.modules.admin.clientPath = ""
-        # The developer-facing owner is education.  This isolated fixture uses
-        # the immutable historical refDB pack name while mapping it to a
-        # disposable physical database/schema; Product profiles remain on the
-        # canonical referenceFixture declaration.
-        $profile.modules.education.logicalDatabase = "refDB"
-        $profile.modules.education.vendor = $vendor
-        $profile.modules.education.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
-        $profile.modules.education.databaseName = "refToolFixture"
-        $profile.modules.education.schemaName = "refToolSchema"
-        $profile.modules.education.clientPath = ""
+
 
         $profilePath = Join-Path $tempRoot "$vendor-profile.json"
         $resultPath = Join-Path $tempRoot "$vendor-result.json"
@@ -141,36 +132,6 @@ try {
         Assert-CpfGate ($result.plan.operations[0].rollbackSha256 -match "^[0-9a-f]{64}$") "$vendor rollback safety hash를 plan에 고정한다."
         Assert-CpfGate (-not $resultText.Contains("CPF_FIXTURE_SECRET")) "$vendor sanitized result에 secret이 없다."
 
-        foreach ($referenceVersion in @(93, 94)) {
-            $referenceResultPath = Join-Path $tempRoot "$vendor-v$referenceVersion-result.json"
-            [void](Invoke-CpfFixtureRunner @(
-                    "-Root", $Root,
-                    "-ProfilePath", $profilePath,
-                    "-Direction", "upgrade",
-                    "-MigrationVersion", "$referenceVersion",
-                    "-Modules", "education",
-                    "-ResultPath", $referenceResultPath
-                ) 0)
-            $referenceResult = Get-Content -LiteralPath $referenceResultPath -Raw -Encoding UTF8 |
-                ConvertFrom-Json -Depth 50
-            Assert-CpfGate (@($referenceResult.plan.operations).Count -eq 1) "$vendor V$referenceVersion REF operation이 정확히 하나 계획된다."
-            Assert-CpfGate ($referenceResult.plan.operations[0].logicalDatabase -eq "refDB") "$vendor V$referenceVersion logical DB ownership이 refDB다."
-            Assert-CpfGate ($referenceResult.plan.operations[0].migrationPath -match "/migration/flyway/refDB/V${referenceVersion}__") "$vendor V$referenceVersion logical DB 하위 migration을 발견한다."
-            Assert-CpfGate ($referenceResult.plan.operations[0].rollbackPath -match "/rollback/refDB/U${referenceVersion}__") "$vendor U$referenceVersion top-level rollback pack을 발견한다."
-        }
-
-        $referenceRollbackPath = Join-Path $tempRoot "$vendor-u94-result.json"
-        [void](Invoke-CpfFixtureRunner @(
-                "-Root", $Root,
-                "-ProfilePath", $profilePath,
-                "-Direction", "rollback",
-                "-MigrationVersion", "94",
-                "-Modules", "education",
-                "-ResultPath", $referenceRollbackPath
-            ) 0)
-        $referenceRollback = Get-Content -LiteralPath $referenceRollbackPath -Raw -Encoding UTF8 |
-            ConvertFrom-Json -Depth 50
-        Assert-CpfGate ($referenceRollback.plan.operations[0].selectedPath -match "/rollback/refDB/U94__") "$vendor rollback plan은 U94를 선택한다."
     }
 
     if ([string]::IsNullOrWhiteSpace($mariaProfilePath)) { throw "MariaDB fixture profile was not created." }

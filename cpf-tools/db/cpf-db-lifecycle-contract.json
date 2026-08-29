@@ -59,7 +59,6 @@
     "cpf-tools/db/verification/check-sql-standard.ps1",
     "cpf-tools/db/verification/check-sql-canonical.ps1",
     "cpf-tools/runtime/tools/check-platform-runtime-query-packs.ps1",
-    "cpf-tools/db/verification/check-reference-database-lifecycle.ps1",
     "cpf-tools/db/verification/verify-cpf-db-schema-governance.py",
     "cpf-tools/db/verification/verify-cpf-db-performance-evidence.py",
     "cpf-tools/verification/tools/verify-cpf-data-observability-evidence.py",

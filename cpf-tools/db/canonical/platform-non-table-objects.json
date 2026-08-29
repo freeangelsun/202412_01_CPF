@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "contract": "CPF_PLATFORM_NON_TABLE_OBJECTS",
   "canonicalPolicy": {
     "officialVendors": [
@@ -13,31 +13,6 @@
     "currentSourceFile": "10_cpf_schema.sql",
     "historicalMigrationImmutable": true
   },
-  "upstreamReference": {
-    "group": "org.springframework.batch",
-    "artifact": "spring-batch-core",
-    "version": "6.0.4",
-    "resources": {
-      "mariadb": {
-        "path": "org/springframework/batch/core/schema-mariadb.sql",
-        "sha256": "a92e1355e9ebc962fad7d68da4628e6450a19c7a254da57e3512d1f75625bd09"
-      },
-      "postgresql": {
-        "path": "org/springframework/batch/core/schema-postgresql.sql",
-        "sha256": "f2ac75cae966e4eb1cd97ee6b11f130495b7109153754a7983befb87614d6e38"
-      },
-      "oracle": {
-        "path": "org/springframework/batch/core/schema-oracle.sql",
-        "sha256": "770c2d0c8b379df0f9b72ae2f90f91fea3425cf0defe6b559711916b9610b947"
-      }
-    }
-  },
-  "migration": {
-    "version": 73,
-    "description": "spring_batch_6_sequence_contract",
-    "logicalDatabase": "batDB",
-    "maintenanceRequired": true
-  },
   "objects": [
     {
       "kind": "sequence",
@@ -49,9 +24,7 @@
       "idColumn": "JOB_INSTANCE_ID",
       "legacyNames": [
         "BATCH_JOB_SEQ"
-      ],
-      "legacyLogicalDatabase": "batDB",
-      "legacySourceFile": "35_bat_schema.sql"
+      ]
     },
     {
       "kind": "sequence",
@@ -61,9 +34,7 @@
       "name": "BATCH_JOB_EXECUTION_SEQ",
       "idTable": "BATCH_JOB_EXECUTION",
       "idColumn": "JOB_EXECUTION_ID",
-      "legacyNames": [],
-      "legacyLogicalDatabase": "batDB",
-      "legacySourceFile": "35_bat_schema.sql"
+      "legacyNames": []
     },
     {
       "kind": "sequence",
@@ -73,9 +44,7 @@
       "name": "BATCH_STEP_EXECUTION_SEQ",
       "idTable": "BATCH_STEP_EXECUTION",
       "idColumn": "STEP_EXECUTION_ID",
-      "legacyNames": [],
-      "legacyLogicalDatabase": "batDB",
-      "legacySourceFile": "35_bat_schema.sql"
+      "legacyNames": []
     }
   ],
   "vendorDefinition": {

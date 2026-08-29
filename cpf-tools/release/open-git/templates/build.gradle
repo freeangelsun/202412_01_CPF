@@ -2,20 +2,78 @@ plugins { id 'base' }
 
 def includedNames = gradle.includedBuilds.collect { it.name }.sort()
 
+def domainContract = { File dir ->
+    File props = new File(dir, 'gradle.properties')
+    if (!props.isFile()) return null
+    Properties p = new Properties()
+    props.withInputStream { p.load(it) }
+    if (p.getProperty('cpf.domain.contractVersion') != '1') return null
+    return [name: p.getProperty('cpf.domain.name'), systemCode: p.getProperty('cpf.domain.systemCode')]
+}
+
 tasks.register('cpfBuild') {
-    group = 'CPF'
-    description = 'Open Git Workspace의 모든 Domain/Backoffice/EDU를 Build합니다.'
+    group = 'CPF Build'
+    description = '현재 선택된 Domain/Backoffice/EDU를 Canonical Gradle graph로 Build합니다.'
     dependsOn includedNames.collect { gradle.includedBuild(it).task(':build') }
 }
 
 tasks.register('cpfTest') {
-    group = 'CPF'
-    description = 'Open Git Workspace의 모든 Domain/Backoffice/EDU Test를 실행합니다.'
+    group = 'CPF Test'
+    description = '현재 선택된 Domain/Backoffice/EDU의 Canonical Test graph를 실행합니다.'
     dependsOn includedNames.collect { gradle.includedBuild(it).task(':test') }
 }
 
+tasks.register('cpfDomainDiscovery') {
+    group = 'CPF Domain'
+    description = '현재 선택된 Generated/Customer Domain을 Developer Contract에서 확인합니다.'
+    doLast {
+        def rows = rootDir.listFiles()?.findAll { it.isDirectory() && it.name.startsWith('cpf-') }
+            ?.collect { [dir:it, contract:domainContract(it)] }
+            ?.findAll { it.contract != null }
+            ?.sort { it.dir.name } ?: []
+        if (rows.isEmpty()) {
+            println 'CPF_DOMAINS=NOT_SELECTED'
+        } else {
+            rows.each { println "CPF_DOMAIN=${it.contract.name}:${it.contract.systemCode}:${it.dir.name}" }
+        }
+    }
+}
+
+tasks.register('cpfDatabaseDiscovery') {
+    group = 'CPF Database'
+    description = 'DB Vendor/Workspace 설정 확인 경로를 안내합니다.'
+    doLast { println 'CPF_DATABASE=use cpf doctor or config/cpf-workspace.properties' }
+}
+
+tasks.register('cpfRuntimeDiscovery') {
+    group = 'CPF Runtime'
+    description = 'Runtime은 Unified cpf CLI(cpf run/status/stop/reset)를 사용합니다.'
+    doLast { println 'CPF_RUNTIME=cpf run | cpf status | cpf stop | cpf reset' }
+}
+
 tasks.register('cpfVerify') {
-    group = 'CPF'
-    description = 'Open Git Workspace Build/Test를 fail-closed로 검증합니다.'
+    group = 'CPF Verification'
+    description = 'Workspace Build/Test를 fail-closed로 검증합니다.'
     dependsOn 'cpfBuild', 'cpfTest'
+}
+
+tasks.register('cpfPublicationDiscovery') {
+    group = 'CPF Publication'
+    description = '현재 선택 상태의 Publication/Repository 정보를 안내합니다.'
+    doLast { println 'CPF_PUBLICATION=repository/ + canonical BOM/POM' }
+}
+
+tasks.register('cpfWorkspace') {
+    group = 'CPF Configuration/Discovery'
+    description = 'Workspace의 Domain과 포함 Build를 표시합니다.'
+    dependsOn 'cpfDomainDiscovery'
+    doLast { println 'CPF_INCLUDED_BUILDS=' + includedNames.join(',') }
+}
+
+// Direct Gradle Golden Path and Unified CLI must execute the same graph.
+tasks.named('build') { dependsOn 'cpfBuild' }
+tasks.register('test') {
+    group = 'CPF Test'
+    description = 'Root direct Gradle test Golden Path; cpf test와 동일한 cpfTest graph를 사용합니다.'
+    dependsOn 'cpfTest'
 }

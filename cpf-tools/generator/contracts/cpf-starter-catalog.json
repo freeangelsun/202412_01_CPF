@@ -105,7 +105,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "CONFIG_COMMON",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:cache:caffeine",
@@ -156,7 +158,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "CACHE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:data:cache:spring-data-redis",
@@ -203,7 +207,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "CACHE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:cache:redis",
@@ -254,7 +260,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "CACHE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:cache:valkey",
@@ -305,7 +313,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "CACHE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:data:jdbc",
@@ -356,7 +366,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:data:mybatis",
@@ -407,7 +419,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:data:jpa",
@@ -458,7 +472,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:file:archive",
@@ -508,7 +524,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:file:attachment",
@@ -558,7 +576,9 @@
           "runtimeControl": true,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:file:sftp",
@@ -608,7 +628,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:file:tabular:poi",
@@ -658,7 +680,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:integration:ai",
@@ -708,7 +732,9 @@
           "runtimeControl": true,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:integration:fixed-length",
@@ -758,7 +784,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:integration:http",
@@ -808,7 +836,9 @@
           "runtimeControl": true,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:integration:iso8583",
@@ -858,7 +888,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:integration:resilience",
@@ -908,7 +940,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:integration:soap",
@@ -958,7 +992,9 @@
           "runtimeControl": true,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:integration:tcp",
@@ -1008,7 +1044,9 @@
           "runtimeControl": true,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:integration:webhook",
@@ -1058,7 +1096,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:messaging:ibm-mq",
@@ -1108,7 +1148,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "MESSAGING",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:messaging:jms",
@@ -1158,7 +1200,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "MESSAGING",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:messaging:kafka",
@@ -1208,7 +1252,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "MESSAGING",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:messaging:rabbitmq",
@@ -1258,7 +1304,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "MESSAGING",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:messaging:reliability:jdbc",
@@ -1308,7 +1356,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:notification:dispatch",
@@ -1358,7 +1408,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "NOTIFICATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:notification:email",
@@ -1408,7 +1460,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "NOTIFICATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:notification:sms",
@@ -1458,7 +1512,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "NOTIFICATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:platform-operations:channel-registry:jdbc",
@@ -1508,7 +1564,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:platform-operations:feature-flag:openfeature",
@@ -1558,7 +1616,9 @@
           "runtimeControl": true,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "OBSERVABILITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:platform-operations:observability:otlp",
@@ -1608,7 +1668,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "OBSERVABILITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:platform-operations:runtime-control",
@@ -1658,7 +1720,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "OBSERVABILITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:profiles:batch",
@@ -1711,7 +1775,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "BATCH",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:profiles:bff",
@@ -1764,7 +1830,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:profiles:event",
@@ -1817,7 +1885,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "MESSAGING",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:profiles:secure-api",
@@ -1870,7 +1940,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:profiles:web-api",
@@ -1926,7 +1998,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:security:audit:jdbc",
@@ -1976,7 +2050,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:security:oidc",
@@ -2027,7 +2103,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "SECURITY",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:security:resource-server",
@@ -2077,7 +2155,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "SECURITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:security:secret",
@@ -2127,7 +2207,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "SECURITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:security:service-identity",
@@ -2177,7 +2259,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "SECURITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:security:session:jdbc",
@@ -2228,7 +2312,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:data:lock:valkey",
@@ -2279,7 +2365,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "CONFIG_COMMON",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:messaging:schema",
@@ -2329,7 +2417,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "MESSAGING",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:integration:graphql",
@@ -2380,7 +2470,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:integration:realtime",
@@ -2431,7 +2523,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:file:object-storage:s3",
@@ -2482,7 +2576,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":starters:security:session:valkey",
@@ -2533,7 +2629,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "SECURITY",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":internal:platform-operations:health",
@@ -2583,7 +2681,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "OBSERVABILITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:platform-operations:runtime-health:jdbc",
@@ -2633,7 +2733,9 @@
           "runtimeControl": true,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "PERSISTENCE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:base-runtime",
@@ -2679,7 +2781,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "CONFIG_COMMON",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":starters:common",
@@ -2729,7 +2833,9 @@
         "operatorVisible": true,
         "automaticRegistration": true,
         "scope": "capability"
-      }
+      },
+      "developerCapability": "CONFIG_COMMON",
+      "canonicalRole": "PUBLIC_CAPABILITY_GROUP_OWNER"
     },
     {
       "projectPath": ":framework:web",
@@ -2779,7 +2885,9 @@
           "runtimeControl": true,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "WEB",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:data",
@@ -2825,7 +2933,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "CONFIG_COMMON",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:data:persistence",
@@ -2871,7 +2981,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "CONFIG_COMMON",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:messaging",
@@ -2917,7 +3029,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "MESSAGING",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:integration",
@@ -2963,7 +3077,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "INTEGRATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:file",
@@ -3009,7 +3125,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "FILE",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:notification",
@@ -3055,7 +3173,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "NOTIFICATION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:security",
@@ -3101,7 +3221,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "SECURITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:operations",
@@ -3147,7 +3269,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "OBSERVABILITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":framework:operations:observability",
@@ -3193,7 +3317,9 @@
           "runtimeControl": false,
           "recovery": false
         }
-      }
+      },
+      "developerCapability": "OBSERVABILITY",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     },
     {
       "projectPath": ":internal:data:transaction:jta",
@@ -3243,7 +3369,9 @@
           "runtimeControl": false,
           "recovery": true
         }
-      }
+      },
+      "developerCapability": "TRANSACTION",
+      "canonicalRole": "INTERNAL_LEAF_FOUNDATION"
     }
   ],
   "providerSlots": {
@@ -4120,5 +4248,72 @@
   "canonicalOwner": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "deprecatedAliases": [
     "cpf-tools/generator/config/application-starters.yml"
+  ],
+  "developerCapabilities": [
+    {
+      "id": "WEB",
+      "displayName": "Web",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "PERSISTENCE",
+      "displayName": "Persistence",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "TRANSACTION",
+      "displayName": "Transaction",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "SECURITY",
+      "displayName": "Security",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "LOGGING_AUDIT",
+      "displayName": "Logging/Audit",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "MESSAGING",
+      "displayName": "Messaging",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "INTEGRATION",
+      "displayName": "Integration",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "CACHE",
+      "displayName": "Cache",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "BATCH",
+      "displayName": "Batch",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "OBSERVABILITY",
+      "displayName": "Observability",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "CONFIG_COMMON",
+      "displayName": "Config/Common",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "FILE",
+      "displayName": "File",
+      "publicDependencyUx": true
+    },
+    {
+      "id": "NOTIFICATION",
+      "displayName": "Notification",
+      "publicDependencyUx": true
+    }
   ]
 }

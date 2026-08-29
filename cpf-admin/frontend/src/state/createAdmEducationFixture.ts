@@ -13,7 +13,7 @@ export function createAdmEducationFixture() {
       description: "ADM batch education data",
     }),
     centerCut: Object.freeze({
-      centerCutJobId: "CPF_REF_CENTER_CUT_SAMPLE_JOB",
+      centerCutJobId: "CPF_BAT_CENTER_CUT_JOB",
     }),
   });
 }

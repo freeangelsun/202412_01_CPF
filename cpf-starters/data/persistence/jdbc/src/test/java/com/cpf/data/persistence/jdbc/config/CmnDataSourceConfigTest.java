@@ -15,11 +15,11 @@ class CmnDataSourceConfigTest {
     }
 
     @Test void createsOptionalSampleDataSourceFromDedicatedPrefix() throws Exception {
-        MockEnvironment environment=urlEnvironment("spring.datasource.cmn-sample","jdbc:mariadb://localhost:3306/referenceFixture","cpf_cmn_app");
+        MockEnvironment environment=urlEnvironment("spring.datasource.cmn-sample","jdbc:mariadb://localhost:3306/cpfDB","cpf_cmn_app");
         DataSource result=new CmnSampleDataSourceConfig().cmnSampleDataSource(environment);
         assertThat(result).isInstanceOf(HikariDataSource.class);
         HikariDataSource hikari=(HikariDataSource)result;
-        assertThat(hikari.getJdbcUrl()).endsWith("/referenceFixture");
+        assertThat(hikari.getJdbcUrl()).endsWith("/cpfDB");
         assertThat(hikari.getUsername()).isEqualTo("cpf_cmn_app");
         hikari.close();
     }

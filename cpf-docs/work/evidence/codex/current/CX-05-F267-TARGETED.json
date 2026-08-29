@@ -1,9 +1,0 @@
-{
-  "findingId": "CX-F-267",
-  "status": "VERIFICATION_PENDING",
-  "sourceIdentitySha256": "df60291ab2b799f3401ab2cb8391cb5ff71a185597f1b789f983847ebc926a9a",
-  "powershellParser": {"status": "PASS", "errors": 0},
-  "contractFunctions": {"status": "PASS", "tests": 7, "failures": 0},
-  "executableOwners": ["control-plane", "center-cut", "scheduler", "worker"],
-  "remaining": ["Java 25 bootJar rebuild", "Fresh actual distributed flow"]
-}

@@ -556,7 +556,7 @@ def render_seed_statement(vendor, st, name_map, variables):
 
 def render_seed(vendor, seed, name_map, role, target_role_map):
     lines=["-- GENERATED FILE. DO NOT EDIT.","-- Source: cpf-tools/db/canonical/seed-model.json",f"-- Vendor: {vendor}",f"-- Role: {role}",""]
-    role_by_db={'cpfDB':'CPF_PLATFORM_DB','mbwDB':'CUSTOMER_BUSINESS_DB','referenceFixture':'REFERENCE_FIXTURE'}
+    role_by_db={'cpfDB':'CPF_PLATFORM_DB','mbwDB':'CUSTOMER_BUSINESS_DB'}
     variables={}
     for st in seed['statements']:
         statement_role=role_by_db.get(st.get('logicalDatabase'))
@@ -615,10 +615,6 @@ def main():
             'backoffice-seed.sql':render_seed(vendor,seed,name_map,'CUSTOMER_BUSINESS_DB',target_role_map),
             'backoffice-verify.sql':render_verify(vendor,schema,'CUSTOMER_BUSINESS_DB'),
             'backoffice-rollback.sql':render_rollback(vendor,schema,'CUSTOMER_BUSINESS_DB'),
-            'reference-fixture-schema.sql':render_schema(vendor,schema,'REFERENCE_FIXTURE'),
-            'reference-fixture-seed.sql':render_seed(vendor,seed,name_map,'REFERENCE_FIXTURE',target_role_map),
-            'reference-fixture-verify.sql':render_verify(vendor,schema,'REFERENCE_FIXTURE'),
-            'reference-fixture-rollback.sql':render_rollback(vendor,schema,'REFERENCE_FIXTURE'),
             'non-table-objects.sql':render_non_table(vendor,nto,name_map),
         }
         if args.check:

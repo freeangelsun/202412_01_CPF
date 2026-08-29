@@ -26,7 +26,7 @@ public final class CpfCli {
     private static final int TIMEOUT = 124;
     private static final Duration COMMAND_TIMEOUT = Duration.ofMinutes(45);
     private static final Set<String> PUBLIC = Set.of(
-            "bootstrap", "domain-new", "domain-sync", "build", "test", "run", "stop", "reset", "status", "version", "help");
+            "bootstrap", "domain-new", "domain-sync", "build", "test", "run", "stop", "reset", "status", "doctor", "version", "help");
     private static final Set<String> INTERNAL_NAMESPACES = Set.of("dev", "verify", "publish", "release");
 
     private CpfCli() {}
@@ -45,12 +45,13 @@ public final class CpfCli {
                 return PREREQUISITE;
             }
             if (command.equals("help")) return help();
-            if (command.equals("version")) return version();
+            if (command.equals("version")) return version(argv);
             Path root = workspaceRoot();
             Instant started = Instant.now();
             log("START", "command=" + command + " profile=" + CAPABILITY_PROFILE + " root=" + root + " time=" + started);
             int result = switch (command) {
                 case "help", "version" -> OK;
+                case "doctor" -> doctor(root, argv);
                 case "bootstrap" -> requireJava25Then(() -> internalEnabled() ? internalBootstrap(root, argv) : bootstrap(root, argv, false));
                 case "run" -> requireJava25Then(() -> internalEnabled() ? internalRuntime(root, "start", argv) : bootstrap(root, argv, true));
                 case "stop" -> requireJava25Then(() -> internalEnabled() ? internalRuntime(root, "stop", argv) : bootstrapCommand(root, "stop", argv));
@@ -84,6 +85,7 @@ public final class CpfCli {
         System.out.println("  cpf domain-new <domain> [SYSTEM_CODE]");
         System.out.println("  cpf domain-sync [domain]");
         System.out.println("  cpf build | test | run | stop | reset | status");
+        System.out.println("  cpf doctor [--json] [--strict] [--non-interactive]");
         if (internalEnabled()) {
             System.out.println("Internal namespaces:");
             System.out.println("  cpf dev build|test|targeted-test|full-validation|run-batch|modules|resource|db3");
@@ -95,12 +97,48 @@ public final class CpfCli {
         return OK;
     }
 
-    private static int version() {
-        System.out.println("CPF_CLI_VERSION=" + VERSION);
-        System.out.println("SOURCE_IDENTITY=" + sourceIdentity());
-        System.out.println("CAPABILITY_PROFILE=" + CAPABILITY_PROFILE);
-        System.out.println("JAVA_VERSION=" + Runtime.version());
+    private static int version(List<String> args) {
+        boolean json = args.remove("--json");
+        if (!args.isEmpty()) return usage("cpf version [--json]");
+        if (json) {
+            System.out.println("{\"frameworkVersion\":\"" + jsonEscape(VERSION) + "\",\"cliVersion\":\"" + jsonEscape(VERSION) + "\",\"sourceIdentity\":\"" + jsonEscape(sourceIdentity()) + "\",\"capabilityProfile\":\"" + jsonEscape(CAPABILITY_PROFILE) + "\",\"javaVersion\":\"" + jsonEscape(Runtime.version().toString()) + "\"}");
+        } else {
+            System.out.println("CPF_FRAMEWORK_VERSION=" + VERSION);
+            System.out.println("CPF_CLI_VERSION=" + VERSION);
+            System.out.println("SOURCE_IDENTITY=" + sourceIdentity());
+            System.out.println("CAPABILITY_PROFILE=" + CAPABILITY_PROFILE);
+            System.out.println("JAVA_VERSION=" + Runtime.version());
+        }
         return OK;
+    }
+
+    private static int doctor(Path root, List<String> args) throws IOException {
+        boolean json=args.remove("--json"); boolean strict=args.remove("--strict"); args.remove("--non-interactive");
+        if (!args.isEmpty()) return usage("cpf doctor [--json] [--strict] [--non-interactive]");
+        Properties workspace=new Properties(); Path cfg=root.resolve("config/cpf-workspace.properties");
+        if (Files.isRegularFile(cfg)) try(Reader r=Files.newBufferedReader(cfg,StandardCharsets.UTF_8)){workspace.load(r);}
+        List<String> domains=new ArrayList<>();
+        try (DirectoryStream<Path> stream=Files.newDirectoryStream(root,"cpf-*")) {
+            for(Path project:stream){ if(!Files.isDirectory(project)) continue; Properties p=new Properties(); Path gp=project.resolve("gradle.properties"); if(!Files.isRegularFile(gp)) continue; try(Reader r=Files.newBufferedReader(gp,StandardCharsets.UTF_8)){p.load(r);}
+                if(!"1".equals(p.getProperty("cpf.domain.contractVersion"))) continue; String n=p.getProperty("cpf.domain.name","").trim(); if(!n.isEmpty()) domains.add(n); }
+        } catch (DirectoryIteratorException ignored) {}
+        Collections.sort(domains);
+        String caps=workspace.getProperty("cpf.workspace.capabilities", workspace.getProperty("cpf.capabilities", ""));
+        if (caps.isBlank()) caps=canonicalCapabilities(root);
+        String db=firstNonBlank(System.getenv("CPF_DB_VENDOR"),workspace.getProperty("cpf.default-db"),"NOT_SELECTED");
+        boolean gradle=Files.isRegularFile(root.resolve(isWindows()?"gradlew.bat":"gradlew"));
+        boolean java25=Runtime.version().feature()==25; boolean config=Files.isRegularFile(cfg) || internalEnabled();
+        String domainState=domains.isEmpty()?"NOT_SELECTED":"SELECTED"; String capabilities=caps.isBlank()?"NOT_SELECTED":caps;
+        int exit=(strict && (!gradle || !java25 || !config))?PREREQUISITE:OK;
+        if(json){
+            System.out.println("{\"status\":\""+(exit==0?"PASS":"FAIL")+"\",\"frameworkVersion\":\""+jsonEscape(VERSION)+"\",\"cliVersion\":\""+jsonEscape(VERSION)+"\",\"domainState\":\""+domainState+"\",\"domains\":["+domains.stream().map(x->"\""+jsonEscape(x)+"\"").reduce((a,b)->a+","+b).orElse("")+"],\"capabilities\":\""+jsonEscape(capabilities)+"\",\"dbVendor\":\""+jsonEscape(db)+"\",\"javaVersion\":\""+jsonEscape(Runtime.version().toString())+"\",\"prerequisites\":{\"java25\":"+java25+",\"gradleWrapper\":"+gradle+",\"workspaceConfig\":"+config+"},\"build\":\"cpf build | ./gradlew build\",\"test\":\"cpf test | ./gradlew test\",\"run\":\"cpf run\"}");
+        } else {
+            System.out.println("CPF_DOCTOR="+(exit==0?"PASS":"FAIL")); System.out.println("FRAMEWORK_VERSION="+VERSION); System.out.println("CLI_VERSION="+VERSION);
+            System.out.println("DOMAIN_STATE="+domainState); System.out.println("DOMAINS="+(domains.isEmpty()?"(none)":String.join(",",domains))); System.out.println("CAPABILITIES="+capabilities);
+            System.out.println("DB_VENDOR="+db); System.out.println("JAVA_VERSION="+Runtime.version()); System.out.println("PREREQ_JAVA25="+java25); System.out.println("PREREQ_GRADLE_WRAPPER="+gradle); System.out.println("PREREQ_WORKSPACE_CONFIG="+config);
+            System.out.println("BUILD=cpf build | ./gradlew build"); System.out.println("TEST=cpf test | ./gradlew test"); System.out.println("RUN=cpf run");
+        }
+        return exit;
     }
 
     private static int status(Path root) throws IOException {
@@ -338,8 +376,19 @@ public final class CpfCli {
     private static String deriveSystemCode(String name) { String n = name.replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT); return (n + "XXX").substring(0, 3); }
     private static String normalize(String v) { return v.trim().toLowerCase(Locale.ROOT).replace('_','-'); }
     private static List<String> concat(List<String> a, List<String> b) { List<String> out = new ArrayList<>(a); out.addAll(b); return out; }
+    private static String canonicalCapabilities(Path root) {
+        Path catalog=root.resolve("cpf-tools/generator/contracts/cpf-starter-catalog.json");
+        if(!Files.isRegularFile(catalog)) return "";
+        try {
+            String text=Files.readString(catalog,StandardCharsets.UTF_8); int marker=text.indexOf("\"developerCapabilities\""); if(marker<0) return "";
+            int start=text.indexOf('[',marker); int end=text.indexOf(']',start); if(start<0||end<0) return "";
+            String part=text.substring(start,end+1); java.util.regex.Matcher m=java.util.regex.Pattern.compile("\"id\"\\s*:\s*\"([A-Z_]+)\"").matcher(part);
+            List<String> ids=new ArrayList<>(); while(m.find()) ids.add(m.group(1)); return String.join(",",ids);
+        } catch(Exception ignored){ return ""; }
+    }
     private static String firstNonBlank(String... values) { for (String v : values) if (v != null && !v.isBlank()) return v.trim(); return null; }
     private static boolean isWindows() { return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win"); }
+    private static String jsonEscape(String v) { return sanitize(v).replace("\\","\\\\").replace("\"","\\\""); }
     private static String sanitize(String v) { if (v == null) return "unknown"; return v.replaceAll("[\\r\\n\\t]+", " ").replaceAll("(?i)(password|secret|token|credential)=\\S+", "$1=***"); }
     private static int usage(String m) { fail("CPF-CLI-USAGE", m); System.err.println("Run 'cpf help' for usage."); return USAGE; }
     private static int prerequisite(String code, String m) { fail(code, m); return PREREQUISITE; }

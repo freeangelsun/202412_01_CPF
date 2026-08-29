@@ -28,13 +28,17 @@
       "command": "build",
       "contract": "cpf build",
       "internalEngine": "Gradle cpfBuild",
-      "publicEngine": "Gradle cpfBuild"
+      "publicEngine": "Gradle cpfBuild",
+      "directGradleEquivalent": "./gradlew build",
+      "canonicalGradleTask": "cpfBuild"
     },
     {
       "command": "test",
       "contract": "cpf test",
       "internalEngine": "Gradle cpfTest",
-      "publicEngine": "Gradle cpfTest"
+      "publicEngine": "Gradle cpfTest",
+      "directGradleEquivalent": "./gradlew test",
+      "canonicalGradleTask": "cpfTest"
     },
     {
       "command": "run",
@@ -59,6 +63,24 @@
       "contract": "cpf status",
       "internalEngine": "cpf-tools/runtime/tools/cpf_local_runtime.py status",
       "publicEngine": "cpf-tools/runtime/cli runtime-state reader"
+    },
+    {
+      "command": "doctor",
+      "contract": "cpf doctor [--json] [--strict] [--non-interactive]",
+      "internalEngine": "CpfCli workspace/catalog/prerequisite discovery",
+      "publicEngine": "CpfCli workspace/config/domain discovery"
+    },
+    {
+      "command": "help",
+      "contract": "cpf help",
+      "internalEngine": "CpfCli help/discovery",
+      "publicEngine": "CpfCli help/discovery"
+    },
+    {
+      "command": "version",
+      "contract": "cpf --version | cpf version [--json]",
+      "internalEngine": "CpfCli version metadata",
+      "publicEngine": "CpfCli version metadata"
     }
   ],
   "internalNamespaces": [
@@ -170,5 +192,24 @@
     "commitPush": "USER_ONLY_AFTER_VERIFIED_REVIEW",
     "automaticGitWrite": false,
     "privateMasterIncludesCpfRelease": false
+  },
+  "developerDiscovery": {
+    "commands": [
+      "cpf help",
+      "cpf doctor",
+      "cpf --version",
+      "./gradlew tasks"
+    ],
+    "machineReadable": [
+      "cpf doctor --json",
+      "cpf version --json"
+    ],
+    "stableExitCodes": {
+      "OK": 0,
+      "FAILURE": 1,
+      "USAGE": 2,
+      "PREREQUISITE": 69,
+      "TIMEOUT": 124
+    }
   }
 }

@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0",
   "baselineSha": "UNKNOWN",
-  "overall": "PASS",
+  "overall": "PARTIAL",
   "axisStatus": {
     "COMMON_PRODUCT_SERVICE": "PASS",
-    "DOCUMENT_GOVERNANCE": "PASS",
+    "DOCUMENT_GOVERNANCE": "PARTIAL",
     "EXECUTION_LIFECYCLE": "PASS",
     "GENERATOR_FIRST_DX": "PASS",
     "GOLDEN_PATH": "PASS",
@@ -168,41 +168,6 @@
     },
     {
       "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-ONLINE-LOCAL",
-      "status": "PASS",
-      "severity": "P0",
-      "detail": "cpf-member/online local profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-ONLINE-TEST",
-      "status": "PASS",
-      "severity": "P0",
-      "detail": "cpf-member/online test profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-ONLINE-DEV",
-      "status": "PASS",
-      "severity": "P0",
-      "detail": "cpf-member/online dev profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-ONLINE-STG",
-      "status": "PASS",
-      "severity": "P0",
-      "detail": "cpf-member/online stg profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-ONLINE-PROD",
-      "status": "PASS",
-      "severity": "P0",
-      "detail": "cpf-member/online prod profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
       "checkId": "GEN-CPF-EXTERNAL-ONLINE-LOCAL",
       "status": "PASS",
       "severity": "P0",
@@ -238,31 +203,73 @@
     },
     {
       "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-MEMBER-OPTIONAL-BATCH-ENABLED",
+      "checkId": "GEN-CPF-EXTERNAL-BATCH-SELECTION",
       "status": "PASS",
       "severity": "P0",
-      "detail": "member fixture modules.batch=true materializes batch"
+      "detail": "cpf-external batch=False materialization parity"
     },
     {
       "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-EXTERNAL-OPTIONAL-BATCH-DISABLED",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-LOCAL",
       "status": "PASS",
       "severity": "P0",
-      "detail": "external fixture modules.batch=false leaves batch absent"
+      "detail": "cpf-member/online local profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-TEST",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online test profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-DEV",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online dev profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-STG",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online stg profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-PROD",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online prod profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-BATCH-SELECTION",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member batch=True materialization parity"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-ZERO-DOMAIN-SUPPORTED",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "selectedGeneratedDomains=2"
     },
     {
       "axis": "GENERATOR_FIRST_DX",
       "checkId": "GEN-BATCH-CAPABILITY-SEPARATE",
       "status": "PASS",
       "severity": "P0",
-      "detail": "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when modules.batch=true"
+      "detail": "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when selected"
     },
     {
       "axis": "GENERATOR_FIRST_DX",
       "checkId": "GEN-NO-DIRECT-SYSTEM-TIME",
       "status": "PASS",
       "severity": "P0",
-      "detail": "generated retained domains use injected Clock"
+      "detail": "selected generated domains use injected Clock"
     },
     {
       "axis": "GENERATOR_FIRST_DX",
@@ -276,7 +283,7 @@
       "checkId": "GEN-TYPED-DOMAIN-CONSUMER",
       "status": "PASS",
       "severity": "P0",
-      "detail": "generated MBR/EXS typed Domain Client + adapter + actual consumer"
+      "detail": "selected dependency-bearing Domain has typed Domain Client + adapter + consumer"
     },
     {
       "axis": "OPEN_EXTENSION",
@@ -295,9 +302,9 @@
     {
       "axis": "DOCUMENT_GOVERNANCE",
       "checkId": "DOC-NO-VERSIONED-CURRENT",
-      "status": "PASS",
+      "status": "FAIL",
       "severity": "P0",
-      "detail": "version/session/checkpoint files in current=0"
+      "detail": "version/session/checkpoint files in current=8"
     },
     {
       "axis": "DOCUMENT_GOVERNANCE",

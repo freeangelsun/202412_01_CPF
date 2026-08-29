@@ -35,18 +35,18 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
     for required in (
         "cpf-member",
         "cpf-external",
-        "cpf-backoffice",
-        "cpf-backoffice-web",
         "cpf-education",
         "cpf-member/gradle.properties",
         "cpf-external/gradle.properties",
-        "cpf-backoffice/gradle.properties",
         "bin/cpf",
         "bin/cpf.cmd",
         "bin/cpf.ps1",
         "tools/verify-open-git-workspace.ps1",
     ):
         assert (staging / required).exists(), required
+    # Backoffice is optional; absence is a normal NOT_SELECTED state unless explicitly included.
+    assert not (staging / "cpf-backoffice").exists()
+    assert not (staging / "cpf-backoffice-web").exists()
     for legacy in ("cpf-bootstrap", "cpf-domain-new", "cpf-domain-sync", "cpf-build", "cpf-test", "cpf-stop", "cpf-reset"):
         assert not (staging / legacy).exists(), legacy
 
@@ -78,6 +78,22 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
     assert "project(" not in (staging / "cpf-education/build.gradle").read_text(encoding="utf-8")
     assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
 
+
+
+def test_open_git_backoffice_is_optional_and_explicit(tmp_path: Path):
+    staging = tmp_path / "staging"
+    command = [
+        sys.executable,
+        str(ROOT / "cpf-tools/release/public/prepare-cpf-public-workspace.py"),
+        "--root", str(ROOT), "--staging", str(staging),
+        "--policy", str(ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"),
+        "--source-identity", "TEST-IDENTITY", "--include-backoffice",
+    ]
+    cp = subprocess.run(command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True)
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    assert (staging / "cpf-backoffice/gradle.properties").is_file()
+    assert (staging / "cpf-backoffice-web").is_dir()
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
 
 def test_binary_source_and_javadoc_policy_is_default_deny(tmp_path: Path):
     raw = tmp_path / "raw"

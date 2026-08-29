@@ -6,10 +6,8 @@ Framework 내부 구현 Source는 포함하지 않습니다. 업무 개발자가
 
 ## 공개 Source
 
-- `cpf-member`: Batch 포함 Generated Domain Reference
-- `cpf-external`: Online Generated Domain Reference
-- `cpf-backoffice`: MBW Backoffice 업무 Domain Source
-- `cpf-backoffice-web`: 외부 Backoffice Channel/BFF Source
+- `cpf-<domain>`: `cpf.domain.contractVersion=1` Developer Contract로 자동 발견되는 Generated/Customer Domain Source. 0개도 정상입니다.
+- `cpf-backoffice` / `cpf-backoffice-web`: 선택했을 때만 포함되는 Optional MBW Backoffice Source.
 - `cpf-education`: CPF 기능별 실행·학습 Source
 - `bin`: Java 기반 Unified `cpf` CLI와 Windows/Linux Thin Wrapper
 

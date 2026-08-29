@@ -1268,19 +1268,6 @@ VALUES (
 )
 ON CONFLICT (job_id) DO UPDATE SET job_name=EXCLUDED.job_name, job_type=EXCLUDED.job_type, description=EXCLUDED.description, restartable_yn=EXCLUDED.restartable_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BAT_JOB (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
-VALUES (
-    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
-    'CPF REF 업무 DB 센터컷 샘플 Job',
-    'TASKLET',
-    'REF 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.',
-    'Y',
-    'Y',
-    'SYSTEM',
-    'SYSTEM'
-)
-ON CONFLICT (job_id) DO UPDATE SET job_name=EXCLUDED.job_name, job_type=EXCLUDED.job_type, description=EXCLUDED.description, restartable_yn=EXCLUDED.restartable_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
-
 INSERT INTO BAT_CENTER_CUT_JOB (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by)
 VALUES (
     'CPF_BAT_CENTER_CUT_JOB',
@@ -1292,22 +1279,6 @@ VALUES (
     3,
     'Y',
     '불변 실행 Parameter의 실제 업무 대상을 DB Work Item으로 만들고 CPF 공식 Domain Invocation으로 처리합니다.',
-    'SYSTEM',
-    'SYSTEM'
-)
-ON CONFLICT (center_cut_job_id) DO UPDATE SET batch_job_id=EXCLUDED.batch_job_id, center_cut_job_name=EXCLUDED.center_cut_job_name, provider_key=EXCLUDED.provider_key, handler_key=EXCLUDED.handler_key, chunk_size=EXCLUDED.chunk_size, retry_limit=EXCLUDED.retry_limit, use_yn=EXCLUDED.use_yn, description=EXCLUDED.description, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO BAT_CENTER_CUT_JOB (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by)
-VALUES (
-    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
-    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
-    'CPF REF 업무 DB 센터컷 샘플 Job',
-    'refCenterCutTargetProvider',
-    'refCenterCutHandler',
-    10,
-    3,
-    'Y',
-    'CPF 표준 계약과 REF 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.',
     'SYSTEM',
     'SYSTEM'
 )
@@ -1380,13 +1351,6 @@ WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
 );
-
-INSERT INTO BAT_CENTER_CUT_PARAMETER (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by)
-VALUES ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'targetTable', 'REF_CENTER_CUT_SAMPLE_TARGET', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'resultTable', 'REF_CENTER_CUT_SAMPLE_RESULT', 'N', 'Y', 'SYSTEM', 'SYSTEM')
-ON CONFLICT (center_cut_job_id, parameter_key) DO UPDATE SET parameter_value=EXCLUDED.parameter_value, encrypted_yn=EXCLUDED.encrypted_yn, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_IP_ALLOWLIST (IP_PATTERN, DESCRIPTION, USE_YN, created_by, updated_by)
 VALUES ('127.0.0.1', '로컬 개발 PC', 'Y', 'SYSTEM', 'SYSTEM')

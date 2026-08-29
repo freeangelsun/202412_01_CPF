@@ -4168,20 +4168,8 @@ ON (tgt.job_id=src.job_id)
 WHEN MATCHED THEN UPDATE SET tgt.job_name=src.job_name, tgt.job_type=src.job_type, tgt.description=src.description, tgt.restartable_yn=src.restartable_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by) VALUES (src.job_id, src.job_name, src.job_type, src.description, src.restartable_yn, src.use_yn, src.created_by, src.updated_by);
 
-MERGE INTO BAT_JOB tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS job_id, 'CPF REF 업무 DB 센터컷 샘플 Job' AS job_name, 'TASKLET' AS job_type, 'REF 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.' AS description, 'Y' AS restartable_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.job_id=src.job_id)
-WHEN MATCHED THEN UPDATE SET tgt.job_name=src.job_name, tgt.job_type=src.job_type, tgt.description=src.description, tgt.restartable_yn=src.restartable_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by) VALUES (src.job_id, src.job_name, src.job_type, src.description, src.restartable_yn, src.use_yn, src.created_by, src.updated_by);
-
 MERGE INTO BAT_CENTER_CUT_JOB tgt
 USING (SELECT 'CPF_BAT_CENTER_CUT_JOB' AS center_cut_job_id, 'CPF_BAT_CENTER_CUT_JOB' AS batch_job_id, 'CPF Domain Invocation 센터컷 Job' AS center_cut_job_name, 'cpfParameterSnapshotCenterCutTargetProvider' AS provider_key, 'cpfDomainInvocationCenterCutHandler' AS handler_key, 10 AS chunk_size, 3 AS retry_limit, 'Y' AS use_yn, '불변 실행 Parameter의 실제 업무 대상을 DB Work Item으로 만들고 CPF 공식 Domain Invocation으로 처리합니다.' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id)
-WHEN MATCHED THEN UPDATE SET tgt.batch_job_id=src.batch_job_id, tgt.center_cut_job_name=src.center_cut_job_name, tgt.provider_key=src.provider_key, tgt.handler_key=src.handler_key, tgt.chunk_size=src.chunk_size, tgt.retry_limit=src.retry_limit, tgt.use_yn=src.use_yn, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by) VALUES (src.center_cut_job_id, src.batch_job_id, src.center_cut_job_name, src.provider_key, src.handler_key, src.chunk_size, src.retry_limit, src.use_yn, src.description, src.created_by, src.updated_by);
-
-MERGE INTO BAT_CENTER_CUT_JOB tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS batch_job_id, 'CPF REF 업무 DB 센터컷 샘플 Job' AS center_cut_job_name, 'refCenterCutTargetProvider' AS provider_key, 'refCenterCutHandler' AS handler_key, 10 AS chunk_size, 3 AS retry_limit, 'Y' AS use_yn, 'CPF 표준 계약과 REF 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.center_cut_job_id=src.center_cut_job_id)
 WHEN MATCHED THEN UPDATE SET tgt.batch_job_id=src.batch_job_id, tgt.center_cut_job_name=src.center_cut_job_name, tgt.provider_key=src.provider_key, tgt.handler_key=src.handler_key, tgt.chunk_size=src.chunk_size, tgt.retry_limit=src.retry_limit, tgt.use_yn=src.use_yn, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key, chunk_size, retry_limit, use_yn, description, created_by, updated_by) VALUES (src.center_cut_job_id, src.batch_job_id, src.center_cut_job_name, src.provider_key, src.handler_key, src.chunk_size, src.retry_limit, src.use_yn, src.description, src.created_by, src.updated_by);
@@ -4329,27 +4317,6 @@ WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
 );
-
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'businessDatePattern' AS parameter_key, 'D+0' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'defaultLimit' AS parameter_key, '10' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'targetTable' AS parameter_key, 'REF_CENTER_CUT_SAMPLE_TARGET' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BAT_CENTER_CUT_PARAMETER tgt
-USING (SELECT 'CPF_REF_CENTER_CUT_SAMPLE_JOB' AS center_cut_job_id, 'resultTable' AS parameter_key, 'REF_CENTER_CUT_SAMPLE_RESULT' AS parameter_value, 'N' AS encrypted_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
-WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO ADM_IP_ALLOWLIST tgt
 USING (SELECT '127.0.0.1' AS IP_PATTERN, '로컬 개발 PC' AS DESCRIPTION, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src

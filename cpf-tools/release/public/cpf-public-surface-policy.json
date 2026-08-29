@@ -5,18 +5,6 @@
   "defaultPolicy": "DENY",
   "sourceRules": [
     {
-      "pattern": "cpf-member/**",
-      "target": "cpf-member",
-      "classification": "PUBLIC_GENERATED_SOURCE",
-      "required": true
-    },
-    {
-      "pattern": "cpf-external/**",
-      "target": "cpf-external",
-      "classification": "PUBLIC_GENERATED_SOURCE",
-      "required": true
-    },
-    {
       "pattern": "cpf-backoffice-web/**",
       "target": "cpf-backoffice-web",
       "classification": "PUBLIC_BOOTSTRAP",
@@ -144,16 +132,12 @@
     "(?i)(?:C:|D:)[\\\\/]+Users[\\\\/]"
   ],
   "gitRemoteEnvironment": "CPF_PUBLIC_GIT_REMOTE",
-  "mandatoryDomainProjects": [
-    {
-      "systemCode": "MBR",
-      "name": "member",
-      "physicalProject": "cpf-member"
-    },
-    {
-      "systemCode": "EXS",
-      "name": "external",
-      "physicalProject": "cpf-external"
-    }
-  ]
+  "mandatoryDomainProjects": [],
+  "domainDiscovery": {
+    "contractVersion": "1",
+    "rootPattern": "cpf-*",
+    "minimumSelectedDomains": 0,
+    "absentState": "NOT_SELECTED",
+    "fixedDomainNamesForbidden": true
+  }
 }

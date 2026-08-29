@@ -1,9 +1,0 @@
-{
-  "track": "CX-02-F109-SCRATCH-COMPOSITE-LIFECYCLE",
-  "finishedAt": "2026-08-22T23:03:36.6175691+09:00",
-  "sourceIdentity": "1957541445d3cfef12ff0af515aa16784b1704d3e9efffee3800d24e4597d0a2",
-  "exitCodes": {"diff": 0, "regenerate": 0, "verify": 0},
-  "diff": {"clean": true, "missing": 0, "changed": 0, "staleGenerated": 0, "extraUser": 0, "legacyMetadata": 0},
-  "regenerate": {"restored": []},
-  "verify": {"status": "PASS", "generatedFiles": 58, "developerContract": "gradle.properties", "generatorMetadata": "ABSENT", "db3Renderer": "EXTERNAL_CANONICAL_RENDERER", "runtimeConsumers": "BUILD_GENERATED_DESCRIPTOR"}
-}

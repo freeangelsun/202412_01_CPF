@@ -32,7 +32,7 @@ Bootstrap은 root `cpf-*/gradle.properties` 중 `cpf.domain.contractVersion`이 
 일반 개발자는 Starter Artifact나 JDBC URL을 직접 조립하지 않고 하나의 Setup 진입점을 사용합니다.
 
 ```powershell
-.\bin\cpf.cmd domain-new account --system-code ACC --batch --vendor postgresql --database-name accDB --schema-name accDB
+.\bin\cpf.cmd domain-new account --system-code ACC --batch --vendor postgresql
 ```
 
 Linux/CI에서는 동일 Canonical `domain setup` 옵션을 그대로 전달합니다. Setup은 root `gradle.properties` Developer Contract, Capability→Public Starter, Operation 단위 Domain Dependency, Local DB Profile, Generated Source, Workspace 등록을 한 번에 처리하며 DB/Runtime 실행은 Bootstrap에서 별도 검증합니다. Generator 입력/lock/state 파일은 Generated Root에 만들지 않습니다.

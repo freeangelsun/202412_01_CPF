@@ -150,7 +150,7 @@ $requiredMarkers = @(
     "/adm/api/batch/calendar",
     "/adm/api/batch/scheduler/run-once",
     "Center-Cut Job ID",
-    "CPF_REF_CENTER_CUT_SAMPLE_JOB",
+    "CPF_BAT_CENTER_CUT_JOB",
     "/adm/api/center-cut",
     "/adm/api/center-cut/jobs",
     "/adm/api/center-cut/results",

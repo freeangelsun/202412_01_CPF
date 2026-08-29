@@ -39,15 +39,21 @@ def main()->int:
  for name in ('CpfCodeService','CpfMessageSource','CpfParameterService','CpfCalendarService'):
   if name not in edu: errors.append(f'Canonical Education consumer missing {name}')
  if 'MDC.put' in edu: errors.append('Canonical Education must not rebuild logging MDC manually')
- for root_name in ('cpf-education','cpf-member','cpf-external','cpf-backoffice'):
+ customer_roots=['cpf-education']
+ for project in sorted(p for p in root.glob('cpf-*') if p.is_dir()):
+  gp=project/'gradle.properties'
+  if gp.is_file() and 'cpf.domain.contractVersion=1' in gp.read_text(encoding='utf-8-sig',errors='ignore'): customer_roots.append(project.name)
+ for root_name in sorted(set(customer_roots)):
   rp=root/root_name
   if not rp.exists(): continue
   for p in rp.rglob('*.java'):
    body=p.read_text(encoding='utf-8-sig',errors='replace')
    if re.search(r'import\s+com\.cpf\.common\.(?:runtime|code\.service|parameter\.service|template\.service)\.',body):
     errors.append(f'customer-facing consumer bypasses Common public API: {p.relative_to(root)}')
- backoffice=txt('cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/catalog/controller/BackofficeCommonCatalogController.java')
- if 'CpfCommonCatalogManagementService' not in backoffice: errors.append('Backoffice Domain Common management must use public management API')
+ backoffice_path=root/'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/catalog/controller/BackofficeCommonCatalogController.java'
+ if backoffice_path.is_file():
+  backoffice=backoffice_path.read_text(encoding='utf-8-sig',errors='replace')
+  if 'CpfCommonCatalogManagementService' not in backoffice: errors.append('Backoffice Domain Common management must use public management API')
  for external in ('cpf-backoffice-web',):
   rp=root/external
   if not rp.exists(): continue

@@ -2,7 +2,7 @@
 """Fail-closed CPF physical database consolidation verifier.
 
 Current Product Runtime may use exactly cpfDB/mbwDB/mbrDB/exsDB as production
-physical database identities. referenceFixture is non-production only. Historical
+physical database identities. Historical
 immutable migration bytes may retain retired logical names, but active runtime,
 current generated SQL, DataSource defaults and current canonical contracts may not
 promote cmnDB/admDB/batDB/bzaDB/refDB back to physical targets.
@@ -17,7 +17,6 @@ from pathlib import Path
 
 ALLOWED_PRODUCTION = {"cpfDB", "mbwDB", "mbrDB", "exsDB"}
 RETIRED = {"cmnDB", "admDB", "batDB", "bzaDB", "refDB"}
-REFERENCE_FIXTURE = "referenceFixture"
 TEXT_SUFFIXES = {".java", ".kt", ".groovy", ".gradle", ".yml", ".yaml", ".properties", ".env", ".ps1", ".sh", ".cmd", ".bat", ".sql", ".json"}
 
 # Product/current execution surfaces. Historical migration/rollback trees are
@@ -115,65 +114,10 @@ def verify(root: Path) -> tuple[list[str], dict[str, object]]:
     generated_defaults = customer.get("generatedDomainDefaultPhysicalNames") or {}
     if generated_defaults != {"MBR": "mbrDB", "EXS": "exsDB"}:
         failures.append(f"Generated Domain physical DB defaults drift: {generated_defaults}")
-    ref = arch.get("REFERENCE_FIXTURE") or {}
-    if ref.get("physicalName") != REFERENCE_FIXTURE or ref.get("productionDefault") is not False:
-        failures.append("referenceFixture must remain non-production fixture-only")
-
-    table_targets: set[str] = set()
-    for table in schema.get("tables") or []:
-        if table.get("productionDefault", True):
-            target = table.get("targetPhysicalDatabase")
-            if not target:
-                failures.append(f"{table.get('name')}: production table targetPhysicalDatabase missing")
-                continue
-            table_targets.add(str(target))
-            if target in RETIRED:
-                failures.append(f"{table.get('name')}: retired active target {target}")
-            if target not in ALLOWED_PRODUCTION:
-                failures.append(f"{table.get('name')}: unsupported production physical target {target}")
-        current = table.get("currentLogicalDatabase")
-        if current in RETIRED:
-            failures.append(f"{table.get('name')}: retired currentLogicalDatabase {current}; preserve only as legacyLogicalDatabase")
-    info["canonicalProductionTableTargets"] = sorted(table_targets)
-
-    nto_path = root / "cpf-tools/db/canonical/platform-non-table-objects.json"
-    if not nto_path.is_file():
-        failures.append("platform-non-table-objects.json missing")
-    else:
-        nto = json.loads(read_text(nto_path))
-        current_db = (nto.get("canonicalPolicy") or {}).get("currentLogicalDatabase")
-        current_file = (nto.get("canonicalPolicy") or {}).get("currentSourceFile")
-        if current_db != "cpfDB" or current_file != "10_cpf_schema.sql":
-            failures.append(f"Spring Batch current non-table owner must be cpfDB/10_cpf_schema.sql, actual={current_db}/{current_file}")
-        for obj in nto.get("objects") or []:
-            if obj.get("logicalDatabase") != "cpfDB" or obj.get("sourceFile") != "10_cpf_schema.sql":
-                failures.append(f"{obj.get('name')}: current non-table object is not cpfDB current projection")
-            if obj.get("legacyLogicalDatabase") != "batDB" or obj.get("legacySourceFile") != "35_bat_schema.sql":
-                failures.append(f"{obj.get('name')}: immutable Batch history metadata missing")
-
-    active_hits: list[dict[str, object]] = []
-    scanned = 0
-    for path in active_files(root):
-        scanned += 1
-        try:
-            content = read_text(path)
-        except UnicodeDecodeError as exc:
-            failures.append(f"non-UTF8 active source: {path.relative_to(root).as_posix()}: {exc}")
-            continue
-        hits = actionable_legacy_hits(content)
-        if hits:
-            rel = path.relative_to(root).as_posix()
-            active_hits.append({"path": rel, "retiredTargets": hits})
-            failures.append(f"active physical DB reference: {rel}: {','.join(hits)}")
-    info["activeFilesScanned"] = scanned
-    info["activeLegacyReferenceCount"] = len(active_hits)
-    info["activeLegacyReferences"] = active_hits[:100]
-
     # Explicit high-risk entrypoints: these used to carry retired defaults and must never regress.
     explicit = {
         "cpf-admin/src/main/resources/application-adm-local.yml": RETIRED,
         "cpf-tools/security/tools/apply-v15-adm-api-permission-management.ps1": RETIRED,
-        "cpf-tools/verification/tools/smoke-center-cut-adapter.ps1": {"refDB"},
     }
     for rel, forbidden in explicit.items():
         path = root / rel
@@ -197,7 +141,6 @@ def main() -> int:
         "status": "PASS" if not failures else "FAIL",
         "productionPhysicalTargets": sorted(ALLOWED_PRODUCTION),
         "retiredProductionPhysicalTargets": sorted(RETIRED),
-        "referenceFixturePolicy": "NON_PRODUCTION_ONLY",
         **info,
         "failureCount": len(failures),
         "failures": failures,

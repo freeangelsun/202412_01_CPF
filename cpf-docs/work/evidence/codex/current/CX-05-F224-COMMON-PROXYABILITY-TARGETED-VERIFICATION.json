@@ -1,9 +1,0 @@
-{
-  "finding": "CX-F-224",
-  "recordedAt": "2026-08-23T20:41:00+09:00",
-  "sourceIdentitySha256": "8776ca69ef25c5ef9e56d82543f74c43fc898151e6f12a1e2ac45e111df8cd72",
-  "common": {"status": "PASS", "tests": 34, "failures": 0, "errors": 0, "skipped": 0, "suites": 18},
-  "workerBootJar": "BUILD SUCCESSFUL",
-  "status": "VERIFICATION_PENDING",
-  "next": "Replay the full physical two-worker runtime."
-}

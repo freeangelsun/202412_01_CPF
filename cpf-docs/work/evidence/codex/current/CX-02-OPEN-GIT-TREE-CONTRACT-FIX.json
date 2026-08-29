@@ -1,7 +1,0 @@
-{
-  "track": "CX-02-OPEN-GIT-TREE-CONTRACT-FIX",
-  "finding": "CX-F-109",
-  "attempt2": {"passed": 20, "failed": 1, "total": 21, "cause": "Final verifier still required duplicate domains directory"},
-  "fix": "verify_open_git_tree now requires the three physical gradle.properties contracts and rejects domains/, cpf-domain.yaml and cpf-generator.lock.json.",
-  "sourceIdentity": {"sha256": "ab93fd0f204c4358177c147c4e179e54e7129b5d7ee8565805afbed9db6e431c", "sha1": "cb3fb6da12522aa6cbe07a16a591c0d8762b07a8", "fileCount": 8228, "totalBytes": 75803898}
-}

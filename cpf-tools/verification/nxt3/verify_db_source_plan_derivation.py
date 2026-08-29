@@ -18,7 +18,7 @@ def main()->int:
     if policy.get('vendorSourceRole')!='DERIVED_COMPATIBILITY_INPUT': errors.append('VENDOR_SOURCE_ROLE_NOT_DERIVED')
     if policy.get('directVendorSourceEditing')!='FORBIDDEN': errors.append('DIRECT_VENDOR_SOURCE_EDIT_NOT_FORBIDDEN')
     canonical=json.loads((root/'cpf-tools/db/canonical/platform-schema.json').read_text(encoding='utf-8'))
-    expected={str(t.get('targetTableName') or t.get('name')).upper() for t in canonical.get('tables',[]) if t.get('productionDefault',True) and t.get('targetPhysicalDatabase')!='referenceFixture'}
+    expected={str(t.get('targetTableName') or t.get('name')).upper() for t in canonical.get('tables',[]) if t.get('productionDefault',True)}
     for vendor in VENDORS:
         vp=plan.get(vendor,{})
         if vp.get('sourceRole')!='DERIVED_COMPATIBILITY_INPUT': errors.append(f'SOURCE_ROLE_DRIFT:{vendor}')

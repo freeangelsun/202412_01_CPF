@@ -1411,6 +1411,8 @@ Current canonical 역할:
 | `DEVEX-WINDOWS-PATH` | cpf-tools verification + repository path governance | Windows 개발환경 호환성을 위해 프로젝트 Root 상대경로와 파일명을 합친 전체 상대경로는 항상 200자를 초과하지 않는다. 장문 Evidence·Generated 경로는 안정적인 짧은 alias를 사용하고 원경로와 새 경로의 추적 Map을 보존한다. 200자 초과는 경고가 아니라 검증 실패이며 신규 Source·Evidence·Generator 출력에도 동일 Gate를 적용한다. | repository-wide relative path <=200, alias map, generated/evidence regression, Windows target-root projection, violation mutation Evidence |
 | `DEVEX-DOCKER-LIFECYCLE` | cpf-tools local/full runtime verification | Local/Full Runtime 검증은 필요한 CPF Docker 서비스를 실행 전 스스로 확인하고 내려가 있으면 필요한 서비스만 자동 기동한다. running 상태만으로 성공 처리하지 않고 health와 실제 기능 readiness를 확인하며 Stage 간 서비스 lifecycle을 중앙 조정한다. 검증기가 시작한 컨테이너는 성공·실패 모두 종료 단계에서 정리하고 사용자가 이미 실행 중이던 컨테이너는 보존한다. DB3·Kafka·Redis·Messaging·Fault fixture는 실제 거래·장애·복구 검증에 필요한 lifecycle을 각 검증 흐름이 책임진다. | down-state auto-start, health+functional readiness, existing-container preserve, owned cleanup on failure, DB3/Kafka/fault runtime lifecycle Evidence |
 | `EDU-CANONICAL` | cpf-education + capability owners | EDU는 개발 목적 기준 정확히 Online 20개 + Batch 15개 Canonical 기능 그룹만 유지한다. ADM/Backoffice/Gateway/OPS/Legacy/Compatibility/Micro Sample을 EDU에 병행하지 않고 유일 검증자산은 해당 Owner Test로 이동한 뒤 중복 sample을 제거한다. 모든 예제는 실제 Public API/Starter/DB/Header/Recovery 계약을 사용한다. | physical group count 20/15, legacy group 0, owner-test migration, compile/runtime, Public API/internal import gate, catalog/doc parity Evidence |
+| `REL-DEV-WORKSPACE-GROUPING` | master canonical module/starter/artifact catalog + Gradle + Unified CLI + Open Git | 외부 개발 Workspace는 내부 Module 구조가 아니라 개발행위와 Public Capability 중심으로 제공한다. Canonical Capability taxonomy, exactly-one module role, 기능 중심 Gradle grouping, `cpf doctor/help/version`, Root build/test parity, Generated/Optional Domain 0/add/remove/recreate를 하나의 master Catalog projection으로 보장한다. 특정 Member/External/Backoffice 존재를 CLI/Gradle/Generator/Initializer/Publication/BOM/OpenAPI/Frontend/Test/Open Git이 하드코딩하지 않는다. | capability owner duplicate 0, internal public exposure 0, root build/test parity, doctor text/json/exit contract, domain mutation stale settings/dependency/task/BOM/publication/DB/OpenAPI/frontend/test/release 0, Open Git fresh projection Evidence |
+| `CURRENT-ONLY-LEGACY-ZERO` | repository whole tree + Current Canonical governance | Repository는 현재 CPF Architecture만 해석 가능해야 한다. Retired active module/DB/route/config/seed/artifact/entrypoint와 날짜·세션별 Steering/Handover/Completion/Revalidation/RERUN/checkpoint/history를 Current Canonical에 병합하고 Consumer 0을 확인한 뒤 Delete Manifest로 제거한다. 실제 Upgrade/Recovery Consumer가 없는 legacy migration/provenance도 보존하지 않는다. 보호경로와 Current Evidence는 훼손하지 않는다. | current canonical duplicate 0, retired active module/DB/config 0, stale generator/initializer/Gradle/BOM/publication/OpenAPI/frontend/test/open-git 0, duplicate/dead script 0, dated/checkpoint current artifact 0, protected/current evidence loss 0 |
 
 ## 28. 금지되는 Current Target 표현
 
@@ -1437,3 +1439,28 @@ Immutable released DB migration의 과거 파일명처럼 기술적으로 변경
 CPF의 품질 기준은 “현재 Source와 문서가 서로 맞는다”에서 끝나지 않는다. **현재 Source가 이 Target을 실제로 충족하고, Developer가 쉽게 사용하며, 운영자가 안전하게 통제하고, QA가 실패·복구까지 재현할 수 있어야 한다.**
 
 정본과 Source가 충돌하면 먼저 이 Target의 Architecture/사용성/상용 품질이 합리적인지 검토하고, 합리적이면 Source를 수정한다. 구현 편의를 위해 Target을 Source에 맞추는 것은 금지한다.
+
+
+## 21.8 Developer Workspace / Capability / Domain Zero Dependency — Current Canonical
+
+CPF의 모든 신규 Requirement/Steering/Architecture 변경은 Source 수정 전에 Current Canonical을 먼저 현행화하고 Requirement/Inventory/Acceptance를 확정한다. 이후 Source → Consumer → Generator/Initializer/DB/Frontend/Config → Test/Runtime → Evidence/Completion Review 순으로 닫는다. Source 구현 결과에 맞춰 Requirement를 사후 축소하거나 별도 날짜형 Steering을 추가하지 않는다.
+
+외부 개발 Workspace는 master의 Canonical Module/Starter/Artifact Catalog를 그대로 Projection한다. Open Git 전용 복제 Catalog를 만들지 않는다. Canonical capability taxonomy는 Web, Persistence, Transaction, Security, Logging/Audit, Messaging, Integration, Cache, Batch, Observability, Config/Common 및 실제 Current Catalog에서 필요한 추가 Public capability를 포함한다. 각 Module은 Public Capability Group Owner, Internal Leaf/Foundation, Tooling, Generated/Customer Domain 중 exactly-one 역할을 가진다. Public BOM에는 Internal Leaf를 노출하지 않는다.
+
+Gradle 개발자 UX는 Build, Test, Domain, Database, Runtime, Verification, Publication, Configuration/Discovery 기능 그룹을 사용한다. `cpf build`와 Root Canonical Gradle Build, `cpf test`와 Root Canonical Gradle Test는 동일한 Build Engine/결과를 사용한다. Open Git Root의 `./gradlew build`, `./gradlew test`, `./gradlew tasks`는 현재 선택 Module/Domain을 자동 계산하고 특정 Generated/Optional Domain 부재로 실패하지 않는다.
+
+Unified Public CLI는 최소 `bootstrap/domain-new/domain-sync/build/test/run/stop/reset/status/help/doctor/version`을 제공한다. `cpf help`, `cpf doctor`, `cpf --version`은 Framework/CLI version, 현재 Domain, Capability, DB Vendor, Java/JDK, Build/Test/Run 기본 사용법과 prerequisite 상태를 제공하며 사람이 읽는 출력과 machine-readable JSON 계약, stable exit code, interactive/non-interactive를 지원한다. Internal command는 Public Release Capability에 물리적으로 노출하지 않는다.
+
+Generated/Optional Domain은 0개, 일부 선택, 다수, Backoffice 선택/미선택, 신규 추가, 삭제, 삭제 후 재생성을 모두 정상 상태로 지원한다. Domain 부재는 `NOT_SELECTED/NOT_PRESENT`이며 필수 Platform Module 부재만 fail-fast한다. Domain mutation 후 settings/dependency/task/BOM/publication/DB/Migration/OpenAPI/Frontend/Test/Open Git artifact의 stale reference는 0이어야 한다. Generator는 Domain Catalog → settings/module registration → dependency/build/test target → publication → Open Git projection을 하나의 계약으로 동기화하고 여러 Gradle 파일을 사용자에게 수작업 등록시키지 않는다.
+
+Open Git Release는 `<CPF_PROJECT_ROOT>/cpf-release/`에 Current Source에서 Fresh 생성하고 Current-only, Framework 구현 Source/sources.jar 기본 미포함, Customer/Generated/Backoffice/Sample/EDU 실제 Source 포함, Public CLI Binary 포함, Internal source/artifact/QA evidence/history/stale artifact 0을 강제한다. Release Tool은 자동 Git write를 수행하지 않고 VERIFIED까지만 만든다.
+
+Physical Acceptance는 Java25 actual, Windows/Linux CLI lifecycle, Actual Open Git Fresh Release, Oracle/PostgreSQL/MariaDB DB3, Generated/Optional Domain mutation, Runtime/Fresh Replay, Source leakage 0, stale reference 0, current Source Identity Evidence까지 실제 PASS해야 한다.
+
+## 21.9 Repository Current-only / Legacy Zero — Current Canonical
+
+Repository 어디를 보더라도 현재 CPF Architecture만 해석 가능해야 한다. Current Runtime DB는 `cpfDB/mbwDB/mbrDB/exsDB`이며 `cpf-reference/refDB`, `BZA/cpf-bza/bzaDB`, 별도 Physical DB로서의 `cmnDB/admDB/batDB`, Retired Module/Route/DataSource/Seed/Config/Artifact/Entrypoint, 날짜·세션별 Canonical/Handover/Completion/Revalidation/RERUN/checkpoint/backup/과거 Release Snapshot은 현재 기능처럼 탐지·실행·생성되어서는 안 된다.
+
+문자열만으로 삭제하지 않는다. Current Canonical에 고유정보를 병합하고 Consumer/reference 0을 확인한 뒤 Root-relative Delete Manifest로 제거한다. 현재 Upgrade/Recovery에 실제 필요한 immutable Migration/Rollback만 유지하며, 단순 과거 provenance/history 자체는 보존 사유가 아니다. 유지해야 하는 compatibility source도 Current Runtime/Schema/Config와 물리적으로 분리하여 current target으로 노출하지 않는다.
+
+최종 Gate는 Current Canonical 중복 0, retired active module/DB/route/config 0, stale Generator/Initializer/Gradle/BOM/Publication/OpenAPI/Frontend/Test/Open Git reference 0, duplicate/dead script 0, 과거 Steering/Handover/Completion 잔재 0, Current Evidence 손실 0이다.

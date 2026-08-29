@@ -130,7 +130,8 @@ def _delete_approved_legacy_metadata(output:Path,candidates:list[str])->list[str
 
 def sync_workspace_domains(root:Path,approve_generated_delete:bool=False)->dict:
     definitions=workspace_definitions(root)
-    if not definitions: raise DomainError(f'Generated Domain gradle.properties 계약이 없습니다: {root}')
+    if not definitions:
+        return {'status':'PASS','action':'DOMAIN_SYNC','domainState':'NOT_SELECTED','approvedGeneratedDelete':approve_generated_delete,'count':0,'results':[]}
     results=[]
     for definition in definitions:
         d=load_domain_contract(definition); output=root/generated_root_name(d.name)

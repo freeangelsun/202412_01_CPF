@@ -52,7 +52,7 @@ foreach ($vendor in $official) {
                 # referenceFixture is the consolidated non-production physical target for the
                 # immutable refDB lineage, so it intentionally has no same-named historical pack.
                 # Current production targets that do have a historical pack must remain present.
-                foreach ($db in @($logicalDatabases | Where-Object { $_ -ne 'referenceFixture' })) {
+                foreach ($db in @($logicalDatabases)) {
                     $dbPath = Join-Path $path $db
                     if (-not (Test-Path -LiteralPath $dbPath -PathType Container) -or
                             @(Get-ChildItem -LiteralPath $dbPath -File -Filter '*.sql').Count -eq 0) {

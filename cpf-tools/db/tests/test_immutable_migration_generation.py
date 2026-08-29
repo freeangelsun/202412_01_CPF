@@ -40,13 +40,14 @@ class ImmutableMigrationGenerationTest(unittest.TestCase):
         self.assertIn("Check-PublishedSqlDirectory $runtimeRollback", verifier)
         self.assertIn("published immutable artifact drift", verifier)
 
-    def test_checksum_generator_requires_production_packs_but_maps_reference_fixture_to_history(self):
+    def test_checksum_generator_requires_only_current_production_packs(self):
         text = (ROOT / "cpf-tools/db/tools/generate-migration-checksums.ps1").read_text(
             encoding="utf-8-sig"
         )
-        self.assertIn("platformDatabaseArchitecture.REFERENCE_FIXTURE.physicalName", text)
+        self.assertNotIn("REFERENCE_FIXTURE", text)
+        self.assertNotIn("referenceFixture", text)
+        self.assertNotIn("refDB", text)
         self.assertIn("$requiredProductionDatabases", text)
-        self.assertIn("-cne $referenceFixtureDatabase", text)
         self.assertNotIn("$requiredPlatformDatabases", text)
         self.assertIn("current production migration pack missing", text)
         self.assertIn("foreach ($discoveredPackDirectory in $packDirectories)", text)
@@ -78,7 +79,8 @@ class ImmutableMigrationGenerationTest(unittest.TestCase):
         self.assertIn("$isUnpublishedEmptyPack", builder)
         self.assertIn("Refusing historical V63/R63 backfill into published pack", builder)
         self.assertIn("$existingVersioned.Count -eq 0", builder)
-        self.assertIn("platformDatabaseArchitecture.REFERENCE_FIXTURE.physicalName", builder)
+        self.assertNotIn("REFERENCE_FIXTURE", builder)
+        self.assertNotIn("referenceFixture", builder)
         self.assertIn("$historicalLogicalDatabases", builder)
         self.assertIn("$historicalLogicalDatabases -cnotcontains $db", builder)
         self.assertIn("Current-snapshot-only logical database has no independent historical pack", builder)

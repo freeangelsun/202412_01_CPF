@@ -140,5 +140,10 @@ Thumbs.db
 !cpf-tools/release/public/templates/bin/
 !cpf-tools/release/public/templates/bin/**
 
+
+# CPF Open Git의 canonical thin-wrapper template도 제품 Source입니다.
+!cpf-tools/release/open-git/templates/bin/
+!cpf-tools/release/open-git/templates/bin/**
+
 # CPF Open Git release output (generated, never private-source tracked)
 /cpf-release/

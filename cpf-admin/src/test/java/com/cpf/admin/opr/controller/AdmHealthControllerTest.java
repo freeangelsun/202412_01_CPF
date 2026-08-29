@@ -30,7 +30,7 @@ class AdmHealthControllerTest {
                 .containsEntry("status", "UP")
                 .containsEntry("service", "ADM");
         assertThat(result.get("checks")).isEqualTo(Map.of(
-                "admDB", "UP",
+                "admDataStore", "UP",
                 "cpfDB", "UP",
                 "sessionStore", "UP"));
     }
@@ -48,7 +48,7 @@ class AdmHealthControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         assertThat(result).isNotNull().containsEntry("status", "DOWN");
         assertThat(result.get("checks")).isEqualTo(Map.of(
-                "admDB", "UP",
+                "admDataStore", "UP",
                 "cpfDB", "DOWN",
                 "sessionStore", "UP"));
     }

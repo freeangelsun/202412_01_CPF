@@ -19,14 +19,14 @@ ALLOWED_OWNER_DATABASES = {
     "bat": {"cpfDB"},
     "adm": {"cpfDB"},
     "admin": {"cpfDB"},
-    "biz": {"referenceFixture"},
+    "biz": {"mbwDB"},
     "backoffice": {"mbwDB"},
     "cpf": {"cpfDB"},
     "core": {"cpfDB"},
-    "cmn": {"cpfDB", "referenceFixture"},
+    "cmn": {"cpfDB"},
     "common": {"cpfDB"},
 }
-OFFICIAL_LOGICAL_DATABASES = {"cpfDB", "mbwDB", "referenceFixture"}
+OFFICIAL_LOGICAL_DATABASES = {"cpfDB", "mbwDB"}
 PREFIX_LENGTH_RE = re.compile(r"^\s*([^()]+?)\s*\(\s*\d+\s*\)\s*$")
 
 

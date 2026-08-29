@@ -7,12 +7,6 @@ $planPath = Join-Path $Root "cpf-tools/db/config/database-source-plan.json"
 $plan = Get-Content -LiteralPath $planPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30
 $profilePath = Join-Path $Root "cpf-tools/db/config/database-install.default.json"
 $profile = Get-Content -LiteralPath $profilePath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30
-$canonicalSchemaPath = Join-Path $Root 'cpf-tools/db/canonical/platform-schema.json'
-$canonicalSchema = Get-Content -LiteralPath $canonicalSchemaPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 100
-$referenceFixtureDatabase = [string]$canonicalSchema.canonicalPolicy.platformDatabaseArchitecture.REFERENCE_FIXTURE.physicalName
-if ([string]::IsNullOrWhiteSpace($referenceFixtureDatabase)) {
-    throw "Canonical REFERENCE_FIXTURE physicalName is required: $canonicalSchemaPath"
-}
 $logicalDatabases = @(
     $profile.modules.PSObject.Properties |
         Where-Object { [bool]$_.Value.enabled } |
@@ -20,9 +14,6 @@ $logicalDatabases = @(
         Sort-Object -Unique
 )
 if ($logicalDatabases.Count -eq 0) { throw "Enabled platform database가 없습니다: $profilePath" }
-$historicalLogicalDatabases = @(
-    $logicalDatabases | Where-Object { [string]$_ -cne $referenceFixtureDatabase }
-)
 $qualifiedDatabasePattern = '(?i)\b(?:' +
     (($logicalDatabases | ForEach-Object { [regex]::Escape($_) }) -join '|') +
     ')\.'

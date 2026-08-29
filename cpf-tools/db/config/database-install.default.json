@@ -2,7 +2,7 @@
   "profileVersion": 1,
   "profileName": "local-dev",
   "environment": "development",
-  "description": "CPF DB connection/lifecycle profile. CPF/CMN/ADM/BAT share CPF_PLATFORM_DB(cpfDB); Backoffice(MBW) uses mbwDB as its CUSTOMER_BUSINESS_DB development target; cpf-education may consume the DB Tool-owned non-production REFERENCE_FIXTURE. enabled means an independent DB lifecycle target, not application enablement.",
+  "description": "CPF DB connection/lifecycle profile. CPF/CMN/ADM/BAT/EDU share CPF_PLATFORM_DB(cpfDB); Backoffice(MBW) uses mbwDB as its CUSTOMER_BUSINESS_DB development target. enabled means an independent DB lifecycle target, not application enablement.",
   "supportedVendors": [
     "mariadb",
     "postgresql",
@@ -209,35 +209,35 @@
       "enabled": true,
       "required": false,
       "transitional": false,
-      "logicalDatabase": "referenceFixture",
+      "logicalDatabase": "cpfDB",
       "vendor": "mariadb",
       "host": "127.0.0.1",
       "port": 3306,
-      "databaseName": "referenceFixture",
-      "schemaName": "referenceFixture",
+      "databaseName": "cpfDB",
+      "schemaName": "cpfDB",
       "clientPath": "C:/dev/DB/MariaDB 12.3/bin/mariadb.exe",
       "sslMode": "disabled",
       "admin": {
         "username": "root",
         "userHost": "%",
         "password": {
-          "env": "CPF_REFERENCE_FIXTURE_DB_ADMIN_PASSWORD",
+          "env": "CPF_CORE_DB_ADMIN_PASSWORD",
           "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
         }
       },
       "migration": {
-        "username": "cpf_reference_fixture_migration",
+        "username": "cpf_migration",
         "userHost": "%",
         "password": {
-          "env": "CPF_REFERENCE_FIXTURE_DB_MIGRATION_PASSWORD",
+          "env": "CPF_CORE_DB_MIGRATION_PASSWORD",
           "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
-        "username": "cpf_reference_fixture_app",
+        "username": "cpf_app",
         "userHost": "%",
         "password": {
-          "env": "CPF_REFERENCE_FIXTURE_DB_RUNTIME_PASSWORD",
+          "env": "CPF_CORE_DB_RUNTIME_PASSWORD",
           "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
@@ -245,7 +245,8 @@
         "product": false,
         "optionalSample": true,
         "test": true
-      }
+      },
+      "sharesDatabaseWith": "core"
     },
     "backoffice": {
       "domainName": "backoffice",

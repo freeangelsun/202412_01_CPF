@@ -1,4 +1,5 @@
-# CPF Documentation Harness v2.9.0 exact stale delete manifest
+# CPF Documentation Harness 2.12.0 current-only exact stale delete manifest
+# Root-relative exact paths only. No wildcard. Protected current paths are never listed.
 cpf-docs/governance/documentation-harness-v2.3.0
 cpf-docs/governance/documentation-harness-v2.4.0
 cpf-docs/governance/documentation-harness-v2.5.0
@@ -6,6 +7,8 @@ cpf-docs/governance/documentation-harness-v2.6.0
 cpf-docs/governance/documentation-harness-v2.7.0
 cpf-docs/governance/documentation-harness-v2.8.0
 cpf-docs/governance/documentation-harness-v2.9.0
+cpf-docs/governance/documentation-harness-v2.10.0
+cpf-docs/governance/documentation-harness-v2.11.0
 cpf-docs/governance/documentation-harness-old
 cpf-docs/governance/documentation-harness/_old
 cpf-docs/governance/documentation-harness/_backup
@@ -14,3 +17,38 @@ cpf-docs/governance/documentation-harness/_session
 cpf-docs/governance/documentation-harness/CHANGELOG.md
 cpf-docs/governance/documentation-harness/validators/__pycache__
 cpf-docs/governance/documentation-harness/.pytest_cache
+cpf-docs/deliverables/documentation/APPLY_V125.ps1
+cpf-docs/deliverables/documentation/DELETE_ONLY_V125.ps1
+cpf-docs/deliverables/documentation/_backup
+cpf-docs/deliverables/documentation/_history
+cpf-docs/deliverables/documentation/_session
+cpf-docs/deliverables/documentation/evidence/automated/pdf_parity
+cpf-docs/deliverables/documentation/evidence/automated/a11y
+cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight
+cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_harness.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_harness_after_delete_sync.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_quality_fixtures.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_readme.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_source_zip.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_harness_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_harness_packagefinal.txt
+cpf-docs/deliverables/documentation/evidence/automated/A11Y_SUMMARY.json
+cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY.json
+cpf-docs/deliverables/documentation/evidence/automated/render_counts/PDFIUM_PAGE_COUNT.json
+cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_packagefinal.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_final_acceptance_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_final_acceptance_packagefinal.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_final_acceptance_pre_aggregator.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_quality_fixtures_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_quality_fixtures_packagefinal.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage_packagefinal.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_readme_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_readme_packagefinal.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_source_zip_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_final.txt
+cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_packagefinal.txt

@@ -1,12 +1,15 @@
-# Documentation Harness 2.10.0 Final Delivery Summary
+# CPF Documentation 2.12.0 Final Delivery Summary
 
-- Canonical Harness: `cpf-docs/governance/documentation-harness/`
-- Baseline 2.9 files: 79
-- Current 2.10 files: 86
-- Added / modified / removed: 7 / 67 / 0
-- Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip`
-- Source SHA-256: `34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5`
-- Git exact SHA: unavailable in supplied ZIP
-- Current documents: intentionally rejected by the new gate (20 findings); artifact rework is the next phase.
-- Git write: none
-- Product source deletion: none
+- Harness: 2.12.0
+- Source: CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip
+- Source exact Git SHA: UNAVAILABLE_IN_SUPPLIED_ZIP
+- Artifacts: README + DOCX 11 + PDF 11
+- PDF pages: 116
+- Negative fixtures: 100/100 PASS
+- Source currentization/alignment: PASS
+- Reader task/actionability/visual comfort: PASS
+- A11y: 11/11, findings 0
+- PDF preflight: 11/11, warnings 0
+- PDFium/Poppler: 116/116 pages
+- Windows PowerShell wrapper runtime: 미검증 (Linux container)
+- Windows VS Code built-in Markdown Preview: 미검증 (Linux container)

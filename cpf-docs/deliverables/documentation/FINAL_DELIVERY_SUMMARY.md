@@ -1,14 +1,17 @@
-# CPF Documentation 2.9.0 Final Delivery Summary
+# CPF Documentation 2.12.0 Final Delivery Summary
 
-- Source ZIP SHA-256: `8990EA99CB5B36D66B56A82842CCBB0BC0F100E5A8F27F5902F34B62A7B6144A`
-- Git exact SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP`
-- Harness: 2.9.0 current-only, patch-first
-- README: H1 1 / H2 12 / visuals 9
-- DOCX: 11 / PDF: 11 / final pages: 101
-- Canonical DOCX render vs approved latest render: 0/101 page differences
+- Harness: 2.12.0
+- Source: CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip
+- Source exact Git SHA: UNAVAILABLE_IN_SUPPLIED_ZIP
+- Artifacts: README + DOCX 11 + PDF 11
+- PDF pages: 116
+- Negative fixtures: 100/100 PASS
+- Source currentization/alignment: PASS
+- Reader task/actionability/visual comfort: PASS
 - A11y: 11/11, findings 0
 - PDF preflight: 11/11, warnings 0
-- Poppler/PDFium: 101/101 pages each
-- Negative fixtures: 64/64 PASS
-- Windows PowerShell runtime and Windows VS Code native Markdown Preview: environment-specific 미검증
-- Package replay: fresh extraction + delivery verifier PASS; final archive replayed after final Manifest/SHA regeneration
+- PDFium/Poppler: 116/116 pages
+- Windows PowerShell wrapper runtime: 미검증 (Linux container)
+- Windows VS Code built-in Markdown Preview: 미검증 (Linux container)
+- Fresh Source replay: PASS (237 managed / 239 archive files before final ZIP locking)
+- Product non-documentation Source drift after replay: 0 / 0 / 0

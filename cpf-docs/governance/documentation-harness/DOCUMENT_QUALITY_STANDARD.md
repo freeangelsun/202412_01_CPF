@@ -1,4 +1,4 @@
-# CPF 문서 품질 엔지니어링 표준 — Harness v2.10.0
+# CPF 문서 품질 엔지니어링 표준 — Harness v2.12.0
 
 ## 1. 최종 품질 정의
 
@@ -118,7 +118,7 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 평균 점수가 높아도 Critical Finding 1건이면 FAIL이다. Contact Sheet만으로 전페이지 수동 검수를 대체하지 않는다. 모든 required Gate=PASS, Manual Evidence 존재, Critical Finding=0, Artifact Review 승인 상태가 충족된 경우에만 최종 완료다.
 
 
-## v2.10.0 강제 보강
+## v2.12.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -128,7 +128,7 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 - 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.
 
 
-## Harness 2.10.0 Visual Quality Uplift
+## Harness 2.12.0 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.

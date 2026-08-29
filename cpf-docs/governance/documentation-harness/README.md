@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.10.0
+# CPF Documentation Harness v2.12.0
 
 CPF 공식 README와 11개 DOCX/PDF를 일관된 상용 문서 품질로 만들기 위한 **실행형 Design/QA Harness**다.
 
@@ -55,7 +55,7 @@ CPF 공식 README와 11개 DOCX/PDF를 일관된 상용 문서 품질로 만들�
 10. Fresh Clean Replay 후 최종 ZIP 확정
 
 
-## v2.10.0 강제 보강
+## v2.12.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -63,13 +63,13 @@ CPF 공식 README와 11개 DOCX/PDF를 일관된 상용 문서 품질로 만들�
 - README는 브로셔형 Hero/시각 Story를 유지하고 모든 의미 Figure에 Alt Text + 바로 아래 간략 한글 설명을 제공한다.
 - 작성자는 `DOCUMENT_DESIGN_PLAYBOOK.md`, `INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md`, `README_BROCHURE_AND_AI_TEXT_STANDARD.md`, `AUTHORING_EXECUTION_PROTOCOL.md`를 따라야 한다.
 - 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.
-## 2.10.0 핵심 실행 Gate
+## 2.12.0 핵심 실행 Gate
 
 - `READABILITY_AND_ACTIONABILITY_STANDARD.md`: 독자가 실제 선택·개발·운영·검증을 완료할 수 있는 Reader-Executable 기준과 전체 문서 Visual Comfort 기준
 - `readability-actionability.json`: Flat List/Heavy Block/Selection-to-Action/Working Example 자동·수동 Threshold
 - `validators/validate_readability_actionability.py`: README와 개발자 문서의 대표 False Green 자동 검출
 - `validators/validate_source_alignment.py`: 최신 Starter Catalog/Public Developer Artifact/API inventory와 Harness baseline 정합 검증
-- `HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md`: 2.9.0 False Green 원인과 2.10.0 보강 결과
+- `HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md`: 2.9.0 False Green 원인과 2.12.0 보강 결과
 
 Harness PASS는 산출물 PASS와 다르다. 새 Harness가 기존 산출물을 FAIL시키면 해당 산출물을 PATCH_FIRST로 보강한 뒤 전페이지 Render/Reader Review/Final Acceptance를 다시 수행한다.
 

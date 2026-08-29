@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.12.0",
+  "locked": true,
+  "preAuthoringRequired": true,
+  "finalValidationRequired": true,
+  "canonicalPaths": [
+    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+    "settings.gradle",
+    "build.gradle",
+    "cpf-tools/generator/contracts/cpf-starter-catalog.json"
+  ],
+  "excludePrefixes": [
+    "cpf-docs/guides/",
+    "cpf-docs/deliverables/",
+    "cpf-docs/assets/",
+    "cpf-docs/governance/documentation-harness/",
+    ".git/",
+    ".gradle/"
+  ],
+  "deprecatedPublicContracts": [
+    "CpfTimeLimiter",
+    "CpfRestController"
+  ],
+  "currentContracts": [
+    "CpfTimeout",
+    "CpfController"
+  ],
+  "excludeExactPaths": [
+    "README.md"
+  ]
+}

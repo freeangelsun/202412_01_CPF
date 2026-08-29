@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory=$true)][string]$Manifest)
+param([Parameter(Mandatory=$true)][string]$Manifest)
 $ErrorActionPreference='Stop'
 $here=Split-Path -Parent $MyInvocation.MyCommand.Path
 & (Join-Path $here 'validate_harness.ps1'); if($LASTEXITCODE-ne 0){throw 'ALL_GATES=FAIL harness'}

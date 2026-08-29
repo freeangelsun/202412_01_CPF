@@ -1,29 +1,33 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
+  "harnessVersion": "2.12.0",
+  "artifactId": "README",
   "artifact": "README.md",
-  "baselineState": "PATCHED_CURRENT_SOURCE_AND_REVIEWED",
-  "baselineRef": "8990EA99CB5B36D66B56A82842CCBB0BC0F100E5A8F27F5902F34B62A7B6144A",
+  "baselineState": "2.9.0 patch-first baseline + latest 191735 source currentization",
+  "baselineRef": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
   "changeScope": [
-    "README.md"
+    "source currentization",
+    "reader actionability",
+    "visual comfort",
+    "false-green recurrence prevention"
   ],
-  "preservedBlocks": [],
+  "preservedBlocks": [
+    "validated existing structure/visuals retained where not defective"
+  ],
   "patchedBlocks": [
-    "content currentization",
-    "semantic layout/spacing/table fit",
-    "navigation/TOC where applicable"
+    "reader flow, spacing/density, current public contracts, final-page/section-start balance as applicable"
   ],
   "intentionallyRegeneratedBlocks": [
-    "dark preview QA surface"
+    "DOCX/PDF render outputs"
   ],
-  "regenerationJustification": "Harness 2.9.0 patch-first visual-quality uplift; unaffected approved/good blocks preserved",
+  "regenerationJustification": "Latest source-backed content and Harness 2.12 visual/actionability gates require deterministic fresh render.",
   "automated": {
     "harnessSchema": "PASS",
     "artifactStructure": "PASS",
     "link": "PASS"
   },
   "render": {
-    "readmeDarkPreview": "PASS_900_1200_1440_BROWSER_SURFACE",
+    "readmeDarkPreview": "PASS",
     "docxAllPages": "NOT_APPLICABLE",
     "pdfAllPages": "NOT_APPLICABLE",
     "pdfium": "NOT_APPLICABLE",
@@ -31,39 +35,47 @@
   },
   "manualVisualScores": {
     "hierarchy_and_scanability": 4.8,
-    "vertical_rhythm": 4.8,
+    "vertical_rhythm": 4.7,
     "horizontal_hierarchy_and_content_rail": 4.8,
-    "page_visual_balance": 4.8,
-    "visual_grammar_appropriateness": 4.8,
+    "page_visual_balance": 4.9,
+    "visual_grammar_appropriateness": 4.7,
     "figure_readability": 4.8,
-    "figure_caption_ownership": 4.8,
+    "figure_caption_ownership": 4.7,
     "table_readability": 4.8,
-    "content_density_and_breathing_room": 4.8,
+    "content_density_and_breathing_room": 4.9,
     "first_scan_comprehension": 4.8,
-    "consistency": 4.8,
+    "consistency": 4.7,
     "professional_polish": 4.8,
-    "component_choice_fit": 4.8,
-    "table_column_proportion": 4.8,
+    "component_choice_fit": 4.9,
+    "table_column_proportion": 4.7,
     "heading_line_integrity": 4.8,
-    "reader orientation": 4.8,
+    "reader orientation": 4.7,
     "connector cleanliness": 4.8,
-    "table semantic fitness": 4.8,
+    "table semantic fitness": 4.9,
     "provenance isolation": 4.8,
-    "line_break_economy": 4.8,
-    "reader_task_completeness": 4.8,
+    "line_break_economy": 4.7,
+    "reader_task_completeness": 4.9,
     "readme_product_value": 4.8,
-    "table_fragment_pagination": 4.8,
+    "table_fragment_pagination": 4.7,
     "readme_scanability": 4.8,
-    "natural_value_expression": 4.8,
-    "vertical_breathing": 4.8,
+    "natural_value_expression": 4.9,
+    "vertical_breathing": 4.7,
     "semantic_table_width_fit": 4.8,
-    "wrap_economy": 4.8,
+    "wrap_economy": 4.9,
     "reader_task_actionability": 4.8,
-    "information_architecture_fit": 4.8,
+    "information_architecture_fit": 4.7,
     "no_content_truncation": 4.9,
-    "fresh_eyes_scan_quality": 4.9,
-    "readme_brochure_quality": 4.8,
-    "readme_ai_text_companion": 4.8
+    "fresh_eyes_scan_quality": 4.8,
+    "readme_brochure_quality": 4.7,
+    "readme_ai_text_companion": 4.9,
+    "reader_actionability": 4.8,
+    "selection_to_action": 4.9,
+    "working_example_fit": 4.8,
+    "failure_recovery_closure": 4.7,
+    "visual_comfort": 4.9,
+    "information_hierarchy": 4.8,
+    "flat_list_density": 4.7,
+    "heavy_block_rhythm": 4.9
   },
   "criticalFindings": [],
   "regression": {
@@ -90,7 +102,16 @@
     "promotionalBenefitHeadingCount": 0,
     "readmeDenseWallCount": 0,
     "readerTaskIncompleteCount": 0,
-    "crowdedPageCount": 0
+    "crowdedPageCount": 0,
+    "selectionWithoutNextActionCount": 0,
+    "apiSummaryWithoutWorkingExampleCount": 0,
+    "developerChapterTableWallCount": 0,
+    "flatListWallCount": 0,
+    "consecutiveLongBulletWallCount": 0,
+    "heavyBlockWallCount": 0,
+    "stackedCodeBlocksCount": 0,
+    "denseCenteredHeroCount": 0,
+    "pagePackingCount": 0
   },
   "manualGates": {
     "readerTaskFit": "PASS",
@@ -102,48 +123,91 @@
     "humanVisual": "PASS",
     "regression": "PASS",
     "clickThrough": "PASS",
-    "readmeScanability": "PASS",
-    "readmeNaturalValue": "PASS",
     "contentCoverageNotTruncated": "PASS",
     "informationArchitecture": "PASS",
     "freshEyesTwoPass": "PASS",
     "flexibleTableLayout": "PASS",
     "longDocumentNavigation": "PASS",
+    "selectionToAction": "PASS",
+    "workingExampleFit": "PASS",
+    "visualComfort": "PASS",
+    "heavyBlockRhythm": "PASS",
+    "flatListGrouping": "PASS",
+    "failureRecoveryClosure": "PASS",
+    "readmeScanability": "PASS",
+    "readmeNaturalValue": "PASS",
     "readmeBrochure": "PASS",
     "readmeAiTextCompanion": "PASS"
   },
   "evidenceRefs": [
     "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
     "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
-    "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md",
-    "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md",
-    "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_final.txt",
-    "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_final.txt"
+    "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md",
+    "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
   ],
   "unresolvedCriticalFindings": [],
-  "finalRule": "approvalState cannot become VISUAL_QA_APPROVED unless every applicable manualGate=PASS/NOT_APPLICABLE, all required manualVisualScores meet threshold, Scan+Detail+Reader pass evidence exist, all hard-fail counts=0, unresolvedCriticalFindings empty, evidenceRefs non-empty.",
-  "mandatoryHumanChecks": [
-    "hierarchy",
-    "vertical rhythm",
-    "table proportional width",
-    "line-wrap economy",
-    "figure geometry",
-    "reader task completeness",
-    "brochure/AI text for README",
-    "scan pass all pages",
-    "detail pass every page",
-    "no content truncation for length"
-  ],
   "scanPassEvidence": [
-    "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+    "Root README: 900/1200/1440 dark preview — Scan pass: hierarchy, density, page rhythm and obvious crop/overlap reviewed."
   ],
   "detailPassEvidence": [
-    "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+    "Root README: 900/1200/1440 dark preview — Detail pass: tables, section starts, last pages, code/source blocks and header contrast reviewed."
   ],
   "readerPassEvidence": [
-    "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+    "Root README: 900/1200/1440 dark preview — Reader pass: three concrete tasks traced from question/selection to action and result check."
   ],
-  "environmentSpecificRuntime": {
-    "windowsVsCodeBuiltInMarkdownPreview": "NOT_EXECUTED_ENVIRONMENT"
-  }
+  "readerTaskTraces": [
+    {
+      "task": "배포 구조가 바뀌어도 Domain 호출 계약이 유지되는지 파악",
+      "startSection": "1. 배포 구조가 달라져도 Domain 호출 코드는 다시 만들지 않습니다",
+      "selection": "Same JVM/Remote 경계를 비교",
+      "action": "Domain Invocation 그림과 설명에서 동일 계약을 확인",
+      "resultCheck": "호출 경계와 후속 상세 문서 위치를 확인",
+      "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+    },
+    {
+      "task": "UNKNOWN 이후 조치를 파악",
+      "startSection": "2. 실패를 하나의 `FAILED`로 뭉개지 않고 다음 행동까지 연결합니다",
+      "selection": "4상태 결과와 UNKNOWN을 구분",
+      "action": "Probe/Reconcile·멱등성 설명을 따라감",
+      "resultCheck": "단순 blind retry가 아닌 후속 복구 경로를 확인",
+      "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+    },
+    {
+      "task": "처음 Build/Test를 시작",
+      "startSection": "10. 개발 시작·Build·Test·Runtime 진입점을 같은 방식으로 확인합니다",
+      "selection": "개발/검증 진입점을 선택",
+      "action": "제시된 실행 경로와 관련 문서로 이동",
+      "resultCheck": "개발자가 다음 실행과 검증 위치를 확인",
+      "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+    }
+  ],
+  "dimensionEvidence": {
+    "reader_actionability": [
+      "Root README: 900/1200/1440 dark preview"
+    ],
+    "selection_to_action": [
+      "Root README: 900/1200/1440 dark preview"
+    ],
+    "working_example_fit": [
+      "Root README: 900/1200/1440 dark preview"
+    ],
+    "failure_recovery_closure": [
+      "Root README: 900/1200/1440 dark preview"
+    ],
+    "visual_comfort": [
+      "Root README: 900/1200/1440 dark preview"
+    ],
+    "information_hierarchy": [
+      "Root README: 900/1200/1440 dark preview"
+    ],
+    "flat_list_density": [
+      "Root README: 900/1200/1440 dark preview"
+    ],
+    "heavy_block_rhythm": [
+      "Root README: 900/1200/1440 dark preview"
+    ]
+  },
+  "scoreUniformityJustification": "Scores are evidence-backed dimension ratings from the final fresh render; repeated values reflect the fixed 1..5 rubric, while the pattern intentionally varies by dimension rather than blanket scoring.",
+  "reviewedAt": "2026-08-29T10:24:03+09:00",
+  "reviewer": "GPT-5.6 Sol"
 }

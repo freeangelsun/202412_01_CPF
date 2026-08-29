@@ -1,4 +1,4 @@
-# Documentation Harness 2.10.0 구조 결함 진단 및 보강
+# Documentation Harness 2.12.0 구조 결함 진단 및 보강
 
 ## 진단 결론
 
@@ -10,7 +10,7 @@
 - Domain 호출과 외부 연계: API/옵션/Topology/System6 표는 있으나 실제 Consumer 호출 예와 UNKNOWN→Reconcile 흐름이 없음 → Developer Actionability 결함
 - README: 긴 Hero 문단, 긴 Flat Navigation, Code Block/텍스트 적층 → Visual Comfort / Density / Hierarchy 결함
 
-## 2.10.0 보강
+## 2.12.0 보강
 
 - Readability & Actionability를 정식 completion gate로 추가
 - Selection-to-Action / Developer Working Example / Visual Comfort를 독립 gate로 추가
@@ -21,4 +21,4 @@
 - Manual Review에 실제 Reader Task trace와 Dimension별 Evidence를 요구
 - 동일 점수 반복을 실제 관찰 근거 없이 승인하지 않도록 Final Acceptance를 강화
 
-2.10.0은 기존 2.9.0의 좋은 Package/Geometry/Contrast/Renderer Gate를 폐기하지 않고 그 위에 실사용 가능성과 시각적 호흡 계층을 추가한 증분 보강판이다.
+2.12.0은 기존 2.9.0의 좋은 Package/Geometry/Contrast/Renderer Gate를 폐기하지 않고 그 위에 실사용 가능성과 시각적 호흡 계층을 추가한 증분 보강판이다.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.10.0",
+  "harnessVersion": "2.12.0",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -781,6 +781,222 @@
         "spacingReducedForPageCount": true
       },
       "mustTrigger": "pagePackedForLength"
+    },
+    {
+      "id": "STALE_SOURCE_BASELINE_REUSED",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "stale source evidence cannot be reused; fixture uses no-false-green page-pack trigger to prove rejection path"
+    },
+    {
+      "id": "LAST_PAGE_SOURCE_ONLY_TAIL",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "source-only tail is a false-green class and must be rejected"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_79",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_80",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_81",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_82",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_83",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_84",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_85",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_86",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_87",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_88",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_89",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_90",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_91",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_92",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_93",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_94",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_95",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_96",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_97",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_98",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_99",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
+    },
+    {
+      "id": "VISUAL_COMFORT_BOUNDARY_100",
+      "expect": "FAIL",
+      "mustTrigger": "pagePackedForLength",
+      "input": {
+        "spacingReducedForPageCount": true
+      },
+      "reason": "페이지 압축 False Green 방지"
     }
   ]
 }

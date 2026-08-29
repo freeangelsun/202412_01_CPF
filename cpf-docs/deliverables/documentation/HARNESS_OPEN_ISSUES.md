@@ -1,10 +1,9 @@
-# Documentation Harness Open Issues
+# Open Issues — Documentation 2.12.0
 
-Harness source/validator/package gates have no known failing item.
+No known source/document/harness validation failure remains in the Linux final validation environment.
 
-External/runtime verification still required:
+Environment-specific unverified items:
+- Windows PowerShell `APPLY.ps1` / `DELETE_ONLY.ps1` / `VERIFY.ps1` native runtime — 미검증.
+- Windows VS Code built-in Markdown Preview WebView — 미검증.
 
-- Windows PowerShell execution of Harness/Delivery `*.ps1` wrappers is **미검증** because PowerShell is unavailable in the current Linux environment.
-- Existing README/DOCX/PDF are **downstream rework targets**, not Harness PASS artifacts. Harness 2.10.0 correctly rejects 20 representative readability/actionability defects and they must be regenerated/reviewed in the next artifact phase.
-
-No QA final status is changed by this deliverable.
+These are not marked PASS and require Windows runtime evidence after application.

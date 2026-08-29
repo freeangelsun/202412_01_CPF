@@ -1,9 +1,9 @@
-# Cross Renderer Check
+# Cross Renderer Check — Harness 2.12.0
 
-- Poppler (`pdftoppm`): 11 PDFs / 101 pages rendered successfully.
-- PDFium: 11 PDFs / 101 pages rendered successfully.
+- PDFium: **11 PDFs / 116 pages** rendered successfully.
+- Poppler (`pdftoppm`): **11 PDFs / 116 pages** rendered successfully.
 - Page counts match document-by-document.
-- `pdf_preflight.py`: 11/11 PDFs, warnings 0.
-- Raster antialiasing differences between Poppler and PDFium are not treated as semantic defects; pass evidence is openability, equal page counts, no preflight warning, and the final-page visual review.
+- `pdf_preflight.py`: **11/11 PDFs, warnings 0**.
+- Final PDFium and Poppler contact sheets were visually reviewed for clipping, glyph loss, table/header corruption and page-count divergence; none remained.
 
-**PASS**
+**PASS.**

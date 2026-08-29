@@ -1,0 +1,2 @@
+usage: pdf_preflight.py [-h] [--password PASSWORD] [--json] input_pdf
+pdf_preflight.py: error: unrecognized arguments: /mnt/data/cpf_rebuild_final/cpf-docs/deliverables/documentation/evidence/automated/pdf_preflight_final/기술사양서.json

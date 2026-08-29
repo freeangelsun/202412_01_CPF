@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.10.0",
+  "harnessVersion": "2.12.0",
   "documentId": "TECHNICAL_SPECIFICATION",
   "title": "CPF 기술사양서",
   "locked": true,

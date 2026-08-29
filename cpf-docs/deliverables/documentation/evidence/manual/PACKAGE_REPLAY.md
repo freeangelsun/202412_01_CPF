@@ -1,15 +1,18 @@
-# Package Replay — Harness 2.9.0
+# Package Replay — Documentation Harness 2.12.0
 
-- Pre-final candidate archive: `CPF_DOCS_V29_CANDIDATE.zip`
-- Candidate SHA-256: `2648960028EEB9B40066203F47944316522B55C1A711BD0DB0296A81794408C3`
-- Candidate entries: **215**
-- ZIP NFC duplicate check: **PASS**
-- ZIP traversal check: **PASS**
-- Maximum Root-relative path length: **101** characters
-- Fresh extraction into an empty directory: **PASS**
-- Fresh-extracted `verify_documentation_delivery.py`: **PASS**
-- Harness 2.9.0 / 64 negative fixtures / README / DOCX 11 / Reader 12 / Visual 9 / Final Acceptance / Manifest / SHA verification: **PASS**
+- Basis Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip`
+- Basis Source SHA-256: `34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5`
+- Exact Git SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP` (supplied ZIP has no `.git`; no historical SHA substituted)
+- Replay mode: exact `DELETE_MANIFEST.txt` cleanup followed by Root-relative documentation overlay
+- Managed overlay files: **237**
+- Overlay archive files including self metadata: **239**
+- Fresh replay into an independent copy of the supplied Source: **PASS**
+- Fresh-replayed `verify_documentation_delivery.py`: **PASS**
+- Harness: **2.12.0 PASS**
+- Negative fixtures: **100/100 PASS**
+- README / DOCX 11 / PDF 11 / Reader Task 12 / Visual 9 / Final Acceptance / Manifest / SHA verification: **PASS**
+- Product non-documentation Source drift: **0 changed / 0 missing / 0 added**
 
-After this evidence is recorded, Manifest/SHA metadata is regenerated and the final archive is built and fresh-replayed once more. The final archive SHA-256 is intentionally recorded in the delivery response rather than embedded inside the archive, which would create a self-referential hash.
+The final ZIP is additionally extracted and replayed again after Manifest/SHA locking. Its SHA-256 is reported outside the archive to avoid a self-referential package hash.
 
 **PACKAGE_REPLAY_PASS = PASS**

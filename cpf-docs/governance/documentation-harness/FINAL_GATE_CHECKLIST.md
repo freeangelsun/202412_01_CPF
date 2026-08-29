@@ -1,4 +1,4 @@
-# CPF Documentation 최종 Gate Checklist — Harness v2.10.0
+# CPF Documentation 최종 Gate Checklist — Harness v2.12.0
 
 **한 항목이라도 미실행·FAIL·BLOCKED·UNKNOWN이면 최종 PASS 불가.** 마지막 판정은 `validate_final_acceptance`가 수행한다.
 
@@ -101,7 +101,7 @@
 - [ ] `AUTOMATED_PASS_ONLY/NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED` 상태 0
 
 
-## v2.10.0 강제 보강
+## v2.12.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.

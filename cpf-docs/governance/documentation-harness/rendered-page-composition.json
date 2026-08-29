@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.12.0",
+  "locked": true,
+  "officialPdfs": [
+    {
+      "id": "FRAMEWORK_DEVELOPER_GUIDE",
+      "path": "cpf-docs/guides/02_프레임워크_개발자_가이드.pdf"
+    },
+    {
+      "id": "BATCH_DEVELOPER_GUIDE",
+      "path": "cpf-docs/guides/03_배치_개발자_가이드.pdf"
+    },
+    {
+      "id": "OPERATOR_MANUAL",
+      "path": "cpf-docs/guides/04_운영자_매뉴얼.pdf"
+    },
+    {
+      "id": "BATCH_OPERATOR_GUIDE",
+      "path": "cpf-docs/guides/05_배치_운영_가이드.pdf"
+    },
+    {
+      "id": "GATEWAY_GUIDE",
+      "path": "cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf"
+    },
+    {
+      "id": "SPECIFICATION",
+      "path": "cpf-docs/guides/07_Specification_기술_명세.pdf"
+    },
+    {
+      "id": "ARCHITECTURE_DESIGN",
+      "path": "cpf-docs/deliverables/아키텍처설계서.pdf"
+    },
+    {
+      "id": "TECHNICAL_SPECIFICATION",
+      "path": "cpf-docs/deliverables/기술사양서.pdf"
+    },
+    {
+      "id": "TECHNICAL_STANDARD",
+      "path": "cpf-docs/deliverables/기술표준서.pdf"
+    },
+    {
+      "id": "DATABASE_STANDARD",
+      "path": "cpf-docs/deliverables/데이터베이스표준서.pdf"
+    },
+    {
+      "id": "DELIVERABLE_INDEX",
+      "path": "cpf-docs/deliverables/산출물목록.pdf"
+    }
+  ],
+  "contentBand": {
+    "topIgnoreRatio": 0.06,
+    "bottomIgnoreRatio": 0.94
+  },
+  "lastPage": {
+    "minContentBottomRatioHardFail": 0.45,
+    "minContentBottomRatioReview": 0.55,
+    "minVerticalSpanRatioHardFail": 0.3,
+    "meaningfulBlocksLowCount": 2,
+    "medianBodyBottomRatioHardFail": 0.5,
+    "tailRuleMaxChars": 600
+  },
+  "interiorPage": {
+    "minContentBottomRatioHardFail": 0.42,
+    "minVerticalSpanRatioHardFail": 0.38,
+    "minContentBottomRatioReview": 0.6
+  },
+  "headingOrphan": {
+    "headingFontPtMin": 13.0,
+    "headingTopRatioHardFail": 0.78,
+    "minFollowingMeaningfulLines": 2
+  },
+  "densePage": {
+    "textLinesReview": 76,
+    "textLinesHardFail": 96,
+    "minimumFontPtAtHardFail": 8.5,
+    "contentBottomRatioAtHardFail": 0.88,
+    "consecutiveDensePagesHardFail": 3
+  },
+  "smallText": {
+    "thresholdPt": 8.5,
+    "maxCharShareHardFail": 0.25
+  },
+  "longLine": {
+    "charsHardFail": 120,
+    "countHardFail": 3
+  },
+  "tocComposition": {
+    "dotLeaderLinesMin": 2,
+    "mixWithChapterHeadingHardFail": true,
+    "chapterHeadingFontPtMin": 15.0
+  },
+  "majorHeadingStartComfort": {
+    "headingFontPtMin": 17.0,
+    "headingTopRatioHardFail": 0.6
+  }
+}

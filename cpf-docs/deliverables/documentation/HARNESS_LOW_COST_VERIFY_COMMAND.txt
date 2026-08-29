@@ -1,1 +1,1 @@
-python .\cpf-docs\governance\documentation-harness\validators\validate_harness.py
+python .\cpf-docs\governance\documentation-harness\validators\validate_harness.py; python .\cpf-docs\governance\documentation-harness\validators\validate_source_alignment.py

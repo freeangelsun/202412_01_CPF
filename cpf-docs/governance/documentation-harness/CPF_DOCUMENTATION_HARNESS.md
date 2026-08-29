@@ -1,4 +1,4 @@
-# CPF Documentation Harness v2.10.0
+# CPF Documentation Harness v2.12.0
 
 ## 1. 목적
 
@@ -84,7 +84,7 @@ Semantic, Source Identity, Reader Task Fit, Table Semantic Fit, Heading Rhythm, 
 개별 Validator가 PASS해도 완료가 아니다. `validators/validate_final_acceptance.py` 또는 `.ps1`이 모든 required Gate=PASS, Manual Evidence 존재, Critical Finding=0, Artifact Review 승인 상태를 확인해야 최종 PASS다. `NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED`는 PASS로 변환하지 않는다.
 
 
-## v2.10.0 강제 보강
+## v2.12.0 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.

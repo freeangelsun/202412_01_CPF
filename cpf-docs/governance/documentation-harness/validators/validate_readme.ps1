@@ -1,4 +1,4 @@
-﻿param([string]$Path='README.md')
+param([string]$Path='README.md')
 $ErrorActionPreference='Stop'
 $here=Split-Path -Parent $MyInvocation.MyCommand.Path
 $py=Get-Command python -ErrorAction SilentlyContinue

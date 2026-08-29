@@ -2,7 +2,7 @@
 import json,hashlib,re,subprocess,sys
 from pathlib import Path
 H=Path(__file__).resolve().parents[1]
-VER='2.10.0'
+VER='2.12.0'
 
 def fail(msg):
     print('HARNESS=FAIL',msg); raise SystemExit(1)
@@ -13,7 +13,7 @@ def load(rel):
     except Exception as e: fail(f'json {rel}: {e}')
 # Required executable-quality files.
 required=[
- 'harness.json','READABILITY_AND_ACTIONABILITY_STANDARD.md','HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md','readability-actionability.json','ANTI_PATTERN_CATALOG.md','MANUAL_REVIEW_SCORECARD.md','DOCUMENT_DESIGN_PLAYBOOK.md','README_BROCHURE_AND_AI_TEXT_STANDARD.md','INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','AUTHORING_EXECUTION_PROTOCOL.md','design-tokens.json','writing-style.json','content-density.json','document-output-rules.json','quality-acceptance.json','quality-fixtures.json','visual-qa.json','reader-task-coverage.json','readme-value-inventory.json','scope.json','table-presets.json','figure-presets.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARD_GATE_POLICY.md',
+ 'harness.json','validators/validate_visual_comfort.py','validators/validate_rendered_page_composition.py','validators/validate_source_currentization.py','validators/capture_source_currentization.py','visual-comfort.json','VISUAL_COMFORT_STANDARD.md','rendered-page-composition.json','RENDERED_PAGE_COMPOSITION_STANDARD.md','source-currentization.json','SOURCE_CURRENTIZATION_STANDARD.md','READABILITY_AND_ACTIONABILITY_STANDARD.md','HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md','readability-actionability.json','ANTI_PATTERN_CATALOG.md','MANUAL_REVIEW_SCORECARD.md','DOCUMENT_DESIGN_PLAYBOOK.md','README_BROCHURE_AND_AI_TEXT_STANDARD.md','INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','AUTHORING_EXECUTION_PROTOCOL.md','design-tokens.json','writing-style.json','content-density.json','document-output-rules.json','quality-acceptance.json','quality-fixtures.json','visual-qa.json','reader-task-coverage.json','readme-value-inventory.json','scope.json','table-presets.json','figure-presets.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARD_GATE_POLICY.md',
  'profiles/README.json','templates/ARTIFACT_REVIEW.template.json','templates/SESSION_RUN_MANIFEST.template.json','templates/FINAL_ACCEPTANCE.template.json',
  'validators/validate_source_alignment.py','validators/validate_quality_fixtures.py','validators/validate_readability_actionability.py','validators/validate_readme.py','validators/validate_docx_artifacts.py','validators/validate_reader_task_coverage.py','validators/validate_final_acceptance.py','validators/run_all_gates.py',
  'validators/validate_source_alignment.ps1','validators/validate_quality_fixtures.ps1','validators/validate_readability_actionability.ps1','validators/validate_readme.ps1','validators/validate_docx_artifacts.ps1','validators/validate_final_acceptance.ps1','validators/run_all_gates.ps1'

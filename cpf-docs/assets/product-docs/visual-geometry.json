@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
-  "baselineSourceSha256": "8990EA99CB5B36D66B56A82842CCBB0BC0F100E5A8F27F5902F34B62A7B6144A",
+  "harnessVersion": "2.12.0",
+  "baselineSourceSha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
   "reviewPolicy": "CURRENT_ONLY; PATCH_FIRST; original PNG + 900/1200/1440 README surfaces manually reviewed; crop/boundary/header-wrap false-green forbidden",
   "assets": [
     {
@@ -598,5 +598,6 @@
         }
       ]
     }
-  ]
+  ],
+  "baselineSourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip"
 }

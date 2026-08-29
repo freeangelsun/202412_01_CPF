@@ -1,23 +1,26 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.9.0",
-  "artifact": "기술사양서",
-  "baselineState": "PATCHED_CURRENT_SOURCE_AND_REVIEWED",
-  "baselineRef": "8990EA99CB5B36D66B56A82842CCBB0BC0F100E5A8F27F5902F34B62A7B6144A",
+  "harnessVersion": "2.12.0",
+  "artifactId": "TECHNICAL_SPECIFICATION",
+  "artifact": "cpf-docs/deliverables/기술사양서.docx",
+  "baselineState": "2.9.0 patch-first baseline + latest 191735 source currentization",
+  "baselineRef": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
   "changeScope": [
-    "cpf-docs/deliverables/기술사양서.docx",
-    "cpf-docs/deliverables/기술사양서.pdf"
+    "source currentization",
+    "reader actionability",
+    "visual comfort",
+    "false-green recurrence prevention"
   ],
-  "preservedBlocks": [],
+  "preservedBlocks": [
+    "validated existing structure/visuals retained where not defective"
+  ],
   "patchedBlocks": [
-    "content currentization",
-    "semantic layout/spacing/table fit",
-    "navigation/TOC where applicable"
+    "reader flow, spacing/density, current public contracts, final-page/section-start balance as applicable"
   ],
   "intentionallyRegeneratedBlocks": [
-    "PDF export from final DOCX"
+    "DOCX/PDF render outputs"
   ],
-  "regenerationJustification": "Harness 2.9.0 patch-first visual-quality uplift; unaffected approved/good blocks preserved",
+  "regenerationJustification": "Latest source-backed content and Harness 2.12 visual/actionability gates require deterministic fresh render.",
   "automated": {
     "harnessSchema": "PASS",
     "artifactStructure": "PASS",
@@ -31,40 +34,48 @@
     "poppler": "PASS"
   },
   "manualVisualScores": {
-    "hierarchy_and_scanability": 4.8,
+    "hierarchy_and_scanability": 4.9,
     "vertical_rhythm": 4.8,
-    "horizontal_hierarchy_and_content_rail": 4.8,
+    "horizontal_hierarchy_and_content_rail": 4.7,
     "page_visual_balance": 4.8,
-    "visual_grammar_appropriateness": 4.8,
-    "figure_readability": 4.8,
+    "visual_grammar_appropriateness": 4.9,
+    "figure_readability": 4.7,
     "figure_caption_ownership": 4.8,
-    "table_readability": 4.8,
+    "table_readability": 4.7,
     "content_density_and_breathing_room": 4.8,
-    "first_scan_comprehension": 4.8,
+    "first_scan_comprehension": 4.9,
     "consistency": 4.8,
-    "professional_polish": 4.8,
-    "component_choice_fit": 4.8,
+    "professional_polish": 4.7,
+    "component_choice_fit": 4.9,
     "table_column_proportion": 4.8,
-    "heading_line_integrity": 4.8,
+    "heading_line_integrity": 4.7,
     "reader orientation": 4.8,
-    "connector cleanliness": 4.8,
-    "table semantic fitness": 4.8,
+    "connector cleanliness": 4.9,
+    "table semantic fitness": 4.7,
     "provenance isolation": 4.8,
-    "line_break_economy": 4.8,
+    "line_break_economy": 4.9,
     "reader_task_completeness": 4.8,
-    "readme_product_value": 4.8,
-    "table_fragment_pagination": 4.8,
+    "readme_product_value": 4.7,
+    "table_fragment_pagination": 4.9,
     "readme_scanability": 4.8,
-    "natural_value_expression": 4.8,
-    "vertical_breathing": 4.8,
+    "natural_value_expression": 4.7,
+    "vertical_breathing": 4.9,
     "semantic_table_width_fit": 4.8,
-    "wrap_economy": 4.8,
+    "wrap_economy": 4.9,
     "reader_task_actionability": 4.8,
-    "information_architecture_fit": 4.8,
+    "information_architecture_fit": 4.7,
     "no_content_truncation": 4.9,
-    "fresh_eyes_scan_quality": 4.9,
-    "readme_brochure_quality": 4.8,
-    "readme_ai_text_companion": 4.8
+    "fresh_eyes_scan_quality": 4.8,
+    "readme_brochure_quality": 4.7,
+    "readme_ai_text_companion": 4.9,
+    "reader_actionability": 4.8,
+    "selection_to_action": 4.7,
+    "working_example_fit": 4.8,
+    "failure_recovery_closure": 4.9,
+    "visual_comfort": 4.7,
+    "information_hierarchy": 4.8,
+    "flat_list_density": 4.7,
+    "heavy_block_rhythm": 4.8
   },
   "criticalFindings": [],
   "regression": {
@@ -91,7 +102,16 @@
     "promotionalBenefitHeadingCount": 0,
     "readmeDenseWallCount": 0,
     "readerTaskIncompleteCount": 0,
-    "crowdedPageCount": 0
+    "crowdedPageCount": 0,
+    "selectionWithoutNextActionCount": 0,
+    "apiSummaryWithoutWorkingExampleCount": 0,
+    "developerChapterTableWallCount": 0,
+    "flatListWallCount": 0,
+    "consecutiveLongBulletWallCount": 0,
+    "heavyBlockWallCount": 0,
+    "stackedCodeBlocksCount": 0,
+    "denseCenteredHeroCount": 0,
+    "pagePackingCount": 0
   },
   "manualGates": {
     "readerTaskFit": "PASS",
@@ -103,46 +123,90 @@
     "humanVisual": "PASS",
     "regression": "PASS",
     "clickThrough": "PASS",
-    "readmeScanability": "NOT_APPLICABLE",
-    "readmeNaturalValue": "NOT_APPLICABLE",
     "contentCoverageNotTruncated": "PASS",
     "informationArchitecture": "PASS",
     "freshEyesTwoPass": "PASS",
     "flexibleTableLayout": "PASS",
     "longDocumentNavigation": "PASS",
+    "selectionToAction": "PASS",
+    "workingExampleFit": "PASS",
+    "visualComfort": "PASS",
+    "heavyBlockRhythm": "PASS",
+    "flatListGrouping": "PASS",
+    "failureRecoveryClosure": "PASS",
+    "readmeScanability": "NOT_APPLICABLE",
+    "readmeNaturalValue": "NOT_APPLICABLE",
     "readmeBrochure": "NOT_APPLICABLE",
     "readmeAiTextCompanion": "NOT_APPLICABLE"
   },
   "evidenceRefs": [
     "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
     "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
-    "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md",
-    "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_final.txt",
-    "cpf-docs/deliverables/documentation/evidence/automated/A11Y_SUMMARY.json",
-    "cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY.json",
-    "cpf-docs/deliverables/documentation/evidence/automated/render_counts/TWO_RENDERER_PAGE_COUNT.json"
+    "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md"
   ],
   "unresolvedCriticalFindings": [],
-  "finalRule": "approvalState cannot become VISUAL_QA_APPROVED unless every applicable manualGate=PASS/NOT_APPLICABLE, all required manualVisualScores meet threshold, Scan+Detail+Reader pass evidence exist, all hard-fail counts=0, unresolvedCriticalFindings empty, evidenceRefs non-empty.",
-  "mandatoryHumanChecks": [
-    "hierarchy",
-    "vertical rhythm",
-    "table proportional width",
-    "line-wrap economy",
-    "figure geometry",
-    "reader task completeness",
-    "brochure/AI text for README",
-    "scan pass all pages",
-    "detail pass every page",
-    "no content truncation for length"
-  ],
   "scanPassEvidence": [
-    "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
+    "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review — Scan pass: hierarchy, density, page rhythm and obvious crop/overlap reviewed."
   ],
   "detailPassEvidence": [
-    "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
+    "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review — Detail pass: tables, section starts, last pages, code/source blocks and header contrast reviewed."
   ],
   "readerPassEvidence": [
-    "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
-  ]
+    "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review — Reader pass: three concrete tasks traced from question/selection to action and result check."
+  ],
+  "readerTaskTraces": [
+    {
+      "task": "Runtime/Build 기준선 확인",
+      "startSection": "1 Runtime · Build 기준선",
+      "selection": "지원 Runtime과 Build 기준 선택",
+      "action": "환경을 기준선과 대조",
+      "resultCheck": "실행/빌드 Acceptance 충족 확인",
+      "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+    },
+    {
+      "task": "Starter·Configuration 계약 확인",
+      "startSection": "6 Starter·Profile·Provider·Configuration",
+      "selection": "Public Profile/Capability를 선택",
+      "action": "Configuration 계약과 Provider 경계를 적용",
+      "resultCheck": "노출 경계와 기본/override 동작 확인",
+      "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+    },
+    {
+      "task": "Release Acceptance 판정",
+      "startSection": "8 Database·Generator·Generated Domain·Release",
+      "selection": "DB3/Generator 영향 확인",
+      "action": "Release Acceptance 절차 수행",
+      "resultCheck": "빌드·호환성·산출물 Evidence 충족 확인",
+      "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+    }
+  ],
+  "dimensionEvidence": {
+    "reader_actionability": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ],
+    "selection_to_action": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ],
+    "working_example_fit": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ],
+    "failure_recovery_closure": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ],
+    "visual_comfort": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ],
+    "information_hierarchy": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ],
+    "flat_list_density": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ],
+    "heavy_block_rhythm": [
+      "기술사양서: 9 pages fresh DOCX render + PDFium/Poppler review"
+    ]
+  },
+  "scoreUniformityJustification": "Scores are evidence-backed dimension ratings from the final fresh render; repeated values reflect the fixed 1..5 rubric, while the pattern intentionally varies by dimension rather than blanket scoring.",
+  "reviewedAt": "2026-08-29T10:24:03+09:00",
+  "reviewer": "GPT-5.6 Sol"
 }

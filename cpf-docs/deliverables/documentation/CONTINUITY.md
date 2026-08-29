@@ -1,11 +1,9 @@
-# CPF Documentation Next Session Handover — 2.9.0
+# CPF Documentation 2.12.0 Handover
 
-Current canonical documentation is the unversioned `cpf-docs/governance/documentation-harness/` plus README and 11 DOCX/PDF pairs. This session used PATCH_FIRST: good 2.9.0 content/visuals were retained and user findings were applied as incremental quality uplift. Do not fresh-rewrite the documents unless the user explicitly requests it.
+Current canonical documentation package is Harness 2.12.0 plus the currentized README, 11 DOCX and 11 PDF artifacts. Every new documentation session must re-capture current development Source/canonical fingerprints before authoring and immediately before final acceptance; stale evidence must not be inherited.
 
-Key regression gates now cover README section breathing, 900/1200/1440 header wrap, dark table header text contrast, low-density/orphan pages, visual safe-area clipping and approved-baseline regression. User visual findings override automated false-green.
+Source currentization fingerprint: `7F400D8B4D525F1A5D4B6CE0DC6B6FE8BF0723798E0F97F63DDA8292DC86E9A4` / 10,039 files. Latest official render: 11 PDF / 116 pages.
 
-Current counts: README H2 12 / Visual 9; DOCX 11; PDF 11; 101 pages; negative fixtures 64.
+Keep patch-first content and visual assets that remain correct. A user-visible false green must be fixed in the artifact and promoted into Harness rule/validator/fixture/manual hard gate. Do not compress global font/margins merely to reduce pages.
 
-Windows PowerShell wrappers and Windows VS Code built-in Markdown Preview remain environment-specific `미검증` from Linux.
-
-After any future user finding: update Harness rule/profile/validator/negative fixture first, then PATCH only affected artifacts, re-render every changed DOCX/PDF/README surface, and fresh-replay the delivery ZIP.
+Windows PowerShell wrappers and Windows VS Code WebView remain environment-specific `미검증`; validate on a Windows workstation after applying the overlay.

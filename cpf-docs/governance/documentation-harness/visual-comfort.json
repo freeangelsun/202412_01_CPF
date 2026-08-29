@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.12.0",
+  "locked": true,
+  "bodyFontPtMin": 9.8,
+  "tableBodyFontPtMin": 8.9,
+  "tableHeaderFontPtMin": 9.4,
+  "bodyLineSpacingMin": 1.3,
+  "bodySpaceAfterPtMin": 8.0,
+  "lastPageMinBottomReview": 0.45,
+  "manualEveryPageRequired": true
+}

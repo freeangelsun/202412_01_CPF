@@ -1,4 +1,4 @@
-﻿param()
+param()
 $ErrorActionPreference='Stop'
 $here=Split-Path -Parent $MyInvocation.MyCommand.Path
 $py=Get-Command python -ErrorAction SilentlyContinue

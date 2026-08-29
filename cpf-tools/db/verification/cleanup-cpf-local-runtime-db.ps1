@@ -6,6 +6,17 @@ param(
     [string]$DockerImage='cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1',
     [string]$DockerNetwork='cpf_default'
 )
+# Full Runtime child-process UTF-8 contract. Keep the emitted byte stream UTF-8 even when pwsh is redirected.
+$CpfUtf8ConsoleEncoding = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+    [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+    $OutputEncoding = $CpfUtf8ConsoleEncoding
+    $global:OutputEncoding = $CpfUtf8ConsoleEncoding
+} catch { }
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+
 $ErrorActionPreference='Stop';Set-StrictMode -Version Latest
 if($VerifierRunId -notmatch '^[a-f0-9]{8,24}$'){throw 'Invalid verifier run id.'}
 foreach($name in @('CPF_ADMIN_PASSWORD','CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD','CPF_LOCAL_RUNTIME_DB_PASSWORD')){

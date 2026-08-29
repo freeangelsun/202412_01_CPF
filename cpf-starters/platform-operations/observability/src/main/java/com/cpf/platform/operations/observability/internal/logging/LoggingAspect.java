@@ -204,7 +204,9 @@ public class LoggingAspect {
                 transactionSegment.fail("HTTP_" + responseMetadata.httpStatus(), responseMetadata.responseCode());
             }
             String rawResponse = CpfMaskingRuntime.mask(String.valueOf(result));
-            String response = logPolicy.responseBodySave() ? rawResponse : null;
+            String response = success
+                    ? (logPolicy.responseBodySave() ? rawResponse : null)
+                    : canonicalErrorResponse(responseMetadata, transactionId);
 
             logByPolicy(
                     logPolicy,
@@ -322,9 +324,7 @@ public class LoggingAspect {
                     errorMetadata.errorCode(),
                     errorMessage);
 
-            String errorResponse = logPolicy.responseBodySave()
-                    ? canonicalErrorResponse(errorMetadata, transactionId)
-                    : null;
+            String errorResponse = canonicalErrorResponse(errorMetadata, transactionId);
 
             TransactionLogRecord record = buildLogRecord(
                     transactionId,
@@ -1054,6 +1054,14 @@ public class LoggingAspect {
                 "요청 처리 중 내부 오류가 발생했습니다.",
                 internalMessage,
                 internalMessage);
+    }
+
+    private String canonicalErrorResponse(ResponseMetadata metadata, String transactionId) {
+        return "{\"code\":\"" + jsonEscape(metadata.responseCode())
+                + "\",\"message\":\"" + jsonEscape(metadata.externalMessage())
+                + "\",\"transactionId\":\"" + jsonEscape(transactionId)
+                + "\",\"executionId\":\""
+                + jsonEscape(com.cpf.core.api.context.CpfContexts.currentExecutionId()) + "\"}";
     }
 
     private String canonicalErrorResponse(ErrorMetadata metadata, String transactionId) {

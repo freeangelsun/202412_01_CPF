@@ -23,7 +23,7 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertIn("cpfPublishToIsolatedLocal", self.text)
         self.assertNotIn("publishToMavenLocal", self.text)
         self.assertIn("BaselineSourceZipSha256", self.text)
-        self.assertIn("if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){exit 1}", self.text)
+        self.assertIn("if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){throw", self.text)
 
     def test_low_memory_sequential_contract(self):
         self.assertIn("-PcpfSkipFrontendBuild=true", self.text)
@@ -58,6 +58,7 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
     def test_gradle_ux_quality_and_integration_are_all_in_full_local(self):
         for stage in (
             "GRADLE_PROJECTS", "GRADLE_HELP", "GRADLE_CPF_HELP", "GRADLE_CPF_MODULES",
+            "GRADLE_IDE_CLASSPATH", "GRADLE_IDE_CLASSPATH_AFTER_BUILD",
             "GRADLE_FULL_BUILD_QUALITY", "GRADLE_ALL_JAVA_TESTS",
             "GRADLE_QA34_INTEGRATION", "GRADLE_PUBLICATION",
             "GRADLE_ASSEMBLE_AFTER_FRONTEND", "GRADLE_SBOM",
@@ -133,6 +134,23 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertIn("[Console]::OutputEncoding", self.text)
         self.assertIn("OPEN_GIT_ACTUAL_FRESH_RELEASE", self.text)
         self.assertIn("CPF_OPEN_GIT_REMOTE", self.text)
+
+    def test_non_pass_stage_prints_exact_failure_detail(self):
+        self.assertIn("$Status -ne 'PASS'", self.text)
+        self.assertIn("DETAIL:", self.text)
+        self.assertIn("NOTE:", self.text)
+        self.assertIn("node=$nodeText npm=$npmText required=node>=22.18.0<25 npm=10.9.2", self.text)
+
+    def test_runtime_mojibake_is_fail_closed(self):
+        self.assertIn("function Test-CpfMojibakeText", self.text)
+        self.assertIn("CPF_RUNTIME_MOJIBAKE_DETECTED=true", self.text)
+        self.assertIn("if($rc -eq 0){$rc=86}", self.text)
+        self.assertIn("占쏙옙", self.text)
+        self.assertIn("[char]0xFFFD", self.text)
+        self.assertIn("$isPwsh", self.text)
+        self.assertIn("-EncodedCommand", self.text)
+        self.assertIn("[Text.Encoding]::Unicode.GetBytes($bootstrap)", self.text)
+        self.assertIn("[Console]::OutputEncoding=`$u", self.text)
 
 
 if __name__ == "__main__":

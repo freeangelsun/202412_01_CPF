@@ -70,7 +70,7 @@ def main() -> int:
       ('layout',[py,'-B',str(gate/'cpf_nxt3_layout_gate.py'),'--root',str(root)]),
       ('garbage-sweep',[py,'-B',str(gate/'verify_nxt3_repository_garbage.py'),'--root',str(root)]),
       ('hygiene',[py,'-B',str(gate/'verify_nxt3_hygiene.py'),'--root',str(root)]),
-      ('cpf-verify-all',([str(root/'cpf-tools/runtime/cli/cpf.cmd')] if os.name=='nt' else [str(root/'cpf-tools/runtime/cli/cpf')])+['verify','all']),
+      ('cpf-verify-all',([str(root/'cpf-tools/runtime/cli/cpf.cmd')] if os.name=='nt' else ['sh',str(root/'cpf-tools/runtime/cli/cpf')])+['verify','all']),
     ]
     results=[]
     for name,cmd in entries:

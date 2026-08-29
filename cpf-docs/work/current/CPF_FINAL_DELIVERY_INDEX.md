@@ -1,13 +1,12 @@
 # CPF Final Delivery Index — Current
 
-- Baseline ZIP SHA-256: `e24d2596fc404c6761725cf5b5a4a618038dae4f1e177d4171296f6204d20802`
-- Baseline Product Source Identity: `b33471236f57a30eba48c9cc582789ee33f81cd8b67194a9e710b06877b4d68e`
-- Current Product Source Identity: `398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717` / 8,320 files
-- Canonical Inventory: 190
+- Input Working Tree ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_172338.zip`
+- Input ZIP SHA-256: `52d807563afb9268ef176d89dff8b4721e1a1c5b6475fb8ae0f84e269c6d3886`
+- Current Product Source Identity: `b162d358b4f127f7c4e3a816f89dcc8ab5fc2f66423ec7c37cbbefd6414fde9e` / 8,351 files / 43,569,116 bytes
 - Developer Requirement Ledger: 218
-- Change Manifest: ADD 77 / MODIFY 132 / DELETE 1725
-- Delete Manifest: 2,038 rows
-- Overlay files: 209
+- QA24 Closure Inventory: 222
+- Delete Manifest: 2,038 rows; 이번 VS Code rework 신규 Delete: 0
+- Git writes: 0
 
 ## Current result files
 
@@ -17,13 +16,14 @@
 - `CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv`
 - `CPF_DEVELOPER_REQUIREMENT_REVIEW.csv/.md`
 - `CPF_DEVELOPMENT_COMPLETION_REVIEW.csv/.md`
+- `CPF_QA24_DEVELOPMENT_CLOSURE_INVENTORY.csv`
 - `TEST_AND_EVIDENCE.md`
 - `OPEN_ISSUES.md`
-- `QA_REWORK_REQUEST.md`
 - `PACKAGE_MANIFEST.json`
 - `SOURCE_IDENTITY.json`
 - `CPF_FINAL_LOCAL_APPLY_RUNTIME_COMMANDS.md`
 - `CODEX_NEXT_WORK_INSTRUCTION.md`
+- `CPF_CODEX_CLAUDE_REQUEST_TEMPLATE.md`
 - `CPF_DEVELOPMENT_HANDOVER.md`
 
-전체 QA 완료는 Java25/DB3/Windows-Linux/Actual Open Git/Full Runtime/Codex independent verification 후에만 확정한다.
+VS Code Buildship/JDT 재개방 Source는 Codex 방향에 맞춰 `assembly-only` 구조를 유지하고 Source 0개 Java project를 configuration-time discovery로 정상화했다. 실제 Windows Java25 Fresh Gradle Import의 전체 Domain/Module **Error 0 / Warning 0**과 나머지 Physical Full Runtime이 통과하기 전에는 QA 전체 완료가 아니다.

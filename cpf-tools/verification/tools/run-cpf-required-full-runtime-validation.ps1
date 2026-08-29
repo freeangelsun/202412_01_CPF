@@ -22,8 +22,39 @@ $nodeText=(& $node --version|Out-String).Trim();if($nodeText -notmatch '^v(?<maj
 $identityJson=& $python (Join-Path $RepoRoot 'cpf-tools/verification/tools/cpf-source-state.py') --root $RepoRoot --scope source 2>&1|Out-String;$identity=$identityJson|ConvertFrom-Json;$sourceIdentity=[string]$identity.contentSha256
 Write-Host "[CPF][FULL-RUNTIME] SourceIdentity=$sourceIdentity files=$($identity.fileCount)"
 $runner=Join-Path $RepoRoot 'cpf-tools/verification/tools/run-cpf-local-full-validation.ps1'
-$baseArgs=@('-NoProfile','-File',$runner,'-RepoRoot',$RepoRoot,'-OutputRoot',$OutputRoot,'-DockerRoot',$DockerRoot,'-DockerSecretFile',$DockerSecretFile,'-FullLocal','-IncludePerformanceLoad','-AllowDestructiveDbRollback','-StrictExit')
-function Invoke-RequiredPass([string]$Label){$started=Get-Date;Write-Host "[CPF][FULL-RUNTIME][$Label] START=$($started.ToString('o'))";& pwsh @baseArgs 2>&1|Tee-Object -FilePath $log -Append;$rc=$LASTEXITCODE;$ended=Get-Date;Write-Host "[CPF][FULL-RUNTIME][$Label] END=$($ended.ToString('o')) EXIT_CODE=$rc";if($rc-ne0){throw "CPF REQUIRED FULL RUNTIME $Label FAIL exit=$rc log=$log"};$afterJson=& $python (Join-Path $RepoRoot 'cpf-tools/verification/tools/cpf-source-state.py') --root $RepoRoot --scope source 2>&1|Out-String;$after=$afterJson|ConvertFrom-Json;if([string]$after.contentSha256-ne$sourceIdentity){throw "Source drift after $Label expected=$sourceIdentity actual=$($after.contentSha256)"}}
+$runnerArgs=@{
+    RepoRoot=$RepoRoot
+    OutputRoot=$OutputRoot
+    DockerRoot=$DockerRoot
+    DockerSecretFile=$DockerSecretFile
+    FullLocal=$true
+    IncludePerformanceLoad=$true
+    AllowDestructiveDbRollback=$true
+    StrictExit=$true
+}
+$javaUtf8Options='-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+if([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)){$env:JAVA_TOOL_OPTIONS=$javaUtf8Options}elseif($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding='){$env:JAVA_TOOL_OPTIONS=($env:JAVA_TOOL_OPTIONS.Trim()+' '+$javaUtf8Options)}
+function Assert-NoMojibake([string]$Path,[string]$Label){$text=Get-Content -LiteralPath $Path -Raw -Encoding UTF8;foreach($literal in @([char]0xFFFD,'占쏙옙','?ㅽ뙣','?꾨즺','?먮뒗','?덉뒿','?덈떎','湲곕낯','?낅Т','?〓떒')){if($text.Contains([string]$literal)){throw "UTF-8 mojibake detected after $Label marker=$literal log=$Path"}}}
+function Invoke-RequiredPass([string]$Label){
+    $started=Get-Date
+    Write-Host "[CPF][FULL-RUNTIME][$Label] START=$($started.ToString('o'))"
+    $failure=$null
+    try {
+        # Invoke the FullLocal script in the current pwsh 7 process. This removes the extra native stdout
+        # decode boundary that previously turned UTF-8 Korean text into CP949 mojibake before Tee-Object.
+        & $runner @runnerArgs *>&1 | Tee-Object -FilePath $log -Append | Out-Host
+    } catch {
+        $failure=$_
+        ($_ | Out-String) | Tee-Object -FilePath $log -Append | Out-Host
+    }
+    $ended=Get-Date
+    Write-Host "[CPF][FULL-RUNTIME][$Label] END=$($ended.ToString('o')) RESULT=$(if($null-eq$failure){'PASS'}else{'FAIL'})"
+    Assert-NoMojibake $log $Label
+    if($null-ne$failure){throw "CPF REQUIRED FULL RUNTIME $Label FAIL log=$log cause=$($failure.Exception.Message)"}
+    $afterJson=& $python (Join-Path $RepoRoot 'cpf-tools/verification/tools/cpf-source-state.py') --root $RepoRoot --scope source 2>&1|Out-String
+    $after=$afterJson|ConvertFrom-Json
+    if([string]$after.contentSha256-ne$sourceIdentity){throw "Source drift after $Label expected=$sourceIdentity actual=$($after.contentSha256)"}
+}
 Invoke-RequiredPass 'PRIMARY'
 if([string]::IsNullOrWhiteSpace($VsCodeProblemsJson)){throw 'Fresh VS Code Problems JSON이 필요합니다. CPF_VSCODE_PROBLEMS_JSON 또는 -VsCodeProblemsJson으로 export 경로를 지정하세요.'}
 $vscodeOut=Join-Path $OutputRoot "CPF_VSCODE_PROBLEMS_VERIFY_$stamp.json";& $python (Join-Path $RepoRoot 'cpf-tools/verification/tools/verify-cpf-vscode-problems.py') --input $VsCodeProblemsJson --output $vscodeOut 2>&1|Tee-Object -FilePath $log -Append;if($LASTEXITCODE-ne0){throw "VS Code Fresh Import Error/Warning gate failed: $vscodeOut"}

@@ -38,3 +38,10 @@ class T(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+def test_gateway_bat_failure_evidence_is_preserved():
+    script=(REPO/'cpf-tools/runtime/tools/smoke-gateway-bat-runtime.ps1').read_text(encoding='utf-8')
+    for token in ('failureClassification','failureRootCause','bootJarBuildStatus','stdoutTail','stderrTail'):
+        assert token in script
+    assert 'Gateway/BAT runtime readiness failed:' in script

@@ -19,6 +19,17 @@ DB fallback Key는 같은 값을 재사용해 채운다. 실제 Secret 값은 �
 이 스크립트는 멱등(idempotent)이다 — 이미 있는 Key는 절대 덮어쓰거나 중복 기록하지 않는다.
 #>
 
+# Full Runtime child-process UTF-8 contract. Keep the emitted byte stream UTF-8 even when pwsh is redirected.
+$CpfUtf8ConsoleEncoding = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+    [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+    $OutputEncoding = $CpfUtf8ConsoleEncoding
+    $global:OutputEncoding = $CpfUtf8ConsoleEncoding
+} catch { }
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 

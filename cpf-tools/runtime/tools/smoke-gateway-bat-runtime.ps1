@@ -80,12 +80,27 @@ try {
                     healthCheckPassed = [bool] $_.healthCheckPassed
                     processStillAliveAfterProbe = [bool] $_.processStillAliveAfterProbe
                     finalRuntimeUsable = [bool] $_.finalRuntimeUsable
+                    failureClassification = [string] $_.failureClassification
+                    failureRootCause = [string] $_.failureRootCause
+                    bootJarBuildStatus = [string] $_.bootJarBuildStatus
+                    stdout = [string] $_.stdout
+                    stderr = [string] $_.stderr
+                    stdoutTail = [string] $_.stdoutTail
+                    stderrTail = [string] $_.stderrTail
                 }
             })
     }
     $unusable = @($startResult.modules | Where-Object { $_.finalRuntimeUsable -ne $true })
     if ($unusable.Count -gt 0) {
-        throw "Gateway 또는 BAT Control Server runtime readiness가 실패했습니다."
+        $failureDetails = @($unusable | ForEach-Object {
+                $moduleName = [string] $_.module
+                $classification = [string] $_.failureClassification
+                $rootCause = [string] $_.failureRootCause
+                $stderrTail = ([string] $_.stderrTail -replace "`r`n", ' ' -replace "`n", ' ').Trim()
+                if ($stderrTail.Length -gt 600) { $stderrTail = $stderrTail.Substring($stderrTail.Length - 600) }
+                "$moduleName classification=$classification rootCause=$rootCause stderrTail=$stderrTail"
+            })
+        throw ("Gateway/BAT runtime readiness failed: " + ($failureDetails -join ' || '))
     }
 
     $batchResult = $startResult.modules | Where-Object { $_.module -eq "BAT" } | Select-Object -First 1

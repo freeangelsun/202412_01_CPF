@@ -6,6 +6,17 @@ param(
     [string]$EvidenceDirectory = "",
     [switch]$IncludeIbmMq
 )
+# Full Runtime child-process UTF-8 contract. Keep the emitted byte stream UTF-8 even when pwsh is redirected.
+$CpfUtf8ConsoleEncoding = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+    [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+    $OutputEncoding = $CpfUtf8ConsoleEncoding
+    $global:OutputEncoding = $CpfUtf8ConsoleEncoding
+} catch { }
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $cpfRoot = Join-Path $DockerRoot "CPF"

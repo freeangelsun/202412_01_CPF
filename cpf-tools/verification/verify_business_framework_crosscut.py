@@ -152,6 +152,14 @@ check("GENERATOR_FIRST_DX", "GEN-BATCH-CAPABILITY-SEPARATE",
       and batch_profile.get("artifactId") == "cpf-starter-batch"
       and len(batch_modules) == 1 and batch_modules[0].get("ownerPath") == "cpf-starters/profiles/batch-service",
       "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when selected")
+external_domain = next(((project, props) for project, props in DOMAIN_ROWS if project.name == "cpf-external"), None)
+external_batch_disabled = (
+    external_domain is not None
+    and external_domain[1].get("cpf.domain.batch", "false").lower() == "false"
+    and not (external_domain[0] / "batch").exists()
+)
+check("GENERATOR_FIRST_DX", "GEN-EXTERNAL-OPTIONAL-BATCH-DISABLED", external_batch_disabled,
+      "cpf-external is an actual Generated Domain consumer with cpf.domain.batch=false and no batch module materialized")
 check("GENERATOR_FIRST_DX","GEN-NO-DIRECT-SYSTEM-TIME",not any_text(generated_java,r"Instant\.now\(\)"),"selected generated domains use injected Clock")
 generator_engine=text("cpf-tools/generator/engine/cpf_domain_generator.py")
 generator_schema=text("cpf-tools/generator/contracts/cpf-domain.schema.json")

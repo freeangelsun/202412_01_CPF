@@ -85,7 +85,7 @@ public class TransactionLogService {
     private void applyRecordBodyPolicy(TransactionLogRecord record, LogPolicyDecision logPolicy) {
         if (logPolicy == null) return;
         if (!logPolicy.requestBodySave()) record.setRequestBody(null);
-        if (!logPolicy.responseBodySave()) record.setResponse(null);
+        if (!logPolicy.responseBodySave() && !"FAILURE".equals(record.getLogType())) record.setResponse(null);
         if (!capturesFullStack(logPolicy)) record.setInternalMessage(null);
     }
 

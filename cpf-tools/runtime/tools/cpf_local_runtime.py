@@ -93,7 +93,7 @@ def start(root:Path,profile:str,mode:str,skip_build:bool)->int:
     if not gradle.is_file(): return fail(f'gradle wrapper missing: {gradle}',69)
     env={**os.environ,'JAVA_HOME':str(Path(java).parent.parent),'JAVA_TOOL_OPTIONS':(os.environ.get('JAVA_TOOL_OPTIONS','')+' -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8').strip()}
     if not skip_build:
-        cmd=[str(gradle),'-PcpfIncludeGeneratedDomains=true',f'-PcpfResourceProfile={profile}',':cpf-local-runtime:bootJar','--no-daemon','--no-parallel']
+        cmd=[str(gradle),'-PcpfIncludeGeneratedDomains=true',f'-PcpfResourceProfile={profile}',':runtime:local:bootJar','--no-daemon','--no-parallel']
         cp=subprocess.run(cmd,cwd=root,env=env)
         if cp.returncode: return fail(f'bootJar failed exit={cp.returncode}',cp.returncode)
     jars=sorted((root/'cpf-tools/runtime/cpf-local-runtime/build/libs').glob('*-local-web.jar'))

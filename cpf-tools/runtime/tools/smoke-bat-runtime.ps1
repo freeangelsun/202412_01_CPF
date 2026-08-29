@@ -16,7 +16,7 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 # Child process가 새 Windows process로 분리되어도 UTF-8 계약을 잃지 않도록 고정합니다.
-$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
 if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
     $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
 } elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {

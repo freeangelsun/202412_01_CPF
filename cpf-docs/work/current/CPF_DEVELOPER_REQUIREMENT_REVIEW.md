@@ -1,6 +1,6 @@
 # CPF Developer Requirement Review — Current
 
-- Product Source Identity: `398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717`
+- Product Source Identity: `b162d358b4f127f7c4e3a816f89dcc8ab5fc2f66423ec7c37cbbefd6414fde9e`
 - Developer Requirement Ledger: **218행**
 - 개발 완료와 Physical 검증 완료를 분리한다. 아래 `미검증`은 실패 은폐가 아니라 미실행 Physical Acceptance를 의미한다.
 

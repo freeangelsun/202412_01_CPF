@@ -15,8 +15,27 @@ param(
 # Runtime-only closure for SPECIAL-09/10. A single transaction must be visible in
 # structured FileLog, DB log and ADM observability with the same transactionId/traceId.
 # Credentials are read from process environment only and are never emitted to stdout/evidence.
+# Full Runtime child-process UTF-8 contract. Keep the emitted byte stream UTF-8 even when pwsh is redirected.
+$CpfUtf8ConsoleEncoding = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+    [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+    $OutputEncoding = $CpfUtf8ConsoleEncoding
+    $global:OutputEncoding = $CpfUtf8ConsoleEncoding
+} catch { }
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $Utf8NoBom
+    [Console]::OutputEncoding = $Utf8NoBom
+    $OutputEncoding = $Utf8NoBom
+    $global:OutputEncoding = $Utf8NoBom
+} catch { }
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 $Root = (Resolve-Path -LiteralPath $Root).Path
 if ([string]::IsNullOrWhiteSpace($LogBasePath)) { $LogBasePath = Join-Path $Root 'logs' }
 if ([string]::IsNullOrWhiteSpace($RuntimeLogRoot)) { $RuntimeLogRoot = Join-Path $Root 'build\cpf-local-runtime\logs' }
@@ -40,11 +59,28 @@ function Read-JsonIfPresent([string]$Path) {
     if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
     try { return (Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json) } catch { return $null }
 }
+function Get-CpfStableHttpFailure([string]$Method,[string]$Uri,[Exception]$Exception) {
+    $status='NA'
+    try {
+        if($null -ne $Exception.Response -and $null -ne $Exception.Response.StatusCode){$status=[string][int]$Exception.Response.StatusCode}
+    } catch { }
+    $type=$Exception.GetType().FullName
+    $innerType=if($null -ne $Exception.InnerException){$Exception.InnerException.GetType().FullName}else{'NA'}
+    return "CPF_HTTP_FAILURE method=$Method uri=$Uri status=$status type=$type innerType=$innerType"
+}
 function Invoke-CpfJsonGet([string]$Uri,[hashtable]$Headers) {
-    return Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -TimeoutSec $TimeoutSec
+    try {
+        return Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -TimeoutSec $TimeoutSec -ErrorAction Stop
+    } catch {
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'GET' $Uri $_.Exception),$_.Exception)
+    }
 }
 function Invoke-CpfJsonPost([string]$Uri,[hashtable]$Headers,[object]$Body) {
-    return Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -ContentType 'application/json' -Body ($Body | ConvertTo-Json -Compress) -TimeoutSec $TimeoutSec
+    try {
+        return Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -ContentType 'application/json' -Body ($Body | ConvertTo-Json -Compress) -TimeoutSec $TimeoutSec -ErrorAction Stop
+    } catch {
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' $Uri $_.Exception),$_.Exception)
+    }
 }
 function Find-TextFiles([string[]]$Roots) {
     $files = New-Object Collections.Generic.List[IO.FileInfo]
@@ -159,7 +195,11 @@ try {
     $result.transactionProbe.status='PASS'
 
     $loginBody=@{operatorId=$AdmUsername;password=$admPassword;otpCode=$null} | ConvertTo-Json -Compress
-    $login=Invoke-RestMethod -Method Post -Uri "$BaseUrl/adm/api/auth/login" -ContentType 'application/json' -Body $loginBody -TimeoutSec $TimeoutSec
+    try {
+        $login=Invoke-RestMethod -Method Post -Uri "$BaseUrl/adm/api/auth/login" -ContentType 'application/json' -Body $loginBody -TimeoutSec $TimeoutSec -ErrorAction Stop
+    } catch {
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' "$BaseUrl/adm/api/auth/login" $_.Exception),$_.Exception)
+    }
     $accessToken=[string](Get-SafeProperty $login 'accessToken' '')
     if ([string]::IsNullOrWhiteSpace($accessToken)) { throw 'ADM login did not return accessToken.' }
     $authHeaders=@{ Authorization="Bearer $accessToken" }
@@ -270,5 +310,7 @@ try {
     $result.status='FAIL'
     $result.error=$_.Exception.Message
     Save-Result $result
-    throw
+    # Do not re-emit a localized PowerShell ErrorRecord. Emit a stable UTF-8/ASCII summary so
+    # redirected Full Runtime logs cannot turn an OS-localized message into mojibake.
+    throw [InvalidOperationException]::new("CPF_INTEGRATED_LOG_CORRELATION_FAIL result=$ResultPath type=$($_.Exception.GetType().FullName)",$_.Exception)
 }

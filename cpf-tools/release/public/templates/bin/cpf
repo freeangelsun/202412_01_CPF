@@ -3,4 +3,9 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 CLI="$ROOT/bin/lib/cpf-cli.jar"
 [ -f "$CLI" ] || { echo "[CPF][WRAPPER] cpf-cli.jar missing: $CLI" >&2; exit 69; }
+JAVA_VERSION=$(java -version 2>&1 || true)
+case "$JAVA_VERSION" in
+  *'version "25.'*|*'version "25"'*) ;;
+  *) echo "CPF_CLI=FAIL code=CPF-CLI-JAVA-VERSION message=Java_25_required actual=$(printf '%s' "$JAVA_VERSION" | tr '\n' ' ')" >&2; exit 69 ;;
+esac
 exec java -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -jar "$CLI" "$@"

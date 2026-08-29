@@ -17,7 +17,10 @@ CANONICAL_JAVA={
 }
 
 def excluded(p:Path)->bool:
-    return any(x in EXCLUDED for x in p.parts) or ('build' in p.parts and not p.as_posix().startswith('cpf-tools/build/'))
+    normalized='/' + p.as_posix().lstrip('/')
+    if '/cpf-docs/work/evidence/' in normalized:
+        return True
+    return any(x in EXCLUDED for x in p.parts) or ('build' in p.parts and '/cpf-tools/build/' not in normalized)
 
 def owner(rel:str)->str:
     parts=rel.split('/')

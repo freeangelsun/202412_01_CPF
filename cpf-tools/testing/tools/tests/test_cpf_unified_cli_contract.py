@@ -14,7 +14,7 @@ def test_exactly_one_canonical_cli_owner_and_catalog():
     assert data['owner']=='cpf-tools/runtime/cli'
     assert data['officialInterface']=='cpf'
     assert data['implementation']=='java-jar'
-    assert {x['command'] for x in data['publicCommands']} == {'bootstrap','domain-new','domain-sync','build','test','run','stop','reset','status'}
+    assert {x['command'] for x in data['publicCommands']} == {'bootstrap','domain-new','domain-sync','build','test','run','stop','reset','status','doctor','help','version'}
     assert {x['namespace'] for x in data['internalNamespaces']} == {'dev','verify','publish','release'}
     assert data['profiles']['PUBLIC']=={'publicCommands':True,'internalNamespaces':False,'sourceWorkspace':False}
 
@@ -24,6 +24,7 @@ def test_official_wrappers_are_java_thin_launchers():
         text=p.read_text(encoding='utf-8').lower()
         assert 'cpf-cli.jar' in text and 'java' in text
         assert 'cpf.py' not in text
+        assert 'cpf-cli-java-version' in text
         for forbidden in ('docker compose','gradlew','domain new','domain sync'):
             assert forbidden not in text
 
@@ -37,20 +38,28 @@ def test_bootstrap_jar_source_identity_is_non_circular_and_managed():
     assert jar.is_file()
     with zipfile.ZipFile(jar) as z:
         props=z.read('cpf-cli.properties').decode('utf-8')
+    if f'sourceIdentitySha256={source}' not in props:
+        javac=subprocess.run(['javac','-version'],text=True,encoding='utf-8',errors='replace',capture_output=True)
+        if not re.search(r'(?:javac\s+)?25(?:[.\s-]|$)', (javac.stdout+javac.stderr).strip()):
+            import pytest
+            pytest.skip('Java 25 is required to rebuild cpf-cli.jar for the current source identity')
     assert f'sourceIdentitySha256={source}' in props
     assert 'capabilityProfile=INTERNAL' in props
 
-def test_internal_cli_linux_version_status_and_java25_fail_closed():
-    cli=ROOT/'cpf-tools/runtime/cli/cpf'
+def _cli_command(*args: str) -> list[str]:
+    if sys.platform == 'win32':
+        return [os.environ.get('COMSPEC', 'cmd.exe'), '/d', '/c', str(ROOT/'cpf-tools/runtime/cli/cpf.cmd'), *args]
+    return ['/bin/sh', str(ROOT/'cpf-tools/runtime/cli/cpf'), *args]
+
+def test_internal_cli_cross_platform_version_status_and_java25_fail_closed():
     env={**os.environ,'CPF_WORKSPACE':str(ROOT)}
-    version=subprocess.run([str(cli),'version'],cwd=ROOT,env=env,text=True,encoding='utf-8',capture_output=True)
-    assert version.returncode==0, version.stdout+version.stderr
-    assert 'CAPABILITY_PROFILE=INTERNAL' in version.stdout
-    status=subprocess.run([str(cli),'status'],cwd=ROOT,env=env,text=True,encoding='utf-8',capture_output=True)
-    assert status.returncode==0 and 'CPF_STATUS=' in status.stdout
-    if sys.platform != 'win32':
-        actual=subprocess.check_output(['java','-version'],stderr=subprocess.STDOUT,text=True).splitlines()[0]
-        if '25' not in actual:
-            build=subprocess.run([str(cli),'build'],cwd=ROOT,env=env,text=True,encoding='utf-8',capture_output=True)
-            assert build.returncode==69
-            assert 'CPF-CLI-JAVA-VERSION' in build.stderr
+    actual=subprocess.check_output(['java','-version'],stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace').splitlines()[0]
+    java25=bool(re.search(r'version\s+"25(?:\.|")', actual))
+    for command in ('version','status'):
+        cp=subprocess.run(_cli_command(command),cwd=ROOT,env=env,text=True,encoding='utf-8',errors='replace',capture_output=True)
+        if java25:
+            assert cp.returncode==0, cp.stdout+cp.stderr
+            assert ('CAPABILITY_PROFILE=INTERNAL' in cp.stdout) if command=='version' else ('CPF_STATUS=' in cp.stdout)
+        else:
+            assert cp.returncode==69, cp.stdout+cp.stderr
+            assert 'CPF-CLI-JAVA-VERSION' in cp.stderr

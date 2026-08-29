@@ -66,7 +66,7 @@ $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PGCLIENTENCODING = 'UTF8'
 $env:NLS_LANG = '.AL32UTF8'
-$javaUtf8Options = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+$javaUtf8Options = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
 if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
     $env:JAVA_TOOL_OPTIONS = $javaUtf8Options
 } elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=') {
@@ -127,7 +127,19 @@ function Add-CpfResult(
     })
 }
 
+function Test-CpfMojibakeText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return $false }
+    foreach($literal in @([char]0xFFFD,'占쏙옙','?ㅽ뙣','?꾨즺','?먮뒗','?덉뒿','?덈떎','湲곕낯','?낅Т','?〓떒')) {
+        if($Text.Contains([string]$literal)){ return $true }
+    }
+    return $false
+}
+
 function Add-CpfTextResult([string]$Name,[string]$Status,[string]$Text,[string]$Note='') {
+    if((Test-CpfMojibakeText $Text) -and $Status -eq 'PASS'){
+        $Status='FAIL'
+        $Note=($(if([string]::IsNullOrWhiteSpace($Note)){'runtime mojibake detected'}else{$Note+'; runtime mojibake detected'}))
+    }
     Ensure-CpfResultDirectories
     $script:seq++
     $safe = $Name -replace '[^A-Za-z0-9._-]','_'
@@ -135,6 +147,13 @@ function Add-CpfTextResult([string]$Name,[string]$Status,[string]$Text,[string]$
     [IO.File]::WriteAllText($log,$Text + "`n",$script:utf8)
     $color = if($Status -eq 'PASS'){'Green'}elseif($Status -eq 'SKIP_ENV'){'Yellow'}else{'Red'}
     Write-Host ("[{0:D2}] {1} -> {2}" -f $script:seq,$Name,$Status) -ForegroundColor $color
+    if($Status -ne 'PASS'){
+        if(-not [string]::IsNullOrWhiteSpace($Text)){
+            $detail=($Text -replace "`r`n","`n" -replace "`r","`n").Trim()
+            if($detail.Length -gt 0){Write-Host ("[{0:D2}] {1} DETAIL: {2}" -f $script:seq,$Name,($detail -replace "`n"," | ")) -ForegroundColor $color}
+        }
+        if(-not [string]::IsNullOrWhiteSpace($Note)){Write-Host ("[{0:D2}] {1} NOTE: {2}" -f $script:seq,$Name,$Note) -ForegroundColor $color}
+    }
     Add-CpfResult $Name $Status $null 0 $log $Note
 }
 
@@ -164,6 +183,11 @@ function Invoke-CpfStage {
 
     $psi=[Diagnostics.ProcessStartInfo]::new()
     $isCmd=$Executable.EndsWith('.cmd',[StringComparison]::OrdinalIgnoreCase) -or $Executable.EndsWith('.bat',[StringComparison]::OrdinalIgnoreCase)
+    $isPwsh=[IO.Path]::GetFileNameWithoutExtension($Executable).Equals('pwsh',[StringComparison]::OrdinalIgnoreCase)
+    $pwshFileIndex=-1
+    if($isPwsh){
+        for($i=0;$i -lt $Arguments.Count;$i++){if([string]$Arguments[$i] -ieq '-File'){$pwshFileIndex=$i;break}}
+    }
     if($isCmd){
         $commandProcessor=if([string]::IsNullOrWhiteSpace($env:ComSpec)){'cmd.exe'}else{$env:ComSpec}
         $psi.FileName=$commandProcessor
@@ -171,10 +195,42 @@ function Invoke-CpfStage {
         [void]$psi.ArgumentList.Add('/s')
         [void]$psi.ArgumentList.Add('/c')
         [void]$psi.ArgumentList.Add($Executable)
+        foreach($argument in $Arguments){[void]$psi.ArgumentList.Add([string]$argument)}
+    }elseif($isPwsh -and $pwshFileIndex -ge 0 -and ($pwshFileIndex+1) -lt $Arguments.Count){
+        # Every verifier-owned PowerShell child is bootstrapped inside the child process before the
+        # target script is parsed/executed. PowerShell error records (including Invoke-RestMethod
+        # localized exceptions) are therefore encoded as UTF-8 bytes before redirected stderr is
+        # decoded by this parent ProcessStartInfo. This closes the CP949 -> UTF-8 mojibake boundary.
+        $targetScript=[string]$Arguments[$pwshFileIndex+1]
+        $targetArgs=if(($pwshFileIndex+2) -lt $Arguments.Count){@($Arguments[($pwshFileIndex+2)..($Arguments.Count-1)])}else{@()}
+        function ConvertTo-CpfPowerShellLiteral([string]$Value){
+            return "'" + $Value.Replace("'","''") + "'"
+        }
+        $targetToken=ConvertTo-CpfPowerShellLiteral $targetScript
+        $argTokens=@()
+        foreach($argument in $targetArgs){
+            $value=[string]$argument
+            if($value -match '^-[A-Za-z][A-Za-z0-9-]*(?::(?:\$?(?:true|false)|[^\s]+))?$'){$argTokens+=$value}
+            else{$argTokens+=(ConvertTo-CpfPowerShellLiteral $value)}
+        }
+        $bootstrap=@"
+`$ErrorActionPreference='Stop'
+`$u=[Text.UTF8Encoding]::new(`$false)
+try{[Console]::InputEncoding=`$u;[Console]::OutputEncoding=`$u;`$OutputEncoding=`$u;`$global:OutputEncoding=`$u}catch{}
+`$env:PYTHONUTF8='1';`$env:PYTHONIOENCODING='utf-8';`$env:PGCLIENTENCODING='UTF8';`$env:NLS_LANG='.AL32UTF8'
+& $targetToken $($argTokens -join ' ')
+"@
+        $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($bootstrap))
+        $psi.FileName=$Executable
+        [void]$psi.ArgumentList.Add('-NoLogo')
+        [void]$psi.ArgumentList.Add('-NoProfile')
+        [void]$psi.ArgumentList.Add('-NonInteractive')
+        [void]$psi.ArgumentList.Add('-EncodedCommand')
+        [void]$psi.ArgumentList.Add($encoded)
     }else{
         $psi.FileName=$Executable
+        foreach($argument in $Arguments){[void]$psi.ArgumentList.Add([string]$argument)}
     }
-    foreach($argument in $Arguments){[void]$psi.ArgumentList.Add([string]$argument)}
     $psi.WorkingDirectory=$WorkingDirectory
     $psi.UseShellExecute=$false
     $psi.CreateNoWindow=$true
@@ -208,6 +264,11 @@ function Invoke-CpfStage {
             }
         }
         $rc=[int]$process.ExitCode
+        $combinedOutput=([string]$stdout)+"`n"+([string]$stderr)
+        if(Test-CpfMojibakeText $combinedOutput){
+            [IO.File]::AppendAllText($log,"CPF_RUNTIME_MOJIBAKE_DETECTED=true`n",$script:utf8)
+            if($rc -eq 0){$rc=86}
+        }
     }catch{
         [IO.File]::AppendAllText($log,$_.Exception.ToString()+"`n",$script:utf8)
         $rc=1
@@ -535,10 +596,15 @@ $python=Initialize-CpfPythonEnvironment
 $baselineSha=Get-CpfBaselineSha
 $baselineSourceZipSha256=if($BaselineSourceZipSha256 -match '^[0-9a-fA-F]{64}$'){$BaselineSourceZipSha256.ToLowerInvariant()}else{'UNKNOWN_BASELINE_SOURCE_ZIP_SHA256'}
 $sourceStateBefore=Get-CpfTreeState 'source' (Join-Path $evidenceDir 'source-state-before.json')
-$managedStateBefore=Get-CpfTreeState 'managed' (Join-Path $evidenceDir 'managed-state-before.json')
 $sourceIdentity=[string]$sourceStateBefore.contentSha1
 $sourceContentSha256=[string]$sourceStateBefore.contentSha256
 $sourceStateReady=($sourceIdentity -match '^[0-9a-f]{40}$' -and $sourceContentSha256 -match '^[0-9a-f]{64}$')
+if($python -and $java25Ready -and $sourceStateReady){
+    Invoke-CpfStage 'UNIFIED_CLI_BUILD' $python @('.\cpf-tools\runtime\cli\build-cpf-cli.py','--root','.', '--profile','INTERNAL','--source-identity',$sourceContentSha256)
+}else{
+    Add-CpfTextResult 'UNIFIED_CLI_BUILD' 'FAIL' 'Java25/Python/current Source Identity prerequisite missing' 'Current source-bound CLI JAR is mandatory before managed-state snapshot and Python contract tests'
+}
+$managedStateBefore=Get-CpfTreeState 'managed' (Join-Path $evidenceDir 'managed-state-before.json')
 $managedStateReady=([string]$managedStateBefore.contentSha256 -match '^[0-9a-f]{64}$')
 $env:CPF_SOURCE_SHA=if($sourceStateReady){$sourceIdentity}else{''}
 $env:CPF_SOURCE_IDENTITY=if($sourceStateReady){"sha256:$sourceContentSha256"}else{''}
@@ -691,10 +757,16 @@ if($python){
 if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
     $gradleBase=@("-PcpfResourceProfile=$ResourceProfile",'-PcpfSkipFrontendBuild=true','-PcpfIncludeGeneratedDomains=true','-PcpfDbVendor=mariadb','--no-daemon','--no-parallel','--stacktrace')
     Invoke-CpfStage 'GRADLE_PROJECTS' $gradle (@('projects')+$gradleBase)
+    # This gate must run before the explicit repair task. PASS therefore proves the Gradle configuration/
+    # Buildship model itself materialized canonical outputs for source-empty Java projects on Fresh Import.
+    Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_MODEL' $gradle (@('cpfVerifyIdeClasspathModel')+$gradleBase)
     Invoke-CpfStage 'GRADLE_HELP' $gradle (@('help')+$gradleBase)
     Invoke-CpfStage 'GRADLE_CPF_HELP' $gradle (@('cpfHelp')+$gradleBase)
     Invoke-CpfStage 'GRADLE_CPF_MODULES' $gradle (@('cpfModules')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_IDE_CLASSPATH' $gradle (@('cpfPrepareIdeClasspath')+$gradleBase)
     Invoke-CpfStage 'GRADLE_FULL_BUILD_QUALITY' $gradle (@('clean','cpfBuild','qualityGate','--continue')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_AFTER_BUILD' $gradle (@('cpfPrepareIdeClasspath')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_MODEL_AFTER_BUILD' $gradle (@('cpfVerifyIdeClasspathModel')+$gradleBase)
     Invoke-CpfStage 'GRADLE_ALL_JAVA_TESTS' $gradle (@('cpfTest','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_QA34_INTEGRATION' $gradle (@('qa34IntegrationTest','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_PUBLICATION' $gradle (@('publicationGate','cpfPublishToIsolatedLocal','--continue')+$gradleBase)
@@ -828,7 +900,7 @@ if($IncludeRuntimeClosure){
                 if(-not $workerJar){Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'Batch worker bootJar unavailable after Gradle build'}
                 elseif([string]::IsNullOrWhiteSpace($adminPassword)){Add-CpfTextResult 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'FAIL' 'CPF_ADMIN_PASSWORD missing from Docker secret env' 'Batch two-worker runtime requires local MariaDB credentials'}
                 else{
-                    Invoke-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-bat-two-worker-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'batch-two-worker'),'-ClientAdapter','Docker','-MariaDbContainer','cpf-mariadb') $RepoRoot @{CPF_DB_ROOT_PASSWORD=$adminPassword;CPF_ADMIN_PASSWORD=$adminPassword}
+                    Invoke-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-bat-two-worker-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'batch-two-worker'),'-ClientAdapter','Docker','-MariaDbContainer','cpf-mariadb') $RepoRoot @{CPF_DB_ROOT_PASSWORD=$adminPassword;CPF_ADMIN_PASSWORD=$adminPassword;CPF_DB_APP_PASSWORD=$adminPassword;CPF_CORE_DB_RUNTIME_PASSWORD=$adminPassword}
                     Invoke-CpfStage 'GATEWAY_BATCH_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-gateway-bat-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'gateway-batch-runtime'),'-DbVendor','mariadb')
                 }
             }
@@ -1136,4 +1208,4 @@ Write-Host "CPF_LOCAL_VALIDATION_ZIP=$zip"
 Write-Host "ZIP_SHA256=$zipSha"
 # Collect every stage and ZIP first; automation-safe mode reports failure only after evidence is preserved.
 $strictExitEffective=[bool]$StrictExit -or [bool]$FullLocal
-if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){exit 1}
+if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){throw "CPF FullLocal validation failed after evidence collection: FAIL=$fail SKIP_ENV=$skip NOT_EXECUTED=$notExecuted"}

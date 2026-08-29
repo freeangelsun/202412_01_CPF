@@ -68,3 +68,35 @@ def test_mariadb_restore_without_explicit_charset_fails(tmp_path: Path):
     result = module.verify(tmp_path)
     assert result["status"] == "FAIL"
     assert any("MARIADB_CLIENT_CHARSET_MISSING" in item for item in result["failures"])
+
+
+def test_legacy_windows_powershell_child_fails(tmp_path: Path):
+    module = load_module()
+    target = tmp_path / "cpf-tools/runtime/tools/bad-legacy.ps1"
+    target.parent.mkdir(parents=True)
+    target.write_text("powershell -NoProfile -File child.ps1\n", encoding="utf-8")
+    result = module.verify(tmp_path)
+    assert result["status"] == "FAIL"
+    assert any("LEGACY_POWERSHELL_CHILD" in item for item in result["failures"])
+
+
+def test_full_runtime_child_without_console_utf8_fails(tmp_path: Path):
+    module = load_module()
+    runner = tmp_path / "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1"
+    child = tmp_path / "cpf-tools/runtime/tools/child.ps1"
+    runner.parent.mkdir(parents=True)
+    child.parent.mkdir(parents=True)
+    runner.write_text("$pwsh='pwsh'; & $pwsh -NoProfile -File '.\\cpf-tools\\runtime\\tools\\child.ps1'\n", encoding="utf-8")
+    child.write_text("param()\n$ErrorActionPreference='Stop'\nWrite-Host 'child'\n", encoding="utf-8")
+    result = module.verify(tmp_path)
+    assert result["status"] == "FAIL"
+    assert any("FULL_RUNTIME_CHILD_UTF8_MISSING" in item for item in result["failures"])
+
+
+def test_integrated_log_correlation_does_not_rethrow_localized_error_record():
+    script = ROOT / "cpf-tools/runtime/tools/smoke-integrated-log-correlation.ps1"
+    text = script.read_text(encoding="utf-8")
+    assert "Get-CpfStableHttpFailure" in text
+    assert "CPF_HTTP_FAILURE method=" in text
+    assert "CPF_INTEGRATED_LOG_CORRELATION_FAIL" in text
+    assert "throw [InvalidOperationException]::new" in text

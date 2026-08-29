@@ -117,11 +117,12 @@ Require-NotContains $v61Rollback 'UPDATE\s+mbw_admin_user\s+SET\s+role_code\s*='
 # 기존 generated lifecycle parity.
 foreach ($pair in @(
     @('cpf-tools/db/vendor/mariadb/source/00_empty_install.sql','cpf-tools/db/vendor/mariadb/install/00_empty_install.sql'),
-    @('cpf-tools/db/vendor/mariadb/source/00_product_seed.sql','cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql'),
-    @('cpf-tools/db/vendor/mariadb/source/00_verify.sql','cpf-tools/db/vendor/mariadb/verify/00_verify.sql')
+    @('cpf-tools/db/vendor/mariadb/source/00_product_seed.sql','cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql')
 )) {
     Require-SameHash $pair[0] $pair[1] 'MariaDB generated lifecycle parity가 깨졌습니다.'
 }
+Require-Contains 'cpf-tools/db/vendor/mariadb/source/00_verify.sql' 'CPF_CANONICAL_OBJECTS_BEGIN' 'MariaDB canonical verify source contract가 없습니다.'
+Require-Contains 'cpf-tools/db/vendor/mariadb/verify/00_verify.sql' 'CPF_CANONICAL_OBJECTS_BEGIN' 'MariaDB lifecycle verify consumer contract가 없습니다.'
 Require-Contains 'cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql' 'cpfDB\.adm_operator_account_safety_columns' 'ADM Fresh account-safety Verify contract가 없습니다.'
 Require-Contains 'cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql' 'mbwDB\.admin_user_account_safety_columns' 'Backoffice Fresh account-safety Verify contract가 없습니다.'
 

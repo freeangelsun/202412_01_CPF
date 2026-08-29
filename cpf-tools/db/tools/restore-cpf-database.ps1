@@ -22,7 +22,7 @@ param(
 $ErrorActionPreference='Stop'
 
 # Native DB client가 별도 process로 실행되어도 UTF-8 계약을 유지합니다.
-$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
 if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
     $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
 } elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {

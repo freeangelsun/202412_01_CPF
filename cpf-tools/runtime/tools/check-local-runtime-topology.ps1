@@ -1,4 +1,15 @@
 param([string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path)
+# Full Runtime child-process UTF-8 contract. Keep the emitted byte stream UTF-8 even when pwsh is redirected.
+$CpfUtf8ConsoleEncoding = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+    [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+    $OutputEncoding = $CpfUtf8ConsoleEncoding
+    $global:OutputEncoding = $CpfUtf8ConsoleEncoding
+} catch { }
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $Root=(Resolve-Path -LiteralPath $Root).Path
@@ -61,12 +72,27 @@ foreach ($marker in @('SpringApplicationBuilder','BatchControlPlaneApplication',
 if ($batchLauncher -match 'ComponentScan') {
     throw 'Local Batch Launcher가 여러 Batch Application을 단일 ComponentScan Context에 합치면 안 됩니다.'
 }
+$launcherScripts = [ordered]@{
+    'start-cpf-local.ps1' = 'start'
+    'status-cpf-local.ps1' = 'status'
+    'stop-cpf-local.ps1' = 'stop'
+}
+foreach ($entry in $launcherScripts.GetEnumerator()) {
+    $launcherText = Get-Content -LiteralPath (Join-Path $Root ('cpf-tools\runtime\tools\' + $entry.Key)) -Raw -Encoding UTF8
+    foreach ($marker in @('cpf_local_runtime.py', $entry.Value)) {
+        if ($launcherText -notmatch [regex]::Escape($marker)) { throw "Local thin launcher marker missing: file=$($entry.Key) marker=$marker" }
+    }
+}
 $startScript = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools\runtime\tools\start-cpf-local.ps1') -Raw -Encoding UTF8
-foreach ($marker in @("ValidateSet('integrated','minimal','standard','full','integration')",'local-batch-$Mode','healthUrls','Wait-CpfHealth',"'control-plane'","'agent'",'BatchControlPlanePort','BatchWorkerPort','AgentPort','-Xms','-Xmx')) {
-    if ($startScript -notmatch [regex]::Escape($marker)) { throw "Local launcher marker missing: $marker" }
+foreach ($marker in @("ValidateSet('integrated','minimal','standard','full','integration')", 'Profile', 'Mode')) {
+    if ($startScript -notmatch [regex]::Escape($marker)) { throw "Local start thin-wrapper marker missing: $marker" }
+}
+$localEngine = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools\runtime\tools\cpf_local_runtime.py') -Raw -Encoding UTF8
+foreach ($marker in @('ALLOWED_PROFILES', 'ALLOWED_MODES', "':runtime:local:bootJar'", 'java25()', '-Xms', '-Xmx', 'port_free', '--cpf.local.runtime.enabled=true')) {
+    if ($localEngine -notmatch [regex]::Escape($marker)) { throw "Canonical local runtime engine marker missing: $marker" }
 }
 foreach ($retiredMarker in @('BatchControlServerApplication', "'control-server'", "'host-agent'", 'BatchControlPort', 'HostAgentPort', 'EnableHostAgent')) {
-    if ($startScript -match [regex]::Escape($retiredMarker) -or $batchLauncher -match [regex]::Escape($retiredMarker)) {
+    if ($startScript -match [regex]::Escape($retiredMarker) -or $localEngine -match [regex]::Escape($retiredMarker) -or $batchLauncher -match [regex]::Escape($retiredMarker)) {
         throw "Retired Local Batch contract remains: $retiredMarker"
     }
 }

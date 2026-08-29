@@ -11,7 +11,7 @@
     "DUPLICATE",
     "DEAD"
   ],
-  "entrypointCount": 798,
+  "entrypointCount": 832,
   "duplicateCount": 0,
   "deadCount": 0,
   "entries": [
@@ -394,13 +394,6 @@
       "replacement": ""
     },
     {
-      "id": "FILE:cpf-tools/db/tools/invoke-reference-database-lifecycle.ps1",
-      "path": "cpf-tools/db/tools/invoke-reference-database-lifecycle.ps1",
-      "kind": "POWERSHELL",
-      "classification": "INTERNAL_ENGINE",
-      "replacement": ""
-    },
-    {
       "id": "FILE:cpf-tools/db/tools/normalize-cpf-db-operation-evidence.py",
       "path": "cpf-tools/db/tools/normalize-cpf-db-operation-evidence.py",
       "kind": "PYTHON",
@@ -585,13 +578,6 @@
     {
       "id": "FILE:cpf-tools/db/verification/check-query-contract-integrity.ps1",
       "path": "cpf-tools/db/verification/check-query-contract-integrity.ps1",
-      "kind": "POWERSHELL",
-      "classification": "INTERNAL_ENGINE",
-      "replacement": ""
-    },
-    {
-      "id": "FILE:cpf-tools/db/verification/check-reference-database-lifecycle.ps1",
-      "path": "cpf-tools/db/verification/check-reference-database-lifecycle.ps1",
       "kind": "POWERSHELL",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -898,13 +884,6 @@
       "replacement": ""
     },
     {
-      "id": "FILE:cpf-tools/db/verification/verify-reference-db-lifecycle-contract.py",
-      "path": "cpf-tools/db/verification/verify-reference-db-lifecycle-contract.py",
-      "kind": "PYTHON",
-      "classification": "INTERNAL_ENGINE",
-      "replacement": ""
-    },
-    {
       "id": "FILE:cpf-tools/db/verify_canonical_vendor_render.py",
       "path": "cpf-tools/db/verify_canonical_vendor_render.py",
       "kind": "PYTHON",
@@ -1174,13 +1153,6 @@
       "id": "FILE:cpf-tools/generator/export-domain-repository.ps1",
       "path": "cpf-tools/generator/export-domain-repository.ps1",
       "kind": "POWERSHELL",
-      "classification": "INTERNAL_ENGINE",
-      "replacement": ""
-    },
-    {
-      "id": "FILE:cpf-tools/generator/generate-reference-db-verify.py",
-      "path": "cpf-tools/generator/generate-reference-db-verify.py",
-      "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
     },
@@ -1619,6 +1591,104 @@
       "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
     },
     {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-bootstrap.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-bootstrap.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-build.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-build.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-build.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-build.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-domain-new.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-domain-new.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-domain-sync.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-domain-sync.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-stop.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-stop.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-stop.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-stop.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-test.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-test.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-test.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-test.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
       "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf.cmd",
       "path": "cpf-tools/release/open-git/templates/bin/cpf.cmd",
       "kind": "CMD",
@@ -1629,6 +1699,13 @@
       "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf.ps1",
       "path": "cpf-tools/release/open-git/templates/bin/cpf.ps1",
       "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf.sh",
+      "kind": "SHELL",
       "classification": "THIN_WRAPPER",
       "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
     },
@@ -2900,13 +2977,6 @@
       "replacement": ""
     },
     {
-      "id": "FILE:cpf-tools/testing/tools/tests/test_reference_db_lifecycle_contract.py",
-      "path": "cpf-tools/testing/tools/tests/test_reference_db_lifecycle_contract.py",
-      "kind": "PYTHON",
-      "classification": "INTERNAL_ENGINE",
-      "replacement": ""
-    },
-    {
       "id": "FILE:cpf-tools/testing/tools/tests/test_run_cpf_canonical_verifiers.py",
       "path": "cpf-tools/testing/tools/tests/test_run_cpf_canonical_verifiers.py",
       "kind": "PYTHON",
@@ -4013,6 +4083,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_vscode_classpath_output_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_vscode_classpath_output_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_event_dlq_contract_cli.py",
       "path": "cpf-tools/verification/tests/test_event_dlq_contract_cli.py",
       "kind": "PYTHON",
@@ -4468,13 +4545,6 @@
       "replacement": ""
     },
     {
-      "id": "FILE:cpf-tools/verification/tools/invoke-reference-live-idempotency-conflict.ps1",
-      "path": "cpf-tools/verification/tools/invoke-reference-live-idempotency-conflict.ps1",
-      "kind": "POWERSHELL",
-      "classification": "INTERNAL_ENGINE",
-      "replacement": ""
-    },
-    {
       "id": "FILE:cpf-tools/verification/tools/report-cpf-public-function-catalog.py",
       "path": "cpf-tools/verification/tools/report-cpf-public-function-catalog.py",
       "kind": "PYTHON",
@@ -4575,13 +4645,6 @@
     {
       "id": "FILE:cpf-tools/verification/tools/smoke-backoffice-ui.ps1",
       "path": "cpf-tools/verification/tools/smoke-backoffice-ui.ps1",
-      "kind": "POWERSHELL",
-      "classification": "INTERNAL_ENGINE",
-      "replacement": ""
-    },
-    {
-      "id": "FILE:cpf-tools/verification/tools/smoke-center-cut-adapter.ps1",
-      "path": "cpf-tools/verification/tools/smoke-center-cut-adapter.ps1",
       "kind": "POWERSHELL",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4848,6 +4911,13 @@
     {
       "id": "FILE:cpf-tools/verification/tools/verify-cpf-data-observability-evidence.py",
       "path": "cpf-tools/verification/tools/verify-cpf-data-observability-evidence.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tools/verify-cpf-developer-workspace.py",
+      "path": "cpf-tools/verification/tools/verify-cpf-developer-workspace.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -5534,6 +5604,70 @@
       "replacement": ""
     },
     {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfDatabaseDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDatabaseDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfDatabaseDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDatabaseDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfDomainDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDomainDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfDomainDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDomainDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfPublicationDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfPublicationDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfPublicationDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfPublicationDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfRuntimeDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfRuntimeDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfRuntimeDiscovery",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfRuntimeDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfTest",
       "path": "cpf-tools/release/open-git/templates/build.gradle",
       "kind": "GRADLE_TASK",
@@ -5566,6 +5700,38 @@
       "replacement": ""
     },
     {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfWorkspace",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfWorkspace",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#cpfWorkspace",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfWorkspace",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#test",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "test",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/open-git/templates/build.gradle#test",
+      "path": "cpf-tools/release/open-git/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "test",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfBuild",
       "path": "cpf-tools/release/public/templates/build.gradle",
       "kind": "GRADLE_TASK",
@@ -5578,6 +5744,70 @@
       "path": "cpf-tools/release/public/templates/build.gradle",
       "kind": "GRADLE_TASK",
       "command": "cpfBuild",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfDatabaseDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDatabaseDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfDatabaseDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDatabaseDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfDomainDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDomainDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfDomainDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfDomainDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfPublicationDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfPublicationDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfPublicationDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfPublicationDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfRuntimeDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfRuntimeDiscovery",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfRuntimeDiscovery",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfRuntimeDiscovery",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
     },
@@ -5610,6 +5840,38 @@
       "path": "cpf-tools/release/public/templates/build.gradle",
       "kind": "GRADLE_TASK",
       "command": "cpfVerify",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfWorkspace",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfWorkspace",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#cpfWorkspace",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "cpfWorkspace",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#test",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "test",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "GRADLE:cpf-tools/release/public/templates/build.gradle#test",
+      "path": "cpf-tools/release/public/templates/build.gradle",
+      "kind": "GRADLE_TASK",
+      "command": "test",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
     }

@@ -7,7 +7,7 @@ param(
   [switch] $RequireBrowserClick
 )
 $ErrorActionPreference='Stop'; Set-StrictMode -Version Latest
-$Utf8=[Text.UTF8Encoding]::new($false); [Console]::OutputEncoding=$Utf8; $OutputEncoding=$Utf8
+$Utf8=[Text.UTF8Encoding]::new($false); [Console]::InputEncoding=$Utf8; [Console]::OutputEncoding=$Utf8; $OutputEncoding=$Utf8; $global:OutputEncoding=$Utf8; $env:PYTHONUTF8='1'; $env:PYTHONIOENCODING='utf-8'
 $Root=(Resolve-Path -LiteralPath $Root).Path
 if([string]::IsNullOrWhiteSpace($ResultDir)){$ResultDir=Join-Path $Root 'build/runtime-evidence/browser'}
 New-Item -ItemType Directory -Force -Path $ResultDir|Out-Null

@@ -4,8 +4,8 @@ param(
     [ValidateSet('Host','Docker')][string]$ClientAdapter='Docker',
     [string]$MariaDbContainer='cpf-mariadb',
     [string]$DatabaseName='cpfDB',
-    [string]$DbUser='cpf',
-    [string]$DbPassword='cpf',
+    [string]$DbUser='cpf_app',
+    [string]$DbPassword=$env:CPF_CORE_DB_RUNTIME_PASSWORD,
     [string]$DbRootPassword=$env:CPF_DB_ROOT_PASSWORD,
     [int]$ControlPlanePort=8180,
     [int]$SchedulerPort=8181,
@@ -17,10 +17,21 @@ param(
     [int]$LeaseSeconds=10,
     [int]$TimeoutSeconds=180
 )
+# Full Runtime child-process UTF-8 contract. Keep the emitted byte stream UTF-8 even when pwsh is redirected.
+$CpfUtf8ConsoleEncoding = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+    [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+    $OutputEncoding = $CpfUtf8ConsoleEncoding
+    $global:OutputEncoding = $CpfUtf8ConsoleEncoding
+} catch { }
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+
 $ErrorActionPreference='Stop'
 
 # Child process가 새 Windows process로 분리되어도 UTF-8 계약을 잃지 않도록 고정합니다.
-$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
+$CpfUtf8ChildJavaOptions = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8'
 if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
     $env:JAVA_TOOL_OPTIONS = $CpfUtf8ChildJavaOptions
 } elseif ($env:JAVA_TOOL_OPTIONS -notmatch '(?:^|\s)-Dfile\.encoding=UTF-8(?:\s|$)') {
@@ -33,6 +44,8 @@ $env:NLS_LANG = '.AL32UTF8'
 $ProgressPreference='SilentlyContinue'
 Set-StrictMode -Version Latest
 $root=(Resolve-Path -LiteralPath $Root).Path
+if ([string]::IsNullOrWhiteSpace($DbPassword)) { $DbPassword = $env:CPF_DB_APP_PASSWORD }
+if ([string]::IsNullOrWhiteSpace($DbPassword)) { throw 'CPF DB runtime password is required via CPF_CORE_DB_RUNTIME_PASSWORD or CPF_DB_APP_PASSWORD.' }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $started=Get-Date
 $runId=Get-Date -Format 'yyyyMMddHHmmssfff'

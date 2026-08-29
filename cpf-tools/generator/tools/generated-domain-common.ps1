@@ -76,14 +76,8 @@ function Invoke-CpfCanonicalCli {
         [Parameter(Mandatory = $true)][string] $Root,
         [Parameter(Mandatory = $true)][string[]] $Arguments
     )
-    $cli = if ($IsLinux -or $IsMacOS) {
-        Join-Path $Root 'cpf-tools/runtime/cli/cpf'
-    } else {
-        Join-Path $Root 'cpf-tools/runtime/cli/cpf.cmd'
-    }
-    if (-not (Test-Path -LiteralPath $cli -PathType Leaf)) {
-        throw "CPF canonical CLI가 없습니다: $cli"
-    }
+    $cliJar = Join-Path $Root 'cpf-tools/runtime/cli/lib/cpf-cli.jar'
+    if (-not (Test-Path -LiteralPath $cliJar -PathType Leaf)) { throw "CPF canonical CLI JAR가 없습니다: $cliJar" }
     $processArguments = @($Arguments)
     if ($processArguments.Count -gt 0 -and $processArguments[0] -eq 'domain') {
         $processArguments = @('dev') + $processArguments
@@ -94,20 +88,56 @@ function Invoke-CpfCanonicalCli {
         } else { @() }
         $processArguments = @('dev', 'db-render') + $remainingArguments
     }
-    $oldPreference = $ErrorActionPreference
-    $previousWorkspace = $env:CPF_WORKSPACE
+
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    if ($IsLinux -or $IsMacOS) {
+        $cli = Join-Path $Root 'cpf-tools/runtime/cli/cpf'
+        if (-not (Test-Path -LiteralPath $cli -PathType Leaf)) { throw "CPF canonical CLI가 없습니다: $cli" }
+        $shell = Get-Command sh -ErrorAction SilentlyContinue
+        if ($null -eq $shell) { throw 'CPF canonical CLI 실행에 필요한 POSIX sh를 찾을 수 없습니다.' }
+        $startInfo.FileName = $shell.Source
+        $startInfo.ArgumentList.Add($cli)
+    } else {
+        $cli = Join-Path $Root 'cpf-tools/runtime/cli/cpf.cmd'
+        if (-not (Test-Path -LiteralPath $cli -PathType Leaf)) { throw "CPF canonical CLI가 없습니다: $cli" }
+        $command = if (-not [string]::IsNullOrWhiteSpace($env:ComSpec)) { $env:ComSpec } else { 'cmd.exe' }
+        $startInfo.FileName = $command
+        $startInfo.ArgumentList.Add('/d')
+        $startInfo.ArgumentList.Add('/c')
+        $startInfo.ArgumentList.Add($cli)
+    }
+    foreach ($argument in $processArguments) { $startInfo.ArgumentList.Add([string]$argument) }
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $startInfo.CreateNoWindow = $true
+    $utf8 = [Text.UTF8Encoding]::new($false)
+    $startInfo.StandardOutputEncoding = $utf8
+    $startInfo.StandardErrorEncoding = $utf8
+    $startInfo.Environment['CPF_WORKSPACE'] = $Root
+    $startInfo.Environment['PYTHONUTF8'] = '1'
+    $startInfo.Environment['PYTHONIOENCODING'] = 'utf-8'
+    $javaOptions = @($env:JAVA_TOOL_OPTIONS, '-Dfile.encoding=UTF-8', '-Dsun.stdout.encoding=UTF-8', '-Dsun.stderr.encoding=UTF-8') |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    $startInfo.Environment['JAVA_TOOL_OPTIONS'] = ($javaOptions -join ' ')
+
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
     try {
-        $env:CPF_WORKSPACE = $Root
-        $ErrorActionPreference = 'Continue'
-        $output = @(& $cli @processArguments 2>&1 | ForEach-Object { $_.ToString() })
-        $exitCode = $LASTEXITCODE
+        if (-not $process.Start()) { throw 'CPF canonical CLI process를 시작하지 못했습니다.' }
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        $exitCode = $process.ExitCode
     } finally {
-        $ErrorActionPreference = $oldPreference
-        $env:CPF_WORKSPACE = $previousWorkspace
+        $process.Dispose()
     }
     if ($exitCode -ne 0) {
-        throw "CPF canonical CLI 실패: exitCode=$exitCode output=$($output -join ' ')"
+        throw "CPF canonical CLI 실패: exitCode=$exitCode stderr=$($stderr.Trim()) stdout=$($stdout.Trim())"
     }
+    $output = @($stdout -split "`r?`n")
     $jsonStart = -1
     for ($index = 0; $index -lt $output.Count; $index++) {
         $candidate = $output[$index].TrimStart()
@@ -117,7 +147,7 @@ function Invoke-CpfCanonicalCli {
         }
     }
     if ($jsonStart -lt 0) {
-        throw "CPF canonical CLI 결과에 JSON document가 없습니다: $($output -join ' ')"
+        throw "CPF canonical CLI 결과에 JSON document가 없습니다: $($stdout.Trim())"
     }
     $jsonLines = [Collections.Generic.List[string]]::new()
     for ($index = $jsonStart; $index -lt $output.Count; $index++) {

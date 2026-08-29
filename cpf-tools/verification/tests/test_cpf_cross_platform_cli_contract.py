@@ -124,8 +124,12 @@ def test_internal_cli_builder_owns_strict_java25_compile_contract():
 def test_generated_domain_powershell_consumers_use_unified_java_cli():
     text=(ROOT/'cpf-tools/generator/tools/generated-domain-common.ps1').read_text(encoding='utf-8-sig')
     normalized=text.replace('\\','/')
-    assert 'cpf-tools/runtime/cli/cpf.cmd' in normalized
+    assert 'cpf-tools/runtime/cli/lib/cpf-cli.jar' in normalized
     assert 'cpf-tools/runtime/cli/cpf.py' not in normalized
+    assert '[Diagnostics.ProcessStartInfo]::new()' in text
+    assert 'StandardOutputEncoding' in text and 'StandardErrorEncoding' in text
+    assert 'RedirectStandardOutput = $true' in text and 'RedirectStandardError = $true' in text
+    assert 'UseShellExecute = $false' in text
     assert "@('dev') + $processArguments" in text
     assert "@('dev', 'db-render')" in text
-    assert 'CPF_WORKSPACE' in text
+    assert "Environment['CPF_WORKSPACE']" in text

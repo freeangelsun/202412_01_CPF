@@ -185,6 +185,44 @@ ext.cpfDbSchedulerVersion = stackText('dbSchedulerVersion')
 
 version = ext.cpfPlatformVersion
 
+// VS Code Buildship/JDT resolves project dependencies through each Java project's canonical compile output.
+// Dependency-only profile/composition projects legitimately have compileJava=NO-SOURCE. On a Fresh Import
+// Gradle therefore has no reason to create build/classes/java/main, while JDT still models that canonical
+// project output and reports it as a missing required library. Keep the project/dependency model unchanged:
+// materialize only the empty canonical output directory for source-empty Java projects during Gradle
+// configuration, before the Tooling API model is returned. Never add fake Java API/classes or module-specific
+// dependency workarounds. The explicit task below only re-materializes the same generated directory after clean.
+def cpfPrepareIdeClasspath = tasks.register('cpfPrepareIdeClasspath') {
+    group = 'verification'
+    description = 'Re-materializes canonical Java compile outputs for source-empty IDE/JDT project dependencies.'
+}
+def cpfVerifyIdeClasspathModel = tasks.register('cpfVerifyIdeClasspathModel') {
+    group = 'verification'
+    description = 'Fails unless source-empty Java projects expose a physical canonical compile output at configuration time.'
+    doLast {
+        def failures = []
+        def checked = 0
+        subprojects.findAll { it.plugins.hasPlugin('java') }.each { target ->
+            def sourceSets = target.extensions.findByName('sourceSets')
+            if (sourceSets == null || !sourceSets.main.java.files.empty) return
+            checked++
+            def compileJava = target.tasks.named('compileJava', JavaCompile).get()
+            def outputDir = compileJava.destinationDirectory.get().asFile
+            def configured = target.extensions.extraProperties.has('cpfIdeClasspathMaterializedOnConfiguration') &&
+                    target.extensions.extraProperties.get('cpfIdeClasspathMaterializedOnConfiguration') == true
+            def stableRoot = new File(gradle.gradleUserHomeDir, 'cpf-ide-classpath').canonicalFile
+            def stable = outputDir.canonicalPath.startsWith(stableRoot.canonicalPath + File.separator)
+            if (!configured || !outputDir.isDirectory() || !stable) {
+                failures << "${target.path} configured=${configured} stable=${stable} output=${outputDir} exists=${outputDir.isDirectory()}"
+            }
+        }
+        if (!failures.empty) {
+            throw new GradleException('CPF IDE/Buildship classpath model is incomplete:\n' + failures.join('\n'))
+        }
+        logger.lifecycle("CPF_IDE_CLASSPATH_MODEL=PASS sourceEmptyJavaProjects=${checked}")
+    }
+}
+
 allprojects {
     version = rootProject.ext.cpfPlatformVersion
     repositories {
@@ -254,6 +292,35 @@ subprojects {
             options.release = rootProject.ext.cpfJavaVersion
             options.compilerArgs += ['-parameters']
         }
+        def materializeCpfIdeClasspathOutput = {
+            // Source-bearing projects get a real compile output from compileJava. Buildship repair is needed only
+            // for dependency-only/assembly-only Java projects whose main Java source set is physically empty.
+            if (!sourceSets.main.java.files.empty) return
+            def compileJava = tasks.named('compileJava', JavaCompile).get()
+            // A build/classes output is deleted by `clean` and JDT then reports the dependency as a missing library.
+            // Keep source-empty project outputs in Gradle user home instead: this is generated IDE state, survives
+            // repository clean, is outside Product Source Identity, and does not add fake Java classes or dependencies.
+            def buildIdentity = Integer.toUnsignedString(rootProject.projectDir.canonicalPath.hashCode(), 16)
+            def projectIdentity = project.path.replace(':', '/').replaceAll('^/+', '')
+            def stableOutputDir = new File(gradle.gradleUserHomeDir, "cpf-ide-classpath/${buildIdentity}/${projectIdentity}/classes/java/main")
+            compileJava.destinationDirectory.set(stableOutputDir)
+            if (!stableOutputDir.mkdirs() && !stableOutputDir.isDirectory()) {
+                throw new GradleException("Cannot create stable Java IDE classpath output directory: ${stableOutputDir}")
+            }
+        }
+        project.afterEvaluate {
+            materializeCpfIdeClasspathOutput()
+            if (sourceSets.main.java.files.empty) {
+                extensions.extraProperties.set('cpfIdeClasspathMaterializedOnConfiguration', true)
+            }
+        }
+        def cpfIdeClasspathOutput = tasks.register('prepareCpfIdeClasspathOutput') {
+            group = 'verification'
+            description = 'Re-materializes the canonical Java output after clean for source-empty projects.'
+            doLast { materializeCpfIdeClasspathOutput() }
+        }
+        tasks.named('classes') { dependsOn cpfIdeClasspathOutput }
+        cpfPrepareIdeClasspath.configure { dependsOn cpfIdeClasspathOutput }
         tasks.withType(Test).configureEach {
             useJUnitPlatform()
             doFirst {

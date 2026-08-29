@@ -12,6 +12,8 @@ MOJIBAKE_LITERALS = ("\ufffd", "?ㅼ", "?쒕", "?댁", "吏", "?듬땲")
 PSI_TOKEN = "ProcessStartInfo"
 START_PROCESS_TOKEN = "Start-Process"
 CHILD_UTF8_TOKENS = ("$CpfUtf8ChildJavaOptions", "PYTHONUTF8", "PYTHONIOENCODING")
+FULL_RUNTIME_RUNNER = "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1"
+FULL_RUNTIME_CHILD_UTF8_TOKENS = ("[Console]::InputEncoding", "[Console]::OutputEncoding", "$OutputEncoding")
 
 
 def iter_product_ps1(root: Path):
@@ -40,6 +42,8 @@ def verify(root: Path) -> dict:
             failures.append(f"MOJIBAKE_SOURCE:{rel}:{','.join(hits)}")
         has_psi = PSI_TOKEN in text
         has_start_process = START_PROCESS_TOKEN in text
+        if re.search(r"(?im)(?<![A-Za-z0-9_.-])powershell(?:\.exe)?\s+(?:-|/)", text):
+            failures.append(f"LEGACY_POWERSHELL_CHILD:{rel}")
         if has_psi:
             process_files += 1
             redirected = "RedirectStandardOutput" in text or "RedirectStandardError" in text
@@ -62,16 +66,45 @@ def verify(root: Path) -> dict:
             if ("sqlplus" in text.lower() or "expdp" in text.lower() or "impdp" in text.lower()) and "NLS_LANG" not in text:
                 failures.append(f"ORACLE_CLIENT_ENCODING_MISSING:{rel}")
 
+    # Every PowerShell script launched directly by the canonical Full Runtime runner must establish
+    # its own UTF-8 console boundary. Parent-side UTF-8 decoding is not sufficient on Windows because
+    # a child pwsh can format an OS-localized ErrorRecord using the inherited console code page first.
+    runner_path = root / FULL_RUNTIME_RUNNER
+    full_runtime_child_scripts = 0
+    if runner_path.is_file():
+        runner_text = runner_path.read_text(encoding="utf-8-sig", errors="strict")
+        child_refs = sorted(
+            set(
+                match.replace("\\", "/").lstrip("./")
+                for match in re.findall(r"['\"](?:\.\\)?(cpf-tools\\[^'\"]+?\.ps1)['\"]", runner_text, flags=re.IGNORECASE)
+            )
+        )
+        for rel in child_refs:
+            path = root / rel
+            if not path.is_file():
+                failures.append(f"FULL_RUNTIME_CHILD_MISSING:{rel}")
+                continue
+            full_runtime_child_scripts += 1
+            text = path.read_text(encoding="utf-8-sig", errors="strict")
+            for token in FULL_RUNTIME_CHILD_UTF8_TOKENS:
+                if token not in text:
+                    failures.append(f"FULL_RUNTIME_CHILD_UTF8_MISSING:{rel}:{token}")
+
     mandatory = {
         "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1": (
             "[Console]::OutputEncoding", "$OutputEncoding", "StandardOutputEncoding", "StandardErrorEncoding",
-            "PYTHONUTF8", "PYTHONIOENCODING", "-Dfile.encoding=UTF-8",
+            "PYTHONUTF8", "PYTHONIOENCODING", "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
+            "$isPwsh", "-EncodedCommand", "[Text.Encoding]::Unicode.GetBytes($bootstrap)",
+        ),
+        "cpf-tools/runtime/tools/smoke-integrated-log-correlation.ps1": (
+            "[Console]::InputEncoding", "[Console]::OutputEncoding", "$OutputEncoding",
+            "PYTHONUTF8", "PYTHONIOENCODING",
         ),
         "cpf-tools/verification/tools/run-cpf-required-full-runtime-validation.ps1": (
             "[Console]::OutputEncoding", "$OutputEncoding", "PYTHONUTF8", "PYTHONIOENCODING",
         ),
         "cpf-tools/environment/docker-development-test/CPF_도커_개발테스트환경_전체설치.ps1": (
-            "[Console]::OutputEncoding", "$OutputEncoding", "PYTHONUTF8", "PYTHONIOENCODING", "-Dfile.encoding=UTF-8",
+            "[Console]::OutputEncoding", "$OutputEncoding", "PYTHONUTF8", "PYTHONIOENCODING", "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
         ),
     }
     for rel, tokens in mandatory.items():
@@ -90,6 +123,7 @@ def verify(root: Path) -> dict:
         "redirectedProcessFiles": redirected_files,
         "startProcessFiles": start_process_files,
         "mojibakeSourceFiles": mojibake_files,
+        "fullRuntimeChildScripts": full_runtime_child_scripts,
         "failures": failures,
     }
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "version": "2.13.0",
+  "version": "2.15.1",
   "title": "CPF 공식 산출물 실행형 디자인·내용완결성·품질 하네스 — Reader-Executable / Strict No-False-Green",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
@@ -235,7 +235,15 @@
       "SELECTION_TO_ACTION_PASS",
       "DEVELOPER_WORKING_EXAMPLE_PASS",
       "VISUAL_COMFORT_AND_DENSITY_PASS",
-      "SOURCE_ALIGNMENT_PASS"
+      "SOURCE_ALIGNMENT_PASS",
+      "README_PRODUCT_COMPLETENESS_PASS",
+      "README_ARCHITECTURE_COMPLETENESS_PASS",
+      "README_EXPLANATION_DEPTH_PASS",
+      "README_DEVELOPER_GOLDEN_PATH_PASS",
+      "VISUAL_SEMANTIC_QUALITY_PASS",
+      "CURRENT_ARTIFACT_SHA_REVIEW_PASS",
+      "USER_FINDING_CLOSURE_PASS",
+      "FALSE_GREEN_PREVENTION_PASS"
     ],
     "allRequired": true,
     "partialPass": "forbidden",
@@ -365,5 +373,9 @@
       "Package replay"
     ],
     "falseGreenRule": "API/키워드/선택표가 존재한다는 이유만으로 실제 행동 경로가 없는 문서를 PASS 처리하지 않는다."
-  }
+  },
+  "criticalRuleNoExcuse": "산출물 품질 결함을 Harness 부족으로 사후 설명하지 않는다. Harness가 결함을 못 잡았으면 Harness 자체 FAIL이며 산출물 PASS도 자동 무효화한다.",
+  "readmeProductStandardRef": "readme-product-completeness.json",
+  "visualHumanQualityRef": "visual-human-quality.json",
+  "falseGreenPolicyRef": "false-green-policy.json"
 }

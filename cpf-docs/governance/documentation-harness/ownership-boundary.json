@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.15.1",
+  "ownedRoot": "cpf-docs/governance/documentation-harness/",
+  "applicationScope": "HARNESS_ONLY",
+  "externalInputs": "READ_ONLY_DYNAMIC_CONTEXT",
+  "allowedApplyPreconditions": [
+    "supplied path is actual git repository root",
+    "cpf-docs directory exists",
+    "harness payload integrity passes"
+  ],
+  "forbiddenApplyPreconditions": [
+    "specific external requirement document exists",
+    "external document has fixed hash",
+    "external source identity equals harness snapshot",
+    "guide or deliverable exists",
+    "other owner working files exist"
+  ],
+  "selfVerificationMustNotRequireExternalContext": true,
+  "contextValidatorsAreSeparateFromHarnessSelfValidation": true,
+  "rule": "다른 담당이 관리하는 Requirement/Source/Guide/Deliverable의 존재·경로·Hash·Source Identity를 Harness 설치/삭제/자체검증의 전제조건으로 사용하지 않는다."
+}

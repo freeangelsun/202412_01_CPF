@@ -1,4 +1,4 @@
-# CPF 산출물 내용 구조화 표준 — Harness v2.13.0
+# CPF 산출물 내용 구조화 표준 — Harness v2.15.1
 
 ## 1. 상위 원칙
 
@@ -50,7 +50,7 @@
 - 목차는 실제 H1/H2가 화면에 보여야 하며 빈 TOC Field 페이지만 남는 산출물은 FAIL이다.
 
 
-## v2.13.0 강제 보강
+## v2.15.1 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.

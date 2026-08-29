@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "locked": true,
   "preAuthoringRequired": true,
   "finalValidationRequired": true,
@@ -28,5 +28,15 @@
   ],
   "excludeExactPaths": [
     "README.md"
-  ]
+  ],
+  "requiredSourceAuthorityPaths": [
+    "cpf-docs/work/current/SOURCE_IDENTITY.json",
+    "cpf-tools/runtime/cli/java/CpfCli.java"
+  ],
+  "dynamicAuthorityRules": {
+    "sourceIdentity": "READ_CURRENT_SOURCE_IDENTITY_JSON",
+    "cliSurface": "PARSE_CURRENT_CPFCLI_JAVA",
+    "hardcodedSourceHashInValidator": "FORBIDDEN",
+    "hardcodedCliCommandSetInValidator": "FORBIDDEN"
+  }
 }

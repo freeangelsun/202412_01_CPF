@@ -1,0 +1,299 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.15.1",
+  "locked": true,
+  "purpose": "CPF Root README를 기술 메모가 아니라 전체 제품 Architecture/기능/개발/운영을 충분히 설명하는 제품 간판으로 강제한다.",
+  "minimumDepth": {
+    "visibleCharactersTotal": 14000,
+    "h2Sections": 8,
+    "substantiveParagraphs": 24,
+    "architectureSectionCharacters": 1600,
+    "developerJourneyCharacters": 1200,
+    "operationsFailureRecoveryCharacters": 900,
+    "documentationNavigationCharacters": 350
+  },
+  "requiredCoverageGroups": [
+    {
+      "id": "product_definition",
+      "any": [
+        "Core Platform Framework",
+        "Spring Boot",
+        "업무 시스템",
+        "Business Platform"
+      ],
+      "minHits": 2
+    },
+    {
+      "id": "architecture_entry_channel",
+      "any": [
+        "Channel",
+        "Frontend",
+        "BFF",
+        "Gateway",
+        "L4"
+      ],
+      "minHits": 2
+    },
+    {
+      "id": "architecture_gateway_options",
+      "any": [
+        "L4 + Gateway",
+        "L4 only",
+        "Gateway only",
+        "선택"
+      ],
+      "minHits": 2
+    },
+    {
+      "id": "architecture_domain",
+      "any": [
+        "Business Domain",
+        "cpf-member",
+        "cpf-external",
+        "cpf-backoffice"
+      ],
+      "minHits": 2
+    },
+    {
+      "id": "architecture_core_common",
+      "any": [
+        "cpf-core",
+        "cpf-common",
+        "Starter",
+        "Capability"
+      ],
+      "minHits": 3
+    },
+    {
+      "id": "architecture_batch",
+      "any": [
+        "cpf-batch",
+        "scheduler",
+        "worker",
+        "center-cut",
+        "agent"
+      ],
+      "minHits": 3
+    },
+    {
+      "id": "architecture_operations",
+      "any": [
+        "cpf-admin",
+        "ADM",
+        "운영",
+        "Observability",
+        "Trace"
+      ],
+      "minHits": 3
+    },
+    {
+      "id": "architecture_db",
+      "any": [
+        "Oracle",
+        "PostgreSQL",
+        "MariaDB",
+        "DB",
+        "Schema"
+      ],
+      "minHits": 4
+    },
+    {
+      "id": "runtime_identity",
+      "any": [
+        "instanceId",
+        "Hostname",
+        "System6",
+        "X-Transaction-Id",
+        "X-System-Code"
+      ],
+      "minHits": 2
+    },
+    {
+      "id": "failure_recovery",
+      "any": [
+        "UNKNOWN",
+        "Retry",
+        "Recovery",
+        "Reconcile",
+        "멱등",
+        "복구"
+      ],
+      "minHits": 3
+    },
+    {
+      "id": "developer_cli",
+      "sourceDerived": "ALL_PUBLIC_COMMANDS",
+      "minExplained": 10
+    },
+    {
+      "id": "navigation",
+      "any": [
+        "개발자 가이드",
+        "운영자",
+        "Gateway",
+        "Specification",
+        "PDF"
+      ],
+      "minHits": 3
+    }
+  ],
+  "architecture": {
+    "required": true,
+    "visualReferenceToken": "architecture",
+    "mustAppearBeforePercent": 45,
+    "requiredSemanticGroups": [
+      "entry/channel",
+      "gateway optionality",
+      "business domain",
+      "public starter/capability",
+      "core/common",
+      "batch runtime",
+      "admin/operations",
+      "backoffice boundary",
+      "database ownership",
+      "runtime identity/trace"
+    ],
+    "singleFigureOrFigurePlusCompanionMustExplainWholePlatform": true,
+    "moduleListOnlyIsFail": true
+  },
+  "developerGoldenPath": {
+    "requireAllPublicCommandsMentioned": true,
+    "requireExplanatoryContextForCoreCommands": true,
+    "coreCommandExplanationContextChars": 220,
+    "commandListOnlyIsFail": true,
+    "publicInternalBoundaryRequired": true,
+    "requiredJourneyOrderRoles": [
+      "environment/bootstrap",
+      "build",
+      "test",
+      "domain create/sync",
+      "run",
+      "status",
+      "stop/reset",
+      "doctor"
+    ],
+    "minimumPublicCommandsExplained": 10,
+    "sourceAuthorityMode": "DISCOVER_CURRENT_SOURCE_AT_VALIDATION"
+  },
+  "valueExplanation": {
+    "dedicatedBenefitHeadingForbidden": true,
+    "requiredValueThemesMin": 8,
+    "distinctSectionsMin": 5,
+    "keywordOnlyIsFail": true,
+    "minimumContextCharsAroundEvidence": 120,
+    "themes": [
+      "standardized developer path",
+      "topology independent domain call",
+      "failure/unknown recovery",
+      "DB3 portability",
+      "batch operability",
+      "security/audit",
+      "runtime traceability",
+      "generator consistency",
+      "operational visibility",
+      "optional capability composition"
+    ],
+    "themeEvidence": [
+      {
+        "id": "developer_path",
+        "any": [
+          "cpf bootstrap",
+          "cpf build",
+          "cpf test",
+          "cpf domain-new",
+          "cpf domain-sync"
+        ]
+      },
+      {
+        "id": "domain_invocation",
+        "any": [
+          "Same JVM",
+          "Remote",
+          "CpfDomainClient",
+          "Domain 호출"
+        ]
+      },
+      {
+        "id": "failure_recovery",
+        "any": [
+          "UNKNOWN",
+          "Reconcile",
+          "Retry",
+          "복구",
+          "멱등"
+        ]
+      },
+      {
+        "id": "db3",
+        "any": [
+          "Oracle",
+          "PostgreSQL",
+          "MariaDB"
+        ]
+      },
+      {
+        "id": "batch_operability",
+        "any": [
+          "scheduler",
+          "worker",
+          "center-cut",
+          "agent",
+          "Batch"
+        ]
+      },
+      {
+        "id": "security_audit",
+        "any": [
+          "권한",
+          "감사",
+          "승인",
+          "Audit",
+          "Permission"
+        ]
+      },
+      {
+        "id": "traceability",
+        "any": [
+          "X-Transaction-Id",
+          "System6",
+          "instanceId",
+          "Trace"
+        ]
+      },
+      {
+        "id": "generator_consistency",
+        "any": [
+          "Generator",
+          "Generated",
+          "domain-sync",
+          "생성"
+        ]
+      },
+      {
+        "id": "operations_visibility",
+        "any": [
+          "cpf-admin",
+          "ADM",
+          "운영",
+          "상태",
+          "모니터링"
+        ]
+      },
+      {
+        "id": "capability_composition",
+        "any": [
+          "Starter",
+          "Capability",
+          "Profile",
+          "선택"
+        ]
+      }
+    ]
+  },
+  "noUpperBoundPolicy": {
+    "totalCharacters": "NONE",
+    "totalPages": "NONE",
+    "totalSections": "NONE",
+    "rule": "설명이 길다는 이유로 Coverage를 삭제하지 않고 정보 구조를 개선한다."
+  }
+}

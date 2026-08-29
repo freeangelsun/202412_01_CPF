@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -1042,6 +1042,145 @@
         "firstLastRender": false
       },
       "reason": "확장자만 PDF인 파일 또는 Viewer/Parser에서 열리지 않는 PDF 전달 금지"
+    },
+    {
+      "id": "README_TOO_THIN_105",
+      "expect": "FAIL",
+      "mustTrigger": "readmeProductTooThin",
+      "input": {
+        "visibleCharacters": 5500,
+        "minimum": 14000
+      },
+      "reason": "짧은 브로셔/기능 카드 모음이 대표 README로 통과하는 False Green 금지"
+    },
+    {
+      "id": "README_NO_WHOLE_ARCH_106",
+      "expect": "FAIL",
+      "mustTrigger": "readmeArchitectureCoverageMissing",
+      "input": {
+        "requiredGroups": 10,
+        "coveredGroups": 4
+      },
+      "reason": "전체 Architecture 일부 Module만 있는 그림/설명 PASS 금지"
+    },
+    {
+      "id": "README_ARCH_MODULE_LIST_107",
+      "expect": "FAIL",
+      "mustTrigger": "readmeArchitectureModuleListOnly",
+      "input": {
+        "architectureSection": "module names only",
+        "flowExplained": false
+      },
+      "reason": "Module 나열을 전체 Architecture 설명으로 인정 금지"
+    },
+    {
+      "id": "README_CLI_LIST_ONLY_108",
+      "expect": "FAIL",
+      "mustTrigger": "readmeCliCommandListWithoutExplanation",
+      "input": {
+        "commandsMentioned": 12,
+        "commandsExplained": 0
+      },
+      "reason": "CLI 명령 목록만 존재하고 일반 개발자 사용 흐름이 없는 문서 PASS 금지"
+    },
+    {
+      "id": "README_CLI_SOURCE_MISMATCH_109",
+      "expect": "FAIL",
+      "mustTrigger": "readmeCliCurrentSourceMismatch",
+      "input": {
+        "sourcePublicCommands": 12,
+        "readmePublicCommands": 8
+      },
+      "reason": "현재 CpfCli Source와 README Surface 불일치 금지"
+    },
+    {
+      "id": "README_VALUE_KEYWORD_ONLY_110",
+      "expect": "FAIL",
+      "mustTrigger": "readmeBenefitKeywordOnly",
+      "input": {
+        "benefitKeywords": 10,
+        "substantiveContexts": 2,
+        "requiredContexts": 8
+      },
+      "reason": "장점 Keyword만 흩뿌린 얇은 설명 PASS 금지"
+    },
+    {
+      "id": "VISUAL_STALE_REVIEW_SHA_111",
+      "expect": "FAIL",
+      "mustTrigger": "visualReviewShaMismatch",
+      "input": {
+        "assetSha": "AAA",
+        "reviewSha": "BBB"
+      },
+      "reason": "변경 전 Human Review Evidence 승계 금지"
+    },
+    {
+      "id": "VISUAL_CONTACT_SHEET_ONLY_112",
+      "expect": "FAIL",
+      "mustTrigger": "visualContactSheetOnlyReview",
+      "input": {
+        "contactSheetReviewed": true,
+        "originalSizeReviewed": false,
+        "detailPass": false
+      },
+      "reason": "Contact Sheet만 보고 Visual 품질 승인 금지"
+    },
+    {
+      "id": "VISUAL_REPEAT_GRAMMAR_113",
+      "expect": "FAIL",
+      "mustTrigger": "visualRepeatedGrammarFingerprint",
+      "input": {
+        "visualCount": 9,
+        "distinctGrammars": 2,
+        "minimum": 5
+      },
+      "reason": "이름만 다른 둥근 카드/화살표 반복 PASS 금지"
+    },
+    {
+      "id": "VISUAL_CONNECTOR_TEXT_114",
+      "expect": "FAIL",
+      "mustTrigger": "visualConnectorThroughText",
+      "input": {
+        "connectorTextCollision": 1
+      },
+      "reason": "선이 중앙 Text/Label을 관통하는 그림 PASS 금지"
+    },
+    {
+      "id": "VISUAL_NODE_OUTSIDE_115",
+      "expect": "FAIL",
+      "mustTrigger": "visualNodeOutsideCanvas",
+      "input": {
+        "nodeOutsideCanvas": 1
+      },
+      "reason": "좌우 Node/Pill이 Canvas 밖으로 잘린 그림 PASS 금지"
+    },
+    {
+      "id": "USER_FINDING_OPEN_116",
+      "expect": "FAIL",
+      "mustTrigger": "userFindingStillOpen",
+      "input": {
+        "openFindings": 1
+      },
+      "reason": "사용자가 결함을 지적한 상태에서 이전 PASS 유지 금지"
+    },
+    {
+      "id": "USER_FINDING_NOT_REOPENED_117",
+      "expect": "FAIL",
+      "mustTrigger": "previousPassNotReopenedAfterUserFinding",
+      "input": {
+        "userFinding": true,
+        "previousPassInvalidated": false
+      },
+      "reason": "사용자 Finding 시 이전 PASS 자동 무효화"
+    },
+    {
+      "id": "SOURCE_VALIDATOR_HASH_HARDCODE_118",
+      "expect": "FAIL",
+      "mustTrigger": "sourceValidatorHardcodedIdentity",
+      "input": {
+        "validatorContains64HexLiteral": true
+      },
+      "reason": "Source Identity를 Validator 코드에 하드코딩 금지"
     }
   ]
 }

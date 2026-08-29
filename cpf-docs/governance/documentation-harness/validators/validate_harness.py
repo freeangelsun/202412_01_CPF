@@ -2,7 +2,7 @@
 import json,hashlib,re,subprocess,sys
 from pathlib import Path
 H=Path(__file__).resolve().parents[1]
-VER='2.13.0'
+VER='2.15.1'
 
 def fail(msg):
     print('HARNESS=FAIL',msg); raise SystemExit(1)
@@ -13,10 +13,13 @@ def load(rel):
     except Exception as e: fail(f'json {rel}: {e}')
 # Required executable-quality files.
 required=[
- 'harness.json','validators/validate_visual_comfort.py','validators/validate_rendered_page_composition.py','validators/validate_source_currentization.py','validators/capture_source_currentization.py','visual-comfort.json','VISUAL_COMFORT_STANDARD.md','rendered-page-composition.json','RENDERED_PAGE_COMPOSITION_STANDARD.md','source-currentization.json','SOURCE_CURRENTIZATION_STANDARD.md','READABILITY_AND_ACTIONABILITY_STANDARD.md','HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md','readability-actionability.json','architecture-visual-semantics.json','ARCHITECTURE_VISUAL_SEMANTIC_STANDARD.md','PDF_OPENABILITY_STANDARD.md','validators/validate_architecture_visual_semantics.py','validators/validate_pdf_openability.py','ANTI_PATTERN_CATALOG.md','MANUAL_REVIEW_SCORECARD.md','DOCUMENT_DESIGN_PLAYBOOK.md','README_BROCHURE_AND_AI_TEXT_STANDARD.md','INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','AUTHORING_EXECUTION_PROTOCOL.md','design-tokens.json','writing-style.json','content-density.json','document-output-rules.json','quality-acceptance.json','quality-fixtures.json','visual-qa.json','reader-task-coverage.json','readme-value-inventory.json','scope.json','table-presets.json','figure-presets.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARD_GATE_POLICY.md',
+ 'harness.json','validators/validate_visual_comfort.py','validators/validate_rendered_page_composition.py','validators/validate_source_currentization.py','validators/capture_source_currentization.py','visual-comfort.json','VISUAL_COMFORT_STANDARD.md','rendered-page-composition.json','RENDERED_PAGE_COMPOSITION_STANDARD.md','source-currentization.json','SOURCE_CURRENTIZATION_STANDARD.md','READABILITY_AND_ACTIONABILITY_STANDARD.md','HARNESS_DIAGNOSTIC_AND_REINFORCEMENT.md','readability-actionability.json','architecture-visual-semantics.json','ARCHITECTURE_VISUAL_SEMANTIC_STANDARD.md','PDF_OPENABILITY_STANDARD.md','validators/validate_architecture_visual_semantics.py','validators/validate_pdf_openability.py','ANTI_PATTERN_CATALOG.md','MANUAL_REVIEW_SCORECARD.md','DOCUMENT_DESIGN_PLAYBOOK.md','README_BROCHURE_AND_AI_TEXT_STANDARD.md','INFORMATION_ARCHITECTURE_AND_READER_NEEDS.md','AUTHORING_EXECUTION_PROTOCOL.md','design-tokens.json','writing-style.json','content-density.json','document-output-rules.json','quality-acceptance.json','quality-fixtures.json','visual-qa.json','reader-task-coverage.json','readme-value-inventory.json','scope.json','table-presets.json','figure-presets.json','HARNESS_LOCK.json','PACKAGE_MANIFEST.json','DELETE_MANIFEST.txt','DELETE_MANIFEST.json','HARD_GATE_POLICY.md','HARNESS_OWNERSHIP_BOUNDARY_STANDARD.md','ownership-boundary.json',
  'profiles/README.json','templates/ARTIFACT_REVIEW.template.json','templates/SESSION_RUN_MANIFEST.template.json','templates/FINAL_ACCEPTANCE.template.json',
  'validators/validate_source_alignment.py','validators/validate_quality_fixtures.py','validators/validate_readability_actionability.py','validators/validate_readme.py','validators/validate_docx_artifacts.py','validators/validate_reader_task_coverage.py','validators/validate_final_acceptance.py','validators/run_all_gates.py',
- 'validators/validate_source_alignment.ps1','validators/validate_quality_fixtures.ps1','validators/validate_readability_actionability.ps1','validators/validate_readme.ps1','validators/validate_docx_artifacts.ps1','validators/validate_final_acceptance.ps1','validators/run_all_gates.ps1'
+ 'validators/validate_source_alignment.ps1','validators/validate_quality_fixtures.ps1','validators/validate_readability_actionability.ps1','validators/validate_readme.ps1','validators/validate_docx_artifacts.ps1','validators/validate_final_acceptance.ps1','validators/run_all_gates.ps1',
+ 'README_PRODUCT_COMPLETENESS_STANDARD.md','VISUAL_HUMAN_QUALITY_STANDARD.md','FALSE_GREEN_PREVENTION_STANDARD.md','readme-product-completeness.json','visual-human-quality.json','false-green-policy.json',
+ 'validators/validate_readme_product_completeness.py','validators/validate_visual_human_review.py','validators/validate_user_finding_closure.py','validators/validate_false_green_prevention.py','validators/selftest_no_false_green.py',
+ 'validators/validate_readme_product_completeness.ps1','validators/validate_visual_human_review.ps1','validators/validate_user_finding_closure.ps1','validators/validate_false_green_prevention.ps1'
 ]
 for r in required:
     if not (H/r).is_file(): fail('required file '+r)
@@ -36,7 +39,7 @@ if h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authorit
 # Strict final acceptance must exist and be all-required.
 cg=h.get('completionGate',{})
 if cg.get('allRequired') is not True or cg.get('partialPass')!='forbidden': fail('completion gate strictness')
-for gid in ['SOURCE_ALIGNMENT_PASS','READABILITY_AND_ACTIONABILITY_PASS','SELECTION_TO_ACTION_PASS','DEVELOPER_WORKING_EXAMPLE_PASS','VISUAL_COMFORT_AND_DENSITY_PASS','README_SCANABILITY_PASS','README_NATURAL_VALUE_PASS','TABLE_PROPORTION_RENDER_PASS','READER_TASK_COMPLETENESS_PASS','DOCUMENT_SIZE_CAP_ABSENCE_PASS','CONTENT_COVERAGE_NOT_TRUNCATED_PASS','README_BROCHURE_PASS','README_AI_TEXT_COMPANION_PASS','INFORMATION_ARCHITECTURE_PASS','FULL_PAGE_FRESH_EYES_REVIEW_PASS','FLEXIBLE_TABLE_LAYOUT_PASS','LONG_DOCUMENT_NAVIGATION_PASS','MANUAL_EVIDENCE_COMPLETE_PASS','ARCHITECTURE_VISUAL_SEMANTIC_PASS','PDF_OPENABILITY_PASS','FINAL_ACCEPTANCE_AGGREGATOR_PASS']:
+for gid in ['SOURCE_ALIGNMENT_PASS','READABILITY_AND_ACTIONABILITY_PASS','SELECTION_TO_ACTION_PASS','DEVELOPER_WORKING_EXAMPLE_PASS','VISUAL_COMFORT_AND_DENSITY_PASS','README_SCANABILITY_PASS','README_NATURAL_VALUE_PASS','TABLE_PROPORTION_RENDER_PASS','READER_TASK_COMPLETENESS_PASS','DOCUMENT_SIZE_CAP_ABSENCE_PASS','CONTENT_COVERAGE_NOT_TRUNCATED_PASS','README_BROCHURE_PASS','README_AI_TEXT_COMPANION_PASS','INFORMATION_ARCHITECTURE_PASS','FULL_PAGE_FRESH_EYES_REVIEW_PASS','FLEXIBLE_TABLE_LAYOUT_PASS','LONG_DOCUMENT_NAVIGATION_PASS','MANUAL_EVIDENCE_COMPLETE_PASS','ARCHITECTURE_VISUAL_SEMANTIC_PASS','PDF_OPENABILITY_PASS','FINAL_ACCEPTANCE_AGGREGATOR_PASS','README_PRODUCT_COMPLETENESS_PASS','README_ARCHITECTURE_COMPLETENESS_PASS','README_EXPLANATION_DEPTH_PASS','README_DEVELOPER_GOLDEN_PATH_PASS','VISUAL_SEMANTIC_QUALITY_PASS','CURRENT_ARTIFACT_SHA_REVIEW_PASS','USER_FINDING_CLOSURE_PASS','FALSE_GREEN_PREVENTION_PASS']:
     if gid not in cg.get('required',[]): fail('missing completion gate '+gid)
 qa=load('quality-acceptance.json'); qids={s['id'] for s in qa.get('stages',[]) if s.get('required')}
 for gid in cg.get('required',[]):
@@ -79,7 +82,7 @@ if len(rc.get('requiredTaskDimensions',[]))<8: fail('reader task dimensions')
 if 'term presence is only a pre-check' not in rc.get('policy',''): fail('reader keyword-only false green')
 # User visual connector finding remains hard-zero.
 vq=load('visual-qa.json'); hf=vq.get('hardFail',{})
-for k in ['connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','promotionalBenefitHeading','readmeDenseWallOfText','semanticTableWidthInversion','shortTokenWrap','readerTaskKeywordOnlyFalseGreen','manualGateNotExecuted','manualEvidenceMissing','requiredGateNonPass','automatedOnlyFinalPassAttempt','documentTotalSizeCap','coverageTruncatedForLength','readmeBrochureStructureMissing','readmeVisualKoreanCompanionMissing','readmeImageAltMissing','readmeBrochureVisualRhythmMissing','informationArchitectureReaderNeedMismatch','longDocumentNavigationMissing','fixedWidthTableCausesWrap','manualFreshEyesReviewMissing','selectionWithoutNextAction','apiSummaryWithoutWorkingExample','developerChapterTableWall','readmeDenseCenteredHero','readmeFlatLongNavigation','readmeStackedCodeBlocks','longFlatListWall','consecutiveLongBulletWall','heavyBlockWall','uniformManualScoresWithoutEvidence','genericReaderPassEvidence','pagePackedForLength','architectureVisualOwnerMisclassified','backofficePlacedInOperationsEdge','backofficeBffConflated','pdfOpenabilityFailure']:
+for k in ['connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','promotionalBenefitHeading','readmeDenseWallOfText','semanticTableWidthInversion','shortTokenWrap','readerTaskKeywordOnlyFalseGreen','manualGateNotExecuted','manualEvidenceMissing','requiredGateNonPass','automatedOnlyFinalPassAttempt','documentTotalSizeCap','coverageTruncatedForLength','readmeBrochureStructureMissing','readmeVisualKoreanCompanionMissing','readmeImageAltMissing','readmeBrochureVisualRhythmMissing','informationArchitectureReaderNeedMismatch','longDocumentNavigationMissing','fixedWidthTableCausesWrap','manualFreshEyesReviewMissing','selectionWithoutNextAction','apiSummaryWithoutWorkingExample','developerChapterTableWall','readmeDenseCenteredHero','readmeFlatLongNavigation','readmeStackedCodeBlocks','longFlatListWall','consecutiveLongBulletWall','heavyBlockWall','uniformManualScoresWithoutEvidence','genericReaderPassEvidence','pagePackedForLength','architectureVisualOwnerMisclassified','backofficePlacedInOperationsEdge','backofficeBffConflated','pdfOpenabilityFailure','readmeProductTooThin','readmeArchitectureCoverageMissing','readmeArchitectureModuleListOnly','readmeCliCommandListWithoutExplanation','readmeCliCurrentSourceMismatch','readmeBenefitKeywordOnly','visualReviewShaMismatch','visualContactSheetOnlyReview','visualRepeatedGrammarFingerprint','visualConnectorThroughText','visualNodeOutsideCanvas','userFindingStillOpen','previousPassNotReopenedAfterUserFinding','sourceValidatorHardcodedIdentity']:
     if hf.get(k)!=0: fail('hardFail key '+k)
 # High-quality human review threshold must not be weakened.
 ms=qa.get('manualVisualScore',{})
@@ -176,8 +179,35 @@ if arch.get('hardRules',{}).get('backofficeAndBffConflated') is not False: fail(
 for rel in ['ARCHITECTURE_VISUAL_SEMANTIC_STANDARD.md','PDF_OPENABILITY_STANDARD.md']:
     if not (H/rel).is_file(): fail('semantic/openability standard missing '+rel)
 
+# No-excuse README/Visual hardening contract.
+rpc=load('readme-product-completeness.json')
+if int(rpc.get('minimumDepth',{}).get('visibleCharactersTotal',0))<14000: fail('README minimum explanation depth weakened')
+if int(rpc.get('minimumDepth',{}).get('architectureSectionCharacters',0))<1600: fail('README architecture depth weakened')
+if len(rpc.get('requiredCoverageGroups',[]))<12: fail('README product coverage groups incomplete')
+if rpc.get('developerGoldenPath',{}).get('sourceAuthorityMode')!='DISCOVER_CURRENT_SOURCE_AT_VALIDATION': fail('README CLI source authority mode')
+own=load('ownership-boundary.json')
+if own.get('ownedRoot')!='cpf-docs/governance/documentation-harness/': fail('harness owned root')
+if own.get('selfVerificationMustNotRequireExternalContext') is not True: fail('harness self verification external coupling')
+if own.get('contextValidatorsAreSeparateFromHarnessSelfValidation') is not True: fail('context/self validation separation')
+vhq=load('visual-human-quality.json')
+if vhq.get('policy',{}).get('contactSheetOnlyReviewForbidden') is not True: fail('contact-sheet-only review must be forbidden')
+if vhq.get('policy',{}).get('currentAssetShaRequired') is not True: fail('current asset SHA review required')
+if int(vhq.get('grammar',{}).get('minimumDistinctGrammarsForFiveOrMoreVisuals',0))<5: fail('visual grammar diversity weakened')
+for k in ['textOutsideCanvas','nodeOutsideCanvas','textNodeOverlap','connectorTextCollision','connectorNodeCollision','crop','overflow','semanticIncomplete']:
+    if k not in vhq.get('hardZeroMetrics',[]): fail('visual human hard-zero metric missing '+k)
+# Validator source may not embed a literal Source identity hash.
+hex64=re.compile(r'(?<![A-Fa-f0-9])[A-Fa-f0-9]{64}(?![A-Fa-f0-9])')
+for vp in (H/'validators').glob('*.py'):
+    if hex64.search(vp.read_text(encoding='utf-8')): fail('hardcoded 64-hex identity in validator '+vp.name)
+# Hardening self-test must physically prove stale review/negative fixtures are rejected.
+r=subprocess.run([sys.executable,str(H/'validators/selftest_no_false_green.py')],capture_output=True,text=True)
+if r.returncode!=0: fail('hardening selftest\n'+r.stdout+r.stderr)
+
 # Lock and package manifest hashes.
 lock=load('HARNESS_LOCK.json'); pm=load('PACKAGE_MANIFEST.json')
+actual_rel=sorted(str(x.relative_to(H)).replace('\\','/') for x in H.rglob('*') if x.is_file() and x.name not in {'HARNESS_LOCK.json','PACKAGE_MANIFEST.json'})
+if sorted(lock.get('files',{}).keys())!=actual_rel: fail('HARNESS_LOCK full file coverage mismatch')
+if sorted(x.get('path') for x in pm.get('files',[]))!=actual_rel: fail('PACKAGE_MANIFEST full file coverage mismatch')
 if lock.get('harnessVersion')!=VER or pm.get('harnessVersion')!=VER: fail('lock/manifest version')
 for rel,expected in lock.get('files',{}).items():
     p=H/rel

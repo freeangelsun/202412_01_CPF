@@ -1,0 +1,16 @@
+{
+  "domain": "member",
+  "status": "PASS",
+  "physicalRoot": "cpf-member",
+  "ia": {
+    "online": true,
+    "batch": true,
+    "batchCapabilitySelection": "DEVELOPER_GRADLE_CONTRACT"
+  },
+  "developerContract": "gradle.properties",
+  "generatorMetadata": "ABSENT",
+  "publicBoundary": "PASS",
+  "db3Renderer": "EXTERNAL_CANONICAL_RENDERER",
+  "runtimeConsumers": "BUILD_GENERATED_DESCRIPTOR",
+  "generatedFiles": 49
+}

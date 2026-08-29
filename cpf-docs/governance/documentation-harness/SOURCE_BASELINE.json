@@ -1,8 +1,8 @@
 {
-  "harnessVersion": "2.13.0",
-  "createdAtKst": "2026-08-28T23:51:00+09:00",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
-  "sha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
+  "harnessVersion": "2.15.1",
+  "createdAtKst": "2026-08-29T21:00:00+09:00",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_153927.zip",
+  "sha256": "0866C9D3548981E0E406AFF1EBB71ED17B87B16CEB9731B189B474FD9F4D88A7",
   "canonicalRequirements": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
   "starterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "publicProfiles": [
@@ -182,52 +182,34 @@
     }
   ],
   "actualCliSurface": {
-    "crossPlatform": "cpf-cli.jar + cpf/cpf.cmd/cpf.ps1 thin launchers",
-    "groups": [
-      "domain",
-      "db",
-      "verify",
-      "open-git"
-    ],
-    "domainCommands": [
-      "create",
-      "setup",
-      "sync",
-      "diff",
-      "remove"
-    ],
-    "dbCommands": [
-      "render"
-    ],
-    "verifyCommands": [
-      "generator",
-      "domain",
-      "all"
-    ],
-    "openGitCommands": [
-      "build",
-      "check",
-      "status"
-    ],
-    "developmentHelper": "cpf-tools/build/tools/cpf-dev.ps1",
-    "developmentHelperActions": [
+    "canonicalImplementation": "cpf-tools/runtime/cli/java/CpfCli.java",
+    "exactlyOneOfficialToolingInterface": true,
+    "publicCommands": [
+      "bootstrap",
+      "domain-new",
+      "domain-sync",
       "build",
       "test",
-      "verify-fast",
-      "verify-targeted",
-      "verify-full",
-      "run-local",
-      "run-batch",
-      "status",
+      "run",
       "stop",
-      "modules",
-      "resource"
-    ]
+      "reset",
+      "status",
+      "doctor",
+      "version",
+      "help"
+    ],
+    "internalNamespaces": [
+      "dev",
+      "verify",
+      "publish",
+      "release"
+    ],
+    "rule": "README/Developer Guide는 매 실행 시 CpfCli.java에서 Public/Internal surface를 재추출한다. 과거 helper/wrapper를 일반 개발자 공식 CLI로 승격하지 않는다."
   },
   "notes": [
-    "이 Baseline은 Harness 생성 근거다. 이후 Source가 바뀌어도 Harness는 자동 수정하지 않는다.",
-    "산출물 세션은 최신 Source를 다시 Inventory하고 이 Baseline과 차이가 있으면 Source Drift를 기록한다.",
-    "CLI는 실제 해당 Source에서 다시 추출한 뒤 사용자 문서에 적는다. Baseline 문자열을 무조건 재사용하지 않는다."
+    "이 Baseline은 현재 Harness가 검증한 Source Authority Snapshot이다. Source가 바뀌면 Validator가 drift로 FAIL하고 재-currentization을 요구한다.",
+    "Validator Source 안에 Source SHA/CLI command를 하드코딩하지 않는다. SOURCE_IDENTITY.json과 CpfCli.java를 실행 시 읽는다.",
+    "사용자용 README는 이 Baseline 문자열을 복사하지 않고 실제 Source에서 다시 추출한 뒤 설명한다."
   ],
   "verifiedAtKst": "2026-08-28T23:51:00+09:00",
   "sourceType": "USER_PROVIDED_FINAL_SOURCE_ZIP",
@@ -235,13 +217,15 @@
   "branch": "master",
   "sourceCommit": "UNAVAILABLE_IN_SUPPLIED_ZIP",
   "workingSourceAuthority": "USER_PROVIDED_FINAL_SOURCE_ZIP",
-  "sourceIdentity": "ZIP_SHA256:34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
+  "sourceIdentity": "PRODUCT_SOURCE_IDENTITY:398EBF1EE0D80F9FFC2BF80E9AD8B0E6834CEA8AB0A84E2E5B131AA64672C717",
   "documentationAssetsObserved": {
     "README": 1,
     "officialDocx": 11,
     "officialPdf": 11,
     "productVisualPng": 9,
-    "documentationHarnessFilesBeforeRefinement": 79,
-    "sourceZipTotalFiles": 10447
-  }
+    "sourceZipTotalFiles": 8838
+  },
+  "productSourceIdentity": "398EBF1EE0D80F9FFC2BF80E9AD8B0E6834CEA8AB0A84E2E5B131AA64672C717",
+  "productSourceFileCount": 8320,
+  "fullTreeCurrentFileCount": 8832
 }

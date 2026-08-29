@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.15.1",
+  "locked": true,
+  "rules": [
+    "사용자가 실제 화면에서 결함을 발견하면 이전 자동 PASS/수동 PASS를 즉시 무효화한다.",
+    "해당 Finding을 Harness Rule + Validator + Negative Fixture + Final Required Gate에 반영하기 전 재완료 금지.",
+    "README 전체성/설명 깊이는 keyword 존재만으로 PASS하지 않는다.",
+    "Visual은 파일 존재/이미지 크기/Contact Sheet만으로 PASS하지 않는다.",
+    "Human Review Evidence는 현재 Artifact SHA와 일치해야 하며 변경 후 자동 승계하지 않는다.",
+    "Source Identity/CLI Surface는 Validator에 64자리 SHA나 Command Set으로 하드코딩하지 않는다."
+  ],
+  "finalPassInvalidators": [
+    "OPEN_USER_FINDING",
+    "STALE_MANUAL_EVIDENCE_SHA",
+    "KEYWORD_ONLY_COVERAGE",
+    "AUTOMATION_ONLY_VISUAL_PASS",
+    "SOURCE_DRIFT",
+    "MISSING_WHOLE_ARCHITECTURE",
+    "INSUFFICIENT_EXPLANATION_DEPTH"
+  ]
+}

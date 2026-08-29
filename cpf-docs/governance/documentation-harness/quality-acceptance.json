@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -318,12 +318,60 @@
       "automated": true,
       "required": true,
       "meaning": "최신 Source Catalog/Public artifact/API inventory가 Harness baseline과 일치"
+    },
+    {
+      "id": "README_PRODUCT_COMPLETENESS_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "README가 전체 제품 정의/기능/운영/문서 탐색을 충분한 깊이로 설명"
+    },
+    {
+      "id": "README_ARCHITECTURE_COMPLETENESS_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "전체 Architecture가 Channel→Gateway→Domain→Capability/Core/Common→Batch/ADM/Backoffice→DB/Trace까지 완결"
+    },
+    {
+      "id": "README_EXPLANATION_DEPTH_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "Keyword/짧은 카드 나열이 아니라 각 핵심 주제에 선택·동작·결과·실패/운영 설명이 충분함"
+    },
+    {
+      "id": "README_DEVELOPER_GOLDEN_PATH_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "현재 Source에서 추출한 Public cpf CLI 전체와 일반 개발자 사용 순서/경계가 설명됨"
+    },
+    {
+      "id": "VISUAL_SEMANTIC_QUALITY_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "Visual이 실제 의미를 빠르게 전달하며 겹침/관통/잘림/단조로운 문법 반복 0"
+    },
+    {
+      "id": "CURRENT_ARTIFACT_SHA_REVIEW_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "Human Review Evidence가 현재 README/DOCX/PDF/Visual SHA와 일치하며 stale review 0"
+    },
+    {
+      "id": "USER_FINDING_CLOSURE_PASS",
+      "type": "AUTOMATED_AND_MANUAL",
+      "required": true,
+      "pass": "현재 사용자 Finding open 0; 사용자 Finding 발생 시 이전 PASS 즉시 무효화"
+    },
+    {
+      "id": "FALSE_GREEN_PREVENTION_PASS",
+      "type": "AUTOMATED",
+      "required": true,
+      "pass": "Negative Fixture와 Self-test가 자동 PASS/Keyword-only/Contact-sheet-only false green을 실제 거부"
     }
   ],
   "manualVisualScore": {
     "scale": "1..5",
-    "minimumEach": 4,
-    "minimumAverage": 4.6,
+    "minimumEach": 4.2,
+    "minimumAverage": 4.7,
     "dimensions": [
       "hierarchy_and_scanability",
       "vertical_rhythm",
@@ -366,7 +414,14 @@
       "visual_comfort",
       "information_hierarchy",
       "flat_list_density",
-      "heavy_block_rhythm"
+      "heavy_block_rhythm",
+      "readme_product_completeness",
+      "readme_architecture_completeness",
+      "readme_explanation_depth",
+      "readme_developer_golden_path",
+      "visual_semantic_clarity",
+      "visual_narrative_progression",
+      "current_sha_review_integrity"
     ],
     "criticalZeroRequired": [
       "text_overlap",

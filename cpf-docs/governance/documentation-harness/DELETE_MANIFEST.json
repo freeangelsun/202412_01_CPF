@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "currentCanonicalPath": "cpf-docs/governance/documentation-harness",
   "wildcards": [],
   "delete": [

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "documentId": "ARCHITECTURE_DESIGN",
   "title": "CPF 아키텍처설계서",
   "locked": true,

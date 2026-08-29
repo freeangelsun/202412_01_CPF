@@ -1,4 +1,4 @@
-# CPF Documentation Hard Gate Policy — v2.13.0
+# CPF Documentation Hard Gate Policy — v2.15.1
 
 ## 1. 최종 PASS의 유일한 정의
 
@@ -42,7 +42,7 @@ Connector/Arrow는 대상 Box 외곽 Boundary에서 끝나야 한다. Target/Sou
 Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나만 유지한다. versioned folder, `_old`, `_backup`, `_history`, `_session`, stale snapshot을 남기지 않는다. 삭제는 `DELETE_MANIFEST.txt`의 exact Root-relative 경로만 사용한다.
 
 
-## v2.13.0 강제 보강
+## v2.15.1 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -59,7 +59,7 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 
 
 
-## Harness 2.13.0 Visual Quality Uplift
+## Harness 2.15.1 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
@@ -75,4 +75,7 @@ Repository에는 `cpf-docs/governance/documentation-harness/` 현행본 하나�
 - `cpf-backoffice-web` Channel/BFF와 `cpf-backoffice` Business Domain을 합쳐 표현하면 FAIL입니다.
 - Architecture Figure 변경 시 `architecture-visual-semantics.json`과 이미지 SHA를 함께 갱신합니다.
 - 공식 PDF는 `validate_pdf_openability.py`에서 Header/EOF/암호화/Parser/Page Count/첫·마지막 Page Render를 모두 통과해야 합니다. VS Code Text Editor에서 Binary로 보이는 현상은 Viewer association과 구분해 판정합니다.
+## README 제품 전체성과 False Green 차단
+
+README가 짧고 보기 좋은 카드 모음이어도 전체 Architecture/기능/개발/운영 설명이 부족하면 FAIL이다. `README_PRODUCT_COMPLETENESS_PASS`, `README_ARCHITECTURE_COMPLETENESS_PASS`, `README_EXPLANATION_DEPTH_PASS`, `README_DEVELOPER_GOLDEN_PATH_PASS`는 모두 필수다. 사용자 Finding open 또는 stale Human Review SHA가 있으면 최종 PASS를 금지한다.
 

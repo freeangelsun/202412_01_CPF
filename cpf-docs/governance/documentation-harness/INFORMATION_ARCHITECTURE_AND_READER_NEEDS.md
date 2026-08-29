@@ -1,4 +1,4 @@
-# Information Architecture & Reader Needs — v2.13.0
+# Information Architecture & Reader Needs — v2.15.1
 
 문서의 품질은 내용량보다 **독자가 필요한 답을 얼마나 빨리 찾고 끝낼 수 있는지**로 판정한다. CPF 문서는 Diátaxis의 사용자 요구 구분을 참고하되 CPF 문서 체계에 맞게 적용한다.
 

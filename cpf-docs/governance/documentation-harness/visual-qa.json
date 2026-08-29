@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -186,7 +186,21 @@
     "architectureVisualOwnerMisclassified": 0,
     "backofficePlacedInOperationsEdge": 0,
     "backofficeBffConflated": 0,
-    "pdfOpenabilityFailure": 0
+    "pdfOpenabilityFailure": 0,
+    "readmeProductTooThin": 0,
+    "readmeArchitectureCoverageMissing": 0,
+    "readmeArchitectureModuleListOnly": 0,
+    "readmeCliCommandListWithoutExplanation": 0,
+    "readmeCliCurrentSourceMismatch": 0,
+    "readmeBenefitKeywordOnly": 0,
+    "visualReviewShaMismatch": 0,
+    "visualContactSheetOnlyReview": 0,
+    "visualRepeatedGrammarFingerprint": 0,
+    "visualConnectorThroughText": 0,
+    "visualNodeOutsideCanvas": 0,
+    "userFindingStillOpen": 0,
+    "previousPassNotReopenedAfterUserFinding": 0,
+    "sourceValidatorHardcodedIdentity": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,

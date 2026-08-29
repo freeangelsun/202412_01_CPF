@@ -15,7 +15,7 @@ def dist_to_boundary(x,y,r):
     return min(abs(x-rx),abs(x-(rx+rw)),abs(y-ry),abs(y-(ry+rh)))
 if not M.is_file(): fail('manifest missing')
 d=json.loads(M.read_text(encoding='utf-8'))
-if d.get('harnessVersion')!='2.13.0': fail('manifest harnessVersion; current assets must be regenerated/re-manifested for Harness 2.13.0')
+if d.get('harnessVersion')!='2.15.1': fail('manifest harnessVersion; current assets must be regenerated/re-manifested for Harness 2.15.1')
 if d.get('schemaVersion')!='2.0': fail('manifest schemaVersion 2.0 required')
 assets=d.get('assets',[])
 if not assets: fail('assets empty')

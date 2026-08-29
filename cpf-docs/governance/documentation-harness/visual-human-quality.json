@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0",
+  "harnessVersion": "2.15.1",
+  "locked": true,
+  "policy": {
+    "automatedPassNeverOverridesHumanFinding": true,
+    "contactSheetOnlyReviewForbidden": true,
+    "originalSizeReviewRequired": true,
+    "currentAssetShaRequired": true,
+    "twoPassReviewRequired": true,
+    "embeddedSurfaceReviewRequired": true
+  },
+  "hardZeroMetrics": [
+    "textOutsideCanvas",
+    "nodeOutsideCanvas",
+    "textNodeOverlap",
+    "labelOverlap",
+    "connectorTextCollision",
+    "connectorNodeCollision",
+    "connectorOutsideCanvas",
+    "arrowBoundaryViolation",
+    "crop",
+    "overflow",
+    "tinyTextForced",
+    "lowContrastRequiredText",
+    "semanticIncomplete",
+    "unlabeledConnectorEnd",
+    "visualGrammarConceptMismatch"
+  ],
+  "grammar": {
+    "minimumDistinctGrammarsForFiveOrMoreVisuals": 5,
+    "adjacentSameGrammarAllowed": 0,
+    "roundedRectangleArrowChainMaximum": 1,
+    "dominantGrammarShareMaximumPct": 45,
+    "grammarNameOnlyWithoutGeometryFingerprint": "FAIL"
+  },
+  "reviewEvidence": {
+    "requiredFields": [
+      "reviewer",
+      "reviewedAt",
+      "artifactPath",
+      "artifactSha256",
+      "scanPass",
+      "detailPass",
+      "originalSizeReviewed",
+      "issues"
+    ],
+    "staleSha": "FAIL",
+    "genericAllPassWithoutPerVisualEvidence": "FAIL",
+    "userReportedDefectAfterPass": "REOPEN_AND_FAIL"
+  },
+  "requiredSurfacesForReadme": [
+    "source-image",
+    "readme-900",
+    "readme-1200",
+    "readme-1440"
+  ],
+  "requiredSurfacesForEmbeddedDocumentFigure": [
+    "source-image",
+    "docx-render",
+    "pdf-render"
+  ]
+}

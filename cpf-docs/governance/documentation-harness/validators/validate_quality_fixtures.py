@@ -87,6 +87,20 @@ def evaluate(x):
     if trig=='backofficePlacedInOperationsEdge': return i.get('node')=='cpf-backoffice' and i.get('zone') in ('PLATFORM_OPERATIONS_RUNTIME','CHANNEL_EDGE','OPERATIONS_EDGE')
     if trig=='backofficeBffConflated': return i.get('conflated') is True and set(i.get('singleNodeLabels',[]))>={'cpf-backoffice','cpf-backoffice-web'}
     if trig=='pdfOpenabilityFailure': return i.get('pdfHeaderValid') is not True or i.get('parserOpen') is not True or i.get('firstLastRender') is not True
+    if trig=='readmeProductTooThin': return int(i.get('visibleCharacters',0))<int(i.get('minimum',0))
+    if trig=='readmeArchitectureCoverageMissing': return int(i.get('coveredGroups',0))<int(i.get('requiredGroups',0))
+    if trig=='readmeArchitectureModuleListOnly': return i.get('architectureSection')=='module names only' and i.get('flowExplained') is not True
+    if trig=='readmeCliCommandListWithoutExplanation': return int(i.get('commandsMentioned',0))>0 and int(i.get('commandsExplained',0))==0
+    if trig=='readmeCliCurrentSourceMismatch': return int(i.get('sourcePublicCommands',0))!=int(i.get('readmePublicCommands',0))
+    if trig=='readmeBenefitKeywordOnly': return int(i.get('benefitKeywords',0))>=int(i.get('requiredContexts',0)) and int(i.get('substantiveContexts',0))<int(i.get('requiredContexts',0))
+    if trig=='visualReviewShaMismatch': return str(i.get('assetSha'))!=str(i.get('reviewSha'))
+    if trig=='visualContactSheetOnlyReview': return i.get('contactSheetReviewed') is True and (i.get('originalSizeReviewed') is not True or i.get('detailPass') is not True)
+    if trig=='visualRepeatedGrammarFingerprint': return int(i.get('visualCount',0))>=5 and int(i.get('distinctGrammars',0))<int(i.get('minimum',5))
+    if trig=='visualConnectorThroughText': return int(i.get('connectorTextCollision',0))>0
+    if trig=='visualNodeOutsideCanvas': return int(i.get('nodeOutsideCanvas',0))>0
+    if trig=='userFindingStillOpen': return int(i.get('openFindings',0))>0
+    if trig=='previousPassNotReopenedAfterUserFinding': return i.get('userFinding') is True and i.get('previousPassInvalidated') is not True
+    if trig=='sourceValidatorHardcodedIdentity': return i.get('validatorContains64HexLiteral') is True
     return False
 
 errors=[]

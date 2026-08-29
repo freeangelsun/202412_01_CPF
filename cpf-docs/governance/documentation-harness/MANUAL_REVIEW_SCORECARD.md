@@ -1,4 +1,4 @@
-# CPF Documentation Manual Review Scorecard — v2.13.0
+# CPF Documentation Manual Review Scorecard — v2.15.1
 
 자동 Validator는 필요조건일 뿐이다. 최종 품질은 실제 Render를 사람이 두 번 보고 아래 Scorecard로 판정한다.
 
@@ -56,7 +56,7 @@ Persona 역할로 문서를 처음부터 사용해 본다.
 - AI/검색/텍스트 독자가 Figure 설명만으로 핵심 의미를 이해할 수 있는가
 
 
-## Harness 2.13.0 Visual Quality Uplift
+## Harness 2.15.1 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
@@ -68,4 +68,6 @@ Persona 역할로 문서를 처음부터 사용해 본다.
 ## Reader Trace / Visual Comfort Evidence
 
 대표 Reader Task 최소 3개를 `시작 위치 → 선택 → 행동 → 결과 확인`으로 추적한다. `reader_actionability`, `selection_to_action`, `working_example_fit`, `failure_recovery_closure`, `visual_comfort`, `information_hierarchy`, `flat_list_density`, `heavy_block_rhythm` 각각에 page/section과 관찰 근거를 남긴다. 평균 4.6 이상이어도 동일 점수를 일괄 입력한 기록은 Evidence가 없으면 승인하지 않는다.
+## 추가 필수 평가
+README Product Completeness, Whole Architecture, Explanation Depth, Developer Golden Path, Visual Semantic Clarity, Current SHA Review Integrity는 각각 독립 점수와 구체 Evidence를 남긴다. 동일 점수 일괄 입력은 Evidence가 없으면 FAIL이다.
 

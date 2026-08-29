@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "artifact": "",
   "baselineState": "",
   "baselineRef": "",
@@ -129,7 +129,15 @@
     "visualComfort": "NOT_EXECUTED",
     "heavyBlockRhythm": "NOT_EXECUTED",
     "flatListGrouping": "NOT_EXECUTED",
-    "failureRecoveryClosure": "NOT_EXECUTED"
+    "failureRecoveryClosure": "NOT_EXECUTED",
+    "readmeProductCompleteness": "NOT_EXECUTED",
+    "readmeWholeArchitecture": "NOT_EXECUTED",
+    "readmeExplanationDepth": "NOT_EXECUTED",
+    "readmeDeveloperGoldenPath": "NOT_EXECUTED",
+    "visualSemanticQuality": "NOT_EXECUTED",
+    "currentArtifactShaReview": "NOT_EXECUTED",
+    "userFindingClosure": "NOT_EXECUTED",
+    "falseGreenPrevention": "NOT_EXECUTED"
   },
   "evidenceRefs": [],
   "unresolvedCriticalFindings": [],
@@ -160,5 +168,9 @@
     "flat_list_density": [],
     "heavy_block_rhythm": []
   },
-  "scoreUniformityJustification": ""
+  "scoreUniformityJustification": "",
+  "currentArtifactShaEvidence": {
+    "required": true,
+    "files": []
+  }
 }

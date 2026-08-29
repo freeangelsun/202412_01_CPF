@@ -1,4 +1,4 @@
-# README Brochure & AI Text Standard — v2.13.0
+# README Brochure & AI Text Standard — v2.15.1
 
 README는 단순 Reference 문서가 아니라 **CPF의 첫 인상을 만드는 다크 브로셔형 제품 간판**이다. 동시에 이미지에 의존하지 않고 AI·검색·텍스트 독자가 내용을 이해할 수 있어야 한다.
 
@@ -54,3 +54,6 @@ Source로 확인 가능한 가치가 충분한데 README에서 이를 지나치�
 - Coverage를 길이 때문에 삭제
 - 다크 Surface와 Figure가 묻힘
 - 동일 Visual Grammar 반복
+## 제품 설명 충분성
+Brochure는 얇게 쓰라는 뜻이 아니다. 전체 Architecture와 핵심 기능·개발·운영을 충분히 설명한 뒤 시각적으로 읽기 쉽게 구성한다. 설명을 줄여 간판처럼 보이게 만드는 것은 금지한다.
+

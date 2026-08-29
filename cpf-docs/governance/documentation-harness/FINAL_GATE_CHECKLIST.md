@@ -1,4 +1,4 @@
-# CPF Documentation 최종 Gate Checklist — Harness v2.13.0
+# CPF Documentation 최종 Gate Checklist — Harness v2.15.1
 
 **한 항목이라도 미실행·FAIL·BLOCKED·UNKNOWN이면 최종 PASS 불가.** 마지막 판정은 `validate_final_acceptance`가 수행한다.
 
@@ -101,7 +101,7 @@
 - [ ] `AUTOMATED_PASS_ONLY/NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED` 상태 0
 
 
-## v2.13.0 강제 보강
+## v2.15.1 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -126,4 +126,10 @@
 - [ ] Architecture Figure SHA와 `architecture-visual-semantics.json` 일치
 - [ ] 공식 PDF 11종이 pypdf + PyMuPDF에서 Open되고 첫/마지막 Page가 Render됨
 - [ ] PDF가 Git LFS pointer/HTML 오류 응답/암호화 파일이 아님
+## README 대표 문서 Hard Gate
+- [ ] 전체 Architecture가 Entry/Channel/Gateway/Domain/Starter/Core/Common/Batch/ADM/Backoffice/DB/Trace까지 연결됨
+- [ ] 일반 개발자 Public `cpf` CLI가 현재 Source와 동일하고 실제 사용 순서/시점/결과가 설명됨
+- [ ] 각 핵심 기능 설명이 Keyword/카드 한 줄이 아니라 충분한 동작·선택·실패/복구/운영 맥락을 가짐
+- [ ] 장점이 구조·동작의 결과로 5개 이상 기능 Section에 자연스럽게 분산됨
+- [ ] 사용자 Finding open=0, Human Review SHA stale=0
 

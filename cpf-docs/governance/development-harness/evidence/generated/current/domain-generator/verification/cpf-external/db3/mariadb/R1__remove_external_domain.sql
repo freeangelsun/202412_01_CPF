@@ -1,0 +1,6 @@
+-- GENERATED FILE. DO NOT EDIT.
+-- Role: CUSTOMER_BUSINESS_DB
+-- Vendor: mariadb
+
+DROP TABLE IF EXISTS EXS_sample_item_idem CASCADE;
+DROP TABLE IF EXISTS EXS_sample_item CASCADE;

@@ -1,4 +1,4 @@
-# CPF Documentation Anti-Pattern Catalog — v2.13.0
+# CPF Documentation Anti-Pattern Catalog — v2.15.1
 
 Harness 작성자가 반복 실수를 즉시 식별하도록 **실패 모양 → 올바른 방향**을 정리한다. 아래 항목은 하나라도 남으면 해당 Gate를 PASS할 수 없다.
 
@@ -61,7 +61,7 @@ Harness 작성자가 반복 실수를 즉시 식별하도록 **실패 모양 →
 
 
 
-## Harness 2.13.0 Visual Quality Uplift
+## Harness 2.15.1 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.

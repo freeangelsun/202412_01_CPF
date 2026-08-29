@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.1",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -388,6 +388,17 @@
       "flatListItemsHardFail": 7,
       "groupingRequired": "3~5개의 의미 그룹",
       "itemRule": "한 줄 목적 + PDF link; 긴 설명을 한 Flat list에 쌓지 않는다."
+    },
+    "productCompleteness": {
+      "contractRef": "readme-product-completeness.json",
+      "required": true,
+      "wholeArchitectureRequired": true,
+      "minimumExplanationDepthRequired": true,
+      "developerCliGoldenPathRequired": true,
+      "naturalBenefitExplanationRequired": true,
+      "thinBrochureOrFeatureCardCollection": "FAIL",
+      "architectureImageWithoutWholePlatformExplanation": "FAIL",
+      "commandListWithoutUsageJourney": "FAIL"
     }
   },
   "coverageLocked": true,
@@ -507,5 +518,11 @@
       "reference"
     ],
     "rule": "해당 Persona가 문서만 따라 실제 업무를 끝낼 수 있어야 한다. 각 단계가 다른 문서에 있으면 직접 연결되는 Reference와 이동 이유를 제공한다."
+  },
+  "manualHardGates": {
+    "firstReadProductComprehension": "처음 보는 독자가 60초 내 CPF가 무엇이고 전체 시스템이 어떻게 구성되는지 설명 가능해야 함",
+    "wholeArchitecture": "Channel/Gateway/Domain/Starter/Core/Common/Batch/ADM/Backoffice/DB/Trace가 하나의 전체 구조로 이해됨",
+    "benefitDepth": "장점 전용 홍보 장 없이 각 구조/기능 설명에서 실제 편의·운영효과가 충분히 이해됨",
+    "developerJourney": "일반 개발자가 Public cpf CLI를 언제 어떤 순서로 쓰는지 README만 보고 시작 가능함"
   }
 }

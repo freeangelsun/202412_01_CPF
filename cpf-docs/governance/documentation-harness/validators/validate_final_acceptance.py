@@ -30,7 +30,7 @@ def main():
     try:m=load_json(mp)
     except Exception as e: print('FINAL_ACCEPTANCE=FAIL '+str(e)); return 2
     errs=[]
-    if m.get('harnessVersion')!='2.13.0': errs.append('manifest harnessVersion must be 2.13.0')
+    if m.get('harnessVersion')!='2.15.1': errs.append('manifest harnessVersion must be 2.15.1')
     stages={x['id']:x for x in QA.get('stages',[]) if x.get('required')}
     gates=m.get('gates',{})
     evidence=m.get('gateEvidence',{})
@@ -72,7 +72,7 @@ def main():
         if not ref or not rp.is_file(): errs.append(f'artifact review file missing: {aid} -> {ref}'); continue
         try:r=load_json(rp)
         except Exception as e: errs.append(str(e)); continue
-        if r.get('harnessVersion')!='2.13.0': errs.append(f'{aid}: review harnessVersion mismatch')
+        if r.get('harnessVersion')!='2.15.1': errs.append(f'{aid}: review harnessVersion mismatch')
         if r.get('approvalState') not in ALLOWED_APPROVAL: errs.append(f'{aid}: approvalState {r.get("approvalState")} not approved')
         if r.get('unresolvedCriticalFindings'): errs.append(f'{aid}: unresolvedCriticalFindings not empty')
         mg=r.get('manualGates',{})

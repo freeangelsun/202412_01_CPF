@@ -12,7 +12,7 @@ def fail(msg):
 def main():
     if not CFG.is_file(): fail('missing architecture-visual-semantics.json')
     d=json.loads(CFG.read_text(encoding='utf-8'))
-    if d.get('harnessVersion')!='2.13.0': fail('harnessVersion mismatch')
+    if d.get('harnessVersion')!='2.15.1': fail('harnessVersion mismatch')
     asset=ROOT/d.get('asset','')
     if not asset.is_file(): fail('asset missing '+str(asset))
     actual=hashlib.sha256(asset.read_bytes()).hexdigest().upper()

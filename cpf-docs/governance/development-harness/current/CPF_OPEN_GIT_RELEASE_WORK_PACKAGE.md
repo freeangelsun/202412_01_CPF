@@ -153,20 +153,3 @@ Steering의 문단 순서는 구현 우선순위가 아니다. Downstream Source
 ## 10. 명령 전수 실행 원장
 
 실제 Release 생성 후 `help`, Dispatcher, PowerShell/POSIX Wrapper에서 명령·옵션·기본값을 추출해 하나의 실행 원장을 만든다. 각 행은 인식, 구현 일치, Package 입력 파일, Private/Maven Local 독립성, Windows/POSIX parity, 진행 UX, 종료 UX, 재실행 안전성, 성공 실행, 실패 실행, Evidence를 가져야 한다. Help 또는 파일 존재만으로 완료 처리하지 않는다.
-## 11. 2026-08-29 Actual Fresh Release 재개방 Finding
-
-Source 입력은 `CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_211247(1).zip` SHA-256 `E6E343947AB4D829996107833AD20CD056D35BAC340013F58E0B2068C9694B30`이다. 사용자가 실행한 Binary Profile Release는 Stage `05/14 Framework Binary Publication`에서 `:nxt3LayoutGate` 실패로 종료되었으며 Commit/Push는 실행되지 않았다. 실패 중간 `cpf-release.zip`은 최종 Release Evidence나 배포본으로 사용하지 않는다.
-
-이번 재개방의 Root Cause와 Source 보정은 다음과 같다.
-
-- NXT3 Garbage/Delete authority가 `CURRENT_DEVELOPMENT_STATUS.csv`로 잘못 연결된 경로를 `CURRENT_GARBAGE_DECISIONS.csv`로 교정한다. `DELETE_MANIFEST.csv`와 함께 Current authority를 유지하며 Gate를 완화하지 않는다.
-- `gradlew clean` 뒤 `compileJava=NO-SOURCE`인 Java aggregate/profile project의 Buildship output이 사라지는 문제는 실제 Source가 0인 Java project를 자동 탐색해 Gradle User Home의 stable output으로만 materialize한다. 특정 cpf-admin/profile 하드코딩, fake class, API 추가로 우회하지 않는다.
-- Framework Binary는 이전 `build/libs`, 사용자 `~/.m2`, 과거 `cpf-release`를 복사하지 않는다. Release 시작 시 exact `<CPF_ROOT>/cpf-release`를 안전 확인 후 전체 삭제하고, 현재 Source에서 `clean cpfBuild qualityGate cpfTest publicationGate publishCpfVerifiedLocalPlatformArtifacts`를 실행해 Fresh Maven staging을 생성한다.
-- Public Release mode에서만 Private/native project identity를 유지한 채 Maven Publication 좌표를 `cpf-final-artifact-catalog.json`의 `publicGroupId/artifactId`로 projection한다. Public POM의 CPF project dependency 역시 Canonical Public 좌표로 rewrite하며 `com.cpf.internal` dependency/publication은 최종 verifier에서 0건이어야 한다.
-- `cpf-batch-runtime`은 Catalog에 PUBLIC_RUNTIME으로 존재하므로 실제 `maven-publish` publication을 제공한다. Public BOM은 별도 hardcoded artifact 목록 대신 Final Artifact Catalog의 Public Java/Runtime 좌표 전체를 사용하고 stale `cpf-batch-contract`를 사용하지 않는다.
-- 동일 Source owner가 Public Starter와 Public Runtime alias를 모두 제공하면 별도 Maven Publication을 생성한다. Runtime alias에는 sources/javadoc을 공개하지 않으며 Open Git Binary profile 최종 Repository의 sources/javadoc은 정책대로 0건이어야 한다.
-
-재실행 시작 시 Release Engine이 `<CPF_ROOT>/cpf-release`를 자체 Fresh-clean하므로 사용자가 해당 디렉터리를 사전 수동 삭제할 필요는 없다. 반면 사용자가 별도로 만든 `cpf-release.zip`은 Release Engine 소유가 아니므로 자동 삭제 대상이 아니며, 실패본 확인 후 exact path로 삭제한다.
-
-Source 수정 완료만으로 본 Finding을 CLOSED하지 않는다. Java25 Windows에서 실제 Release 14/14, Fresh VS Code/Gradle Import `Error=0 / Warning=0`, Public Binary Repository verifier, isolated Maven consumer, Fresh Open Git clone Build/Test/Runtime, Generator Windows/Linux classifier, Leakage 0와 Evidence/Source Identity 일치까지 실제 PASS해야 한다.
-

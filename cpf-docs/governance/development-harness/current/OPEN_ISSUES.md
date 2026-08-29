@@ -30,10 +30,3 @@ Harness가 현재 Source에서 탐지한 항목이며 `CURRENT_WORK_ITEM_REGISTR
 12. QA final acceptance.
 
 Source/Contract/Static PASS로 위 항목을 대체하지 않는다. 환경 부족 시 범위를 낮추지 않고 `BLOCKED_EXTERNAL/NOT_EXECUTED`와 최고강도 재실행 명령을 남긴다.
-## 2026-08-29 Open Git Actual Release 재검증
-
-- `WP-R01.21` — Source fix 완료 / `VERIFICATION_PENDING`: Java25 Fresh `clean`/VS Code Reload 후 source-empty project Build Path `Error=0 / Warning=0` 물리 확인 필요.
-- `WP-R03.15` — Source fix 완료 / targeted NXT3 87/87 PASS / `VERIFICATION_PENDING`: Java25 Open Git full release의 Stage 05 qualityGate replay 필요.
-- `WP-R07.17` — Source fix 완료 / static release regression PASS / `VERIFICATION_PENDING`: Fresh Maven publication의 Public Runtime alias/POM/BOM/leakage 0 및 isolated consumer와 Open Git 14/14 실제 실행 필요.
-- 실패 중간 `cpf-release.zip`은 READY/Release artifact가 아니며 재사용 금지. 다음 Release build는 기존 `<CPF_ROOT>/cpf-release`를 자동 Fresh-clean한다.
-

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260827-EXEC-05",
+  "evidenceType": "execution",
+  "sourceSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "resultSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "command": "Generator lifecycle/full contract + Release/Open Git regression",
+  "startedAt": "2026-08-27T09:34:30+09:00",
+  "endedAt": "2026-08-27T09:34:30+09:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-R15.01"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-20260827-EXEC-05-S01",
+      "precondition": "Current Working Tree Source Identity is fixed",
+      "action": "Generator lifecycle/full contract + Release/Open Git regression",
+      "expectedResult": "All invoked fail-closed static/contract commands exit 0; environment skips remain non-PASS",
+      "actualResult": "Generator tests 47 passed / 10 environment skipped / 6 subtests passed; Release/Open Git tests 53 passed; Generator lifecycle/idempotency/public boundary PASS"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allObservedCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "environmentSkipsNotCountedAsPass",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/EXEC-20260827-05.log",
+      "sha256": "279b3bd8f154b076882c1fe8c585a4b45c299f400b7471d64a2bb38167a3eb4d"
+    }
+  ]
+}

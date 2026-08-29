@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "authoritativePath": "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
+  "legacyCanonicalPath": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+  "legacyCanonicalSha256": "16813c3ab341d96b651db32ded5e5516a8d483d3a14bc0b828c10a39e52ec1d5",
+  "legacySemanticSha256": "00751cd6376feb241a06ee8f05b1a3160ff358fc528585575d022061320cb2f3",
+  "baselineCurrentContractSha256": "d7f7bd8ba2961f22493213994b149ae420b1b00d00cc16b027480adbe7bbacd6",
+  "baselineCurrentSemanticSha256": "ea8dac79cb904815bb703ae7be78999a3dc19e3b2f0c385b20ecf8648d18dd13",
+  "semanticScope": "UTF-8 NFC text from first ## 1. heading through EOF",
+  "catalogSectionHeading": "## 27. Current Canonical Requirement Catalog",
+  "changePolicy": "Any Product Contract drift from this baseline requires a continuous PRODUCT_CONTRACT_CHANGE_LEDGER.csv chain ending in QA_APPROVED; validator never self-updates expected hashes."
+}

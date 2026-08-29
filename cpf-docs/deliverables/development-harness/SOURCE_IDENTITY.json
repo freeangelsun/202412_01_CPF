@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 6,
+  "inputZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_211247.zip",
+  "inputZipSha256": "e6e343947ab4d829996107833ad20cd056d35bac340013f58e0b2068c9694b30",
+  "inputZipFileCount": 12468,
+  "baselineProductContentSha256": "653ab22264e8cefca510a9ba998c656deead3ce9e06467a756c620c8b359d970",
+  "baselineProductFileCount": 8380,
+  "finalReplayProductContentSha256": "bf5c09a165e9bd460b7a51fa135a75c2f09c8a3f3ea1f42b3c6da6467bf1657f",
+  "finalReplayProductFileCount": 8386,
+  "gitSha": "UNAVAILABLE_IN_SUPPLIED_ZIP",
+  "identityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+  "mutableGovernanceExcludedFromSource": [
+    "cpf-docs/work/**",
+    "cpf-docs/deliverables/**",
+    "cpf-docs/governance/development-harness/current/**",
+    "cpf-docs/governance/development-harness/evidence/**",
+    "cpf-docs/governance/development-harness/HANDOVER.md",
+    "cpf-docs/governance/development-harness/SOURCE_IDENTITY.json",
+    "cpf-docs/governance/development-harness/OPEN_ISSUES.md",
+    "cpf-docs/governance/development-harness/PRODUCT_CONFORMANCE_REPORT.json"
+  ],
+  "mutableGovernanceProtectedByManagedScope": true,
+  "productQaComplete": false,
+  "harnessFinalGateRequired": true
+}

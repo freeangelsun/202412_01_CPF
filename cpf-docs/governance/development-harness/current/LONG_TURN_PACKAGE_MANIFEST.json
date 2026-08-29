@@ -1,0 +1,41 @@
+{
+  "generated": "2026-08-27",
+  "purpose": "CPF LONG-TURN canonical/currentization",
+  "files": [
+    {
+      "path": "cpf-docs/governance/development-harness/current/CODEX_MID_REVIEW_INSTRUCTION.md",
+      "sha256": "6B86477FF0ADDA3109066D2DD43E181919024C4161F15B48C55BBA39C50E2204",
+      "bytes": 9951
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/current/CPF_CODEX_CLAUDE_REQUEST_TEMPLATE.md",
+      "sha256": "7792F746BE4469E6D939135EBDB6C37C85708ED2E5D1902948C505594C913B2F",
+      "bytes": 1570
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/current/CPF_CURRENT_WORK_REQUEST.md",
+      "sha256": "DC44CDFB06DE95B7BF3E99F1C2158E1E858C11E0F713D052F6210824ECF9FE57",
+      "bytes": 8540
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/current/CPF_DEVELOPMENT_HANDOVER.md",
+      "sha256": "26A8D51FC66DCCC0C9B3F30C10FE92AF06F8A9E2F0A9A75A172756343C7B83A6",
+      "bytes": 3506
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/current/CPF_EXTERNAL_AGENT_LONG_TURN_POLICY.md",
+      "sha256": "5F8CF9A296C1C390AEC2E35D2A9CCD73DA5AD01D11E7B99044C06A58EABE5EE5",
+      "bytes": 3941
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/current/CPF_DEVELOPMENT_HANDOVER.md",
+      "sha256": "AFB85DEB304497C3525A887E3DF19076E592178A50775D695B9221A53AE370EA",
+      "bytes": 2891
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/current/CPF_개발_기본_지침_최종본.md",
+      "sha256": "7AA8C89A12439D8DEBB6C4DD3069E7C2385DA5D1CE6FEE5C34FB3A62677EB53A",
+      "bytes": 22033
+    }
+  ]
+}

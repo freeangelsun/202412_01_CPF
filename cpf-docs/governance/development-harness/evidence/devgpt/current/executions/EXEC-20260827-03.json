@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260827-EXEC-03",
+  "evidenceType": "execution",
+  "sourceSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "resultSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "command": "Verification tests + Testing Tools split suites",
+  "startedAt": "2026-08-27T09:34:30+09:00",
+  "endedAt": "2026-08-27T09:34:30+09:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-R15.01"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-20260827-EXEC-03-S01",
+      "precondition": "Current Working Tree Source Identity is fixed",
+      "action": "Verification tests + Testing Tools split suites",
+      "expectedResult": "All invoked fail-closed static/contract commands exit 0; environment skips remain non-PASS",
+      "actualResult": "Verification 80 passed; Testing Tools 392 passed / 22 environment skipped / 2 subtests passed"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allObservedCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "environmentSkipsNotCountedAsPass",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/EXEC-20260827-03.log",
+      "sha256": "bd172a8b5457834167bb693abbae8de49140bf521e01add25c3a9133b84431b3"
+    }
+  ]
+}

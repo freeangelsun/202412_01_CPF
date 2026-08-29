@@ -1,0 +1,64 @@
+{
+  "sourceZipSha256": "e6e343947ab4d829996107833ad20cd056d35bac340013f58e0b2068c9694b30",
+  "baselineProductContentSha256": "653ab22264e8cefca510a9ba998c656deead3ce9e06467a756c620c8b359d970",
+  "findingCount": 11,
+  "untrackedCount": 0,
+  "findings": [
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-education/src/main/resources",
+      "message": "필수 profile 누락: test"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-admin/src/main/resources",
+      "message": "필수 profile 누락: test"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-backoffice-web/src/main/resources",
+      "message": "필수 profile 누락: dev,stg,test,prod"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-batch/control-plane/src/main/resources",
+      "message": "필수 profile 누락: local,stg"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-batch/worker/src/main/resources",
+      "message": "필수 profile 누락: local,stg"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-batch/scheduler/src/main/resources",
+      "message": "필수 profile 누락: local,stg"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-batch/center-cut/src/main/resources",
+      "message": "필수 profile 누락: local,stg"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-batch/agent/src/main/resources",
+      "message": "필수 profile 누락: local,stg"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-tools/runtime/cpf-local-batch-runtime/src/main/resources",
+      "message": "필수 profile 누락: dev,stg,test,prod"
+    },
+    {
+      "category": "CONFIG_PROFILE_SET",
+      "scope": "cpf-tools/runtime/cpf-local-runtime/src/main/resources",
+      "message": "필수 profile 누락: dev,stg,test,prod"
+    },
+    {
+      "category": "CONTROL_CHAR",
+      "scope": "README.md",
+      "message": "NUL/BACKSPACE 제어문자 검출"
+    }
+  ],
+  "status": "TRACKED_GAPS"
+}

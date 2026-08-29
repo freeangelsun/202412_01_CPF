@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "DEVGPT-20260827-EXEC-02",
+  "evidenceType": "execution",
+  "sourceSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "resultSha": "79264c2975bd0b8504a0e2f8ec375070c08699ebcb512e26323d90d7e39490fb",
+  "command": "DB pytest + migration lifecycle + RT-02 provenance",
+  "startedAt": "2026-08-27T09:34:30+09:00",
+  "endedAt": "2026-08-27T09:34:30+09:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-R15.01"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "DEVGPT-20260827-EXEC-02-S01",
+      "precondition": "Current Working Tree Source Identity is fixed",
+      "action": "DB pytest + migration lifecycle + RT-02 provenance",
+      "expectedResult": "All invoked fail-closed static/contract commands exit 0; environment skips remain non-PASS",
+      "actualResult": "DB pytest 132 passed / 2 environment skipped; migration lifecycle 290 migrations, rollback 235, forward recovery 55, sourceSha=UNAVAILABLE, sourceIdentitySha256 bound"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "allObservedCommandsExitZero",
+      "passed": true
+    },
+    {
+      "name": "environmentSkipsNotCountedAsPass",
+      "passed": true
+    },
+    {
+      "name": "exactSourceIdentityBound",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/EXEC-20260827-02.log",
+      "sha256": "086da0883ca4b49fa62164f64de80470c51d79bdef4910d4b9bb15257fdec368"
+    }
+  ]
+}

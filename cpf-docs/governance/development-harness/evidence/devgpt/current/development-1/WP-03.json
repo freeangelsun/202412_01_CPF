@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "evidenceId": "CPF-DEV1-WP-03-FINAL",
+  "evidenceType": "execution",
+  "sourceSha": "4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
+  "resultSha": "4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
+  "command": "final exact-source validation for WP-03",
+  "startedAt": "2026-08-22T00:34:37.127785+00:00",
+  "endedAt": "2026-08-22T00:34:37.127785+00:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-03"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "WP-03-FINAL",
+      "precondition": "Current Source Identity=4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
+      "action": "Execute final validation mapped to WP-03",
+      "expectedResult": "ExitCode 0 and canonical acceptance satisfied",
+      "actualResult": "PASS on exact final source; environment-dependent acceptance remains EA-01 where applicable"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "WP-03 exact-source validation",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/development-1/final_generator.log",
+      "sha256": "cd0d24c9c6021e4f01f4e4a9fe8cfdb20b7f5086942a31956b048b47ea5816b3"
+    }
+  ]
+}

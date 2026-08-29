@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 3,
+  "artifactType": "CPF_DEVELOPMENT_HARNESS_FINAL_OVERLAY",
+  "inputZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_211247.zip",
+  "inputZipSha256": "e6e343947ab4d829996107833ad20cd056d35bac340013f58e0b2068c9694b30",
+  "baselineProductSourceIdentity": "653ab22264e8cefca510a9ba998c656deead3ce9e06467a756c620c8b359d970",
+  "finalProductSourceIdentity": "bf5c09a165e9bd460b7a51fa135a75c2f09c8a3f3ea1f42b3c6da6467bf1657f",
+  "canonicalRequirements": 218,
+  "canonicalTrace": 218,
+  "detailedBridge": 46,
+  "currentWorkItems": 394,
+  "roleLedgerRows": 1182,
+  "testLedgerRows": 788,
+  "migrationRows": 265,
+  "deleteEligibleRows": 246,
+  "protectedRetainedRows": 19,
+  "productConformanceOpen": 11,
+  "negativeMutation": "21/21 PASS",
+  "detailedReview": "394/394 PASS",
+  "gitWrites": 0,
+  "physicalProductQaComplete": false,
+  "packageScope": [
+    "cpf-docs/governance/development-harness/**",
+    "cpf-docs/deliverables/development-harness/**"
+  ],
+  "packageFileCount": 316,
+  "changeManifestRows": 54,
+  "changeSummary": {
+    "MODIFY": 37,
+    "ADD": 17
+  }
+}

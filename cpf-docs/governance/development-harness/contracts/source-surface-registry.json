@@ -1,0 +1,547 @@
+{
+  "schemaVersion": 1,
+  "settingsGradleProjects": [
+    "**/build.gradle",
+    "1",
+    ":apps",
+    ":apps:admin",
+    ":apps:admin-runtime",
+    ":apps:backoffice",
+    ":apps:backoffice-web",
+    ":apps:education",
+    ":batch",
+    ":cpf-common",
+    ":framework",
+    ":framework:core",
+    ":internal",
+    ":internal:data",
+    ":internal:data:cache",
+    ":internal:data:transaction",
+    ":internal:file",
+    ":internal:file:tabular",
+    ":internal:integration",
+    ":internal:messaging",
+    ":internal:messaging:reliability",
+    ":internal:notification",
+    ":internal:platform-operations",
+    ":internal:platform-operations:channel-registry",
+    ":internal:platform-operations:feature-flag",
+    ":internal:platform-operations:observability",
+    ":internal:platform-operations:runtime-health",
+    ":internal:security",
+    ":internal:security:audit",
+    ":internal:testing",
+    ":internal:testing:testkit",
+    ":internal:verification",
+    ":internal:verification:core-only-consumer",
+    ":online",
+    ":public-bom",
+    ":runtime",
+    ":runtime:batch",
+    ":runtime:batch:agent",
+    ":runtime:batch:api",
+    ":runtime:batch:center-cut",
+    ":runtime:batch:center-cut-runtime",
+    ":runtime:batch:control-plane",
+    ":runtime:batch:runtime",
+    ":runtime:batch:runtime-support",
+    ":runtime:batch:scheduler",
+    ":runtime:batch:testkit",
+    ":runtime:batch:worker",
+    ":runtime:gateway",
+    ":runtime:local",
+    ":runtime:local-batch",
+    ":starters",
+    ":starters:cache",
+    ":starters:data",
+    ":starters:data:lock",
+    ":starters:file",
+    ":starters:file:object-storage",
+    ":starters:integration",
+    ":starters:messaging",
+    ":starters:profiles",
+    ":starters:security",
+    ":starters:security:session",
+    "CPF_ARTIFACT_MODE",
+    "CPF_ARTIFACT_REPOSITORY_PASSWORD",
+    "CPF_ARTIFACT_REPOSITORY_URL",
+    "CPF_ARTIFACT_REPOSITORY_USER",
+    "CPF_LOCAL_ARTIFACT_REPOSITORY",
+    "CPF_MANAGED_GRADLE_ROOT",
+    "CPF_OFFLINE_ARTIFACT_REPOSITORY",
+    "LOCAL_DEV",
+    "OFFLINE",
+    "PENDING_USER_DELETE_APPROVAL",
+    "REMOTE",
+    "SHA-256",
+    "UTF-8",
+    "base",
+    "com.cpf:cpf-platform-bom",
+    "common",
+    "cpf-",
+    "cpf-admin",
+    "cpf-backoffice-web",
+    "cpf-batch",
+    "cpf-common",
+    "cpf-core",
+    "cpf-core-platform-framework",
+    "cpf-education",
+    "cpf-gateway",
+    "cpf-gradle-plugin",
+    "cpf-managed-work",
+    "cpf-platform-bom",
+    "cpf-starter",
+    "cpf-starter-common",
+    "cpf-starters",
+    "cpf.domain.contractVersion",
+    "cpf.domain.generationMode",
+    "cpf.domain.name",
+    "cpf.domain.packageName",
+    "cpfArtifactMode",
+    "cpfArtifactRepositoryUrl",
+    "cpfIncludeGeneratedDomains",
+    "cpfIncludeLocalDomains",
+    "cpfLocalArtifactRepository",
+    "cpfLocalPlugin",
+    "cpfManagedGradleRoot",
+    "cpfOfflineArtifactRepository",
+    "cpfOfflinePlugin",
+    "cpfProductCompositeRoot",
+    "cpfRemotePlugin",
+    "cycloneDxGradleVersion",
+    "generated",
+    "gradle.properties",
+    "internal",
+    "internal-starter",
+    "io.spring.dependency-management",
+    "local-domains",
+    "manifest.json",
+    "org.cyclonedx.bom",
+    "org.springframework.boot",
+    "prebuilt",
+    "profiles",
+    "project-cache",
+    "public",
+    "public-base",
+    "public-common",
+    "public-profile",
+    "public-provider",
+    "settings.gradle",
+    "settings.gradle.kts",
+    "springBootVersion",
+    "springDependencyManagementVersion",
+    "starter-base",
+    "starter-common",
+    "starter-profile",
+    "starter-provider",
+    "user.home"
+  ],
+  "runtimeResourceDirs": {
+    "cpf-gateway/src/main/resources": {
+      "base": "cpf-gateway/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-education/src/main/resources": {
+      "base": "cpf-education/src/main/resources/application.yml",
+      "files": [
+        "application-edu-dev.yml",
+        "application-edu-local.yml",
+        "application-edu-prod.yml",
+        "application-edu-stg.yml",
+        "application-edu.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-edu-local.yml"
+        ],
+        "dev": [
+          "application-edu-dev.yml"
+        ],
+        "stg": [
+          "application-edu-stg.yml"
+        ],
+        "test": [],
+        "prod": [
+          "application-edu-prod.yml"
+        ]
+      }
+    },
+    "cpf-admin/src/main/resources": {
+      "base": "cpf-admin/src/main/resources/application.yml",
+      "files": [
+        "application-adm-dev.yml",
+        "application-adm-local.yml",
+        "application-adm-prod.yml",
+        "application-adm-stg.yml",
+        "application-adm.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-adm-local.yml"
+        ],
+        "dev": [
+          "application-adm-dev.yml"
+        ],
+        "stg": [
+          "application-adm-stg.yml"
+        ],
+        "test": [],
+        "prod": [
+          "application-adm-prod.yml"
+        ]
+      }
+    },
+    "cpf-backoffice-web/src/main/resources": {
+      "base": "cpf-backoffice-web/src/main/resources/application.yml",
+      "files": [
+        "application-local.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [],
+        "stg": [],
+        "test": [],
+        "prod": []
+      }
+    },
+    "cpf-backoffice/online/src/main/resources": {
+      "base": "cpf-backoffice/online/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-member/online/src/main/resources": {
+      "base": "cpf-member/online/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-member/batch/src/main/resources": {
+      "base": "cpf-member/batch/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-external/online/src/main/resources": {
+      "base": "cpf-external/online/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-batch/control-plane/src/main/resources": {
+      "base": "cpf-batch/control-plane/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-prod.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-batch/worker/src/main/resources": {
+      "base": "cpf-batch/worker/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-prod.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-batch/scheduler/src/main/resources": {
+      "base": "cpf-batch/scheduler/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-prod.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-batch/center-cut/src/main/resources": {
+      "base": "cpf-batch/center-cut/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-prod.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-batch/agent/src/main/resources": {
+      "base": "cpf-batch/agent/src/main/resources/application.yml",
+      "files": [
+        "application-dev.yml",
+        "application-prod.yml",
+        "application-test.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [],
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
+      }
+    },
+    "cpf-tools/runtime/cpf-local-batch-runtime/src/main/resources": {
+      "base": "cpf-tools/runtime/cpf-local-batch-runtime/src/main/resources/application.yml",
+      "files": [
+        "application-local-batch-full.yml",
+        "application-local-batch-integration.yml",
+        "application-local-batch-minimal.yml",
+        "application-local-batch-standard.yml",
+        "application-local.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [],
+        "stg": [],
+        "test": [],
+        "prod": []
+      }
+    },
+    "cpf-tools/runtime/cpf-local-runtime/src/main/resources": {
+      "base": "cpf-tools/runtime/cpf-local-runtime/src/main/resources/application.yml",
+      "files": [
+        "application-local-full.yml",
+        "application-local-integrated.yml",
+        "application-local-integration.yml",
+        "application-local-minimal.yml",
+        "application-local-standard.yml",
+        "application-local.yml",
+        "application.yml"
+      ],
+      "profileFiles": {
+        "local": [
+          "application-local.yml"
+        ],
+        "dev": [],
+        "stg": [],
+        "test": [],
+        "prod": []
+      }
+    }
+  },
+  "standaloneBinDirs": [
+    {
+      "binDir": "cpf-batch/control-plane/bin",
+      "files": [
+        "run.ps1",
+        "run.sh",
+        "stop.ps1",
+        "stop.sh"
+      ]
+    },
+    {
+      "binDir": "cpf-batch/worker/bin",
+      "files": [
+        "run.ps1",
+        "run.sh",
+        "stop.ps1",
+        "stop.sh"
+      ]
+    },
+    {
+      "binDir": "cpf-batch/scheduler/bin",
+      "files": [
+        "run.ps1",
+        "run.sh",
+        "stop.ps1",
+        "stop.sh"
+      ]
+    },
+    {
+      "binDir": "cpf-batch/center-cut/bin",
+      "files": [
+        "run.ps1",
+        "run.sh",
+        "stop.ps1",
+        "stop.sh"
+      ]
+    },
+    {
+      "binDir": "cpf-batch/agent/bin",
+      "files": [
+        "run.ps1",
+        "run.sh",
+        "stop.ps1",
+        "stop.sh"
+      ]
+    }
+  ]
+}

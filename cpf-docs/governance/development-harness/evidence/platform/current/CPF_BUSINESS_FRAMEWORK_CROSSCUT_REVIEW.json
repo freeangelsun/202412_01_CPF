@@ -1,0 +1,318 @@
+{
+  "schemaVersion": "1.0",
+  "baselineSha": "UNKNOWN",
+  "overall": "PARTIAL",
+  "axisStatus": {
+    "COMMON_PRODUCT_SERVICE": "PASS",
+    "DOCUMENT_GOVERNANCE": "PARTIAL",
+    "EXECUTION_LIFECYCLE": "PASS",
+    "GENERATOR_FIRST_DX": "PASS",
+    "GOLDEN_PATH": "PASS",
+    "OPEN_EXTENSION": "PASS",
+    "OPERATIONAL_JOURNEY": "PASS"
+  },
+  "checks": [
+    {
+      "axis": "GOLDEN_PATH",
+      "checkId": "GP-PUBLIC-SERVICE-CLIENT",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "typed service client public contract"
+    },
+    {
+      "axis": "GOLDEN_PATH",
+      "checkId": "GP-NO-CROSS-OWNER-INTERNAL",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "integration main -> observability internal imports=0"
+    },
+    {
+      "axis": "GOLDEN_PATH",
+      "checkId": "GP-DOMAIN-TYPED-CONTRACT",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "topology-independent typed Domain Client + 4-state Result contract"
+    },
+    {
+      "axis": "GOLDEN_PATH",
+      "checkId": "GP-DOMAIN-ROUTER",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "LOCAL/REMOTE Domain Binding runtime materialized"
+    },
+    {
+      "axis": "EXECUTION_LIFECYCLE",
+      "checkId": "EXEC-FOUR-STATE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "boundary outcome 4-state"
+    },
+    {
+      "axis": "EXECUTION_LIFECYCLE",
+      "checkId": "EXEC-SINGLE-RESULT-STATUS",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "service-call outcome reuses Core CpfResultStatus; no duplicate four-state enum"
+    },
+    {
+      "axis": "EXECUTION_LIFECYCLE",
+      "checkId": "EXEC-RECOVERY",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "UNKNOWN recovery metadata"
+    },
+    {
+      "axis": "EXECUTION_LIFECYCLE",
+      "checkId": "EXEC-AUTOCONFIG",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "engine/public ports materialized by auto-configuration"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-CODE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "CODE product service/source exists"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-MESSAGE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "MESSAGE product service/source exists"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-PARAMETER",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "PARAMETER product service/source exists"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-CALENDAR",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "CALENDAR product service/source exists"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-TEMPLATE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "TEMPLATE product service/source exists"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-DETERMINISTIC-TIME",
+      "status": "PASS",
+      "severity": "P1",
+      "detail": "common production direct system-time calls=0"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-CONSUMER-CPFCODESERVICE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "Canonical EDU actual consumer uses CpfCodeService"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-CONSUMER-CPFMESSAGESOURCE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "Canonical EDU actual consumer uses CpfMessageSource"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-CONSUMER-CPFPARAMETERSERVICE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "Canonical EDU actual consumer uses CpfParameterService"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-CONSUMER-CPFCALENDARSERVICE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "Canonical EDU actual consumer uses CpfCalendarService"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-STRUCTURED-LOGGER",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "single structured logging public API; audit remains durable separate contract"
+    },
+    {
+      "axis": "COMMON_PRODUCT_SERVICE",
+      "checkId": "COMMON-AUTO-LOGGING-CONTEXT",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "Canonical EDU relies on CPF automatic logging/trace context and does not rebuild MDC"
+    },
+    {
+      "axis": "OPERATIONAL_JOURNEY",
+      "checkId": "OPS-TIMELINE-CONSUMER",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "ADM consumes transaction timeline query port"
+    },
+    {
+      "axis": "OPERATIONAL_JOURNEY",
+      "checkId": "OPS-UNKNOWN-RECONCILE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "UNKNOWN + reconciliation operational path"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-EXTERNAL-ONLINE-LOCAL",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-external/online local profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-EXTERNAL-ONLINE-TEST",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-external/online test profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-EXTERNAL-ONLINE-DEV",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-external/online dev profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-EXTERNAL-ONLINE-STG",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-external/online stg profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-EXTERNAL-ONLINE-PROD",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-external/online prod profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-EXTERNAL-BATCH-SELECTION",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-external batch=False materialization parity"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-LOCAL",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online local profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-TEST",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online test profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-DEV",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online dev profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-STG",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online stg profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-ONLINE-PROD",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member/online prod profile"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-CPF-MEMBER-BATCH-SELECTION",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "cpf-member batch=True materialization parity"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-ZERO-DOMAIN-SUPPORTED",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "selectedGeneratedDomains=2"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-BATCH-CAPABILITY-SEPARATE",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when selected"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-NO-DIRECT-SYSTEM-TIME",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "selected generated domains use injected Clock"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-LOGICAL-BINDINGS",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "generator schema/model materializes domainDependencies + externalClients"
+    },
+    {
+      "axis": "GENERATOR_FIRST_DX",
+      "checkId": "GEN-TYPED-DOMAIN-CONSUMER",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "selected dependency-bearing Domain has typed Domain Client + adapter + consumer"
+    },
+    {
+      "axis": "OPEN_EXTENSION",
+      "checkId": "EXT-CARDINALITY",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "capability-specific binding cardinality"
+    },
+    {
+      "axis": "OPEN_EXTENSION",
+      "checkId": "EXT-PUBLIC-OBSERVABILITY-PORT",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "public observability ports replace cross-owner internal coupling"
+    },
+    {
+      "axis": "DOCUMENT_GOVERNANCE",
+      "checkId": "DOC-NO-VERSIONED-CURRENT",
+      "status": "FAIL",
+      "severity": "P0",
+      "detail": "version/session/checkpoint files in current=8"
+    },
+    {
+      "axis": "DOCUMENT_GOVERNANCE",
+      "checkId": "DOC-CANONICAL-ENTRYPOINTS",
+      "status": "PASS",
+      "severity": "P0",
+      "detail": "canonical current work/status/issues/delete manifest"
+    }
+  ],
+  "runtimeVerification": "NOT_EXECUTED_IN_JAVA25_ENVIRONMENT"
+}

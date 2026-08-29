@@ -1,0 +1,292 @@
+{
+  "schemaVersion": 3,
+  "harnessVersion": "1.1.0",
+  "sourceIdentity": {
+    "type": "SUPPLIED_ZIP",
+    "zipName": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_211247.zip",
+    "zipSha256": "e6e343947ab4d829996107833ad20cd056d35bac340013f58e0b2068c9694b30",
+    "zipFileCount": 12468,
+    "baselineProductContentSha256": "653ab22264e8cefca510a9ba998c656deead3ce9e06467a756c620c8b359d970",
+    "baselineProductFileCount": 8380,
+    "gitSha": "UNAVAILABLE_IN_SUPPLIED_ZIP"
+  },
+  "canonicalPaths": {
+    "harness": "cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md",
+    "productContract": "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
+    "productRequirementRegistry": "cpf-docs/governance/development-harness/current/CANONICAL_PRODUCT_REQUIREMENTS.csv",
+    "workInventory": "cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv",
+    "workStatus": "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv",
+    "roleLedger": "cpf-docs/governance/development-harness/current/ROLE_EXECUTION_LEDGER.csv",
+    "currentDevelopmentStatus": "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv",
+    "evidenceRoot": "cpf-docs/governance/development-harness/evidence/",
+    "testLedger": "cpf-docs/governance/development-harness/current/TEST_EXECUTION_LEDGER.csv",
+    "canonicalTrace": "cpf-docs/governance/development-harness/current/CANONICAL_REQUIREMENT_TRACE.csv",
+    "controlExecutionLedger": "cpf-docs/governance/development-harness/current/CONTROL_EXECUTION_LEDGER.csv",
+    "currentAuthorityRegistry": "cpf-docs/governance/development-harness/contracts/current-authority-registry.json",
+    "productContractIntegrity": "cpf-docs/governance/development-harness/contracts/product-contract-integrity.json"
+  },
+  "textEncoding": "UTF-8",
+  "normalization": "NFC",
+  "environmentProfiles": [
+    "local",
+    "dev",
+    "stg",
+    "test",
+    "prod"
+  ],
+  "officialDbVendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "system6Headers": [
+    "X-Transaction-Id",
+    "X-Original-System-Code",
+    "X-System-Code",
+    "X-Caller-System-Code",
+    "X-Target-System-Code",
+    "X-Target-Operation-Id"
+  ],
+  "roles": {
+    "DEVGPT": {
+      "equivalentActors": [
+        "Developer GPT",
+        "Developer"
+      ],
+      "canDevelop": true,
+      "canIndependentReview": false,
+      "canFinalQA": false
+    },
+    "INDEPENDENT_REVIEWER": {
+      "equivalentActors": [
+        "Codex",
+        "Claude"
+      ],
+      "canDevelop": true,
+      "canIndependentReview": true,
+      "canFinalQA": false
+    },
+    "QA": {
+      "equivalentActors": [
+        "QA"
+      ],
+      "canDevelop": false,
+      "canIndependentReview": true,
+      "canFinalQA": true
+    }
+  },
+  "findingStatuses": [
+    "OPEN",
+    "IN_PROGRESS",
+    "SOURCE_FIXED",
+    "VERIFICATION_PENDING",
+    "CLOSED",
+    "BLOCKED_EXTERNAL"
+  ],
+  "executionStatuses": [
+    "NOT_EXECUTED",
+    "IN_PROGRESS",
+    "VERIFICATION_PENDING",
+    "PASS",
+    "FAIL",
+    "BLOCKED_EXTERNAL",
+    "NOT_APPLICABLE"
+  ],
+  "overallStatuses": [
+    "완료",
+    "부분 구현",
+    "미구현",
+    "미검증",
+    "실패",
+    "재확인 필요"
+  ],
+  "requiredCompletionEvidence": [
+    "completion_reason",
+    "command",
+    "environment",
+    "exit_code",
+    "evidence",
+    "source_identity",
+    "impact_review",
+    "regression_review"
+  ],
+  "independentReviewerSourceModificationEvidence": [
+    "source_modified",
+    "vscode_fresh_import",
+    "vscode_scope",
+    "vscode_problems_json",
+    "vscode_error_count",
+    "vscode_warning_count"
+  ],
+  "forbiddenCompletionSignals": [
+    "SKIP",
+    "NOT_EXECUTED",
+    "UNKNOWN",
+    "UNVERIFIED",
+    "BLOCKED_EXTERNAL",
+    "FAIL"
+  ],
+  "mandatoryRuntimePlatforms": [
+    "windows",
+    "linux"
+  ],
+  "completionRule": "all mandatory findings CLOSED + final gate PASS + mandatory runtime PASS + fresh replay PASS + recurrence 0 + new mandatory finding 0 + evidence/source identity exact match",
+  "currentOnly": {
+    "forbidHarnessNamePatterns": [
+      "development-harness-v",
+      "development-harness_old",
+      "development-harness-old",
+      "development-harness_backup",
+      "development-harness-history",
+      "development-harness-session",
+      "development-harness-checkpoint"
+    ]
+  },
+  "externalReferenceUrls": [
+    "https://csrc.nist.gov/pubs/sp/800/218/final",
+    "https://slsa.dev/spec/v1.2/build-requirements",
+    "https://owasp.org/www-project-application-security-verification-standard/",
+    "https://docs.gradle.org/current/userguide/dependency_verification.html",
+    "https://docs.spring.io/spring-boot/reference/features/external-config.html",
+    "https://spec.openapis.org/oas/",
+    "https://www.w3.org/TR/WCAG22/",
+    "https://docs.oracle.com/javase/specs/jls/",
+    "https://docs.oracle.com/en/java/javase/25/docs/specs/man/javadoc.html"
+  ],
+  "requiredControlCategories": [
+    "SOURCE_IDENTITY",
+    "CANONICAL_REGISTRY",
+    "ROLE_SEPARATION",
+    "IMPACT_ANALYSIS",
+    "NO_PARTIAL_IMPLEMENTATION",
+    "EVIDENCE_REQUIRED",
+    "MAX_INTENSITY_TEST",
+    "RUNTIME_FRESH_REPLAY",
+    "HARDCODING",
+    "CONFIG_PROFILE_SET",
+    "YAML_KOREAN_COMMENTS",
+    "JAVA_JAVADOC_KOREAN_COMMENTS",
+    "UTF8_NFC",
+    "WINDOWS_LINUX_PARITY",
+    "VSCODE_ZERO_DIAGNOSTIC",
+    "ARCHITECTURE_OWNERSHIP",
+    "SYSTEM6_HEADER",
+    "INTEGRATION_BOUNDARY",
+    "DB3_LIFECYCLE",
+    "GENERATOR_PARITY",
+    "OPENAPI_FRONTEND_CONSUMER",
+    "BATCH_FAULT_RECOVERY",
+    "SECURITY_AUDIT_MASKING",
+    "SUPPLY_CHAIN",
+    "USER_QUALITY_ACCESSIBILITY",
+    "OBSERVABILITY_OPERATIONS",
+    "PERFORMANCE",
+    "CURRENT_ONLY_GARBAGE",
+    "DETAILED_REVIEW",
+    "QA_FINAL_GATE",
+    "AGENT_CONTINUITY",
+    "FINAL_DELIVERY_HANDOVER"
+  ],
+  "testExecutionStatuses": [
+    "NOT_EXECUTED",
+    "IN_PROGRESS",
+    "PASS",
+    "FAIL",
+    "BLOCKED_EXTERNAL",
+    "NOT_APPLICABLE"
+  ],
+  "requiredTestEvidence": [
+    "completion_reason",
+    "command",
+    "environment",
+    "started_at",
+    "ended_at",
+    "exit_code",
+    "evidence",
+    "source_identity",
+    "observed_result",
+    "impact_scope",
+    "regression_scope"
+  ],
+  "requiredReviewFields": [
+    "source_requirement_ids",
+    "current_observation",
+    "development_scope",
+    "source_consumer_scope",
+    "static_high_intensity_acceptance",
+    "runtime_high_intensity_acceptance",
+    "development_status",
+    "verification_status",
+    "runtime_status",
+    "overall_status",
+    "development_completion_reason",
+    "verification_incomplete_reason",
+    "source_identity"
+  ],
+  "completionConsistency": {
+    "overallCompleteRequires": [
+      "development_status=완료",
+      "verification_status=완료",
+      "runtime_status=PASS_OR_NOT_APPLICABLE",
+      "DEVGPT execution_status=PASS",
+      "INDEPENDENT_REVIEWER execution_status=PASS",
+      "QA execution_status=PASS"
+    ],
+    "forbid": [
+      "overall_status=완료 with any mandatory NOT_EXECUTED/FAIL/BLOCKED_EXTERNAL/UNKNOWN",
+      "verification_status=완료 without test evidence",
+      "QA PASS without exact source identity"
+    ]
+  },
+  "hardcodingRule": {
+    "policy": "EXPECTED_VALUES_FROM_CANONICAL_REGISTRY_OR_SOURCE_DISCOVERY_ONLY",
+    "forbid": [
+      "literal requirement totals as acceptance",
+      "literal discovered file totals as acceptance",
+      "expected=actual generated from same output without independent source",
+      "waiver/suppression used to convert failing acceptance to pass"
+    ]
+  },
+  "standaloneRuntimeRule": {
+    "platforms": [
+      "windows",
+      "linux"
+    ],
+    "operations": [
+      "prerequisite",
+      "prepare",
+      "start",
+      "status",
+      "verify",
+      "stop",
+      "cleanup",
+      "fresh-replay"
+    ],
+    "parity": "same semantic operation, arguments, exit-code contract and evidence on both platforms; missing platform is BLOCKED_EXTERNAL/OPEN, never PASS"
+  },
+  "finalDeliveryRequiredArtifacts": [
+    "overlayZip",
+    "zipSha256Sidecar",
+    "zipExtractReplayEvidence",
+    "sourceIdentity",
+    "packageManifest",
+    "changeManifest",
+    "deleteManifest",
+    "sha256Sums",
+    "finalReview",
+    "testAndEvidence",
+    "openIssues",
+    "handover",
+    "windowsOneLineCommands",
+    "linuxOneLineCommands",
+    "codexClaudeRequest"
+  ],
+  "finalDeliveryOneLineCommands": [
+    "apply",
+    "deleteLegacyAndGarbageEmptyDirs",
+    "lowCostVerify",
+    "maxRuntimeWindows",
+    "maxRuntimeLinux",
+    "gitStatus"
+  ]
+}

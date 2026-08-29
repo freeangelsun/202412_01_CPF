@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-08-29",
+  "authorityRule": "REFERENCE_ONLY_CPF_PRODUCT_CONTRACT_WINS",
+  "sources": [
+    {
+      "name": "NIST SSDF",
+      "version": "SP 800-218 v1.1",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "use": "secure SDLC, root-cause recurrence prevention"
+    },
+    {
+      "name": "SLSA Build",
+      "version": "v1.2",
+      "url": "https://slsa.dev/spec/v1.2/build-requirements",
+      "use": "artifact digest, provenance, build isolation"
+    },
+    {
+      "name": "OWASP ASVS",
+      "version": "5.0.0",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/",
+      "use": "verifiable web/API security acceptance"
+    },
+    {
+      "name": "Gradle Dependency Verification",
+      "version": "current",
+      "url": "https://docs.gradle.org/current/userguide/dependency_verification.html",
+      "use": "checksum/signature, strict dependency verification"
+    },
+    {
+      "name": "Spring Boot Externalized Configuration",
+      "version": "current",
+      "url": "https://docs.spring.io/spring-boot/reference/features/external-config.html",
+      "use": "profile-specific config and override precedence"
+    },
+    {
+      "name": "JDK javadoc/DocLint",
+      "version": "25",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/javadoc.html",
+      "use": "API documentation comment quality checks"
+    },
+    {
+      "name": "WCAG",
+      "version": "2.2",
+      "url": "https://www.w3.org/TR/WCAG22/",
+      "use": "frontend accessibility acceptance"
+    }
+  ]
+}

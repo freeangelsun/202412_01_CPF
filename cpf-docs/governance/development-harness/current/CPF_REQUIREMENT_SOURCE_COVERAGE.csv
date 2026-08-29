@@ -1,0 +1,7 @@
+﻿source_id,path,role,status,coverage,acceptance
+CURRENT-HARNESS,cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md,단일 개발/QA 실행 진입점,CURRENT,Requirement→Work→Test→Runtime→Role→Evidence→Final Gate,Harness Self/Authority/Negative/Fresh Replay Gate
+CURRENT-PRODUCT,cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md,제품 Architecture/Requirement 계약,CURRENT,Canonical Product Contract 전체,Product Contract anchor + Requirement CSV exact parity
+CURRENT-REQ,cpf-docs/governance/development-harness/current/CANONICAL_PRODUCT_REQUIREMENTS.csv,Canonical Requirement Registry,CURRENT,218 unique canonical requirements,missing/extra/duplicate/content drift=0
+CURRENT-TRACE,cpf-docs/governance/development-harness/current/CANONICAL_REQUIREMENT_TRACE.csv,Canonical→Detailed→Work→Test/Evidence 추적 정본,CURRENT,218 / 218 canonical trace rows,unmapped canonical=0; orphan detailed/work/test=0
+CURRENT-WORK,cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv,유일 실행 Work Item 원장,CURRENT,394 current work items,Role/Test ledger exact coverage; duplicate=0
+CURRENT-STATUS,cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv,유일 현재 상태 원장,CURRENT,394 current status rows,Work set exact; development/verification/runtime/overall 분리

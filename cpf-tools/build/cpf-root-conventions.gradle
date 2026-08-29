@@ -20,7 +20,7 @@ def cpfPython = providers.environmentVariable('CPF_PYTHON').orElse('python').get
 
 // Repository-root generated state belongs under the managed Evidence workspace.
 // Module build outputs retain their catalog-owned conventional paths while final cleanup removes them.
-def cpfGeneratedEvidenceRoot = rootProject.layout.projectDirectory.dir('cpf-docs/work/evidence/generated')
+def cpfGeneratedEvidenceRoot = rootProject.layout.projectDirectory.dir('cpf-docs/governance/development-harness/evidence/platform/current/generated')
 def cpfJvmCrashDir = cpfGeneratedEvidenceRoot.dir('jvm/crash').asFile
 def cpfJvmHeapDumpDir = cpfGeneratedEvidenceRoot.dir('jvm/heap-dump').asFile
 rootProject.layout.buildDirectory.set(cpfGeneratedEvidenceRoot.dir('gradle/root-build'))
@@ -88,6 +88,28 @@ def cpfPublicPublicationOwners = cpfPublicationRows.findAll { row ->
     cpfPublicPublicationClasses.contains(row.publicationClass?.toString()) &&
             !(row.publicGroupId?.toString() ?: '').trim().isEmpty()
 }.collect { row -> row.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '') }.findAll { it }.toSet()
+
+// Public Release의 Maven 좌표는 Private/Composite project identity와 분리합니다.
+// 일반 개발/내부 Publication에서는 기존 native 좌표를 그대로 유지하고,
+// -PcpfPublicBinaryRepository가 명시된 Fresh Open Git Release에서만 Final Artifact Catalog의
+// publicGroupId/artifactId로 publication을 투영합니다. 동일 Source owner가 Public Starter와
+// Runtime alias를 함께 제공하는 경우에도 Catalog row별 publication을 독립 생성합니다.
+def cpfPublicRowsByProject = cpfPublicationRows.findAll { row ->
+    cpfPublicPublicationClasses.contains(row.publicationClass?.toString()) &&
+            !(row.publicGroupId?.toString() ?: '').trim().isEmpty() &&
+            !(row.publicProjectPath?.toString() ?: '').trim().isEmpty()
+}.groupBy { row -> row.publicProjectPath.toString() }
+
+def cpfPublicPublicationPriority = { row ->
+    switch (row.publicationClass?.toString()) {
+        case 'PUBLIC_COMPILE_TIME_JAVA': return 0
+        case 'PUBLIC_STARTER': return 1
+        case 'PUBLIC_RUNTIME': return 2
+        case 'PUBLIC_TOOLING': return 3
+        case 'PUBLIC_BOM': return 4
+        default: return 9
+    }
+}
 
 def capabilityPropertiesText = { Map module ->
     def management = module.management instanceof Map ? module.management : [:]
@@ -185,41 +207,80 @@ ext.cpfDbSchedulerVersion = stackText('dbSchedulerVersion')
 
 version = ext.cpfPlatformVersion
 
-// VS Code Buildship/JDT resolves project dependencies through each Java project's canonical compile output.
-// Dependency-only profile/composition projects legitimately have compileJava=NO-SOURCE. On a Fresh Import
-// Gradle therefore has no reason to create build/classes/java/main, while JDT still models that canonical
-// project output and reports it as a missing required library. Keep the project/dependency model unchanged:
-// materialize only the empty canonical output directory for source-empty Java projects during Gradle
-// configuration, before the Tooling API model is returned. Never add fake Java API/classes or module-specific
-// dependency workarounds. The explicit task below only re-materializes the same generated directory after clean.
-def cpfPrepareIdeClasspath = tasks.register('cpfPrepareIdeClasspath') {
-    group = 'verification'
-    description = 'Re-materializes canonical Java compile outputs for source-empty IDE/JDT project dependencies.'
-}
-def cpfVerifyIdeClasspathModel = tasks.register('cpfVerifyIdeClasspathModel') {
-    group = 'verification'
-    description = 'Fails unless source-empty Java projects expose a physical canonical compile output at configuration time.'
-    doLast {
-        def failures = []
-        def checked = 0
-        subprojects.findAll { it.plugins.hasPlugin('java') }.each { target ->
-            def sourceSets = target.extensions.findByName('sourceSets')
-            if (sourceSets == null || !sourceSets.main.java.files.empty) return
-            checked++
-            def compileJava = target.tasks.named('compileJava', JavaCompile).get()
-            def outputDir = compileJava.destinationDirectory.get().asFile
-            def configured = target.extensions.extraProperties.has('cpfIdeClasspathMaterializedOnConfiguration') &&
-                    target.extensions.extraProperties.get('cpfIdeClasspathMaterializedOnConfiguration') == true
-            def stableRoot = new File(gradle.gradleUserHomeDir, 'cpf-ide-classpath').canonicalFile
-            def stable = outputDir.canonicalPath.startsWith(stableRoot.canonicalPath + File.separator)
-            if (!configured || !outputDir.isDirectory() || !stable) {
-                failures << "${target.path} configured=${configured} stable=${stable} output=${outputDir} exists=${outputDir.isDirectory()}"
+// VS Code Buildship/JDT resolves source-empty Java projects as project dependencies too.
+// Gradle's default compileJava output lives below each project build/ tree, so a clean
+// removes that directory even though NO-SOURCE projects have no compiler invocation that
+// would recreate it. Keep only those empty outputs in Gradle User Home. Never add fake Java API/classes.
+def cpfIdeRootIdentity = java.security.MessageDigest.getInstance('SHA-256')
+        .digest(rootDir.canonicalPath.getBytes('UTF-8')).encodeHex().toString().substring(0, 16)
+def cpfIdeClasspathRoot = new File(gradle.gradleUserHomeDir, "cpf-ide-classpath/${cpfIdeRootIdentity}")
+def sourceEmptyJavaProjects = []
+
+subprojects {
+    plugins.withId('java') {
+        project.afterEvaluate {
+            if (sourceSets.main.java.files.empty) {
+                def stableRelativePath = project.path.substring(1).replace(':', '/')
+                def stableOutputDir = new File(cpfIdeClasspathRoot, "${stableRelativePath}/main")
+                if (!stableOutputDir.mkdirs() && !stableOutputDir.isDirectory()) {
+                    throw new GradleException("Cannot materialize CPF IDE classpath output: ${stableOutputDir}")
+                }
+                compileJava.destinationDirectory.set(stableOutputDir)
+                project.ext.cpfIdeClasspathMaterializedOnConfiguration = stableOutputDir.absolutePath
+                sourceEmptyJavaProjects << project.path
             }
         }
-        if (!failures.empty) {
-            throw new GradleException('CPF IDE/Buildship classpath model is incomplete:\n' + failures.join('\n'))
+    }
+}
+
+tasks.register('cpfPrepareIdeClasspath') {
+    group = 'verification'
+    description = 'Fresh/clean 이후에도 source-empty Java project의 Buildship/JDT classpath output을 안정적으로 준비합니다.'
+    doLast {
+        def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
+        def expected = javaProjects.findAll { it.sourceSets.main.java.files.empty }
+        def missing = []
+        expected.each { target ->
+            if (!target.ext.has('cpfIdeClasspathMaterializedOnConfiguration')) {
+                missing << "${target.path}:configuration-marker-missing"
+                return
+            }
+            def stable = file(target.ext.cpfIdeClasspathMaterializedOnConfiguration.toString())
+            if (!stable.mkdirs() && !stable.isDirectory()) missing << "${target.path}:${stable}"
+            println "CPF_IDE_CLASSPATH_PROJECT=${target.path} stable=${stable}"
         }
-        logger.lifecycle("CPF_IDE_CLASSPATH_MODEL=PASS sourceEmptyJavaProjects=${checked}")
+        if (!missing.isEmpty()) {
+            throw new GradleException("CPF IDE classpath preparation failed:\n - ${missing.join('\\n - ')}")
+        }
+        println "CPF_IDE_CLASSPATH_READY projects=${expected.size()} root=${cpfIdeClasspathRoot}"
+    }
+}
+
+tasks.register('cpfVerifyIdeClasspathModel') {
+    group = 'verification'
+    description = 'source-empty Java project만 stable IDE output을 사용하고 Source project dependency를 변경하지 않았는지 검증합니다.'
+    doLast {
+        def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
+        def sourceEmpty = javaProjects.findAll { it.sourceSets.main.java.files.empty }
+        def failures = []
+        sourceEmpty.each { target ->
+            if (!target.ext.has('cpfIdeClasspathMaterializedOnConfiguration')) {
+                failures << "${target.path}:stable-output-not-configured"
+                return
+            }
+            def stable = file(target.ext.cpfIdeClasspathMaterializedOnConfiguration.toString()).canonicalFile
+            def actual = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile.canonicalFile
+            if (actual != stable) failures << "${target.path}:expected=${stable}:actual=${actual}"
+            if (!stable.isDirectory()) failures << "${target.path}:stable-output-missing=${stable}"
+        }
+        def sourcefulOverridden = javaProjects.findAll {
+            !it.sourceSets.main.java.files.empty && it.ext.has('cpfIdeClasspathMaterializedOnConfiguration')
+        }.collect { it.path }
+        if (!sourcefulOverridden.isEmpty()) failures << "sourceful-project-overridden=${sourcefulOverridden.sort()}"
+        if (!failures.isEmpty()) {
+            throw new GradleException("CPF IDE classpath model failed:\n - ${failures.join('\\n - ')}")
+        }
+        println "CPF_IDE_CLASSPATH_MODEL=PASS sourceEmptyJavaProjects=${sourceEmpty.size()} stable=${cpfIdeClasspathRoot}"
     }
 }
 
@@ -292,35 +353,6 @@ subprojects {
             options.release = rootProject.ext.cpfJavaVersion
             options.compilerArgs += ['-parameters']
         }
-        def materializeCpfIdeClasspathOutput = {
-            // Source-bearing projects get a real compile output from compileJava. Buildship repair is needed only
-            // for dependency-only/assembly-only Java projects whose main Java source set is physically empty.
-            if (!sourceSets.main.java.files.empty) return
-            def compileJava = tasks.named('compileJava', JavaCompile).get()
-            // A build/classes output is deleted by `clean` and JDT then reports the dependency as a missing library.
-            // Keep source-empty project outputs in Gradle user home instead: this is generated IDE state, survives
-            // repository clean, is outside Product Source Identity, and does not add fake Java classes or dependencies.
-            def buildIdentity = Integer.toUnsignedString(rootProject.projectDir.canonicalPath.hashCode(), 16)
-            def projectIdentity = project.path.replace(':', '/').replaceAll('^/+', '')
-            def stableOutputDir = new File(gradle.gradleUserHomeDir, "cpf-ide-classpath/${buildIdentity}/${projectIdentity}/classes/java/main")
-            compileJava.destinationDirectory.set(stableOutputDir)
-            if (!stableOutputDir.mkdirs() && !stableOutputDir.isDirectory()) {
-                throw new GradleException("Cannot create stable Java IDE classpath output directory: ${stableOutputDir}")
-            }
-        }
-        project.afterEvaluate {
-            materializeCpfIdeClasspathOutput()
-            if (sourceSets.main.java.files.empty) {
-                extensions.extraProperties.set('cpfIdeClasspathMaterializedOnConfiguration', true)
-            }
-        }
-        def cpfIdeClasspathOutput = tasks.register('prepareCpfIdeClasspathOutput') {
-            group = 'verification'
-            description = 'Re-materializes the canonical Java output after clean for source-empty projects.'
-            doLast { materializeCpfIdeClasspathOutput() }
-        }
-        tasks.named('classes') { dependsOn cpfIdeClasspathOutput }
-        cpfPrepareIdeClasspath.configure { dependsOn cpfIdeClasspathOutput }
         tasks.withType(Test).configureEach {
             useJUnitPlatform()
             doFirst {
@@ -541,6 +573,96 @@ tasks.register('aggregateQualityBuild') {
     dependsOn 'qualityGate'
 }
 
+// Open Git/Public Maven projection. This executes only for the explicit public-release property.
+// Project dependency POM coordinates are rewritten from the captured native publication coordinate to
+// the canonical Public coordinate so com.cpf.internal/private aliases cannot leak into consumer POMs.
+gradle.projectsEvaluated {
+    if (providers.gradleProperty('cpfPublicBinaryRepository').isPresent()) {
+        def nativeToPublic = [:]
+        def primaryByProject = [:]
+
+        cpfPublicRowsByProject.each { projectPath, rows ->
+            def target = project.findProject(projectPath)
+            if (target == null) {
+                def includedName = projectPath.toString().replaceFirst('^:', '')
+                if (gradle.includedBuilds.any { it.name == includedName }) {
+                    return
+                }
+                throw new GradleException("Public artifact catalog project is not mounted: ${projectPath}")
+            }
+            if (!target.plugins.hasPlugin('maven-publish')) {
+                throw new GradleException("Public artifact project must apply maven-publish: ${projectPath}")
+            }
+            def publications = target.publishing.publications.withType(MavenPublication).toList()
+            if (publications.isEmpty()) {
+                throw new GradleException("Public artifact project has no MavenPublication: ${projectPath}")
+            }
+            def orderedRows = rows.sort { a, b ->
+                def p = cpfPublicPublicationPriority(a) <=> cpfPublicPublicationPriority(b)
+                p != 0 ? p : a.artifactId.toString() <=> b.artifactId.toString()
+            }
+            def primary = orderedRows.first()
+            primaryByProject[projectPath] = primary
+
+            // Capture every native coordinate before any publication is changed. This is the mapping
+            // Gradle would otherwise emit for project dependencies in the private build.
+            publications.each { publication ->
+                def nativeKey = "${publication.groupId}:${publication.artifactId}".toString()
+                nativeToPublic[nativeKey] = primary
+            }
+
+            // The existing publication is the primary Public coordinate. Additional catalog rows for the
+            // same Source owner become explicit alias publications from the same freshly-built component.
+            publications.each { publication ->
+                publication.groupId = primary.publicGroupId.toString()
+                publication.artifactId = primary.artifactId.toString()
+            }
+            orderedRows.drop(1).eachWithIndex { row, index ->
+                def aliasName = "cpfPublicAlias${index + 1}${row.artifactId.toString().replaceAll('[^A-Za-z0-9]', '_')}"
+                if (target.publishing.publications.findByName(aliasName) == null) {
+                    target.publishing.publications.create(aliasName, MavenPublication) { alias ->
+                        alias.from(target.components.java)
+                        alias.groupId = row.publicGroupId.toString()
+                        alias.artifactId = row.artifactId.toString()
+                        alias.version = target.version.toString()
+                        if (row.publicationClass?.toString() != 'PUBLIC_COMPILE_TIME_JAVA') {
+                            alias.artifacts.removeAll { artifact ->
+                                artifact.classifier in ['sources', 'javadoc']
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Rewriting is attached after all alias publications exist. It changes only CPF dependency
+        // coordinates; external OSS dependencies and source project graphs remain untouched.
+        cpfPublicRowsByProject.keySet().each { projectPath ->
+            def target = project.findProject(projectPath)
+            if (target == null) return
+            target.publishing.publications.withType(MavenPublication).configureEach { publication ->
+                publication.pom.withXml { xml ->
+                    def root = xml.asNode()
+                    def containers = []
+                    if (root.dependencies) containers.addAll(root.dependencies)
+                    if (root.dependencyManagement?.dependencies) containers.addAll(root.dependencyManagement.dependencies)
+                    containers.each { container ->
+                        container.dependency.each { dep ->
+                            def group = dep.groupId?.text()?.trim()
+                            def artifact = dep.artifactId?.text()?.trim()
+                            def replacement = nativeToPublic["${group}:${artifact}".toString()]
+                            if (replacement != null) {
+                                dep.groupId[0].value = replacement.publicGroupId.toString()
+                                dep.artifactId[0].value = replacement.artifactId.toString()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 tasks.register('publicationGate') {
     group = 'verification'
     description = 'Canonical Starter Catalog parity와 공개 가능한 Maven publication의 POM 생성 가능성을 검증합니다.'
@@ -564,13 +686,18 @@ tasks.register('compositeModuleIdentityGate') {
             def expected = cpfCompositeGroupByProject[row.target.path]
             expected != null && row.target.group.toString() != expected
         }.collect { row -> "${row.target.path}:${row.target.group}" }
+        def publicReleaseMode = providers.gradleProperty('cpfPublicBinaryRepository').isPresent()
         def wrongPublicationGroups = actualCoordinates.findAll { row ->
             cpfCompositeGroupByProject.containsKey(row.target.path)
         }.collectMany { row ->
+            def publicRows = cpfPublicRowsByProject[row.target.path] ?: []
+            def allowedGroups = publicReleaseMode && !publicRows.isEmpty()
+                    ? publicRows.collect { it.publicGroupId.toString() }.toSet()
+                    : [row.module.groupId.toString()] as Set
             row.target.publishing.publications.withType(MavenPublication).findAll { publication ->
-                publication.groupId != row.module.groupId.toString()
+                !allowedGroups.contains(publication.groupId)
             }.collect { publication ->
-                "${row.target.path}:${publication.name}:${publication.groupId}"
+                "${row.target.path}:${publication.name}:${publication.groupId}:allowed=${allowedGroups}"
             }
         }
         def archiveRows = actualCoordinates.collect { row ->

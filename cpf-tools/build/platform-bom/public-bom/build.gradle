@@ -11,6 +11,16 @@ def stack=loadProps(file('../../../../gradle/cpf-stack.properties'),['springBoot
 def catalogFile=file('../../../generator/contracts/cpf-starter-catalog.json')
 def catalog=new groovy.json.JsonSlurper().parse(catalogFile)
 def versionValue=platformProps.getProperty('platformVersion').trim()
+def finalArtifactCatalogFile=file('../../../release/cpf-final-artifact-catalog.json')
+def finalArtifactCatalog=new groovy.json.JsonSlurper().parse(finalArtifactCatalogFile)
+def publicJavaPublicationClasses=['PUBLIC_COMPILE_TIME_JAVA','PUBLIC_RUNTIME','PUBLIC_STARTER'] as Set
+def publicArtifactRows=(finalArtifactCatalog.artifacts ?: []).findAll { row ->
+    publicJavaPublicationClasses.contains(row.publicationClass?.toString()) &&
+            !(row.publicGroupId?.toString() ?: '').trim().isEmpty()
+}
+def publicArtifactCoordinates=publicArtifactRows.collect { row ->
+    "${row.publicGroupId}:${row.artifactId}:${versionValue}".toString()
+}.toSet()
 group='com.cpf'; version=versionValue
 javaPlatform { allowDependencies() }
 repositories { mavenCentral() }
@@ -23,11 +33,7 @@ dependencies {
     api platform("org.springframework.cloud:spring-cloud-dependencies:${stack.getProperty('springCloudVersion').trim()}")
     api platform("software.amazon.awssdk:bom:${stack.getProperty('awsSdkVersion').trim()}")
     constraints {
-        api "com.cpf.core:cpf-core:${versionValue}"
-        api "com.cpf.common:cpf-common:${versionValue}"
-        api "com.cpf.testkit:cpf-testkit:${versionValue}"
-        api "com.cpf.batch:cpf-batch-contract:${versionValue}"
-        publicModules.sort { it.artifactId }.each { m -> api "${m.groupId}:${m.artifactId}:${versionValue}" }
+        publicArtifactCoordinates.sort().each { coordinate -> api coordinate }
     }
 }
 def productRoot=new File(rootDir,'../../..').canonicalFile
@@ -48,13 +54,7 @@ tasks.register('verifyPublicBom') {
             "software.amazon.awssdk:bom:${stack.getProperty('awsSdkVersion').trim()}"
         ] as Set
         def actualPlatforms=configurations.api.dependencies.collect { "${it.group}:${it.name}:${it.version}" }.toSet()
-        def allowedContracts=[
-            "com.cpf.core:cpf-core:${versionValue}",
-            "com.cpf.common:cpf-common:${versionValue}",
-            "com.cpf.testkit:cpf-testkit:${versionValue}",
-            "com.cpf.batch:cpf-batch-contract:${versionValue}"
-        ] as Set
-        def expected=publicModules.collect { "${it.groupId}:${it.artifactId}:${versionValue}" }.toSet()+allowedContracts
+        def expected=publicArtifactCoordinates
         def actual=configurations.api.dependencyConstraints.collect { "${it.group}:${it.name}:${it.version}" }
         def duplicateActual=actual.groupBy { it }.findAll { k,v -> v.size()>1 }.keySet()
         def internalCoordinates=(catalog.modules ?: []).findAll { it.visibility?.toString()=='internal' }

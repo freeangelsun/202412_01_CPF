@@ -1,0 +1,2 @@
+﻿root_relative_path,type,reason,recreate_rule
+cpf-release,directory,이전 실패/중간 Open Git Release generated output,Canonical release command가 exact <CPF_ROOT>/cpf-release를 안전 삭제 후 Fresh 재생성

@@ -1,7 +1,10 @@
 plugins {
     id 'java-library'
     id 'org.springframework.boot'
+    id 'maven-publish'
 }
+
+group = 'com.cpf.batch'
 
 dependencies {
     implementation project(':framework:base-runtime')
@@ -26,3 +29,16 @@ tasks.named('test') { useJUnitPlatform() }
 // cpf-batch:runtime is a library runtime; executable applications are composed by cpf-local-batch-runtime/consumers.
 tasks.named('bootJar') { enabled = false }
 tasks.named('jar') { enabled = true }
+
+
+// Public/Open Git release publishes the runtime library from the same Fresh Build output.
+// The root publication convention projects this native coordinate to com.cpf.runtime:cpf-batch-runtime
+// only in explicit public-release mode; normal internal/local publication keeps the native identity.
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-batch-runtime'
+        }
+    }
+}

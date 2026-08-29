@@ -45,7 +45,7 @@ def files_under(root:Path,relroot:str):
  return [x.relative_to(root).as_posix() for x in p.rglob('*') if x.is_file()] if p.exists() else []
 
 def main(argv=None):
- ap=argparse.ArgumentParser(); ap.add_argument('--root',required=True); ap.add_argument('--delete-manifest',default='cpf-docs/deliverables/DELETE_MANIFEST.csv'); ap.add_argument('--garbage-ledger',default='cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'); a=ap.parse_args(argv)
+ ap=argparse.ArgumentParser(); ap.add_argument('--root',required=True); ap.add_argument('--delete-manifest',default='cpf-docs/governance/development-harness/current/DELETE_MANIFEST.csv'); ap.add_argument('--garbage-ledger',default='cpf-docs/governance/development-harness/current/CURRENT_GARBAGE_DECISIONS.csv'); a=ap.parse_args(argv)
  root=Path(a.root).resolve(); g=Gate(); dm=root/a.delete_manifest; manifest=read_manifest(dm)
  g.check('DELETE_MANIFEST_PRESENT',dm.exists(),a.delete_manifest)
  dir_rows=[p for p in manifest if (root/p).exists() and (root/p).is_dir()]

@@ -84,15 +84,15 @@ GROUP_SOURCE_MAP = {
     "RUNTIME_CONTROL": ["cpf-core/src/main/java/com/cpf/core/api/runtimecontrol", "cpf-admin/src/main/java/com/cpf/admin/opr", "cpf-starters"],
     "FILE": ["cpf-core/src/main/java/com/cpf/core/api/filetransfer", "cpf-core/src/main/java/com/cpf/core/api/attachment", "cpf-admin/frontend/src/features/file-jobs"],
     "API": ["cpf-core/src/main/java/com/cpf/core/api", "cpf-admin/frontend/openapi", "cpf-backoffice/online/openapi"],
-    "GOV": ["cpf-docs/governance", "cpf-docs/work/current"],
+    "GOV": ["cpf-docs/governance", "cpf-docs/governance/development-harness/current"],
     # Current modernization governance groups are canonical Requirement Master values, not aliases.
     # Keep them explicit so the exhaustive gate cannot false-fail after Requirement currentization.
-    "DOCUMENTATION GOVERNANCE": ["cpf-docs/governance", "cpf-docs/work/current"],
-    "REPOSITORY HYGIENE": ["cpf-tools/verification", "cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv", "cpf-docs/deliverables/DELETE_MANIFEST.csv"],
-    "EVIDENCE": ["cpf-tools/verification", "cpf-docs/work/evidence"],
-    "QA GOVERNANCE": ["cpf-tools/testing", "cpf-tools/verification", "cpf-docs/work/current"],
+    "DOCUMENTATION GOVERNANCE": ["cpf-docs/governance", "cpf-docs/governance/development-harness/current"],
+    "REPOSITORY HYGIENE": ["cpf-tools/verification", "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv", "cpf-docs/governance/development-harness/current/CURRENT_GARBAGE_DECISIONS.csv", "cpf-docs/governance/development-harness/current/DELETE_MANIFEST.csv"],
+    "EVIDENCE": ["cpf-tools/verification", "cpf-docs/governance/development-harness/evidence"],
+    "QA GOVERNANCE": ["cpf-tools/testing", "cpf-tools/verification", "cpf-docs/governance/development-harness/current"],
     "HANDOVER": ["cpf-docs/work", "cpf-docs/deliverables"],
-    "EXECUTION GOVERNANCE": ["cpf-tools/verification/tools", "cpf-docs/work/current"],
+    "EXECUTION GOVERNANCE": ["cpf-tools/verification/tools", "cpf-docs/governance/development-harness/current"],
 }
 
 class AuditError(RuntimeError):
@@ -109,7 +109,7 @@ def read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
 
 
 def discover_parts(root: Path, stem: str) -> list[Path]:
-    parts = root / "cpf-docs" / "work" / "current" / f"{stem}.parts"
+    parts = root / "cpf-docs/governance/development-harness/current" / f"{stem}.parts"
     files = sorted(parts.glob("*.csv"))
     if not files:
         raise AuditError(f"no split parts: {parts}")

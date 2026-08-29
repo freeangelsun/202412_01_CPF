@@ -3097,8 +3097,9 @@ def remove_plan(root: Path, definition_path: Path, output: Path) -> dict[str,Any
     return {'root':str(output),'fileCount':len(rows),'files':rows,'safeToRemove':all(x['state'] in {'UNCHANGED','MISSING'} for x in rows),'metadataRequired':False,'ownershipSource':state_source}
 
 
-def remove_owned(root: Path, definition_path: Path, output: Path, apply: bool=False, purge_definition: bool=False) -> dict[str,Any]:
-    """Generated Domain 삭제 후보를 계산합니다. 실제 파일 삭제는 사용자 승인 Delete Manifest 전용입니다."""
+def remove_owned(root: Path, definition_path: Path, output: Path, apply: bool=False,
+                 purge_definition: bool=False, approved_disposable_lifecycle: bool=False) -> dict[str,Any]:
+    """Generated Domain 삭제 후보를 계산하고 승인된 disposable lifecycle에서만 적용합니다."""
     root=root.resolve(); output=output.resolve(); definition_path=definition_path.resolve()
     if output==root or root not in output.parents: raise DomainError(f"Repository Root 밖/자체 remove 금지: {output}")
     if not re.fullmatch(r"cpf-[a-z][a-z0-9-]{1,49}",output.name): raise DomainError(f"Generated Root naming 위반: {output.name}")
@@ -3109,7 +3110,48 @@ def remove_owned(root: Path, definition_path: Path, output: Path, apply: bool=Fa
     result={**plan,'status':'PLANNED_DELETE_MANIFEST','applied':False,'deleteCandidates':candidates,
             'deletePrecondition':'USER_APPROVED_DELETE_MANIFEST','purgeDefinitionRequested':bool(purge_definition)}
     if apply:
-        raise DomainError('Generated Domain 실제 삭제는 사용자 승인 Delete Manifest 실행기로만 수행할 수 있습니다. --apply 직접 삭제는 금지됩니다.')
+        domain=output.name.removeprefix('cpf-')
+        lifecycle=root/'cpf-docs/work/evidence/generated/domain-generator'/f'lifecycle-{domain}'
+        expected_output=(lifecycle/f'cpf-{domain}').resolve()
+        expected_definition=(lifecycle/'definition/cpf-domain.yaml').resolve()
+        if (not approved_disposable_lifecycle or output != expected_output
+                or definition_path != expected_definition or purge_definition):
+            raise DomainError('Generated Domain 실제 삭제는 사용자 승인 Delete Manifest 실행기로만 수행할 수 있습니다. 일반 --apply 직접 삭제는 금지됩니다.')
+        candidate_set=set(candidates)
+        disposable_build_roots=(Path('.gradle'),Path('build'),Path('online/build'),Path('batch/build'))
+        unknown=[]
+        if output.exists():
+            for existing in (p for p in output.rglob('*') if p.is_file()):
+                rel=existing.relative_to(output)
+                if rel.as_posix() in candidate_set: continue
+                if any(rel==build_root or build_root in rel.parents for build_root in disposable_build_roots): continue
+                unknown.append(rel.as_posix())
+        if unknown:
+            raise DomainError(f'승인된 disposable lifecycle에도 사용자/미소유 파일이 있어 remove 중단: {sorted(unknown)}')
+        removed=[]
+        for rel in candidates:
+            candidate=(output/rel).resolve()
+            if output not in candidate.parents:
+                raise DomainError(f'Delete Manifest가 Generated Root 밖을 가리킵니다: {candidate}')
+            if candidate.is_file():
+                candidate.unlink(); removed.append(rel)
+        discarded_build_artifacts=[]
+        for build_root in disposable_build_roots:
+            artifact_root=output/build_root
+            if artifact_root.exists():
+                shutil.rmtree(artifact_root); discarded_build_artifacts.append(build_root.as_posix())
+        if output.exists():
+            for directory in sorted((p for p in output.rglob('*') if p.is_dir()),key=lambda p:len(p.parts),reverse=True):
+                try: directory.rmdir()
+                except OSError: pass
+            try: output.rmdir()
+            except OSError: pass
+        remaining=[rel for rel in candidates if (output/rel).exists()]
+        if remaining:
+            raise DomainError(f'Delete Manifest 적용 후 Generated Source가 남았습니다: {remaining}')
+        result.update({'status':'REMOVED','applied':True,'removed':removed,
+                       'discardedBuildArtifacts':discarded_build_artifacts,
+                       'deletePrecondition':'APPROVED_DISPOSABLE_LIFECYCLE'})
     return result
 
 

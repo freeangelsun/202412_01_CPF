@@ -130,6 +130,13 @@ def main() -> int:
         direct_apply = run(base + ["domain", "remove", "order", "--file", str(definition), "--output", str(output), "--apply"], expect=2)
         if not output.exists():
             raise RuntimeError("금지된 direct --apply가 Generated Root를 삭제했습니다.")
+        scoped_apply_outside_lifecycle = run(
+            base + ["domain", "remove", "order", "--file", str(definition), "--output", str(output),
+                    "--apply", "--approved-disposable-lifecycle"],
+            expect=2,
+        )
+        if not output.exists():
+            raise RuntimeError("disposable lifecycle 승인 경계 밖의 Generated Root가 삭제됐습니다.")
         # Temp fixture에서는 사용자 승인 Delete Manifest 적용 결과를 exact candidates로 모사해 restore parity를 검증합니다.
         for rel in plan_json.get("deleteCandidates", []):
             candidate = output / rel
@@ -143,6 +150,9 @@ def main() -> int:
             raise RuntimeError("Delete Manifest 모사 remove→restore Source hash parity가 깨졌습니다.")
         evidence["checks"]["removePlan"] = plan_json
         evidence["checks"]["directApplyRejected"] = {"status":"PASS","stderr":direct_apply.stderr.strip()}
+        evidence["checks"]["scopedApplyOutsideLifecycleRejected"] = {
+            "status":"PASS","stderr":scoped_apply_outside_lifecycle.stderr.strip()
+        }
         evidence["checks"]["restore"] = json.loads(restored.stdout)
 
         # 4) 정의 변경 upgrade는 user-owned extra 파일을 보존하면서 Generated-owned 변경만 반영한다.

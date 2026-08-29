@@ -89,7 +89,9 @@ def validate_lifecycle_runtime(root: Path, contract: dict) -> None:
         for rel in ["cpf-tools/db/generated/domain-template",
                     "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect"]:
             src=root/rel; dst=repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst)
-        definition=stage/"ledger.yaml"
+        lifecycle=repo/"cpf-docs/work/evidence/generated/domain-generator/lifecycle-ledger"
+        definition=lifecycle/"definition/cpf-domain.yaml"
+        definition.parent.mkdir(parents=True,exist_ok=True)
         definition.write_text("""domain:
   name: ledger
   systemCode: LDG
@@ -109,7 +111,7 @@ features:
 generation:
   sampleTransaction: true
 """,encoding="utf-8")
-        output=repo/"cpf-ledger"
+        output=lifecycle/"cpf-ledger"
         dry=engine.dry_run(repo,definition,output)
         if dry.get("status")!="DRY_RUN_PASS": raise ContractError("dry-run did not pass")
         transient=repo/"cpf-docs/work/evidence/generated/domain-generator/verification/cpf-ledger"
@@ -141,16 +143,25 @@ generation:
         candidates=rem.get("deleteCandidates") or []
         if not candidates:
             raise ContractError("safe remove produced no delete candidates")
-        # 실제 제품 CLI는 삭제하지 않는다. 여기서는 disposable fixture에서 사용자 Delete Manifest 실행만 시뮬레이션한다.
-        for rel in candidates:
-            candidate=output/rel
-            if candidate.is_file(): candidate.unlink()
-        for directory in sorted([p for p in output.rglob('*') if p.is_dir()],key=lambda p:len(p.parts),reverse=True):
-            try: directory.rmdir()
-            except OSError: pass
-        remaining={p.name for p in output.iterdir()} if output.is_dir() else set()
-        if remaining:
-            raise ContractError(f"safe remove replay left Generated content: {sorted(remaining)}")
+        try: engine.remove_owned(repo,definition,output,apply=True)
+        except Exception: pass
+        else: raise ContractError("general direct --apply removed disposable Generated Source without explicit approval")
+        user_file=output/"USER_NOTE.txt"; user_file.write_text("customer owned\n",encoding="utf-8")
+        try: engine.remove_owned(repo,definition,output,apply=True,approved_disposable_lifecycle=True)
+        except Exception: pass
+        else: raise ContractError("approved disposable remove accepted a user-owned extra file")
+        if not user_file.is_file() or any(not (output/rel).is_file() for rel in candidates):
+            raise ContractError("failed approved disposable preflight partially deleted the Generated Root")
+        user_file.unlink()
+        for artifact in (output/"build/classes/sample.class",output/"online/build/test-results/result.xml"):
+            artifact.parent.mkdir(parents=True,exist_ok=True); artifact.write_text("disposable\n",encoding="utf-8")
+        removed=engine.remove_owned(repo,definition,output,apply=True,approved_disposable_lifecycle=True)
+        if removed.get("status")!="REMOVED" or removed.get("applied") is not True:
+            raise ContractError("approved disposable lifecycle did not apply its exact Delete Manifest")
+        if sorted(removed.get("discardedBuildArtifacts") or []) != ["build","online/build"]:
+            raise ContractError("approved disposable lifecycle did not report exact Gradle artifact roots")
+        remaining=[rel for rel in candidates if (output/rel).exists()]
+        if remaining: raise ContractError(f"approved disposable remove left Generated Source: {remaining}")
         restored=engine.restore(repo,definition,output)
         if restored.get("status")!="RESTORED": raise ContractError("restore did not restore matching seed")
         if not engine.diff(repo,definition,output).get("clean"): raise ContractError("restore parity is not clean")

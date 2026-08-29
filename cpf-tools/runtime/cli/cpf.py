@@ -526,7 +526,7 @@ def main()->int:
     allgen=dsub.add_parser('generate-all',help=argparse.SUPPRESS); allgen.add_argument('--definitions-root'); allgen.add_argument('--output-root')
     upgrade_parser=dsub.add_parser('upgrade',help=argparse.SUPPRESS); upgrade_parser.add_argument('domain'); upgrade_parser.add_argument('--file'); upgrade_parser.add_argument('--output')
     restore_parser=dsub.add_parser('restore',help=argparse.SUPPRESS); restore_parser.add_argument('--file',required=True); restore_parser.add_argument('--output')
-    rem=dsub.add_parser('remove'); rem.add_argument('domain'); rem.add_argument('--file'); rem.add_argument('--output'); rem.add_argument('--apply',action='store_true',help='현재 Generator 입력과 동일한 Seed Source만 안전하게 제거'); rem.add_argument('--purge-definition',action='store_true',help=argparse.SUPPRESS)
+    rem=dsub.add_parser('remove'); rem.add_argument('domain'); rem.add_argument('--file'); rem.add_argument('--output'); rem.add_argument('--apply',action='store_true',help='현재 Generator 입력과 동일한 Seed Source만 안전하게 제거'); rem.add_argument('--purge-definition',action='store_true',help=argparse.SUPPRESS); rem.add_argument('--approved-disposable-lifecycle',action='store_true',help=argparse.SUPPRESS)
     createp=dsub.add_parser('create',help='Public Workspace에 신규 Business Domain을 생성하고 자동 편입')
     createp.add_argument('--name',required=True); createp.add_argument('--system-code',required=True); createp.add_argument('--batch',action='store_true'); createp.add_argument('--business-feature',action='append',default=None,help='업무 Feature 이름. 여러 개면 옵션을 반복 지정')
     newp=dsub.add_parser('new',help=argparse.SUPPRESS)
@@ -603,7 +603,8 @@ def main()->int:
         if ns.command=='remove':
             definition=resolve_definition(root,ns.domain,ns.file)
             output=((Path(ns.output) if Path(ns.output).is_absolute() else root/Path(ns.output)).resolve() if ns.output else (root/generated_root_name(ns.domain)).resolve())
-            print_json(remove_owned(root,definition,output,apply=ns.apply,purge_definition=ns.purge_definition)); return 0
+            print_json(remove_owned(root,definition,output,apply=ns.apply,purge_definition=ns.purge_definition,
+                                    approved_disposable_lifecycle=ns.approved_disposable_lifecycle)); return 0
     if ns.group=='library':
         if ns.command=='create': print_json(create_library(root,ns.name,ns.group,getattr(ns,'package',None),ns.version)); return 0
         if ns.command=='attach': print_json(attach_library(root,ns.name,ns.domain)); return 0

@@ -135,9 +135,9 @@ if (-not $openApiCoverage.Contains('cpf-tools/contracts/openapi/ensure-explicit-
         $openApiCoverage.Contains('$PSScriptRoot/ensure-explicit-openapi-operation-ids.ps1')) {
     Add-Failure 'OPENAPI_COVERAGE_OWNER' 'cpf-tools/verification/openapi/check-openapi-source-coverage.ps1' 'OpenAPI coverage must call the canonical contracts/openapi owner.'
 }
-$windowsCli = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/runtime/cli/cpf.bat') -Raw -Encoding UTF8
-if (-not $windowsCli.Contains('EnableDelayedExpansion') -or -not $windowsCli.Contains('exit /b !ERRORLEVEL!')) {
-    Add-Failure 'WINDOWS_CLI_EXIT_PROPAGATION' 'cpf-tools/runtime/cli/cpf.bat' 'Windows CLI must propagate the Python process exit code from inside command blocks.'
+$windowsCli = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/runtime/cli/cpf.cmd') -Raw -Encoding UTF8
+if (-not $windowsCli.Contains('cpf-cli.jar') -or -not $windowsCli.Contains('exit /b %ERRORLEVEL%')) {
+    Add-Failure 'WINDOWS_CLI_EXIT_PROPAGATION' 'cpf-tools/runtime/cli/cpf.cmd' 'Windows CLI must launch the canonical Java JAR and propagate its process exit code.'
 }
 
 $forbiddenPrefixes = @(

@@ -45,6 +45,22 @@ def scan_forbidden(root: Path) -> list[str]:
     return violations
 
 
+def validate_developer_shell_text(powershell: str, shell: str) -> list[str]:
+    """Verify both compatibility shells delegate targeted work to the one Java CLI."""
+    errors: list[str] = []
+    if "'verify-targeted'=@('dev','targeted-test')" not in powershell.replace(" ", ""):
+        errors.append("PowerShell developer shell lacks Unified CLI targeted verification mapping")
+    if "@ArgsFromCli" not in powershell:
+        errors.append("PowerShell developer shell does not forward targeted capability arguments")
+    normalized_shell = " ".join(shell.split())
+    if 'verify-targeted) exec "$CLI" dev targeted-test "$@"' not in normalized_shell:
+        errors.append("POSIX developer shell lacks Unified CLI targeted verification mapping/argument forwarding")
+    for label, text in (("PowerShell", powershell), ("POSIX", shell)):
+        if "cpfVerifyTargeted" in text or "gradlew" in text:
+            errors.append(f"{label} developer shell duplicates the canonical targeted Gradle engine")
+    return errors
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
@@ -128,11 +144,11 @@ def main() -> int:
 
     root_conventions = (root / "cpf-tools/build/cpf-root-conventions.gradle").read_text(encoding="utf-8")
     developer_shell = (root / "cpf-tools/build/tools/cpf-dev.ps1").read_text(encoding="utf-8-sig")
+    developer_shell_sh = (root / "cpf-tools/build/tools/cpf-dev.sh").read_text(encoding="utf-8")
     for token in ("cpfVerifyFast", "cpfVerifyTargeted", "cpfVerifyFullLocal"):
         if token not in root_conventions:
             errors.append(f"root verification tier missing: {token}")
-    if "verify-targeted" not in developer_shell or "TargetCapabilities" not in developer_shell:
-        errors.append("developer shell lacks targeted verification entry")
+    errors.extend(validate_developer_shell_text(developer_shell, developer_shell_sh))
 
     lifecycle = (root / "cpf-tools/generator/verification/verify-cpf-generator-lifecycle.py").read_text(encoding="utf-8")
     for token in ("dry-run", "diff", "regenerate", "upgrade", "remove", "restore"):

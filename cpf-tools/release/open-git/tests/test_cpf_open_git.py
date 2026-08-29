@@ -19,6 +19,12 @@ assert SPEC and SPEC.loader
 SPEC.loader.exec_module(MODULE)
 
 
+def _is_command(cmd: list[object], executable: str) -> bool:
+    """Match a command executable without making the mock OS-suffix dependent."""
+    actual = str(cmd[0]).replace("\\", "/").rsplit("/", 1)[-1].casefold()
+    return actual.removesuffix(".exe") == executable.casefold()
+
+
 def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Path):
     staging = tmp_path / "staging"
     command = [
@@ -475,9 +481,9 @@ def test_cross_platform_cli_is_single_java_implementation(tmp_path: Path, monkey
         shutil.copy2(source, target)
     original_run=MODULE.run
     def fake_java25_probe(cmd, cwd, *, capture=False, env=None):
-        if len(cmd) >= 2 and str(cmd[0]).endswith("javac") and cmd[1] == "-version":
+        if len(cmd) >= 2 and _is_command(cmd, "javac") and cmd[1] == "-version":
             return "javac 25.0.3"
-        if str(cmd[0]).endswith("javac") and "--release" in cmd:
+        if _is_command(cmd, "javac") and "--release" in cmd:
             adjusted=list(cmd); adjusted[adjusted.index("--release")+1]="21"
             return original_run(adjusted, cwd, capture=capture, env=env)
         return original_run(cmd, cwd, capture=capture, env=env)
@@ -513,17 +519,16 @@ def test_cli_wrappers_are_thin_and_no_powershell_or_bash_dependency_crosses_os()
 
 def test_cross_platform_cli_build_requires_java25(monkeypatch, tmp_path: Path):
     staging = tmp_path / "staging"; (staging / "bin").mkdir(parents=True)
-    original_run = MODULE.run
+    calls = []
     def fake_old_javac(cmd, cwd, *, capture=False, env=None):
-        if len(cmd) >= 2 and str(cmd[0]).endswith("javac") and cmd[1] == "-version":
+        calls.append([str(value) for value in cmd])
+        if len(cmd) >= 2 and _is_command(cmd, "javac") and cmd[1] == "-version":
             return "javac 21.0.11"
-        return original_run(cmd, cwd, capture=capture, env=env)
+        raise AssertionError(f"unexpected command after Java version rejection: {cmd}")
     monkeypatch.setattr(MODULE, "run", fake_old_javac)
-    try:
+    with pytest.raises(MODULE.OpenGitReleaseError, match="Java 25 javac is required"):
         MODULE.build_cross_platform_cli(ROOT, staging, "b" * 64, "9.9.9-test")
-        assert False, "non-Java25 compiler must fail closed"
-    except MODULE.OpenGitReleaseError as exc:
-        assert "Java 25 javac is required" in str(exc)
+    assert len(calls) == 1 and calls[0][1] == "-version"
 
 
 def test_cross_platform_cli_source_owns_public_commands_and_java25_gate():

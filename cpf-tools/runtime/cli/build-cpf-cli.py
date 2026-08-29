@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, os, shutil, subprocess, tempfile
+import argparse, hashlib, re, shutil, subprocess, tempfile
 from pathlib import Path
 
 def run(cmd, cwd):
@@ -14,6 +14,10 @@ def main():
     ns=ap.parse_args(); root=ns.root.resolve()
     javac=shutil.which('javac'); jar=shutil.which('jar')
     if not javac or not jar: raise SystemExit('CPF_CLI_BUILD=FAIL javac/jar required')
+    javac_version=run([javac,'-version'],root).stdout.strip()
+    match=re.search(r'(?:javac\s+)?(\d+)(?:[.\s-]|$)',javac_version)
+    if not match or int(match.group(1)) != 25:
+        raise SystemExit(f'CPF_CLI_BUILD=FAIL Java 25 javac required actual={javac_version or "UNKNOWN"}')
     source_identity=ns.source_identity
     if not source_identity:
         cp=run([shutil.which('python3') or shutil.which('python'),'cpf-tools/verification/tools/cpf-source-state.py','--root',str(root),'--scope','source'],root)
@@ -28,10 +32,10 @@ def main():
     target=root/'cpf-tools/runtime/cli/lib/cpf-cli.jar'; target.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='cpf-cli-build-') as td:
         td=Path(td); classes=td/'classes'; classes.mkdir()
-        run([javac,'-encoding','UTF-8','-d',str(classes),*[str(p) for p in sources]],root)
+        run([javac,'--release','25','-encoding','UTF-8','-Xlint:all','-Werror','-d',str(classes),*[str(p) for p in sources]],root)
         (classes/'cpf-cli.properties').write_text(f'version={version}\nsourceIdentitySha256={source_identity}\ncapabilityProfile={ns.profile}\nrequiredJavaFeature=25\n',encoding='utf-8',newline='\n')
         run([jar,'--create','--file',str(target),'--main-class','CpfCli','-C',str(classes),'.'],root)
     digest=hashlib.sha256(target.read_bytes()).hexdigest()
-    (target.with_suffix('.jar.sha256')).write_text(f'{digest}  cpf-cli.jar\n',encoding='ascii')
+    (target.with_suffix('.jar.sha256')).write_text(f'{digest}  cpf-cli.jar\n',encoding='ascii',newline='\n')
     print(f'CPF_CLI_BUILD=PASS profile={ns.profile} sourceIdentity={source_identity} jar={target} sha256={digest}')
 if __name__=='__main__': main()

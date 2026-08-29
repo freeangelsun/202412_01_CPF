@@ -18,7 +18,7 @@ param(
 # Legacy PowerShell surface는 입력 Adapter일 뿐이며 Source/SQL Template를 소유하지 않는다.
 $ErrorActionPreference='Stop'
 if([string]::IsNullOrWhiteSpace($Root)){$Root=(Resolve-Path "$PSScriptRoot\..\..").Path}else{$Root=(Resolve-Path -LiteralPath $Root).Path}
-$cli=Join-Path $Root 'cpf-tools\runtime\cli\cpf.bat'
+$cli=Join-Path $Root 'cpf-tools\runtime\cli\cpf.cmd'
 if(-not (Test-Path -LiteralPath $cli -PathType Leaf)){throw "CPF canonical CLI가 없습니다: $cli"}
 $temp=$null
 try {
@@ -53,7 +53,7 @@ generation:
 "@ | Set-Content -LiteralPath $temp -Encoding UTF8
         $DefinitionFile=$temp
     }
-    $cmd=@('domain')
+    $cmd=@('dev','domain')
     if($GeneratePatch){$cmd+=@('diff','--file',$DefinitionFile)}
     elseif($DryRun){$cmd+=@('dry-run','--file',$DefinitionFile)}
     else{$cmd+=@('generate','--file',$DefinitionFile)}

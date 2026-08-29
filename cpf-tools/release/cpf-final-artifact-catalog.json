@@ -400,7 +400,8 @@
         "sha256",
         "source-identity",
         "command-catalog",
-        "cross-platform-wrapper-contract"
+        "cross-platform-wrapper-contract",
+        "java25-fail-closed"
       ],
       "consumer": "internal-framework-developer-and-open-git-public-workspace",
       "visibility": "profile-projected-tooling",

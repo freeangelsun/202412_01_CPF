@@ -24,3 +24,17 @@ def test_forbidden_native_scan_is_scoped_to_business_and_generator_sources(tmp_p
 def test_usage_levels_are_explicit_contract_values():
     assert module.VALID_USAGE == {'golden', 'capability', 'advanced', 'internal'}
     assert module.EXPECTED_CALLS == {'application', 'cpf-domain', 'external-integration'}
+
+
+def test_developer_shells_delegate_targeted_verification_to_unified_cli():
+    powershell = (ROOT / 'cpf-tools/build/tools/cpf-dev.ps1').read_text(encoding='utf-8-sig')
+    shell = (ROOT / 'cpf-tools/build/tools/cpf-dev.sh').read_text(encoding='utf-8')
+    assert module.validate_developer_shell_text(powershell, shell) == []
+
+
+def test_developer_shell_contract_rejects_direct_gradle_and_missing_posix_forwarding():
+    powershell = "'verify-targeted'=@('dev','targeted-test'); @ArgsFromCli; gradlew cpfVerifyTargeted"
+    shell = 'verify-targeted) exec "$CLI" dev targeted-test ;;'
+    errors = module.validate_developer_shell_text(powershell, shell)
+    assert any('duplicates' in error for error in errors)
+    assert any('POSIX' in error and 'forwarding' in error for error in errors)

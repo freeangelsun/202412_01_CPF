@@ -22,6 +22,7 @@ GENERATED_PARTS = {
 }
 GENERATED_FILES = {".coverage"}
 GENERATED_FILE_PATTERNS = (
+    "*.class",
     "hs_err_pid*.log",
     "replay_pid*.log",
     "java_pid*.hprof",
@@ -29,7 +30,7 @@ GENERATED_FILE_PATTERNS = (
     "*.stackdump",
 )
 GENERATED_PATH_MARKERS = ("/cpf-docs/work/evidence/generated/",)
-GENERATED_ROOT_PREFIXES = {".vscode/"}
+GENERATED_ROOT_PREFIXES = {".vscode/", ".github/modernize/", "logs/"}
 CANONICAL_PRODUCT_BIN_PREFIXES = (
     "cpf-batch/control-plane/bin/", "cpf-batch/scheduler/bin/", "cpf-batch/worker/bin/",
     "cpf-batch/agent/bin/", "cpf-batch/center-cut/bin/",

@@ -209,7 +209,8 @@ try {
             & $remove -Root $Root -DomainName $domain -SystemCode $code -DefinitionPath $definitionPath -OutputDir $project -DryRun
         }
         Invoke-Step 'removeGeneratedSource' {
-            & $remove -Root $Root -DomainName $domain -SystemCode $code -DefinitionPath $definitionPath -OutputDir $project
+            & $remove -Root $Root -DomainName $domain -SystemCode $code -DefinitionPath $definitionPath -OutputDir $project `
+                -ApprovedDisposableLifecycle
         }
         Invoke-Step 'restore' {
             Invoke-CpfCanonicalCli -Root $Root -Arguments @('domain', 'restore', '--file', $definitionPath, '--output', $project)

@@ -272,7 +272,7 @@ foreach ($parameterName in @("DatabaseHost", "DatabasePort", "DatabaseName", "Da
         throw "create-domain.ps1에 외부 DB 연결/Provision 입력이 결합되어 있습니다: $parameterName count=$($matches.Count)"
     }
 }
-foreach ($requiredCreateDomainToken in @("DefinitionFile", "cpf-tools\runtime\cli\cpf.bat", "CUSTOMER_BUSINESS_DB")) {
+foreach ($requiredCreateDomainToken in @("DefinitionFile", "cpf-tools\runtime\cli\cpf.cmd", "CUSTOMER_BUSINESS_DB")) {
     if (-not $createDomain.Contains($requiredCreateDomainToken)) {
         throw "create-domain.ps1 canonical CLI/definition Adapter 계약 누락: $requiredCreateDomainToken"
     }

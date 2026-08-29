@@ -11,6 +11,9 @@ def test_batch_standalone_shells_are_product_source():
 def test_noncanonical_compiled_bin_is_still_excluded():
     assert mod._is_generated('cpf-random/bin/com/acme/Foo.class')
 
+def test_compiled_output_inside_canonical_batch_bin_is_excluded():
+    assert mod._is_generated('cpf-batch/agent/bin/main/com/cpf/batch/agent/AgentConfiguration.class')
+
 def test_gitignore_keeps_canonical_batch_shells_trackable():
     text=(ROOT/'.gitignore').read_text(encoding='utf-8')
     assert '!cpf-batch/*/bin/' in text

@@ -30,8 +30,11 @@ dependencies {
         publicModules.sort { it.artifactId }.each { m -> api "${m.groupId}:${m.artifactId}:${versionValue}" }
     }
 }
-def localRepo=providers.gradleProperty('cpfLocalArtifactRepository').orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY')).orElse(new File(System.getProperty('user.home'),'.cpf/repository').absolutePath)
-def stagingRepo=providers.gradleProperty('cpfArtifactStagingRepository').orElse(new File(rootDir,'../../../../build/cpf-artifact-staging/repository').absolutePath)
+def productRoot=new File(rootDir,'../../..').canonicalFile
+def productGeneratedRepository=new File(productRoot,'cpf-docs/work/evidence/generated/gradle/root-build/cpf-local-artifact-repository').absolutePath
+def productStagingRepository=new File(productRoot,'cpf-docs/work/evidence/generated/gradle/root-build/cpf-artifact-staging/repository').absolutePath
+def localRepo=providers.gradleProperty('cpfLocalArtifactRepository').orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY')).orElse(productGeneratedRepository)
+def stagingRepo=providers.gradleProperty('cpfArtifactStagingRepository').orElse(productStagingRepository)
 def internalRepo=providers.gradleProperty('cpfInternalRepositoryUrl').orElse(providers.gradleProperty('cpfArtifactRepositoryUrl')).orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orElse(layout.buildDirectory.dir('repo').map { it.asFile.absolutePath })
 publishing {
  publications { cpfPlatformBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-platform-bom'; pom { name='CPF Public Platform BOM'; description='Public CPF contracts, testkit, canonical starter base/common/providers/profiles.' } } }

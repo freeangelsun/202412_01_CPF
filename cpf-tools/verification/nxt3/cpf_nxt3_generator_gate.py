@@ -109,7 +109,7 @@ def main(argv=None) -> int:
     # 한 Engine/Schema/CLI Surface만 유지하는지 물리 파일을 확인한다.
     ck('SINGLE_CANONICAL_ENGINE',(root/'cpf-tools/generator/engine/cpf_domain_generator.py').is_file() and not (root/'cpf-tools/generator/core/domain_engine.py').exists())
     ck('SCHEMA_PRESENT',(root/'cpf-tools/generator/contracts/cpf-domain.schema.json').is_file())
-    ck('CLI_WINDOWS_LINUX',(root/'cpf-tools/runtime/cli/cpf.bat').is_file() and (root/'cpf-tools/runtime/cli/cpf').is_file())
+    ck('CLI_WINDOWS_LINUX',(root/'cpf-tools/runtime/cli/cpf.cmd').is_file() and (root/'cpf-tools/runtime/cli/cpf').is_file())
 
     fail=[x for x in checks if x['status']=='FAIL']
     result={'status':'PASS' if not fail else 'FAIL','pass':len(checks)-len(fail),'fail':len(fail),'checks':checks}

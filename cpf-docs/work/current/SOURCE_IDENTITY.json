@@ -1,18 +1,27 @@
 {
   "schemaVersion": 1,
   "identityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+  "status": "CODEX_CONTINUATION_IN_PROGRESS",
   "baselineZipSha256": "e24d2596fc404c6761725cf5b5a4a618038dae4f1e177d4171296f6204d20802",
   "baselineSource": {
     "contentSha256": "b33471236f57a30eba48c9cc582789ee33f81cd8b67194a9e710b06877b4d68e",
     "fileCount": 8409,
     "totalBytes": 43921953
   },
-  "currentSource": {
+  "handoffSource": {
     "contentSha256": "398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717",
     "fileCount": 8320,
-    "totalBytes": 43322137
+    "totalBytes": 43322137,
+    "status": "SUPERSEDED_BY_EXACT_MASTER_RECOMPUTE"
   },
-  "diff": {
+  "currentSource": {
+    "contentSha1": "e672d0867c546da9e2fdab4358fc923a1a61bfaf",
+    "contentSha256": "fddfbcabe6f7bab187bd957178b5e9a06791886625c29e7362c4e0a4e38aea91",
+    "fileCount": 8362,
+    "totalBytes": 45383854,
+    "status": "CURRENT_CODEX_STAGE4_SOURCE"
+  },
+  "handoffDiff": {
     "add": 77,
     "modify": 132,
     "delete": 1725
@@ -20,10 +29,28 @@
   "deleteManifestRows": 2038,
   "canonicalInventoryRows": 190,
   "developerRequirementRows": 218,
-  "gitProvenance": "UNAVAILABLE_IN_SUPPLIED_ZIP; verify read-only after local overlay apply",
+  "gitProvenance": {
+    "repository": "https://github.com/freeangelsun/202412_01_CPF",
+    "branch": "master",
+    "headAtStart": "5f2289d4171d5a42ce579d7c98ebf3e1bef19828",
+    "originMasterAtStart": "5f2289d4171d5a42ce579d7c98ebf3e1bef19828",
+    "workingTreeAtStart": "CLEAN",
+    "gitWrites": 0
+  },
+  "identityCorrections": [
+    "exclude generated *.class even under canonical Batch bin shell roots",
+    "exclude repository-root runtime logs/",
+    "exclude generated .github/modernize workspace"
+  ],
+  "currentWpClosures": [
+    "Open Git/Public isolated pytest failure and Windows executable fault injection",
+    "Unified cpf CLI Java25 warning-free build and active generator consumer routing",
+    "product-isolated platform BOM publication default",
+    "approved disposable Generated Domain create-build-remove-restore-build byte parity"
+  ],
   "fullTreeCurrentFileCount": 8832,
-  "freshReplay": {
-    "status": "PASS",
+  "handoffFreshReplay": {
+    "status": "HANDOFF_PASS_NOT_CARRIED_TO_CURRENT_SOURCE",
     "currentFileCount": 8832,
     "replayFileCount": 8832,
     "missing": 0,
@@ -31,5 +58,9 @@
     "changed": 0,
     "baselineDeletesApplied": 1725,
     "alreadyMissingDeleteRows": 313
+  },
+  "currentFreshReplay": {
+    "status": "NOT_EXECUTED",
+    "reason": "Codex continuation source changes are still in progress"
   }
 }

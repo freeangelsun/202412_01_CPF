@@ -66,6 +66,35 @@ def test_ide_and_module_bin_outputs_are_excluded(tmp_path: Path):
     assert ".vscode/settings.json" not in paths
 
 
+def test_generated_class_runtime_log_and_modernize_workspace_are_excluded(tmp_path: Path):
+    batch_bin = tmp_path / "cpf-batch" / "agent" / "bin"
+    batch_bin.mkdir(parents=True)
+    (batch_bin / "run.ps1").write_text("java -jar agent.jar\n", encoding="utf-8")
+    compiled = batch_bin / "main" / "com" / "cpf" / "Agent.class"
+    compiled.parent.mkdir(parents=True)
+    compiled.write_bytes(b"generated-class")
+
+    runtime_logs = tmp_path / "logs" / "cpf-runtime"
+    runtime_logs.mkdir(parents=True)
+    (runtime_logs / "runtime.log").write_text("generated-log", encoding="utf-8")
+
+    modernize = tmp_path / ".github" / "modernize" / "java-upgrade" / "hooks"
+    modernize.mkdir(parents=True)
+    (modernize / "recordToolUse.ps1").write_text("generated-tool-state", encoding="utf-8")
+
+    admin_log_source = tmp_path / "cpf-admin" / "frontend" / "src" / "features" / "logs"
+    admin_log_source.mkdir(parents=True)
+    (admin_log_source / "LogSearch.tsx").write_text("export {};", encoding="utf-8")
+
+    result = module.snapshot(tmp_path, "source")
+    paths = {row["path"] for row in result["files"]}
+    assert "cpf-batch/agent/bin/run.ps1" in paths
+    assert "cpf-batch/agent/bin/main/com/cpf/Agent.class" not in paths
+    assert "logs/cpf-runtime/runtime.log" not in paths
+    assert ".github/modernize/java-upgrade/hooks/recordToolUse.ps1" not in paths
+    assert "cpf-admin/frontend/src/features/logs/LogSearch.tsx" in paths
+
+
 def test_release_template_bin_scripts_are_product_source(tmp_path: Path):
     # cpf-tools/release/*/templates/bin/**은 컴파일 산출물이 아니라 고객이 자신의 bin/에
     # 그대로 설치하는 CLI Template Source다. 일반 module-root bin/(컴파일 산출물)과 혼동해

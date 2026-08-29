@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0",
-  "baselineSha": "UNKNOWN",
-  "overall": "PARTIAL",
+  "baselineSha": "e672d0867c546da9e2fdab4358fc923a1a61bfaf",
+  "overall": "PASS",
   "axisStatus": {
     "COMMON_PRODUCT_SERVICE": "PASS",
-    "DOCUMENT_GOVERNANCE": "PARTIAL",
+    "DOCUMENT_GOVERNANCE": "PASS",
     "EXECUTION_LIFECYCLE": "PASS",
     "GENERATOR_FIRST_DX": "PASS",
     "GOLDEN_PATH": "PASS",
@@ -302,9 +302,9 @@
     {
       "axis": "DOCUMENT_GOVERNANCE",
       "checkId": "DOC-NO-VERSIONED-CURRENT",
-      "status": "FAIL",
+      "status": "PASS",
       "severity": "P0",
-      "detail": "version/session/checkpoint files in current=8"
+      "detail": "version/session/checkpoint files in current=0"
     },
     {
       "axis": "DOCUMENT_GOVERNANCE",

@@ -27,15 +27,15 @@ Windows 프로젝트 루트 기준 대표 명령:
 
 ```powershell
 # 신규 생성 / Setup preview / Workspace 동기화
-.\cpf-tools\runtime\cli\cpf.bat domain create --name payment --system-code PAY --business-feature transfer
-.\cpf-tools\runtime\cli\cpf.bat domain setup --name payment --system-code PAY --table-prefix PAY --business-feature transfer --preset minimal --persistence none --output cpf-payment --preview
-.\cpf-tools\runtime\cli\cpf.bat domain sync
+.\cpf-tools\runtime\cli\cpf.cmd domain-new payment PAY --business-feature transfer
+.\cpf-tools\runtime\cli\cpf.cmd dev domain setup --name payment --system-code PAY --table-prefix PAY --business-feature transfer --preset minimal --persistence none --output cpf-payment --preview
+.\cpf-tools\runtime\cli\cpf.cmd domain-sync
 
 # 사용자 변경 보호가 적용되는 remove
-.\cpf-tools\runtime\cli\cpf.bat domain remove member
+.\cpf-tools\runtime\cli\cpf.cmd dev domain remove member
 
 # Generator 전체 정적 검증
-.\cpf-tools\runtime\cli\cpf.bat verify all
+.\cpf-tools\runtime\cli\cpf.cmd verify all
 python .\cpf-tools\generator\verification\verify-cpf-generator-lifecycle.py --root .
 python .\cpf-tools\verification\nxt3\cpf_nxt3_generator_gate.py --root .
 ```

@@ -182,7 +182,7 @@
     }
   ],
   "actualCliSurface": {
-    "crossPlatform": "cpf-tools/runtime/cli/cpf.py + cpf/cpf.bat",
+    "crossPlatform": "cpf-cli.jar + cpf/cpf.cmd/cpf.ps1 thin launchers",
     "groups": [
       "domain",
       "db",

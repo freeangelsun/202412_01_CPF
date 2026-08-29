@@ -260,6 +260,9 @@ def main() -> int:
             errors.append(f"missing {label}: {relative}")
             continue
         text = path.read_text(encoding="utf-8")
+        isolated_repository = "cpf-docs/work/evidence/generated/gradle/root-build/cpf-local-artifact-repository"
+        if isolated_repository not in text or "System.getProperty('user.home'),'.cpf/repository'" in text.replace(" ", ""):
+            errors.append(f"{label} local publication is not product-isolated")
         if re.search(r"(?:internalModules|publicModules)\.size\(\)\s*[!=]=\s*\d+", text):
             errors.append(f"{label} contains a fixed-count assertion")
         for marker in ("missing", "extra", "duplicate"):

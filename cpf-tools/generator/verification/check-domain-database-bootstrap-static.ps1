@@ -28,7 +28,7 @@ try {
         Remove-Item -LiteralPath $sandbox -Recurse -Force
     }
     New-Item -ItemType Directory -Force -Path $sandboxRoot | Out-Null
-    $cli = Join-Path $Root "cpf-tools/runtime/cli/cpf.bat"
+    $cli = Join-Path $Root "cpf-tools/runtime/cli/cpf.cmd"
     if (-not (Test-Path -LiteralPath $cli -PathType Leaf)) {
         throw "Canonical CPF CLI가 없습니다: $cli"
     }
@@ -82,7 +82,7 @@ generation:
         $projectDir = Join-Path $sandboxRoot "cpf-$($case.domain)"
         $transientRoot = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-$($case.domain)"
         $transientRoots.Add($transientRoot)
-        & $cli domain generate --file $definitionPath --output $projectDir | Out-Null
+        & $cli dev domain generate --file $definitionPath --output $projectDir | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Generated Domain static 생성 실패: vendor=$($case.vendor)"
         }
@@ -98,7 +98,7 @@ generation:
         }
 
         $resultDir = Join-Path $sandbox "result-$($case.vendor)"
-        & $cli db render --file $definitionPath --vendor $case.vendor --output $resultDir | Out-Null
+        & $cli dev db-render --file $definitionPath --vendor $case.vendor --output $resultDir | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Generated Domain DB resource render 실패: vendor=$($case.vendor)"
         }

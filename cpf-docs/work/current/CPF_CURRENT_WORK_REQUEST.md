@@ -88,6 +88,14 @@ Domain 부재는 `NOT_SELECTED/NOT_PRESENT`이며 필수 Platform Module 누락�
 
 Optional `source` Profile은 Canonical Public Source Allowlist만 projection한다. Release Tool은 Git add/commit/push를 자동 실행하지 않고 `VERIFIED`까지만 만든다.
 
+Open Git/Public Python 회귀는 Windows 사용자 Temp의 stale ACL·junction·cleanup 상태와 제품 실패를 섞지 않는다.
+
+- 매 실행마다 재사용하지 않는 isolated `--basetemp`를 지정하고, 시작 전 해당 root가 symlink/junction이 아님을 확인한다.
+- `%TEMP%\pytest-of-*` cleanup 오류는 제품 assertion과 별도 결과로 기록한다.
+- `java/javac/jar` command fault injection은 Windows `.exe` suffix와 POSIX executable name을 동일하게 식별한다.
+- Java 25 prerequisite negative는 version probe 뒤 compile/package가 실행되지 않는 fail-closed 계약으로 검증한다.
+- 실행 후 Product Source Identity와 Git Working Tree drift를 다시 확인한다.
+
 ## 4. Current-only / Legacy Zero
 
 Repository는 현재 Architecture만 해석 가능하게 유지한다.

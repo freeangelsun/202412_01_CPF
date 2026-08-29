@@ -19,11 +19,11 @@ public final class CpfCli {
     private static final String VERSION = BUILD.getProperty("version", "UNKNOWN");
     private static final String SOURCE_IDENTITY = BUILD.getProperty("sourceIdentitySha256", "UNKNOWN");
     private static final String CAPABILITY_PROFILE = BUILD.getProperty("capabilityProfile", "INTERNAL").trim().toUpperCase(Locale.ROOT);
-    private static final int OK = 0;
-    private static final int FAILURE = 1;
-    private static final int USAGE = 2;
-    private static final int PREREQUISITE = 69;
-    private static final int TIMEOUT = 124;
+    private static final int EXIT_OK = 0;
+    private static final int EXIT_FAILURE = 1;
+    private static final int EXIT_USAGE = 2;
+    private static final int EXIT_PREREQUISITE = 69;
+    private static final int EXIT_TIMEOUT = 124;
     private static final Duration COMMAND_TIMEOUT = Duration.ofMinutes(45);
     private static final Set<String> PUBLIC = Set.of(
             "bootstrap", "domain-new", "domain-sync", "build", "test", "run", "stop", "reset", "status", "doctor", "version", "help");
@@ -42,7 +42,7 @@ public final class CpfCli {
             if (!PUBLIC.contains(command) && !INTERNAL_NAMESPACES.contains(command)) return usage("unsupported command=" + command);
             if (INTERNAL_NAMESPACES.contains(command) && !internalEnabled()) {
                 fail("CPF-CLI-CAPABILITY", "Internal command is not projected in profile=" + CAPABILITY_PROFILE);
-                return PREREQUISITE;
+                return EXIT_PREREQUISITE;
             }
             if (command.equals("help")) return help();
             if (command.equals("version")) return version(argv);
@@ -50,7 +50,7 @@ public final class CpfCli {
             Instant started = Instant.now();
             log("START", "command=" + command + " profile=" + CAPABILITY_PROFILE + " root=" + root + " time=" + started);
             int result = switch (command) {
-                case "help", "version" -> OK;
+                case "help", "version" -> EXIT_OK;
                 case "doctor" -> doctor(root, argv);
                 case "bootstrap" -> requireJava25Then(() -> internalEnabled() ? internalBootstrap(root, argv) : bootstrap(root, argv, false));
                 case "run" -> requireJava25Then(() -> internalEnabled() ? internalRuntime(root, "start", argv) : bootstrap(root, argv, true));
@@ -65,16 +65,16 @@ public final class CpfCli {
                 case "verify" -> requireJava25Then(() -> internalVerify(root, argv));
                 case "publish" -> requireJava25Then(() -> internalPublish(root, argv));
                 case "release" -> requireJava25Then(() -> internalRelease(root, argv));
-                default -> USAGE;
+                default -> EXIT_USAGE;
             };
             log("END", "command=" + command + " status=" + (result == 0 ? "PASS" : "FAIL") + " exitCode=" + result + " start=" + started + " end=" + Instant.now());
             return result;
         } catch (IllegalArgumentException e) {
             fail("CPF-CLI-USAGE", e.getMessage());
-            return USAGE;
+            return EXIT_USAGE;
         } catch (Throwable e) {
             fail("CPF-CLI-UNEXPECTED", e.getMessage());
-            return FAILURE;
+            return EXIT_FAILURE;
         }
     }
 
@@ -88,13 +88,13 @@ public final class CpfCli {
         System.out.println("  cpf doctor [--json] [--strict] [--non-interactive]");
         if (internalEnabled()) {
             System.out.println("Internal namespaces:");
-            System.out.println("  cpf dev build|test|targeted-test|full-validation|run-batch|modules|resource|db3");
+            System.out.println("  cpf dev build|test|targeted-test|full-validation|run-batch|modules|resource|db3|domain|db-render");
             System.out.println("  cpf verify all|generator|generated|db3|catalog|ownership|source");
             System.out.println("  cpf publish framework");
             System.out.println("  cpf release open-git [build|check|status] [--profile binary|source]");
         }
         System.out.println("  cpf version");
-        return OK;
+        return EXIT_OK;
     }
 
     private static int version(List<String> args) {
@@ -109,7 +109,7 @@ public final class CpfCli {
             System.out.println("CAPABILITY_PROFILE=" + CAPABILITY_PROFILE);
             System.out.println("JAVA_VERSION=" + Runtime.version());
         }
-        return OK;
+        return EXIT_OK;
     }
 
     private static int doctor(Path root, List<String> args) throws IOException {
@@ -129,7 +129,7 @@ public final class CpfCli {
         boolean gradle=Files.isRegularFile(root.resolve(isWindows()?"gradlew.bat":"gradlew"));
         boolean java25=Runtime.version().feature()==25; boolean config=Files.isRegularFile(cfg) || internalEnabled();
         String domainState=domains.isEmpty()?"NOT_SELECTED":"SELECTED"; String capabilities=caps.isBlank()?"NOT_SELECTED":caps;
-        int exit=(strict && (!gradle || !java25 || !config))?PREREQUISITE:OK;
+        int exit=(strict && (!gradle || !java25 || !config))?EXIT_PREREQUISITE:EXIT_OK;
         if(json){
             System.out.println("{\"status\":\""+(exit==0?"PASS":"FAIL")+"\",\"frameworkVersion\":\""+jsonEscape(VERSION)+"\",\"cliVersion\":\""+jsonEscape(VERSION)+"\",\"domainState\":\""+domainState+"\",\"domains\":["+domains.stream().map(x->"\""+jsonEscape(x)+"\"").reduce((a,b)->a+","+b).orElse("")+"],\"capabilities\":\""+jsonEscape(capabilities)+"\",\"dbVendor\":\""+jsonEscape(db)+"\",\"javaVersion\":\""+jsonEscape(Runtime.version().toString())+"\",\"prerequisites\":{\"java25\":"+java25+",\"gradleWrapper\":"+gradle+",\"workspaceConfig\":"+config+"},\"build\":\"cpf build | ./gradlew build\",\"test\":\"cpf test | ./gradlew test\",\"run\":\"cpf run\"}");
         } else {
@@ -145,7 +145,7 @@ public final class CpfCli {
         Path state = root.resolve("build/cpf-bootstrap/current-runtime.properties");
         if (!Files.isRegularFile(state)) {
             System.out.println("CPF_STATUS=STOPPED");
-            return OK;
+            return EXIT_OK;
         }
         Properties p = new Properties();
         try (Reader reader = Files.newBufferedReader(state, StandardCharsets.UTF_8)) { p.load(reader); }
@@ -154,7 +154,7 @@ public final class CpfCli {
             if (name.toLowerCase(Locale.ROOT).matches(".*(password|secret|token|credential).*")) continue;
             System.out.println(name + "=" + sanitize(p.getProperty(name)));
         }
-        return OK;
+        return EXIT_OK;
     }
 
     private static int bootstrap(Path root, List<String> args, boolean startRuntime) throws Exception {
@@ -217,7 +217,7 @@ public final class CpfCli {
     }
 
     private static int internalDev(Path root, List<String> args) throws Exception {
-        if (args.isEmpty()) return usage("cpf dev build|test|targeted-test|full-validation|run-batch|modules|resource|db3");
+        if (args.isEmpty()) return usage("cpf dev build|test|targeted-test|full-validation|run-batch|modules|resource|db3|domain|db-render");
         String sub = normalize(args.remove(0));
         return switch (sub) {
             case "build" -> gradle(root, "clean", concat(List.of("build", "--continue"), args));
@@ -228,6 +228,8 @@ public final class CpfCli {
             case "modules" -> gradle(root, "cpfModules", args);
             case "resource" -> gradle(root, "cpfResourcePolicy", args);
             case "db3" -> runPython(root, root.resolve("cpf-tools/db/tests/run_db3_lifecycle.py"), concat(List.of("--root", root.toString()), args));
+            case "domain" -> generator(root, concat(List.of("domain"), args));
+            case "db-render" -> generator(root, concat(List.of("db", "render"), args));
             default -> usage("unsupported cpf dev command=" + sub);
         };
     }
@@ -238,6 +240,7 @@ public final class CpfCli {
             case "all" -> runPython(root, root.resolve("cpf-tools/verification/tools/run-cpf-canonical-verifiers.py"), concat(List.of("--root", root.toString()), args));
             case "generator" -> runPythonEngine(root, concat(List.of("--root", root.toString(), "verify", "generator"), args));
             case "generated" -> runPythonEngine(root, concat(List.of("--root", root.toString(), "verify", "all"), args));
+            case "domain" -> runPythonEngine(root, concat(List.of("--root", root.toString(), "verify", "domain"), args));
             case "db3" -> runPython(root, root.resolve("cpf-tools/db/verification/verify-cpf-db-vendor-semantic-parity.py"), concat(List.of("--root", root.toString()), args));
             case "catalog" -> runPython(root, root.resolve("cpf-tools/verification/tools/verify-cpf-starter-catalog-truth.py"), args);
             case "ownership" -> runPython(root, root.resolve("cpf-tools/verification/tools/verify-cpf-owner-boundaries.py"), args);
@@ -321,6 +324,8 @@ public final class CpfCli {
     private static int runProcess(Path root, List<String> command, Duration timeout) throws Exception {
         ProcessBuilder builder = new ProcessBuilder(command).directory(root.toFile()).redirectErrorStream(true);
         builder.environment().put("JAVA_TOOL_OPTIONS", appendUtf8(builder.environment().get("JAVA_TOOL_OPTIONS")));
+        builder.environment().put("PYTHONUTF8", "1");
+        builder.environment().put("PYTHONIOENCODING", "utf-8");
         Process process = builder.start();
         Thread pump = new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -330,7 +335,7 @@ public final class CpfCli {
         pump.setDaemon(true); pump.start();
         if (!process.waitFor(timeout.toSeconds(), TimeUnit.SECONDS)) {
             process.destroy(); if (!process.waitFor(5, TimeUnit.SECONDS)) process.destroyForcibly(); pump.join(5000);
-            fail("CPF-CLI-TIMEOUT", "timeoutSeconds=" + timeout.toSeconds()); return TIMEOUT;
+            fail("CPF-CLI-TIMEOUT", "timeoutSeconds=" + timeout.toSeconds()); return EXIT_TIMEOUT;
         }
         pump.join(5000); return process.exitValue();
     }
@@ -390,8 +395,8 @@ public final class CpfCli {
     private static boolean isWindows() { return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win"); }
     private static String jsonEscape(String v) { return sanitize(v).replace("\\","\\\\").replace("\"","\\\""); }
     private static String sanitize(String v) { if (v == null) return "unknown"; return v.replaceAll("[\\r\\n\\t]+", " ").replaceAll("(?i)(password|secret|token|credential)=\\S+", "$1=***"); }
-    private static int usage(String m) { fail("CPF-CLI-USAGE", m); System.err.println("Run 'cpf help' for usage."); return USAGE; }
-    private static int prerequisite(String code, String m) { fail(code, m); return PREREQUISITE; }
+    private static int usage(String m) { fail("CPF-CLI-USAGE", m); System.err.println("Run 'cpf help' for usage."); return EXIT_USAGE; }
+    private static int prerequisite(String code, String m) { fail(code, m); return EXIT_PREREQUISITE; }
     private static void fail(String code, String m) { System.err.println("CPF_CLI=FAIL code=" + code + " message=" + sanitize(m)); }
     private static void log(String phase, String detail) { System.out.println("[CPF][CLI] " + phase + " " + detail); }
     @FunctionalInterface private interface ThrowingIntSupplier { int getAsInt() throws Exception; }

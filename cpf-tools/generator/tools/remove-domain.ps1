@@ -8,7 +8,8 @@ param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [string] $ResultDir = '',
     [switch] $DryRun,
-    [switch] $PurgeDefinition
+    [switch] $PurgeDefinition,
+    [switch] $ApprovedDisposableLifecycle
 )
 
 # Compatibility surface. Removal ownership is calculated by the canonical Engine from
@@ -40,6 +41,10 @@ if (-not [string]::IsNullOrWhiteSpace($OutputDir)) {
     $arguments += @('--output', ([IO.Path]::GetFullPath($OutputDir)))
 }
 if (-not $DryRun) { $arguments += '--apply' }
+if ($ApprovedDisposableLifecycle) {
+    if ($DryRun) { throw '-ApprovedDisposableLifecycle은 실제 제거에서만 사용할 수 있습니다.' }
+    $arguments += '--approved-disposable-lifecycle'
+}
 if ($PurgeDefinition) {
     if ($DryRun) { throw '-PurgeDefinition은 실제 제거에서만 사용할 수 있습니다.' }
     $arguments += '--purge-definition'

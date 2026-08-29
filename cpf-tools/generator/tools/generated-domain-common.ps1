@@ -76,25 +76,34 @@ function Invoke-CpfCanonicalCli {
         [Parameter(Mandatory = $true)][string] $Root,
         [Parameter(Mandatory = $true)][string[]] $Arguments
     )
-    $cli = Join-Path $Root 'cpf-tools/runtime/cli/cpf.py'
+    $cli = if ($IsLinux -or $IsMacOS) {
+        Join-Path $Root 'cpf-tools/runtime/cli/cpf'
+    } else {
+        Join-Path $Root 'cpf-tools/runtime/cli/cpf.cmd'
+    }
     if (-not (Test-Path -LiteralPath $cli -PathType Leaf)) {
         throw "CPF canonical CLI가 없습니다: $cli"
     }
-    $python = @(Get-CpfPythonCommand)
-    $processArguments = @()
-    if ($python.Count -gt 1) { $processArguments += $python[1..($python.Count - 1)] }
-    $processArguments += @($cli, '--root', $Root)
-    $processArguments += $Arguments
+    $processArguments = @($Arguments)
+    if ($processArguments.Count -gt 0 -and $processArguments[0] -eq 'domain') {
+        $processArguments = @('dev') + $processArguments
+    } elseif ($processArguments.Count -gt 1 -and
+            $processArguments[0] -eq 'db' -and $processArguments[1] -eq 'render') {
+        $remainingArguments = if ($processArguments.Count -gt 2) {
+            @($processArguments[2..($processArguments.Count - 1)])
+        } else { @() }
+        $processArguments = @('dev', 'db-render') + $remainingArguments
+    }
     $oldPreference = $ErrorActionPreference
-    $previousPythonUtf8 = $env:PYTHONUTF8
+    $previousWorkspace = $env:CPF_WORKSPACE
     try {
-        $env:PYTHONUTF8 = '1'
+        $env:CPF_WORKSPACE = $Root
         $ErrorActionPreference = 'Continue'
-        $output = @(& $python[0] @processArguments 2>&1 | ForEach-Object { $_.ToString() })
+        $output = @(& $cli @processArguments 2>&1 | ForEach-Object { $_.ToString() })
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $oldPreference
-        $env:PYTHONUTF8 = $previousPythonUtf8
+        $env:CPF_WORKSPACE = $previousWorkspace
     }
     if ($exitCode -ne 0) {
         throw "CPF canonical CLI 실패: exitCode=$exitCode output=$($output -join ' ')"
@@ -110,10 +119,15 @@ function Invoke-CpfCanonicalCli {
     if ($jsonStart -lt 0) {
         throw "CPF canonical CLI 결과에 JSON document가 없습니다: $($output -join ' ')"
     }
-    $json = @($output[$jsonStart..($output.Count - 1)]) -join [Environment]::NewLine
-    try {
-        return $json | ConvertFrom-Json -Depth 100 -ErrorAction Stop
-    } catch {
-        throw "CPF canonical CLI 결과가 JSON이 아닙니다: $json"
+    $jsonLines = [Collections.Generic.List[string]]::new()
+    for ($index = $jsonStart; $index -lt $output.Count; $index++) {
+        $jsonLines.Add($output[$index])
+        $json = $jsonLines -join [Environment]::NewLine
+        try {
+            return $json | ConvertFrom-Json -Depth 100 -ErrorAction Stop
+        } catch {
+            # Unified CLI의 END log 전까지 완결된 첫 JSON document를 계속 탐색합니다.
+        }
     }
+    throw "CPF canonical CLI 결과가 JSON이 아닙니다: $($jsonLines -join [Environment]::NewLine)"
 }

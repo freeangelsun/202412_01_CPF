@@ -183,7 +183,7 @@ overall = "PASS" if all(v == "PASS" for v in axis_status.values()) else "PARTIAL
 base_sha = source_identity(ROOT)
 result = {"schemaVersion":"1.0", "baselineSha":base_sha, "overall":overall, "axisStatus":axis_status, "checks":checks, "runtimeVerification":"NOT_EXECUTED_IN_JAVA25_ENVIRONMENT"}
 EVIDENCE.parent.mkdir(parents=True, exist_ok=True)
-EVIDENCE.write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+EVIDENCE.write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8", newline="\n")
 print("CPF_BUSINESS_FRAMEWORK_CROSSCUT=" + overall)
 for axis, status in axis_status.items(): print(f"{axis}={status}")
 failed = [x for x in checks if x["status"] == "FAIL"]

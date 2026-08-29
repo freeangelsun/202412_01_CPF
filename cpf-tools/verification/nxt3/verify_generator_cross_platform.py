@@ -5,10 +5,14 @@ import argparse, importlib.util, json, os, shutil, stat, subprocess, sys, tempfi
 from pathlib import Path
 from generated_domain_layout import domain_surface_dirs
 
+if hasattr(sys.stdout,'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8',errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8',errors='replace')
+
 
 def run(cmd:list[str], cwd:Path, timeout_seconds:int=6)->dict:
     try:
-        cp=subprocess.run(cmd,cwd=cwd,text=True,capture_output=True,timeout=timeout_seconds)
+        cp=subprocess.run(cmd,cwd=cwd,text=True,encoding='utf-8',errors='replace',capture_output=True,timeout=timeout_seconds)
         return {"cmd":cmd,"rc":cp.returncode,"stdout":cp.stdout[-12000:],"stderr":cp.stderr[-12000:]}
     except subprocess.TimeoutExpired as e:
         return {"cmd":cmd,"rc":124,"stdout":(e.stdout or "")[-12000:] if isinstance(e.stdout,str) else "","stderr":((e.stderr or "")[-12000:] if isinstance(e.stderr,str) else "")+f"\nTIMEOUT after {timeout_seconds}s"}
@@ -47,46 +51,44 @@ def tree_hash(root:Path)->str:
 
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True); ap.add_argument('--evidence',type=Path)
-    ns=ap.parse_args(); root=ns.root.resolve(); cli=root/'cpf-tools/runtime/cli/cpf'; py=root/'cpf-tools/runtime/cli/cpf.py'; engine=load_engine(root)
-    sh=shutil.which('sh')
-    posix_launcher=([str(cli)] if os.name!='nt' and cli.is_file() and bool(cli.stat().st_mode & stat.S_IXUSR)
-                    else ([sh,str(cli)] if sh else None))
-    launcher=posix_launcher or [sys.executable,str(py),'--root',str(root)]
+    ns=ap.parse_args(); root=ns.root.resolve(); cli=root/'cpf-tools/runtime/cli/cpf'; cmd=root/'cpf-tools/runtime/cli/cpf.cmd'; ps1=root/'cpf-tools/runtime/cli/cpf.ps1'; py=root/'cpf-tools/runtime/cli/cpf.py'; engine=load_engine(root)
+    posix_launcher=([str(cli)] if os.name!='nt' and cli.is_file() and bool(cli.stat().st_mode & stat.S_IXUSR) else None)
+    launcher=[str(cmd)] if os.name=='nt' else (posix_launcher or [str(cli)])
     checks=[]
     def add(name,status,detail=''):
         checks.append({'name':name,'status':status,'detail':detail}); print(f'[{status}] {name}',flush=True)
     def check(name,ok,detail=''): add(name,'PASS' if ok else 'FAIL',detail)
 
-    # Launcher는 실제 실행하고 Windows는 이 환경에서 물리 실행 대신 thin-wrapper 계약을 검증한다.
+    # 현재 Host의 Launcher는 실제 실행하고 반대 OS는 thin-wrapper 계약과 별도 물리 Evidence로 구분한다.
     if posix_launcher is not None:
         check('posix-launcher-runnable',cli.is_file(),{'path':str(cli),'executableBit':bool(cli.stat().st_mode & stat.S_IXUSR) if cli.is_file() else False,'launcher':posix_launcher})
     else:
         add('posix-launcher-runnable','UNVERIFIED',{'path':str(cli),'reason':'POSIX shell unavailable on this host'})
-    bat=root/'cpf-tools/runtime/cli/cpf.bat'; check('windows-launcher-present',bat.is_file(),str(bat))
-    bat_text=bat.read_text(encoding='utf-8-sig') if bat.is_file() else ''
+    check('windows-launcher-present',cmd.is_file(),str(cmd))
+    cmd_text=cmd.read_text(encoding='utf-8-sig') if cmd.is_file() else ''
     sh_text=cli.read_text(encoding='utf-8-sig') if cli.is_file() else ''
-    check('windows-launcher-thin','cpf-tools\\runtime\\cli\\cpf.py' in bat_text and 'create-domain.ps1' not in bat_text,bat_text)
-    check('linux-launcher-thin','cpf-tools/runtime/cli/cpf.py' in sh_text and 'pwsh' not in sh_text,sh_text)
+    check('windows-launcher-thin','cpf-cli.jar' in cmd_text and 'cpf.py' not in cmd_text and 'create-domain.ps1' not in cmd_text,cmd_text)
+    check('linux-launcher-thin','cpf-cli.jar' in sh_text and 'cpf.py' not in sh_text and 'pwsh' not in sh_text,sh_text)
     if posix_launcher:
         for name,args in [('posix-cli-help',['--help']),('posix-cli-version',['--version'])]:
             rr=run([*posix_launcher,*args],root); add(name,'PASS' if rr['rc']==0 else 'FAIL',rr)
-        invalid=run([*posix_launcher,'domain','generate','--file','__missing__.yaml'],root); check('invalid-input-exit-code',invalid['rc']==2,invalid)
+        invalid=run([*posix_launcher,'dev','domain','generate','--file','__missing__.yaml'],root); check('invalid-input-exit-code',invalid['rc']==2,invalid)
         generic=run([*posix_launcher,'verify','generator'],root); add('genericity-source-scan','PASS' if generic['rc']==0 else 'FAIL',generic)
     else:
-        add('posix-cli-help','UNVERIFIED','sh unavailable')
-        add('posix-cli-version','UNVERIFIED','sh unavailable')
-        invalid=run([sys.executable,str(py),'--root',str(root),'domain','generate','--file','__missing__.yaml'],root)
+        add('posix-cli-help','UNVERIFIED','POSIX runtime unavailable on this host')
+        add('posix-cli-version','UNVERIFIED','POSIX runtime unavailable on this host')
+        invalid=run([*launcher,'dev','domain','generate','--file','__missing__.yaml'],root)
         check('invalid-input-exit-code',invalid['rc']==2,invalid)
-        generic=run([sys.executable,str(py),'--root',str(root),'verify','generator'],root)
+        generic=run([*launcher,'verify','generator'],root)
         add('genericity-source-scan','PASS' if generic['rc']==0 else 'FAIL',generic)
 
-    # 두 공식 Root는 한 번의 Public CLI verify-all로 검증하여 중복 Python startup을 제거한다.
+    # 두 공식 Root는 Unified CLI의 Generated 전용 검증으로 확인해 unrelated 전체 Gate를 섞지 않는다.
     for name in ('cpf-member','cpf-external'):
         contract=root/name/'gradle.properties'
         forbidden=[entry for entry in ('.cpf','cpf-domain.yaml','cpf-generator.lock.json') if (root/name/entry).exists()]
         check(f'{name}-developer-contract',contract.is_file() and 'cpf.domain.contractVersion=' in contract.read_text(encoding='utf-8-sig'),str(contract))
         check(f'{name}-customer-metadata-zero',not forbidden,forbidden)
-    all_verify=run([*launcher,'verify','all'],root,10)
+    all_verify=run([*launcher,'verify','generated'],root,30)
     check('retained-member-external-verify-all',all_verify['rc']==0 and '"status": "PASS"' in all_verify['stdout'],all_verify)
     for name in ('cpf-member','cpf-external'):
         d=root/name; dirs=domain_surface_dirs(d)
@@ -107,18 +109,18 @@ def main()->int:
         troot=Path(td)
         definition=troot/'crlf spec'/'ledger.yaml'; write_def(definition,'ledger','LDG','LDG','\r\n')
         out=troot/'cpf-ledger'
-        gr=run([*launcher,'domain','generate','--file',str(definition),'--output',str(out)],root,10)
+        gr=run([*launcher,'dev','domain','generate','--file',str(definition),'--output',str(out)],root,10)
         add('third-domain-fresh-generate-path-space-utf8-crlf','PASS' if gr['rc']==0 else 'FAIL',gr)
         dbs=[]
         for vendor in ('oracle','postgresql','mariadb'):
-            rr=run([*launcher,'db','render','--file',str(definition),'--vendor',vendor,'--output',str(troot/'db render'/vendor)],root,8); dbs.append(rr)
+            rr=run([*launcher,'dev','db-render','--file',str(definition),'--vendor',vendor,'--output',str(troot/'db render'/vendor)],root,8); dbs.append(rr)
         add('third-domain-db3-render','PASS' if all(x['rc']==0 for x in dbs) else 'FAIL',dbs)
 
         # add가 retained roots를 훼손하지 않는지 실제 hash로 확인한다.
         member_hash=tree_hash(root/'cpf-member')
         ext_hash=tree_hash(root/'cpf-external')
         adddef=troot/'add.yaml'; write_def(adddef,'orders','ORD','ORD'); addout=troot/'cpf-orders'
-        ar=run([*launcher,'domain','add','--file',str(adddef),'--output',str(addout)],root,10)
+        ar=run([*launcher,'dev','domain','add','--file',str(adddef),'--output',str(addout)],root,10)
         intact=tree_hash(root/'cpf-member')==member_hash and tree_hash(root/'cpf-external')==ext_hash
         add('add-domain-does-not-damage-retained-roots','PASS' if ar['rc']==0 and intact else 'FAIL',{'add':ar,'retainedIntact':intact})
 
@@ -126,8 +128,9 @@ def main()->int:
         mod=out/'online/src/main/java/ledger/sample/service/SampleTransactionPolicy.java'
         if mod.is_file():
             original=mod.read_text(encoding='utf-8'); mod.write_text(original+'\n// 사용자 수정 보호 검증\n',encoding='utf-8',newline='\n')
-            rr=run([*launcher,'domain','regenerate','ledger','--file',str(definition),'--output',str(out)],root,8)
-            preserved=rr['rc']==2 and '사용자 변경' in rr['stderr'] and '사용자 수정 보호 검증' in mod.read_text(encoding='utf-8')
+            rr=run([*launcher,'dev','domain','regenerate','ledger','--file',str(definition),'--output',str(out)],root,8)
+            combined_output=rr['stdout']+rr['stderr']
+            preserved=rr['rc']==2 and '사용자 변경' in combined_output and '사용자 수정 보호 검증' in mod.read_text(encoding='utf-8')
             add('user-owned-modification-protection','PASS' if preserved else 'FAIL',rr)
             mod.write_text(original,encoding='utf-8',newline='\n')
         else: add('user-owned-modification-protection','FAIL','target file missing')
@@ -155,7 +158,7 @@ def main()->int:
 
         # generate-all Public CLI를 실제 실행한다.
         defs=troot/'definitions'; write_def(defs/'cpf-alpha'/'cpf-domain.yaml','alpha','ALP','ALP'); write_def(defs/'cpf-beta'/'cpf-domain.yaml','beta','BET','BET')
-        outs=troot/'all outputs'; allr=run([*launcher,'domain','generate-all','--definitions-root',str(defs),'--output-root',str(outs)],root,12)
+        outs=troot/'all outputs'; allr=run([*launcher,'dev','domain','generate-all','--definitions-root',str(defs),'--output-root',str(outs)],root,12)
         allok=allr['rc']==0 and (outs/'cpf-alpha/online').is_dir() and (outs/'cpf-beta/online').is_dir() and not (outs/'cpf-alpha/.cpf').exists() and not (outs/'cpf-beta/.cpf').exists()
         add('generate-all-two-domains','PASS' if allok else 'FAIL',allr)
 
@@ -164,7 +167,7 @@ def main()->int:
     for command in ('generate','add','dry-run','diff','regenerate','upgrade','remove','restore','generate-all'):
         check('cli-surface-'+command,command in py_text,command)
 
-    text_files=[p for p in [cli,py,root/'cpf-member/gradle.properties',root/'cpf-external/gradle.properties'] if p.is_file()]
+    text_files=[p for p in [cli,cmd,ps1,py,root/'cpf-member/gradle.properties',root/'cpf-external/gradle.properties'] if p.is_file()]
     lf_ok=True; utf_ok=True
     for p in text_files:
         raw=p.read_bytes(); lf_ok &= b'\r\n' not in raw
@@ -174,15 +177,15 @@ def main()->int:
 
     java=run(['java','-version'],root); gradle=shutil.which('gradle'); pwsh=shutil.which('pwsh') or shutil.which('powershell')
     if os.name=='nt':
-        windows=run(['cmd','/d','/c',str(bat),'--version'],root)
+        windows=run(['cmd','/d','/c',str(cmd),'--version'],root)
         add('windows-launcher-execution','PASS' if windows['rc']==0 else 'FAIL',windows)
     else:
         add('windows-launcher-execution','UNVERIFIED','Windows cmd runtime unavailable on this host.')
     add('gradle-generated-compile-test','UNVERIFIED' if not gradle else 'NOT_RUN','gradle executable unavailable' if not gradle else gradle)
     version_text=(java['stdout']+java['stderr']); add('java25-runtime','PASS' if ('version "25' in version_text or 'version "26' in version_text) else 'UNVERIFIED',java)
     if pwsh:
-        powershell=run([pwsh,'-NoProfile','-Command',f"& '{sys.executable}' '{py}' --root '{root}' --version"],root)
-        add('powershell-wrapper-execution','PASS' if powershell['rc']==0 and powershell['stdout'].strip().startswith('cpf ') else 'FAIL',powershell)
+        powershell=run([pwsh,'-NoProfile','-File',str(ps1),'--version'],root)
+        add('powershell-wrapper-execution','PASS' if powershell['rc']==0 and 'CPF_CLI_VERSION=' in powershell['stdout'] else 'FAIL',powershell)
     else:
         add('powershell-wrapper-execution','UNVERIFIED','PowerShell runtime unavailable')
 

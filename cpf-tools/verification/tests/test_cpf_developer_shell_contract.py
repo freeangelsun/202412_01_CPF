@@ -31,7 +31,7 @@ def test_canonical_gradle_entrypoints_are_short_and_grouped():
 
 def test_single_developer_shell_exposes_only_clear_actions():
     text = PS1.read_text(encoding='utf-8')
-    for action in ('help','build','test','verify-fast','verify-full','run-local','run-batch','status','stop','modules','resource'):
+    for action in ('help','build','test','verify-fast','verify-targeted','verify-full','run-local','run-batch','status','stop','modules','resource'):
         assert f"'{action}'" in text
     # Compatibility shell is intentionally thin: canonical behavior belongs to the
     # exactly-one Java `cpf` CLI, never to PowerShell/Bash duplicates.
@@ -48,10 +48,12 @@ def test_single_developer_shell_exposes_only_clear_actions():
 def test_windows_and_unix_shell_surfaces_match():
     ps = PS1.read_text(encoding='utf-8')
     sh = SH.read_text(encoding='utf-8')
-    actions = ('build','test','verify-fast','verify-full','run-local','run-batch','status','stop','modules','resource')
+    actions = ('build','test','verify-fast','verify-targeted','verify-full','run-local','run-batch','status','stop','modules','resource')
     for action in actions:
         assert action in ps
         assert action in sh
+    assert "'verify-targeted'=@('dev','targeted-test')" in ps.replace(' ', '')
+    assert 'verify-targeted) exec "$CLI" dev targeted-test "$@"' in ' '.join(sh.split())
 
 
 def test_no_versioned_developer_shell_names_are_introduced():

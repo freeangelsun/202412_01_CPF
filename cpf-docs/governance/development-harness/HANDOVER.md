@@ -1,29 +1,46 @@
-# CPF Development / QA Next Session Handover — Harness Only
+# CPF Development Handover — Current Harness Only
 
-## 유일 개발 진입점
-`cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md`
+## 1. Single Authority
 
-다음 세션은 과거 개발 기본지침/Closure/Review 원장을 별도 정본으로 사용하지 않는다. Product Contract, Canonical Registry/Trace, Current Work/Status, Role/Test/Control Ledger만 Authority로 사용한다. Generated Projection과 Historical Provenance는 현재 PASS 근거가 아니다.
+다음 세션은 `cpf-docs/governance/development-harness/`만 Development/QA 실행 정본으로 사용한다. 별도 개발정본·Closure·완료보고를 병행하지 않는다.
 
-## Source
-- Input: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_211247.zip`
-- ZIP SHA-256: `E6E343947AB4D829996107833AD20CD056D35BAC340013F58E0B2068C9694B30`
-- Harness Source Identity: `bf5c09a165e9bd460b7a51fa135a75c2f09c8a3f3ea1f42b3c6da6467bf1657f` / 8386 files
-- Git write/commit/push/delete는 사용자 승인 범위 밖에서 수행하지 않는다.
+- Input ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_224746.zip`
+- Input ZIP SHA-256: `b1daa68a3508cd5dddec90cae25f8aeaaca636bae5703b83a322974c7f5938dc`
+- Current Product Source Identity: `ba80188ab2defa3212cdd36ca605f604bf6a53baea5e07248dd7e347557600c0` / 8,448 product-source files
+- Canonical Requirement: 218
+- Tracking Work: 394
+- Root Cause Execution WP: 16
+- Current Work: 410
+- Role/Test/Control: 1,230 / 820 / 32
+- Migration: 265 (delete eligible 246 / protected retain 19)
+- Negative Mutation: 23/23 PASS
+- Git write: 0
 
-## Current
-- Canonical 218, Trace 218, Bridge 46, Work 394, Role 1182, Test 788
-- Product OPEN GAP 11건
-- Legacy migration 265: delete eligible 246, protected retained 19
-- Negative Mutation 21/21 PASS
+## 2. Current execution result
 
-## 다음 세션 실행 원칙
-1. Harness Gate와 Source Identity 확인.
-2. Current OPEN Work부터 Root Cause 단위로 Source→Consumer→Test/Runtime→Evidence까지 완결.
-3. Source 수정 시 Codex/Claude 방향을 별도 우회 구현으로 뒤집지 말고 동일 Architecture/QA Requirement 기준으로 정렬.
-4. Physical 미검증/VS Code 비0/Runtime mojibake/mandatory SKIP·NOT_EXECUTED·UNKNOWN은 완료 금지.
-5. Product GAP과 새 Finding은 Current Work에 즉시 병합.
-6. 최종 QA 완료는 QA만 확정.
+- H00/H01/H02 Harness currentization 완료: Authority/Migration/Strength/Self Acceptance PASS.
+- Product Conformance 11 findings Source closure → current findings 0.
+- `cpf-tools` full regression: 973 PASS / 37 SKIP / 0 FAIL / 15 subtests PASS.
+- Public/Open Git source contract: targeted 62/62 PASS, full regression included.
+- Frontend Source OpenAPI: ADM 337 / MBW 96; consumer/browser static contracts PASS.
+- 과거 Source PASS는 현재 PASS로 승계하지 않았으며 실제 current-source Evidence만 Ledger에 기록했다.
 
-## 명령
-적용/Legacy 삭제/Harness 검증은 `cpf-docs/deliverables/development-harness/COMMANDS.md`의 3개 한 줄 명령만 사용한다.
+## 3. Root Cause Execution order
+
+`WP-H00 → WP-H01 → WP-H02 → WP-B01 → WP-B02 → WP-B03 → WP-CF01 → WP-RL01 → WP-DB01 → WP-CLI01 → WP-BAT01 → WP-ONE01 → WP-FE01 → WP-PF01 → WP-RL02 → WP-FIN01`
+
+H00/H01/H02/CF01/RL01/DB01/ONE01/PF01/RL02는 Source/static currentization 근거가 있으나, mandatory Physical/Independent/QA 미실행 때문에 전체 CLOSED가 아니다. B01/B02/B03/CLI01/BAT01/FE01/FIN01은 mandatory prerequisite-dependent 검증이 남아 Source 완료로 확정하지 않는다.
+
+## 4. 다음 실행 시작점
+
+1. Overlay 적용 및 SHA 확인.
+2. Harness low-cost Gate 실행.
+3. Exact Delete Manifest 적용 후 Migration/Current-only Gate 재실행.
+4. Java25 Root Build/Test/Publication/SBOM.
+5. Fresh VS Code/Buildship 전체 Error=0 Warning=0.
+6. DB3 → CLI/Generator → Batch → One-WAS → Frontend/Browser → Performance.
+7. Product Source가 안정된 뒤 Actual Open Git Fresh Release.
+8. Required Full Runtime + Same Source Fresh Replay.
+9. Codex/Claude Independent Reviewer → QA Final Acceptance.
+
+최고강도 명령은 `current/CPF_FINAL_LOCAL_APPLY_RUNTIME_COMMANDS.md`를 따른다. Physical 미실행/FAIL/SKIP/UNKNOWN/VERIFICATION_PENDING/BLOCKED_EXTERNAL은 PASS가 아니다.

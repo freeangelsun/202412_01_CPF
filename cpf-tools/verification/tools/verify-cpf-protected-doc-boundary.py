@@ -45,7 +45,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
     parser.add_argument("--manifest")
-    parser.add_argument("--handover", default="cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md")
+    parser.add_argument("--handover", default="cpf-docs/governance/development-harness/current/CPF_DEVELOPMENT_HANDOVER.md")
     args = parser.parse_args()
     root = Path(args.root).resolve()
     try:

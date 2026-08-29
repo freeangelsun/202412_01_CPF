@@ -1,14 +1,11 @@
 {
   "schemaVersion": 3,
-  "harnessVersion": "1.1.0",
+  "harnessVersion": "1.2.0",
   "sourceIdentity": {
-    "type": "SUPPLIED_ZIP",
-    "zipName": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_211247.zip",
-    "zipSha256": "e6e343947ab4d829996107833ad20cd056d35bac340013f58e0b2068c9694b30",
-    "zipFileCount": 12468,
-    "baselineProductContentSha256": "653ab22264e8cefca510a9ba998c656deead3ce9e06467a756c620c8b359d970",
-    "baselineProductFileCount": 8380,
-    "gitSha": "UNAVAILABLE_IN_SUPPLIED_ZIP"
+    "type": "CURRENT_AUTHORITY_REFERENCE",
+    "authority": "cpf-docs/governance/development-harness/current/SOURCE_IDENTITY.json",
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "rule": "static contract must not embed current digest; Current SOURCE_IDENTITY.json is the only current identity authority"
   },
   "canonicalPaths": {
     "harness": "cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md",
@@ -23,7 +20,8 @@
     "canonicalTrace": "cpf-docs/governance/development-harness/current/CANONICAL_REQUIREMENT_TRACE.csv",
     "controlExecutionLedger": "cpf-docs/governance/development-harness/current/CONTROL_EXECUTION_LEDGER.csv",
     "currentAuthorityRegistry": "cpf-docs/governance/development-harness/contracts/current-authority-registry.json",
-    "productContractIntegrity": "cpf-docs/governance/development-harness/contracts/product-contract-integrity.json"
+    "productContractIntegrity": "cpf-docs/governance/development-harness/contracts/product-contract-integrity.json",
+    "harnessStrengthBaseline": "cpf-docs/governance/development-harness/contracts/harness-strength-baseline.json"
   },
   "textEncoding": "UTF-8",
   "normalization": "NFC",

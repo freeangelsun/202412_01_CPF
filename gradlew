@@ -89,7 +89,7 @@ APP_BASE_NAME=${0##*/}
 APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exit
 
 # Keep Gradle cache/build diagnostics and JVM crash/OOM artifacts out of the repository root.
-CPF_GENERATED_EVIDENCE=$APP_HOME/cpf-docs/work/evidence/generated
+CPF_GENERATED_EVIDENCE=$APP_HOME/cpf-docs/governance/development-harness/evidence/platform/current/generated
 CPF_GRADLE_PROJECT_CACHE=$CPF_GENERATED_EVIDENCE/gradle/project-cache
 CPF_MANAGED_GRADLE_ROOT=$CPF_GENERATED_EVIDENCE/gradle/managed-builds
 CPF_JVM_CRASH_DIR=$CPF_GENERATED_EVIDENCE/jvm/crash

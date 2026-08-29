@@ -52,7 +52,7 @@ if ($PurgeDefinition) {
 $result = Invoke-CpfCanonicalCli -Root $Root -Arguments $arguments
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/remove-domain/$domain"
+    $ResultDir = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/reports/remove-domain/$domain"
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }

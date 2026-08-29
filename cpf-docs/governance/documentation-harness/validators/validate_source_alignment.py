@@ -12,7 +12,7 @@ def parse_set(text,name):
     return re.findall(r'"([^"]+)"',m.group(1))
 base=load(H/'SOURCE_BASELINE.json'); inv=load(H/'SOURCE_CAPABILITY_INVENTORY.json')
 # Current product source identity is read from Source, never hardcoded here.
-sidp=ROOT/'cpf-docs/work/current/SOURCE_IDENTITY.json'
+sidp=ROOT/'cpf-docs/governance/development-harness/current/SOURCE_IDENTITY.json'
 if not sidp.is_file(): fail('current SOURCE_IDENTITY.json missing')
 else:
     sid=load(sidp); cur=str(sid.get('currentSource',{}).get('contentSha256','')).upper()

@@ -35,7 +35,7 @@ def run_one(name: str, cmd: list[str], root: Path, timeout: int) -> dict:
 def main() -> int:
     ap=argparse.ArgumentParser()
     ap.add_argument('--root',default='.')
-    ap.add_argument('--evidence',default='cpf-docs/work/evidence/current/STATIC_GATE_SWEEP.json')
+    ap.add_argument('--evidence',default='cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl')
     ap.add_argument('--log',default='cpf-docs/work/evidence/current/STATIC_GATE_SWEEP.log')
     ap.add_argument('--gate-timeout',type=int,default=180)
     ap.add_argument('--include-gradle',action='store_true')

@@ -104,7 +104,7 @@ def main()->int:
             check(f'{name}-idempotent-diff',dr.get('clean') is True,dr)
         except Exception as e: add(f'{name}-idempotent-diff','FAIL',repr(e))
 
-    temp_parent=root/'cpf-docs/work/evidence/generated/domain-generator/verification'; temp_parent.mkdir(parents=True,exist_ok=True)
+    temp_parent=root/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification'; temp_parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='CPF 한글 Path With Spaces ', dir=temp_parent) as td:
         troot=Path(td)
         definition=troot/'crlf spec'/'ledger.yaml'; write_def(definition,'ledger','LDG','LDG','\r\n')

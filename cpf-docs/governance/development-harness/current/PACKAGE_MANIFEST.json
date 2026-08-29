@@ -1,43 +1,36 @@
 {
-  "schemaVersion": 3,
-  "packageType": "CPF_C_DEV_QA_2_2_SOURCE_CLOSURE",
+  "schemaVersion": 4,
+  "packageType": "CPF_C_DEV_QA_2_5_DEVELOPMENT_HARNESS_SOURCE_OVERLAY",
   "completionStatus": "SOURCE_STATIC_CLOSURE_COMPLETE_PHYSICAL_PENDING",
-  "baselineZipSha256": "e24d2596fc404c6761725cf5b5a4a618038dae4f1e177d4171296f6204d20802",
-  "baselineSourceIdentity": "b33471236f57a30eba48c9cc582789ee33f81cd8b67194a9e710b06877b4d68e",
-  "currentSourceIdentity": "398ebf1ee0d80f9ffc2bf80e9ad8b0e6834cea8ab0a84e2e5b131aa64672c717",
-  "sourceFileCount": 8320,
-  "canonicalInventoryRows": 190,
-  "developerRequirementRows": 218,
-  "deleteManifestRows": 2038,
+  "baselineZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_224746.zip",
+  "baselineZipSha256": "b1daa68a3508cd5dddec90cae25f8aeaaca636bae5703b83a322974c7f5938dc",
+  "currentSourceIdentity": "2935d73aacade2af79f2d5dac994c8f5bb7e74350d98a2780dd765bad2a0d5d4",
+  "sourceFileCount": 8449,
+  "canonicalRequirementRows": 218,
+  "trackingWorkRows": 394,
+  "executionWorkRows": 16,
+  "workItemRows": 410,
+  "roleRows": 1230,
+  "testRows": 820,
+  "migrationRows": 265,
+  "deleteManifestRows": 246,
+  "protectedRetainRows": 19,
   "changeCounts": {
-    "add": 77,
-    "modify": 132,
-    "delete": 1725
+    "add": 146,
+    "modify": 133,
+    "baselineDelete": 0
   },
-  "overlayFileCount": 209,
-  "staticClosure": {
-    "currentFinal": "PASS",
-    "hygiene": "PASS",
-    "garbage": "PASS",
-    "utf8": "PASS",
-    "physicalDb4": "PASS",
-    "unifiedCli": "PASS",
-    "requirementProjection": "PASS",
-    "openGitPublicRelease": "48/48 PASS",
-    "db": "229 PASS / 2 SKIP / 0 FAIL",
-    "runtimeTools": "72 PASS / 2 SKIP / 0 FAIL"
+  "overlayFileCount": 281,
+  "validation": {
+    "harnessFinalGate": "PASS",
+    "negativeMutation": "27/27 PASS",
+    "cpfToolsPytest": "973 PASS / 37 SKIP / 0 FAIL / 15 subtests PASS",
+    "nxt3Layout": "87/87 PASS",
+    "productConformance": "PASS findings=0"
   },
-  "freshReplay": {
-    "status": "PASS",
-    "sourceIdentityExactMatch": true,
-    "fullTreeExactMatch": true,
-    "currentFileCount": 8832,
-    "replayFileCount": 8832,
-    "missing": 0,
-    "extra": 0,
-    "changed": 0,
-    "deletedFromBaseline": 1725,
-    "alreadyMissing": 313
-  },
-  "physicalAcceptance": "PENDING_EXTERNAL_ENVIRONMENT"
+  "physicalAcceptance": "VERIFICATION_PENDING",
+  "note": "Current Development Harness/source overlay packaged with mandatory physical acceptance pending; no physical PASS promotion.",
+  "packageIntegrityFileCount": 2,
+  "rootRelativeChangedPayloadCount": 279,
+  "archiveName": "CPF_C_DEV_QA_2_5_SOURCE_OVERLAY_20260830_011006.zip"
 }

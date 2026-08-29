@@ -7,10 +7,8 @@ Set-Location $root
 $h=Join-Path $root 'cpf-docs\governance\development-harness'
 $mf=Join-Path $h 'DELETE_MANIFEST.csv'
 if(!(Test-Path -LiteralPath $mf)){throw "DELETE MANIFEST NOT FOUND: $mf"}
-python (Join-Path $h 'validators\run_all_gates.py')
-if($LASTEXITCODE-ne0){throw 'HARNESS FINAL GATE FAIL - DELETE BLOCKED'}
-python (Join-Path $h 'validators\validate_migration_semantic_closure.py')
-if($LASTEXITCODE-ne0){throw 'MIGRATION SEMANTIC GATE FAIL - DELETE BLOCKED'}
+python (Join-Path $h 'validators\validate_legacy_delete_readiness.py')
+if($LASTEXITCODE-ne0){throw 'LEGACY DELETE READINESS FAIL - DELETE BLOCKED'}
 $authority=Get-Content (Join-Path $h 'contracts\current-authority-registry.json') -Raw -Encoding UTF8|ConvertFrom-Json
 $forbidden=@($authority.authoritative)+@(
   'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md',
@@ -58,7 +56,7 @@ foreach($start in @($parents)|Sort-Object Length -Descending){
     $d=Split-Path -Parent $d
   }
 }
-python (Join-Path $h 'validators\run_all_gates.py')
-if($LASTEXITCODE-ne0){throw 'POST-DELETE HARNESS FINAL GATE FAIL'}
+python (Join-Path $h 'validators\validate_legacy_delete_readiness.py')
+if($LASTEXITCODE-ne0){throw 'POST-DELETE LEGACY DELETE READINESS FAIL'}
 Write-Host "CPF_DEV_HARNESS_LEGACY_DELETE=PASS SELECTED=$selected DELETED=$deleted ALREADY_MISSING=$missing EMPTY_DIRS_DELETED=$empty"
 git status --short

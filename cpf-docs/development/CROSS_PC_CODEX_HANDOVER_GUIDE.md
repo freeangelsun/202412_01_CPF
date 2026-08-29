@@ -8,14 +8,14 @@
 
 ```text
 1. git status / git rev-parse HEAD / origin/master
-2. cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md
+2. cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md
 3. cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md
 4. cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md
-5. cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md
-6. cpf-docs/work/REQUIREMENT_STATUS.csv
+5. cpf-docs/governance/development-harness/current/CPF_CURRENT_WORK_REQUEST.md
+6. cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv
 7. cpf-docs/deliverables/TEST_AND_EVIDENCE.md
 8. cpf-docs/deliverables/OPEN_ISSUES.md
-9. cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md
+9. cpf-docs/governance/development-harness/current/CPF_DEVELOPMENT_HANDOVER.md
 10. 실제 Source/Diff/Test/Runtime Evidence
 ```
 
@@ -48,7 +48,7 @@ git diff --check
 
 ## 7. 중단/세션 이동 전
 
-`cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md` 하나를 현행화한다. 새 날짜/Session/Checkpoint Handover를 추가로 만들지 않는다. 다음 세션이 첫 번째로 실행할 명령과 현재 실패 조건을 반드시 남긴다.
+`cpf-docs/governance/development-harness/current/CPF_DEVELOPMENT_HANDOVER.md` 하나를 현행화한다. 새 날짜/Session/Checkpoint Handover를 추가로 만들지 않는다. 다음 세션이 첫 번째로 실행할 명령과 현재 실패 조건을 반드시 남긴다.
 
 ## 8. 최종 종료
 

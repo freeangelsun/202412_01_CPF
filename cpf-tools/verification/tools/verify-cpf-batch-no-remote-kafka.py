@@ -147,7 +147,7 @@ def verify(root:Path)->dict:
     common_kafka=root/'cpf-starters/messaging/kafka'
     if not common_kafka.is_dir(): errors.append('cpf-starters/messaging/kafka:independent-common-provider-missing')
     # Governance must encode the non-regression steering.
-    gov=(root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md')
+    gov=(root/'cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md')
     if gov.is_file():
         g=gov.read_text(encoding='utf-8-sig')
         for token in ('BAT-NO-REMOTE-KAFKA','새 Remote Transport','일반 Batch','Center-Cut'):

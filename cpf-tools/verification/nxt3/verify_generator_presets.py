@@ -28,7 +28,7 @@ def main():
       ('customx','CUS','CU','custom',{'persistence':'none','httpClient':False,'resilience':False,'cache':'none','messaging':'none'},False,False),
     ]
     checks=[]
-    verify_root=root/'cpf-docs/work/evidence/generated/domain-generator/verification'; verify_root.mkdir(parents=True,exist_ok=True)
+    verify_root=root/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification'; verify_root.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='preset-matrix-',dir=str(verify_root)) as td:
       t=Path(td)
       for name,code,prefix,preset,features,sample,batch in cases:

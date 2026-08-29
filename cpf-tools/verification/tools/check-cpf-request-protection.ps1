@@ -11,7 +11,7 @@ $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
 
-$RequestFileName = "cpf-docs/work/current/CODEX_MID_REVIEW_INSTRUCTION.md"
+$RequestFileName = "cpf-docs/governance/development-harness/current/CODEX_MID_REVIEW_INSTRUCTION.md"
 $RequestPath = Join-Path $Root $RequestFileName
 if (-not (Test-Path -LiteralPath $RequestPath -PathType Leaf)) {
     throw "Protected request file is missing: $RequestFileName"

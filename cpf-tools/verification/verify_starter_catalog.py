@@ -260,7 +260,7 @@ def main() -> int:
             errors.append(f"missing {label}: {relative}")
             continue
         text = path.read_text(encoding="utf-8")
-        isolated_repository = "cpf-docs/work/evidence/generated/gradle/root-build/cpf-local-artifact-repository"
+        isolated_repository = "cpf-docs/governance/development-harness/evidence/platform/current/generated/gradle/root-build/cpf-local-artifact-repository"
         if isolated_repository not in text or "System.getProperty('user.home'),'.cpf/repository'" in text.replace(" ", ""):
             errors.append(f"{label} local publication is not product-isolated")
         if re.search(r"(?:internalModules|publicModules)\.size\(\)\s*[!=]=\s*\d+", text):

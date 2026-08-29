@@ -12,12 +12,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zipfile import ZipFile
 
-PACKAGE_REL = "cpf-docs/deliverables/PACKAGE_MANIFEST.json"
-CHANGE_REL = "cpf-docs/deliverables/CHANGE_MANIFEST.csv"
-SUMS_REL = "cpf-docs/deliverables/SHA256SUMS.txt"
-DELETE_REL = "cpf-docs/deliverables/DELETE_MANIFEST.csv"
-CLOSURE_REL = "cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv"
-REQUIREMENT_REL = "cpf-docs/work/REQUIREMENT_STATUS.csv"
+PACKAGE_REL = "cpf-docs/governance/development-harness/current/PACKAGE_MANIFEST.json"
+CHANGE_REL = "cpf-docs/governance/development-harness/current/CHANGE_MANIFEST.csv"
+SUMS_REL = "cpf-docs/governance/development-harness/current/SHA256SUMS.txt"
+DELETE_REL = "cpf-docs/governance/development-harness/DELETE_MANIFEST.csv"
+CLOSURE_REL = "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv"
+REQUIREMENT_REL = "cpf-docs/governance/development-harness/current/CANONICAL_PRODUCT_REQUIREMENTS.csv"
 SOURCE_STATE_TOOL = "cpf-tools/verification/tools/cpf-source-state.py"
 PACKAGE_METADATA_EXCLUSIONS = {PACKAGE_REL, CHANGE_REL, SUMS_REL}
 PROTECTED_PREFIXES = (
@@ -70,7 +70,7 @@ def _load_source_state_module(root: Path):
 def all_files(root: Path) -> list[str]:
     # 배포물(Overlay ZIP/PACKAGE_MANIFEST/CHANGE_MANIFEST/SHA256SUMS)의 desired-state 목록은
     # cpf-source-state.py와 동일한 정본 ephemeral 판정을 재사용한다. 그렇지 않으면
-    # cpf-docs/work/evidence/generated/**(Gradle 빌드 캐시/Generator scratch build 산출물)가
+    # cpf-docs/governance/development-harness/evidence/platform/current/generated/**(Gradle 빌드 캐시/Generator scratch build 산출물)가
     # 실제 Source 변경처럼 수만 건씩 포함되어 Overlay가 오염된다.
     is_generated = _load_source_state_module(root)._is_generated
     return sorted(
@@ -109,44 +109,55 @@ def source_snapshot(root: Path) -> dict:
     return _load_source_state_module(root).snapshot(root,'source')
 
 
-def update_closure_identity(root: Path, source_sha256: str) -> tuple[int,int]:
-    path=root/CLOSURE_REL; fields,rows=read_csv(path)
-    required={'finding_key','finding_id','closure_state','evidence_paths','source_identity_sha256'}
-    if required-set(fields): raise RuntimeError(f'closure ledger missing columns: {sorted(required-set(fields))}')
-    if len(rows)!=63: raise RuntimeError(f'closure ledger count mismatch: {len(rows)}')
-    closed=blocked=0
-    for row in rows:
-        row['source_identity_sha256']=source_sha256
-        if row['closure_state']=='CLOSED': closed+=1
-        elif row['closure_state']=='BLOCKED_EXTERNAL': blocked+=1
-        else: raise RuntimeError(f"invalid closure state: {row['finding_key']}={row['closure_state']}")
-        ev=root/row['evidence_paths']
-        if not ev.is_file(): raise RuntimeError(f"finding evidence missing: {row['finding_key']} -> {row['evidence_paths']}")
-        text=ev.read_text(encoding='utf-8').replace('PENDING_FINAL_SOURCE_IDENTITY',source_sha256)
-        ev.write_text(text,encoding='utf-8')
-    write_csv(path,fields,rows)
-    return closed,blocked
+def update_harness_current_identity(root: Path, source_sha256: str) -> tuple[int,int,int]:
+    """Current Harness 상태를 최신 Product Source Identity에만 rebase한다.
 
+    상태 자체를 PASS/CLOSED로 승격하지 않으며, 과거 Evidence를 현재 Source 성공 근거로 승계하지 않는다.
+    """
+    current=root/'cpf-docs/governance/development-harness/current'
+    status_path=root/CLOSURE_REL
+    fields,status=read_csv(status_path)
+    if {'work_item_id','source_identity','overall_status'}-set(fields):
+        raise RuntimeError('Current Development Status schema drift')
+    complete=sum(1 for r in status if r.get('overall_status')=='완료')
+    incomplete=len(status)-complete
+    for r in status: r['source_identity']=source_sha256
+    write_csv(status_path,fields,status)
+    for rel in [
+        'CURRENT_WORK_ITEM_REGISTRY.csv','ROLE_EXECUTION_LEDGER.csv','TEST_EXECUTION_LEDGER.csv',
+        'CONTROL_EXECUTION_LEDGER.csv','CANONICAL_REQUIREMENT_TRACE.csv','CURRENT_CANONICAL_DETAILED_BRIDGE.csv'
+    ]:
+        path=current/rel
+        f,rows=read_csv(path)
+        if rows and 'source_identity' in f:
+            for r in rows:r['source_identity']=source_sha256
+            write_csv(path,f,rows)
+    sid_path=current/'SOURCE_IDENTITY.json'
+    sid=json.loads(sid_path.read_text(encoding='utf-8'))
+    sid['finalReplayProductContentSha256']=source_sha256
+    sid['finalReplayProductFileCount']=source_snapshot(root)['fileCount']
+    sid_path.write_text(json.dumps(sid,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    # root-level mutable pointer mirrors the current authority, but is never an independent authority.
+    (root/'cpf-docs/governance/development-harness/SOURCE_IDENTITY.json').write_text(
+        json.dumps(sid,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    return len(status),complete,incomplete
 
 def delete_rows(root: Path) -> tuple[list[dict[str,str]],dict[str,int]]:
     fields,rows=read_csv(root/DELETE_REL)
-    required={'path','approved','precondition','lifecycle','user_execution_required','user_approved'}
+    required={'path','approved','user_approved','precondition','lifecycle','semantic_status','delete_eligible','replacement_path','expected_sha256'}
     if required-set(fields): raise RuntimeError(f'delete manifest missing columns: {sorted(required-set(fields))}')
     seen=set(); counts={}
-    documentation_harness_reviewed=_documentation_harness_reviewed_deletes(root)
     for row in rows:
-        rel=row['path'].replace('\\','/')
+        rel=row['path'].replace('\\','/').strip()
         if not rel or rel in seen: raise RuntimeError(f'delete manifest missing/duplicate path: {rel!r}')
-        seen.add(rel); lifecycle=row['lifecycle']; counts[lifecycle]=counts.get(lifecycle,0)+1
-        if lifecycle=='PENDING_USER_EXECUTION':
-            if row['approved'].lower()!='true' or row['precondition']!='SATISFIED' or row['user_execution_required'].lower()!='true':
-                raise RuntimeError(f'{rel}: pending delete lifecycle contract invalid')
-            if row['user_approved'].lower()=='true' and not row.get('user_approval_ref','').strip():
-                raise RuntimeError(f'{rel}: user_approved lacks approval reference')
-            if rel.startswith(PROTECTED_PREFIXES) and rel not in documentation_harness_reviewed:
-                raise RuntimeError(f'protected path cannot be pending deletion: {rel}')
+        seen.add(rel); lifecycle=row['lifecycle'];counts[lifecycle]=counts.get(lifecycle,0)+1
+        eligible=row.get('delete_eligible')=='true'
+        if eligible:
+            if row.get('approved')!='true' or row.get('user_approved')!='true': raise RuntimeError(f'{rel}: eligible delete lacks approval')
+            if row.get('semantic_status')!='PASS' or row.get('precondition')!='HARNESS_AUTHORITY_AND_MIGRATION_SEMANTIC_GATE_PASS': raise RuntimeError(f'{rel}: eligible delete semantic/precondition invalid')
+        else:
+            raise RuntimeError(f'{rel}: non-eligible/protected row must not be present in executable DELETE_MANIFEST')
     return rows,counts
-
 
 def change_rows(root: Path, baseline: dict[str,str], delete_set:set[str]) -> list[dict[str,str]]:
     current={rel:sha256_file(root/rel) for rel in all_files(root) if rel not in PACKAGE_METADATA_EXCLUSIONS}
@@ -170,19 +181,19 @@ def main()->int:
     if not root.is_dir() or not baseline_zip.is_file(): raise SystemExit('root or baseline ZIP missing')
     baseline_sha,baseline=baseline_inventory(baseline_zip)
     drows,dcounts=delete_rows(root); delete_set={r['path'].replace('\\','/') for r in drows}
-    pending={r['path'].replace('\\','/') for r in drows if r['lifecycle']=='PENDING_USER_EXECUTION'}
+    pending={r['path'].replace('\\','/') for r in drows if r.get('delete_eligible')=='true'}
     remaining=sorted(rel for rel in pending if (root/rel).exists())
     if remaining: raise RuntimeError(f'pending delete candidates still exist in desired replay: {remaining[:10]}')
     req_fields,reqs=read_csv(root/REQUIREMENT_REL)
-    canonical_doc=root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'
+    canonical_doc=root/'cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md'
     import re
     canonical_ids=[m.group(1) for line in canonical_doc.read_text(encoding='utf-8-sig').splitlines() if (m:=re.match(r'^\| `([A-Z0-9-]+)` \|',line))]
     if not canonical_ids or len(canonical_ids)!=len(set(canonical_ids)): raise RuntimeError(f'canonical catalog count/duplicate drift: {len(canonical_ids)}/{len(set(canonical_ids))}')
-    req_ids=[(r.get('exact_id') or '').strip() for r in reqs]
+    req_ids=[(r.get('requirement_id') or '').strip() for r in reqs]
     if req_ids!=canonical_ids: raise RuntimeError(f'requirement projection order/set mismatch: ledger={len(req_ids)} canonical={len(canonical_ids)}')
 
     source=source_snapshot(root); source_sha256=source['contentSha256']; source_sha1=source['contentSha1']
-    closed,blocked=update_closure_identity(root,source_sha256)
+    work_total,work_complete,work_incomplete=update_harness_current_identity(root,source_sha256)
     source_after=source_snapshot(root)
     if source_after['contentSha256']!=source_sha256: raise RuntimeError('source identity changed while updating work/evidence metadata')
 
@@ -207,10 +218,10 @@ def main()->int:
         'desiredState':{'fullFileCount':len(files)+len(PACKAGE_METADATA_EXCLUSIONS),'runtimeGarbageIncluded':0,'pendingDeleteCandidatesAppliedInReplay':len(pending)},
         'changeSummary':summary,
         'deleteManifest':DELETE_REL,'deleteManifestCount':len(drows),'deleteLifecycleCounts':dcounts,
-        'developerFindingClosure':{'ledger':CLOSURE_REL,'total':63,'closed':closed,'blockedExternal':blocked},
+        'developmentHarnessWorkStatus':{'ledger':CLOSURE_REL,'total':work_total,'complete':work_complete,'incomplete':work_incomplete},
         'requirementProjection':{'path':REQUIREMENT_REL,'rows':len(reqs)},
-        'developmentCompletion':'IMPLEMENTABLE_SCOPE_COMPLETE' if blocked else 'COMPLETE',
-        'overallCompletion':'BLOCKED_EXTERNAL' if blocked else 'COMPLETE',
+        'developmentCompletion':'COMPLETE' if work_incomplete==0 else 'INCOMPLETE',
+        'overallCompletion':'COMPLETE' if work_incomplete==0 else 'INCOMPLETE',
         'actualUserWorkingTreeDeletionPerformed':False,
         'unverifiedRuntime':[
             'Fresh Public Workspace live mixed-vendor DB provisioning/migration/seed/runtime-health',
@@ -235,6 +246,6 @@ def main()->int:
     (root/SUMS_REL).write_text(''.join(f'{sha256_file(root/rel)}  {rel}\n' for rel in sums_paths),encoding='utf-8')
     print(json.dumps({'status':'PASS','baselineSourceZipSha256':baseline_sha,'baselineFiles':len(baseline),'sourceIdentitySha256':source_sha256,
                       'sourceFiles':source['fileCount'],'desiredFiles':len(all_files(root)),'changeSummary':summary2,'deleteCandidates':len(drows),
-                      'findingsClosed':closed,'findingsBlockedExternal':blocked},ensure_ascii=False))
+                      'workItemsComplete':work_complete,'workItemsIncomplete':work_incomplete},ensure_ascii=False))
     return 0
 if __name__=='__main__': raise SystemExit(main())

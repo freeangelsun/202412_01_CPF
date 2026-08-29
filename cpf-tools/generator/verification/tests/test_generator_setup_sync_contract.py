@@ -11,7 +11,7 @@ from cpf_domain_generator import load_domain_gradle_contract  # type: ignore
 
 class GeneratorSetupSyncContractTest(unittest.TestCase):
     def setUp(self):
-        test_root=ROOT/'cpf-docs/work/evidence/generated/domain-generator/tests'
+        test_root=ROOT/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/tests'
         test_root.mkdir(parents=True,exist_ok=True)
         self.td=tempfile.TemporaryDirectory(prefix='cpf-sync-',dir=test_root)
         self.stage=Path(self.td.name)

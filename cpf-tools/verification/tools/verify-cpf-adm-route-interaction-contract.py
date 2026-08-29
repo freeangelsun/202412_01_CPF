@@ -37,7 +37,7 @@ def source_ops(root:Path):
 
 def validate(root:Path):
  routes=read_routes(root/'cpf-admin/frontend/src/app/routes'); known=source_ops(root)
- req=root/'cpf-docs/work/current/CPF_ADM_UI_FUNCTION_REQUIREMENTS.csv'
+ req=root/'cpf-docs/governance/development-harness/current/CPF_ADM_UI_FUNCTION_REQUIREMENTS.csv'
  if not req.is_file(): raise ContractError('canonical ADM capability ledger missing')
  with req.open(encoding='utf-8-sig',newline='') as h: caps=list(csv.DictReader(h))
  errors=[]

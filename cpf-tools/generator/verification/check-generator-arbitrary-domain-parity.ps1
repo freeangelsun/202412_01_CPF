@@ -29,14 +29,14 @@ if ($ReferenceDomain -eq $CandidateDomain -or $ReferenceSystemCode -eq $Candidat
 }
 
 $parityGate = Join-Path $Root 'cpf-tools/generator/verification/check-generated-domain-parity.ps1'
-$sandbox = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/arbitrary-domain-parity'
+$sandbox = Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/arbitrary-domain-parity'
 $transientRoots = @(
-    (Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-$ReferenceDomain"),
-    (Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-$CandidateDomain")
+    (Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-$ReferenceDomain"),
+    (Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-$CandidateDomain")
 )
 function Assert-Safe([string] $Path) {
     $resolved = [IO.Path]::GetFullPath($Path)
-    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $resolved.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Generator parity sandbox가 허용 경로 밖입니다: $resolved"
     }

@@ -36,7 +36,7 @@ set APP_HOME=%DIRNAME%
 for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
 @rem Keep Gradle cache/build diagnostics and JVM crash/OOM artifacts out of the repository root.
-set "CPF_GENERATED_EVIDENCE=%APP_HOME%\cpf-docs\work\evidence\generated"
+set "CPF_GENERATED_EVIDENCE=%APP_HOME%\cpf-docs\governance\development-harness\evidence\platform\current\generated"
 set "CPF_GRADLE_PROJECT_CACHE=%CPF_GENERATED_EVIDENCE%\gradle\project-cache"
 set "CPF_MANAGED_GRADLE_ROOT=%CPF_GENERATED_EVIDENCE%\gradle\managed-builds"
 set "CPF_JVM_CRASH_DIR=%CPF_GENERATED_EVIDENCE%\jvm\crash"

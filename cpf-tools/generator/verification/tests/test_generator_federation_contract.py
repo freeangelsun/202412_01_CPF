@@ -43,13 +43,13 @@ class GeneratorFederationContractTest(unittest.TestCase):
         self.assertFalse((GENERATOR / "definitions" / "member" / "cpf-domain.yaml").exists())
 
     def setUp(self) -> None:
-        evidence_root = ROOT / "cpf-docs/work/evidence/generated/domain-generator/tests"
+        evidence_root = ROOT / "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/tests"
         evidence_root.mkdir(parents=True, exist_ok=True)
         self.work = Path(tempfile.mkdtemp(prefix="cpf-federation-test-", dir=evidence_root))
 
     def tearDown(self) -> None:
         resolved = self.work.resolve()
-        evidence_root = (ROOT / "cpf-docs/work/evidence/generated/domain-generator/tests").resolve()
+        evidence_root = (ROOT / "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/tests").resolve()
         self.assertIn(evidence_root, resolved.parents)
         self.assertTrue(resolved.name.startswith("cpf-federation-test-"))
         shutil.rmtree(resolved, ignore_errors=False)

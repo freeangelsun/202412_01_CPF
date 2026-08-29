@@ -9,8 +9,8 @@ ROOT = Path(__file__).resolve().parents[3]
 QUERY = ROOT / 'cpf-tools/verification/nxt3/verify_nxt3_query_db3.py'
 RUNNER = ROOT / 'cpf-tools/verification/nxt3/run_nxt3_final_all.py'
 POLICY = ROOT / 'cpf-tools/db/contracts/query-db3-policy.json'
-ANNOTATION = ROOT / 'cpf-docs/work/evidence/current/ANNOTATION_RUNTIME_CONSUMER.json'
-REDIS = ROOT / 'cpf-docs/work/evidence/current/REDIS_VALKEY_PROVIDER.json'
+ANNOTATION = ROOT / 'cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl'
+REDIS = ROOT / 'cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl'
 
 
 def _sha_or_missing(path: Path) -> str | None:

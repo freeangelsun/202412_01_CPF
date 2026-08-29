@@ -162,9 +162,9 @@ Gateway는 외부 Entry에 인증·Route·Rate Limit 같은 Policy가 필요할 
 Framework와 교육 예제를 먼저 확인합니다.
 
 ```powershell
-pwsh .\cpf-toolsuild	ools\cpf-dev.ps1 status
-pwsh .\cpf-toolsuild	ools\cpf-dev.ps1 build
-pwsh .\cpf-toolsuild	ools\cpf-dev.ps1 verify-full
+pwsh .\cpf-tools\build	ools\cpf-dev.ps1 status
+pwsh .\cpf-tools\build	ools\cpf-dev.ps1 build
+pwsh .\cpf-tools\build	ools\cpf-dev.ps1 verify-full
 ```
 
 Generated Domain을 수정했다면 Generator 동기화와 해당 Domain compile/test를 이어서 확인합니다. Batch를 사용하는 프로젝트는 Local Batch Runtime과 독립 Runtime의 역할을 구분하고, OpenAPI/Frontend가 있는 경우 최신 operationId와 Generated Client 사용 여부까지 확인합니다.

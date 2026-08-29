@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """CPF Generated Domain 상용 lifecycle 회귀 Gate.
 
-제품 Source를 변경하지 않고 ``cpf-docs/work/evidence/generated/domain-generator/verification`` 아래의 격리 출력만 사용한다.
+제품 Source를 변경하지 않고 ``cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification`` 아래의 격리 출력만 사용한다.
 입력 preflight, DB3/Public Starter 경계, idempotency, upgrade, remove/restore, 사용자 수정 보호와
 한글/공백 경로를 실제 ``cpf`` CLI로 호출해 검증한다.
 """
@@ -71,7 +71,7 @@ def main() -> int:
         raise RuntimeError(f"CPF CLI가 없습니다: {cli}")
 
     # 한글과 공백이 있는 경로에서 동일 Core CLI가 정상 동작하는지도 같이 검증한다.
-    work = root / "cpf-docs/work/evidence/generated/domain-generator/verification" / "NXT3 lifecycle 한글 space"
+    work = root / "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification" / "NXT3 lifecycle 한글 space"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True, exist_ok=True)
     definition = work / "order-cpf-domain.yaml"

@@ -92,7 +92,7 @@ def main():
     check('operation-test-infra-failure-not-miss','redis unavailable' in op_test and 'assertThrows' in op_test)
     fail=[c for c in checks if c['status']=='FAIL']
     result={'requirementId':REQ,'executionSourceSha':source_identity(root),'status':'PASS' if not fail else 'FAIL','failedCount':len(fail),'checks':checks,'runtimeVerification':'UNVERIFIED: live Redis/Valkey server disconnect/reconnect runtime unavailable in current environment'}
-    out=Path(ns.evidence) if ns.evidence else root/'cpf-docs/work/evidence/current/REDIS_VALKEY_PROVIDER.json'
+    out=Path(ns.evidence) if ns.evidence else root/'cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl'
     out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
     print(json.dumps({'status':result['status'],'failedCount':len(fail),'checkCount':len(checks)},ensure_ascii=False))
     raise SystemExit(1 if fail else 0)

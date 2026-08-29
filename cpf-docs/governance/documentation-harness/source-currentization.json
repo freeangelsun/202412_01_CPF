@@ -5,7 +5,7 @@
   "preAuthoringRequired": true,
   "finalValidationRequired": true,
   "canonicalPaths": [
-    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+    "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
     "settings.gradle",
     "build.gradle",
     "cpf-tools/generator/contracts/cpf-starter-catalog.json"
@@ -30,7 +30,7 @@
     "README.md"
   ],
   "requiredSourceAuthorityPaths": [
-    "cpf-docs/work/current/SOURCE_IDENTITY.json",
+    "cpf-docs/governance/development-harness/current/SOURCE_IDENTITY.json",
     "cpf-tools/runtime/cli/java/CpfCli.java"
   ],
   "dynamicAuthorityRules": {

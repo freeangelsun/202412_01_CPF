@@ -11,7 +11,7 @@ def run(*args:str):
 
 
 def test_setup_materializes_multiple_business_features_and_preserves_them_on_sync():
-    test_root=ROOT/'cpf-docs/work/evidence/generated/domain-generator/tests'
+    test_root=ROOT/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/tests'
     test_root.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='cpf-business-feature-',dir=test_root) as td:
         out=Path(td)/'cpf-qafeature'
@@ -37,7 +37,7 @@ def test_setup_materializes_multiple_business_features_and_preserves_them_on_syn
 
 
 def test_setup_rejects_domain_name_as_business_feature():
-    test_root=ROOT/'cpf-docs/work/evidence/generated/domain-generator/tests'
+    test_root=ROOT/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/tests'
     test_root.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='cpf-business-feature-invalid-',dir=test_root) as td:
         cp=run('domain','setup','--name','qafeature','--system-code','QAF','--preset','custom',
@@ -47,7 +47,7 @@ def test_setup_rejects_domain_name_as_business_feature():
 
 
 def test_sample_consumers_select_the_universal_runtime_clock():
-    test_root=ROOT/'cpf-docs/work/evidence/generated/domain-generator/tests'
+    test_root=ROOT/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/tests'
     test_root.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='cpf-sample-clock-',dir=test_root) as td:
         out=Path(td)/'cpf-qaclock'

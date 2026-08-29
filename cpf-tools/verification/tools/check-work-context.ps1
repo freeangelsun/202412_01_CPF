@@ -3,11 +3,11 @@ $ErrorActionPreference="Stop"
 Set-StrictMode -Version Latest
 $Root=(Resolve-Path -LiteralPath $Root).Path
 $required=@(
- "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+ "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
  "cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md",
  "cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md",
- "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
- "cpf-docs/work/REQUIREMENT_STATUS.csv",
+ "cpf-docs/governance/development-harness/current/CPF_CURRENT_WORK_REQUEST.md",
+ "cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv",
  "cpf-docs/deliverables/OPEN_ISSUES.md",
  "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
  "cpf-docs/deliverables/DELETE_MANIFEST.csv"
@@ -21,7 +21,7 @@ Write-Host "CPF CURRENT WORK CONTEXT"
 Write-Host "HEAD=$head BRANCH=$branch"
 $required|ForEach-Object{Write-Host " - $_"}
 if($status.Count){Write-Warning "Working Tree 변경이 있습니다. 실제 Local Source를 실행 대상으로 사용하고 변경을 덮어쓰지 마십시오."; $status|ForEach-Object{Write-Host $_}}
-$target=Get-Content (Join-Path $Root "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md") -Raw
+$target=Get-Content (Join-Path $Root "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md") -Raw
 foreach($keyword in @('Core Platform Framework','Canonical Requirement Count:','CPF-SYSTEM6','GEN-SETUP','EDU-CANONICAL')){
     if($target -notmatch [regex]::Escape($keyword)){throw "Final Target 정본 핵심 표식 누락: $keyword"}
 }

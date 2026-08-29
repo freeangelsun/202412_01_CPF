@@ -18,17 +18,17 @@ from pathlib import Path
 
 INDEXES = {
     "requirement": (
-        "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv",
+        "cpf-docs/governance/development-harness/current/CPF_REQUIREMENT_MASTER.csv",
         "requirement_id",
         re.compile(r"^CPF-(?:FR|NFR|QA|SELF|GATE)-[A-Z0-9-]+$"),
     ),
     "scenario": (
-        "cpf-docs/work/current/CPF_SCENARIO_MASTER.csv",
+        "cpf-docs/governance/development-harness/current/CPF_SCENARIO_MASTER.csv",
         "scenario_id",
         re.compile(r"^CPF-SC-[A-Z0-9-]+$"),
     ),
     "execution": (
-        "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.csv",
+        "cpf-docs/governance/development-harness/current/CPF_EXECUTION_SEQUENCE.csv",
         "execution_order",
         re.compile(r"^\d{2}-\d{8}$"),
     ),

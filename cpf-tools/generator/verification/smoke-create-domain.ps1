@@ -34,22 +34,22 @@ if (-not [string]::IsNullOrWhiteSpace($SchemaName)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/runtime-smoke'
+    $ResultDir = Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/runtime-smoke'
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir 'create-domain-result.sanitized.json'
-$sandbox = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/smoke-create-$domain"
+$sandbox = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/smoke-create-$domain"
 $definitionDir = Join-Path $sandbox 'definition'
 $definitionPath = Join-Path $definitionDir 'cpf-domain.yaml'
 $project = Join-Path $sandbox "cpf-$domain"
 $dbOutput = Join-Path $sandbox "db3/$DatabaseVendor"
-$transient = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-$domain"
+$transient = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-$domain"
 
 function Assert-SafeSandbox([string] $Path) {
     $resolved = [IO.Path]::GetFullPath($Path)
-    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $resolved.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Generator smoke sandbox가 허용 경로 밖입니다: $resolved"
     }

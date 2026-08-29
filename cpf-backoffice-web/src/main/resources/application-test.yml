@@ -1,0 +1,8 @@
+# MBW Channel Server test profile입니다.
+# 용도: Browser/API 자동화 테스트 전용입니다.
+# 기본값: 테스트가 명시한 endpoint를 사용하며 Secure Cookie는 HTTP 테스트를 위해 false입니다.
+backoffice:
+  web:
+    gateway-base-uri: ${MBW_GATEWAY_BASE_URI:http://127.0.0.1:8080}
+    direct-base-uri: ${MBW_DIRECT_BASE_URI:http://127.0.0.1:8082}
+    secure-cookies: ${MBW_WEB_SECURE_COOKIES:false}

@@ -11,7 +11,7 @@ def run(cmd:list[str], root:Path, env:dict[str,str])->int:
 def main()->int:
     ap=argparse.ArgumentParser()
     ap.add_argument('--root',default='.')
-    ap.add_argument('--matrix',default='cpf-docs/work/current/CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv')
+    ap.add_argument('--matrix',default='cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv')
     ap.add_argument('--expected-source-sha256',required=True)
     args=ap.parse_args()
     root=Path(args.root).resolve()

@@ -20,11 +20,11 @@ FORBIDDEN_SEGMENT_PATTERNS = (
 )
 EPHEMERAL_SEGMENTS = {".git", ".gradle", ".pytest_cache", "__pycache__", "node_modules", ".venv", ".cpf-python", "dist"}
 VERSIONED_DIR_EXEMPT_PREFIXES = ("cpf-docs/deliverables/",)
-# cpf-docs/work/evidence/generated/** is machine-local, fully gitignored regeneration output
+# cpf-docs/governance/development-harness/evidence/platform/current/generated/** is machine-local, fully gitignored regeneration output
 # (redirected Gradle project cache/local artifact repository, JVM crash/heap-dump capture,
 # retired IDE cache snapshots). It is never product source and is recreated on every run, so it
 # follows the same ephemeral-output policy as an ordinary module build/** directory below.
-EPHEMERAL_PREFIXES = ("cpf-docs/work/evidence/generated/",)
+EPHEMERAL_PREFIXES = ("cpf-docs/governance/development-harness/evidence/platform/current/generated/",)
 
 
 def is_managed_source(path: Path, root: Path) -> bool:

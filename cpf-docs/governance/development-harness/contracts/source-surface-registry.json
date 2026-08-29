@@ -172,6 +172,7 @@
         "application-edu-local.yml",
         "application-edu-prod.yml",
         "application-edu-stg.yml",
+        "application-edu-test.yml",
         "application-edu.yml",
         "application.yml"
       ],
@@ -185,7 +186,9 @@
         "stg": [
           "application-edu-stg.yml"
         ],
-        "test": [],
+        "test": [
+          "application-edu-test.yml"
+        ],
         "prod": [
           "application-edu-prod.yml"
         ]
@@ -198,6 +201,7 @@
         "application-adm-local.yml",
         "application-adm-prod.yml",
         "application-adm-stg.yml",
+        "application-adm-test.yml",
         "application-adm.yml",
         "application.yml"
       ],
@@ -211,7 +215,9 @@
         "stg": [
           "application-adm-stg.yml"
         ],
-        "test": [],
+        "test": [
+          "application-adm-test.yml"
+        ],
         "prod": [
           "application-adm-prod.yml"
         ]
@@ -220,17 +226,29 @@
     "cpf-backoffice-web/src/main/resources": {
       "base": "cpf-backoffice-web/src/main/resources/application.yml",
       "files": [
+        "application-dev.yml",
         "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
         "application.yml"
       ],
       "profileFiles": {
         "local": [
           "application-local.yml"
         ],
-        "dev": [],
-        "stg": [],
-        "test": [],
-        "prod": []
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
       }
     },
     "cpf-backoffice/online/src/main/resources": {
@@ -349,16 +367,23 @@
       "base": "cpf-batch/control-plane/src/main/resources/application.yml",
       "files": [
         "application-dev.yml",
+        "application-local.yml",
         "application-prod.yml",
+        "application-stg.yml",
         "application-test.yml",
+        "application.properties",
         "application.yml"
       ],
       "profileFiles": {
-        "local": [],
+        "local": [
+          "application-local.yml"
+        ],
         "dev": [
           "application-dev.yml"
         ],
-        "stg": [],
+        "stg": [
+          "application-stg.yml"
+        ],
         "test": [
           "application-test.yml"
         ],
@@ -371,16 +396,23 @@
       "base": "cpf-batch/worker/src/main/resources/application.yml",
       "files": [
         "application-dev.yml",
+        "application-local.yml",
         "application-prod.yml",
+        "application-stg.yml",
         "application-test.yml",
+        "application.properties",
         "application.yml"
       ],
       "profileFiles": {
-        "local": [],
+        "local": [
+          "application-local.yml"
+        ],
         "dev": [
           "application-dev.yml"
         ],
-        "stg": [],
+        "stg": [
+          "application-stg.yml"
+        ],
         "test": [
           "application-test.yml"
         ],
@@ -393,16 +425,23 @@
       "base": "cpf-batch/scheduler/src/main/resources/application.yml",
       "files": [
         "application-dev.yml",
+        "application-local.yml",
         "application-prod.yml",
+        "application-stg.yml",
         "application-test.yml",
+        "application.properties",
         "application.yml"
       ],
       "profileFiles": {
-        "local": [],
+        "local": [
+          "application-local.yml"
+        ],
         "dev": [
           "application-dev.yml"
         ],
-        "stg": [],
+        "stg": [
+          "application-stg.yml"
+        ],
         "test": [
           "application-test.yml"
         ],
@@ -415,16 +454,23 @@
       "base": "cpf-batch/center-cut/src/main/resources/application.yml",
       "files": [
         "application-dev.yml",
+        "application-local.yml",
         "application-prod.yml",
+        "application-stg.yml",
         "application-test.yml",
+        "application.properties",
         "application.yml"
       ],
       "profileFiles": {
-        "local": [],
+        "local": [
+          "application-local.yml"
+        ],
         "dev": [
           "application-dev.yml"
         ],
-        "stg": [],
+        "stg": [
+          "application-stg.yml"
+        ],
         "test": [
           "application-test.yml"
         ],
@@ -437,16 +483,22 @@
       "base": "cpf-batch/agent/src/main/resources/application.yml",
       "files": [
         "application-dev.yml",
+        "application-local.yml",
         "application-prod.yml",
+        "application-stg.yml",
         "application-test.yml",
         "application.yml"
       ],
       "profileFiles": {
-        "local": [],
+        "local": [
+          "application-local.yml"
+        ],
         "dev": [
           "application-dev.yml"
         ],
-        "stg": [],
+        "stg": [
+          "application-stg.yml"
+        ],
         "test": [
           "application-test.yml"
         ],
@@ -458,42 +510,66 @@
     "cpf-tools/runtime/cpf-local-batch-runtime/src/main/resources": {
       "base": "cpf-tools/runtime/cpf-local-batch-runtime/src/main/resources/application.yml",
       "files": [
+        "application-dev.yml",
         "application-local-batch-full.yml",
         "application-local-batch-integration.yml",
         "application-local-batch-minimal.yml",
         "application-local-batch-standard.yml",
         "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
         "application.yml"
       ],
       "profileFiles": {
         "local": [
           "application-local.yml"
         ],
-        "dev": [],
-        "stg": [],
-        "test": [],
-        "prod": []
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
       }
     },
     "cpf-tools/runtime/cpf-local-runtime/src/main/resources": {
       "base": "cpf-tools/runtime/cpf-local-runtime/src/main/resources/application.yml",
       "files": [
+        "application-dev.yml",
         "application-local-full.yml",
         "application-local-integrated.yml",
         "application-local-integration.yml",
         "application-local-minimal.yml",
         "application-local-standard.yml",
         "application-local.yml",
+        "application-prod.yml",
+        "application-stg.yml",
+        "application-test.yml",
         "application.yml"
       ],
       "profileFiles": {
         "local": [
           "application-local.yml"
         ],
-        "dev": [],
-        "stg": [],
-        "test": [],
-        "prod": []
+        "dev": [
+          "application-dev.yml"
+        ],
+        "stg": [
+          "application-stg.yml"
+        ],
+        "test": [
+          "application-test.yml"
+        ],
+        "prod": [
+          "application-prod.yml"
+        ]
       }
     }
   },

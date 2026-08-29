@@ -20,6 +20,8 @@ def excluded(p:Path)->bool:
     normalized='/' + p.as_posix().lstrip('/')
     if '/cpf-docs/work/evidence/' in normalized:
         return True
+    if '/cpf-docs/governance/development-harness/evidence/' in normalized:
+        return True
     return any(x in EXCLUDED for x in p.parts) or ('build' in p.parts and '/cpf-tools/build/' not in normalized)
 
 def owner(rel:str)->str:

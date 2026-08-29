@@ -90,7 +90,7 @@ def main()->int:
             if row.get('publishSources') is not False or row.get('publishJavadoc') is not False: fail.append('CPF_CLI_ARTIFACT_SOURCE_LEAK_POLICY')
             if set(row.get('capabilityProfiles',[]))!={'INTERNAL','PUBLIC'}: fail.append('CPF_CLI_ARTIFACT_PROFILE_DRIFT')
             if 'java25-fail-closed' not in row.get('requiredAttestations',[]): fail.append('CPF_CLI_JAVA25_ATTESTATION_MISSING')
-    req=(root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md').read_text(encoding='utf-8')
+    req=(root/'cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md').read_text(encoding='utf-8')
     for token in ('CPF의 공식 Tooling Interface','cpf-tools','Public/Internal','cpf-cli.jar'):
         if token not in req: fail.append('TOP_REQUIREMENT_MISSING:'+token)
     print(json.dumps({'status':'PASS' if not fail else 'FAIL','failures':fail,'publicCommands':sorted(PUBLIC),'internalNamespaces':sorted(INTERNAL)},ensure_ascii=False))

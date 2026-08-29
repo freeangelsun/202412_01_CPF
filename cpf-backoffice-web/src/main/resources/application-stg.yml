@@ -1,0 +1,10 @@
+# MBW Channel Server stg profile입니다.
+# 용도: 스테이징 환경의 Gateway/Backoffice 경계 설정입니다.
+# 허용값: HTTPS 기반 Gateway/Direct URI를 환경변수로 명시합니다.
+# 기본값: endpoint 기본값 없음(fail-closed), Secure Cookie=true입니다.
+# 운영 주의: localhost fallback과 평문 Cookie를 허용하지 않습니다.
+backoffice:
+  web:
+    gateway-base-uri: ${MBW_GATEWAY_BASE_URI}
+    direct-base-uri: ${MBW_DIRECT_BASE_URI}
+    secure-cookies: ${MBW_WEB_SECURE_COOKIES:true}

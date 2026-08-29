@@ -21,7 +21,7 @@ cpf-tools/verification  안정된 통합/기능 Gate
 
 ## Generated Customer Domain
 
-Generated Project 내부에는 lifecycle ownership/manifest/lock을 영구 저장하지 않는다. 생성 후 정본은 `cpf-<domain>/gradle.properties`의 `cpf.domain.*` Developer Contract다. CLI option 또는 Domain Root 밖의 명시적 `--file`은 transient 생성 입력일 뿐 결과 Root에 복사하지 않으며, 검증용 상태는 `cpf-docs/work/evidence/generated/domain-generator/verification/**`에만 일시 저장한다. `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름을 바꾼 state/lock과 `.cpf/` 우회는 금지한다.
+Generated Project 내부에는 lifecycle ownership/manifest/lock을 영구 저장하지 않는다. 생성 후 정본은 `cpf-<domain>/gradle.properties`의 `cpf.domain.*` Developer Contract다. CLI option 또는 Domain Root 밖의 명시적 `--file`은 transient 생성 입력일 뿐 결과 Root에 복사하지 않으며, 검증용 상태는 `cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/**`에만 일시 저장한다. `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름을 바꾼 state/lock과 `.cpf/` 우회는 금지한다.
 
 Windows 프로젝트 루트 기준 대표 명령:
 

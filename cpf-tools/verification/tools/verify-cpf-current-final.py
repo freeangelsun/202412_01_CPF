@@ -226,7 +226,7 @@ for project in sorted(p for p in ROOT.glob('cpf-*') if p.is_dir()):
 INFO['selectedDomainCount']=len(selected_domains)
 INFO['selectedDomains']=selected_domains
 # Generator current policy descriptions
-for rel in ('cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-docs/development/GENERATOR_GUIDE.md','cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'):
+for rel in ('cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-docs/development/GENERATOR_GUIDE.md','cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md'):
     t=text(ROOT/rel)
     bad=('Batch는 Generator가 만들지','Generated Runtime은 `online/` 하나','Batch는 Generated Domain 산출물이 아님','online 업무 Source만 생성')
     for b in bad:

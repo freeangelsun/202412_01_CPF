@@ -15,7 +15,7 @@ from cpf_domain_generator import load_domain_gradle_contract  # type: ignore
 
 class GeneratorSetupContractTest(unittest.TestCase):
     def run_setup(self,*extra:str,persistence:str='mybatis'):
-        test_root=ROOT/'cpf-docs/work/evidence/generated/domain-generator/tests'
+        test_root=ROOT/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/tests'
         test_root.mkdir(parents=True,exist_ok=True)
         td=tempfile.TemporaryDirectory(prefix='cpf-domain-setup-',dir=test_root)
         stage=Path(td.name)

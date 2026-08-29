@@ -60,7 +60,7 @@ def test_ephemeral_build_output_is_ignored_but_cpf_tools_build_is_product_source
 
 
 def test_generated_evidence_output_is_ignored_like_ephemeral_build_output(tmp_path: Path):
-    generated = tmp_path / "cpf-docs" / "work" / "evidence" / "generated" / "gradle" / "root-build" / \
+    generated = tmp_path / "cpf-docs" / "governance" / "development-harness" / "evidence" / "platform" / "current" / "generated" / "gradle" / "root-build" / \
         "cpf-local-artifact-repository" / "com" / "cpf" / "starter" / ("x" * 120) / "artifact.jar"
     generated.parent.mkdir(parents=True)
     generated.write_text("ignored\n", encoding="utf-8")

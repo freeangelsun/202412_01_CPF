@@ -1,30 +1,30 @@
 # CPF OPEN ISSUES — Development Harness Current
 
-## Product Conformance OPEN — 11건
-- `HARN-76022FDD9FB4` — **CONFIG_PROFILE_SET** — `cpf-education/src/main/resources` — 필수 profile 누락: test
-- `HARN-6F8FFF3EB4CE` — **CONFIG_PROFILE_SET** — `cpf-admin/src/main/resources` — 필수 profile 누락: test
-- `HARN-0C1B84016176` — **CONFIG_PROFILE_SET** — `cpf-backoffice-web/src/main/resources` — 필수 profile 누락: dev,stg,test,prod
-- `HARN-3F7FE74DC9CE` — **CONFIG_PROFILE_SET** — `cpf-batch/control-plane/src/main/resources` — 필수 profile 누락: local,stg
-- `HARN-DCAD325A91E3` — **CONFIG_PROFILE_SET** — `cpf-batch/worker/src/main/resources` — 필수 profile 누락: local,stg
-- `HARN-6BB833921EF5` — **CONFIG_PROFILE_SET** — `cpf-batch/scheduler/src/main/resources` — 필수 profile 누락: local,stg
-- `HARN-DA839DACE764` — **CONFIG_PROFILE_SET** — `cpf-batch/center-cut/src/main/resources` — 필수 profile 누락: local,stg
-- `HARN-4D5899DC9211` — **CONFIG_PROFILE_SET** — `cpf-batch/agent/src/main/resources` — 필수 profile 누락: local,stg
-- `HARN-2EDF146119AE` — **CONFIG_PROFILE_SET** — `cpf-tools/runtime/cpf-local-batch-runtime/src/main/resources` — 필수 profile 누락: dev,stg,test,prod
-- `HARN-BD4F408AAA33` — **CONFIG_PROFILE_SET** — `cpf-tools/runtime/cpf-local-runtime/src/main/resources` — 필수 profile 누락: dev,stg,test,prod
-- `HARN-10CD5AF82B99` — **CONTROL_CHAR** — `README.md` — NUL/BACKSPACE 제어문자 검출
+## 1. Product Conformance
 
-## Mandatory Physical / Independent Verification
-1. Java25 Root Build/Test/Publication/SBOM.
-2. Fresh VS Code Java25/Gradle Import Error=0 / Warning=0.
-3. Oracle/PostgreSQL/MariaDB DB3 Physical Full Lifecycle.
-4. Windows/Linux Unified CLI 실제 lifecycle/UTF-8/path/prerequisite negative.
-5. Batch 5-role + Worker×2 kill/takeover/fencing/UNKNOWN/reconcile.
-6. One-WAS transaction/logging durability + Runtime OpenAPI.
-7. ADM/Backoffice Frontend/Browser E2E/a11y/error-state.
-8. Performance live/load/soak.
-9. Actual Open Git Fresh Binary/Source Release + Public CLI + leakage 0.
-10. Same Source Full Runtime/Fresh Replay mandatory fail/skip/not-executed/unknown/drift 0.
-11. Codex/Claude current exact-source Independent Review.
-12. QA final acceptance.
+- 이전 11건의 Product Conformance Finding은 Source에서 보정했고 현재 `PRODUCT_CONFORMANCE=PASS FINDINGS=0`이다.
+- 해당 Finding을 삭제·은폐한 것이 아니라 `WP-CF01` Source Closure 및 Current Test/Evidence에 반영했다.
 
-Static/Contract PASS는 위 Physical Gate를 대체하지 않는다.
+## 2. Mandatory Physical / Independent Verification 미완료
+
+1. `WP-B01` — Java25 Root Build/Test/Publication/SBOM: **BLOCKED_EXTERNAL** (현재 Java21).
+2. `WP-B02` — Fresh VS Code/Buildship Error=0 Warning=0: **BLOCKED_EXTERNAL** (Windows IDE 필요).
+3. `WP-B03` — Messaging/JMS Java25 compile + Fresh JDT + provider runtime parity: **BLOCKED_EXTERNAL**.
+4. `WP-DB01` — Oracle/PostgreSQL/MariaDB Physical Full Lifecycle: **BLOCKED_EXTERNAL** (Docker 없음).
+5. `WP-CLI01` — Windows/Linux Unified CLI/Generator actual lifecycle: **BLOCKED_EXTERNAL** (`pwsh`/Java25 없음).
+6. `WP-BAT01` — 5-role/Worker×2/kill/takeover/fencing/UNKNOWN/reconcile: **BLOCKED_EXTERNAL**.
+7. `WP-ONE01` — One-WAS transaction/log durability/runtime OpenAPI: **BLOCKED_EXTERNAL**.
+8. `WP-FE01` — npm install/lint/typecheck/test/build/Playwright/browser/a11y/error states: **BLOCKED_EXTERNAL**.
+9. `WP-PF01` — live load/soak/resource/backpressure: **BLOCKED_EXTERNAL**.
+10. `WP-RL02` — Actual Open Git Fresh Release/Fresh Consumer/leakage 0: **BLOCKED_EXTERNAL**.
+11. `WP-FIN01` — Same Source Full Runtime/Fresh Replay: **BLOCKED_EXTERNAL** until above prerequisites are satisfied.
+12. Independent Reviewer(Codex/Claude): **NOT_EXECUTED**.
+13. QA final acceptance: **NOT_EXECUTED**.
+
+## 3. Delete / Current-only
+
+- Migration Semantic Closure: **PASS 265/265**.
+- Exact Delete Manifest: 265 rows / delete eligible 246 / protected retain 19.
+- 실제 사용자 Repository 삭제 적용은 **NOT_EXECUTED**이며 Overlay 적용 후 Harness Gate PASS 상태에서만 실행한다.
+
+Static/Contract PASS로 위 Physical Gate를 대체하지 않는다.

@@ -6,7 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger',default='cpf-docs/work/REQUIREMENT_STATUS.csv'); ap.add_argument('--json-out'); ap.add_argument('--markdown-out'); ns=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger',default='cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv'); ap.add_argument('--json-out'); ap.add_argument('--markdown-out'); ns=ap.parse_args()
     root=Path(ns.root).resolve(); path=Path(ns.ledger); path=path if path.is_absolute() else root/path
     with path.open(encoding='utf-8-sig',newline='') as f: rows=list(csv.DictReader(f))
     required={'exact_id','개발GPT_개발상태','개발GPT_검증상태','개발GPT_전체상태'}

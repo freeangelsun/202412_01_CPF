@@ -67,7 +67,7 @@ def test_root_generated_and_jvm_failure_artifacts_use_managed_evidence_paths():
     wrapper_sh = (ROOT / 'gradlew').read_text(encoding='utf-8')
     ignore = (ROOT / '.gitignore').read_text(encoding='utf-8')
 
-    managed = 'cpf-docs/work/evidence/generated'
+    managed = 'cpf-docs/governance/development-harness/evidence/platform/current/generated'
     assert managed in convention
     assert "rootProject.layout.buildDirectory.set" in convention
     assert 'org.gradle.projectcachedir=' not in gradle_properties
@@ -84,4 +84,4 @@ def test_root_generated_and_jvm_failure_artifacts_use_managed_evidence_paths():
         assert '-XX:HeapDumpPath=' in wrapper
     assert 'java-hs_err_pid%%p.log' in wrapper_bat
     assert '-XX:ErrorFile=\\"' not in wrapper_bat
-    assert '/cpf-docs/work/evidence/generated/' in ignore
+    assert '/cpf-docs/governance/development-harness/evidence/platform/current/generated/' in ignore

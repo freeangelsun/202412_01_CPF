@@ -7,15 +7,15 @@ from pathlib import Path
 ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--baseline'); a=ap.parse_args()
 root=Path(a.root).resolve(); fail=[]
 required=[
- 'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md',
+ 'cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md',
  'cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md',
  'cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md',
- 'cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md',
- 'cpf-docs/work/REQUIREMENT_STATUS.csv',
+ 'cpf-docs/governance/development-harness/current/CPF_CURRENT_WORK_REQUEST.md',
+ 'cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv',
  'cpf-docs/deliverables/TEST_AND_EVIDENCE.md',
  'cpf-docs/deliverables/OPEN_ISSUES.md',
  'cpf-docs/deliverables/DELETE_MANIFEST.csv',
- 'cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md',
+ 'cpf-docs/governance/development-harness/current/CPF_DEVELOPMENT_HANDOVER.md',
 ]
 for rel in required:
     if not (root/rel).is_file(): fail.append('CURRENT_DOC_MISSING:'+rel)

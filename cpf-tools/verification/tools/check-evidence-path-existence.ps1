@@ -19,9 +19,9 @@ $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 $sourceFiles = @(
     "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
-    "cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv",
+    "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv",
     "cpf-docs/deliverables/OPEN_ISSUES.md",
-    "cpf-docs/work/current/CODEX_MID_REVIEW_INSTRUCTION.md"
+    "cpf-docs/governance/development-harness/current/CODEX_MID_REVIEW_INSTRUCTION.md"
 )
 
 $failures = [System.Collections.Generic.List[string]]::new()

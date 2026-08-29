@@ -26,7 +26,7 @@ CATALOG_REL = Path("cpf-tools/generator/contracts/cpf-starter-catalog.json")
 STACK_REL = Path("gradle/cpf-stack.properties")
 GENERATOR_VERSION = "6.4.1"
 GRADLE_DAEMON_JVMARGS = "-Xms250m -Xmx1000m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8"
-MANAGED_GENERATOR_REL = Path("cpf-docs/work/evidence/generated/domain-generator")
+MANAGED_GENERATOR_REL = Path("cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator")
 
 
 def managed_generator_root(workspace_root: Path) -> Path:
@@ -3111,7 +3111,7 @@ def remove_owned(root: Path, definition_path: Path, output: Path, apply: bool=Fa
             'deletePrecondition':'USER_APPROVED_DELETE_MANIFEST','purgeDefinitionRequested':bool(purge_definition)}
     if apply:
         domain=output.name.removeprefix('cpf-')
-        lifecycle=root/'cpf-docs/work/evidence/generated/domain-generator'/f'lifecycle-{domain}'
+        lifecycle=root/'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator'/f'lifecycle-{domain}'
         expected_output=(lifecycle/f'cpf-{domain}').resolve()
         expected_definition=(lifecycle/'definition/cpf-domain.yaml').resolve()
         if (not approved_disposable_lifecycle or output != expected_output

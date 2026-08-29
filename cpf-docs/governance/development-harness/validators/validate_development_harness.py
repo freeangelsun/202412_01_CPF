@@ -80,15 +80,22 @@ def main():
             errors.append('SELF_MIGRATION '+r.get('old_path',''))
         if r.get('old_path','').startswith('cpf-docs/governance/development-harness/') and r.get('old_path','') not in allowed_harness_delete:
             errors.append('DELETE_CURRENT_HARNESS_AUTHORITY_FORBIDDEN '+r.get('old_path',''))
-        if not (ROOT/r.get('new_path','')).exists():
-            errors.append('MIGRATION_REPLACEMENT_MISSING '+r.get('old_path','')+' -> '+r.get('new_path',''))
+        cur=r.get('new_path',''); seen={r.get('old_path','')}
+        mm_by={x['old_path']:x for x in mm}
+        while cur in mm_by:
+            if cur in seen:
+                errors.append('MIGRATION_TRANSITIVE_CYCLE '+r.get('old_path','')); break
+            seen.add(cur); cur=mm_by[cur].get('new_path','')
+        if cur and not (ROOT/cur).exists():
+            errors.append('MIGRATION_REPLACEMENT_MISSING '+r.get('old_path','')+' -> '+cur)
     with (H/'DELETE_MANIFEST.csv').open(encoding='utf-8-sig',newline='') as f: dm=list(csv.DictReader(f))
-    if {r['old_path'] for r in mm}!={r['path'] for r in dm}: errors.append('DELETE_MIGRATION_PATH_SET_MISMATCH')
+    expected_delete={r['old_path'] for r in mm if r.get('delete_eligible')=='true'}
+    if expected_delete!={r['path'] for r in dm}: errors.append('DELETE_MIGRATION_PATH_SET_MISMATCH')
     protected_prefixes=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/','cpf-docs/governance/documentation-harness/')
     for r in dm:
         protected=r.get('path','').startswith(protected_prefixes)
         if protected:
-            if r.get('delete_eligible')!='false' or r.get('lifecycle')!='PROTECTED_RETAIN' or r.get('precondition')!='PROTECTED_PATH_RETAIN': errors.append('PROTECTED_DELETE_POLICY_DRIFT '+r.get('path',''))
+            errors.append('PROTECTED_PATH_PRESENT_IN_DELETE_MANIFEST '+r.get('path',''))
         elif r.get('approved')!='true' or r.get('user_approved')!='true' or r.get('delete_eligible')!='true':
             errors.append('DELETE_NOT_APPROVED '+r.get('path',''))
         if r.get('path','').startswith('cpf-docs/governance/development-harness/') and r.get('path','') not in allowed_harness_delete: errors.append('DELETE_CURRENT_HARNESS_AUTHORITY_FORBIDDEN '+r.get('path',''))

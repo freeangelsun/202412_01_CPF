@@ -1,0 +1,12 @@
+# CPF Batch agent local profile입니다.
+# 용도: 로컬 개발 환경에서 AGENT 독립 Runtime을 기동합니다.
+# 허용값: CPF_PORT는 1~65535, CPF_WAS_ID는 명시값 또는 Runtime hostname 정책을 사용합니다.
+# 기본값: Port=8184, WAS ID 미지정(공통 Runtime Identity 정책 사용)입니다.
+# 운영 주의: Runtime role은 변경하지 말고 환경별 DB/Secret/Peer 설정은 외부 설정으로 주입합니다.
+server:
+  port: ${CPF_PORT:8184}
+cpf:
+  framework:
+    was-id: ${CPF_WAS_ID:}
+  runtime:
+    role: AGENT

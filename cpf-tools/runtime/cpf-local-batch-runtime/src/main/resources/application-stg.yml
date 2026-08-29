@@ -1,0 +1,10 @@
+# cpf-local-batch-runtime stg profile입니다.
+# 용도: stg 환경에서 로컬 통합 Runtime Harness의 명시적 실행 여부를 제어합니다.
+# 허용값: enabled=true/false. 기본값 false이며 실제 실행은 검증 명령에서 명시적으로 opt-in 합니다.
+# 기본값: false(fail-closed). 운영/스테이징에서는 자동 Simulator 활성화를 허용하지 않습니다.
+# 운영 주의: 실제 운영 Runtime 대체용이 아니며 검증 Harness로만 사용합니다.
+cpf:
+  environment: stg
+  local:
+    batch:
+      enabled: ${CPF_LOCAL_BATCH_ENABLED:false}

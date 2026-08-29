@@ -1,0 +1,16 @@
+{
+  "domain": "external",
+  "status": "PASS",
+  "physicalRoot": "cpf-external",
+  "ia": {
+    "online": true,
+    "batch": false,
+    "batchCapabilitySelection": "DEVELOPER_GRADLE_CONTRACT"
+  },
+  "developerContract": "gradle.properties",
+  "generatorMetadata": "ABSENT",
+  "publicBoundary": "PASS",
+  "db3Renderer": "EXTERNAL_CANONICAL_RENDERER",
+  "runtimeConsumers": "BUILD_GENERATED_DESCRIPTOR",
+  "generatedFiles": 43
+}

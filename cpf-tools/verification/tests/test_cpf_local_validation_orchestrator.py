@@ -22,7 +22,7 @@ def test_orchestrator_is_laptop_safe_and_collects_all_failures():
     assert '-PcpfSkipFrontendBuild=true' in source
     assert '--no-parallel' in source
     assert '$strictExitEffective=[bool]$StrictExit -or [bool]$FullLocal' in source
-    assert 'if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){exit 1}' in source
+    assert 'if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){throw "CPF FullLocal validation failed after evidence collection:' in source
     assert 'IncludeDistributedRuntime' not in source
     assert 'git status' not in source
     assert 'git diff' not in source

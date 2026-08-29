@@ -29,7 +29,10 @@ GENERATED_FILE_PATTERNS = (
     "*.hprof",
     "*.stackdump",
 )
-GENERATED_PATH_MARKERS = ("/cpf-docs/work/evidence/generated/",)
+GENERATED_PATH_MARKERS = (
+    "/cpf-docs/governance/development-harness/evidence/platform/current/generated/",
+    "/cpf-docs/work/evidence/generated/",  # retired scratch path: identity compatibility only
+)
 GENERATED_ROOT_PREFIXES = {".vscode/", ".github/modernize/", "logs/"}
 CANONICAL_PRODUCT_BIN_PREFIXES = (
     "cpf-batch/control-plane/bin/", "cpf-batch/scheduler/bin/", "cpf-batch/worker/bin/",
@@ -85,6 +88,21 @@ def _include(rel: str, scope: str) -> bool:
         # identity and package hashes, so including them would make the source digest circular.
         # Product documentation lives outside cpf-docs/deliverables and remains part of source scope.
         if rel.startswith("cpf-docs/deliverables/"):
+            return False
+        # Current Development Harness authority/evidence is mutable governance metadata.
+        # It can embed the current Product Source Identity itself, so source scope must exclude
+        # these exact surfaces to keep identity calculation non-circular. Managed scope still
+        # protects every byte and detects validation-time drift.
+        if rel.startswith("cpf-docs/governance/development-harness/current/"):
+            return False
+        if rel.startswith("cpf-docs/governance/development-harness/evidence/"):
+            return False
+        if rel in {
+            "cpf-docs/governance/development-harness/HANDOVER.md",
+            "cpf-docs/governance/development-harness/SOURCE_IDENTITY.json",
+            "cpf-docs/governance/development-harness/OPEN_ISSUES.md",
+            "cpf-docs/governance/development-harness/PRODUCT_CONFORMANCE_REPORT.json",
+        }:
             return False
     return True
 

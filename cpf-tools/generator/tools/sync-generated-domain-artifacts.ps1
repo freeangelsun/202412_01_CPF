@@ -70,7 +70,7 @@ foreach ($item in $catalog | Sort-Object systemCode, domainName) {
 
     $vendorResults = @()
     foreach ($vendor in $DatabaseVendors) {
-        $output = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/$($item.projectName)/db3/$vendor"
+        $output = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/$($item.projectName)/db3/$vendor"
         $render = Invoke-CpfCanonicalCli -Root $Root -Arguments @(
             'db', 'render', '--file', [string]$item.contractPath,
             '--vendor', $vendor, '--output', $output
@@ -87,7 +87,7 @@ foreach ($item in $catalog | Sort-Object systemCode, domainName) {
     }
 }
 
-$resultDir = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/reports/generated-domain-sync'
+$resultDir = Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/reports/generated-domain-sync'
 New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 $resultPath = Join-Path $resultDir 'generated-domain-sync.sanitized.json'
 $result = [ordered]@{

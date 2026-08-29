@@ -130,3 +130,29 @@ def test_jvm_crash_and_heap_dump_artifacts_do_not_change_any_identity_scope(tmp_
         assert before[scope]["contentSha256"] == after[scope]["contentSha256"]
         assert before[scope]["fileCount"] == after[scope]["fileCount"]
         assert before[scope]["totalBytes"] == after[scope]["totalBytes"]
+
+
+def test_development_harness_current_authority_does_not_make_source_identity_circular(tmp_path: Path):
+    product = tmp_path / "cpf-core" / "src"
+    product.mkdir(parents=True)
+    (product / "Core.java").write_text("class Core {}", encoding="utf-8")
+    harness = tmp_path / "cpf-docs" / "governance" / "development-harness"
+    current = harness / "current"
+    current.mkdir(parents=True)
+    sid = current / "SOURCE_IDENTITY.json"
+    sid.write_text('{"finalReplayProductContentSha256":"before"}', encoding="utf-8")
+    top_sid = harness / "SOURCE_IDENTITY.json"
+    top_sid.write_text('{"finalReplayProductContentSha256":"before"}', encoding="utf-8")
+    handover = harness / "HANDOVER.md"
+    handover.write_text("before", encoding="utf-8")
+
+    source_before = module.snapshot(tmp_path, "source")
+    managed_before = module.snapshot(tmp_path, "managed")
+    sid.write_text('{"finalReplayProductContentSha256":"after"}', encoding="utf-8")
+    top_sid.write_text('{"finalReplayProductContentSha256":"after"}', encoding="utf-8")
+    handover.write_text("after", encoding="utf-8")
+    source_after = module.snapshot(tmp_path, "source")
+    managed_after = module.snapshot(tmp_path, "managed")
+
+    assert source_before["contentSha256"] == source_after["contentSha256"]
+    assert managed_before["contentSha256"] != managed_after["contentSha256"]

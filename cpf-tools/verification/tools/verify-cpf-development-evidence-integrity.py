@@ -308,9 +308,9 @@ def verify(root: Path, review_dir: Path, expected_sha: str | None, source_head: 
         if not (review / name).is_file():
             raise GateError(f"missing review artifact: {name}")
 
-    canonical_finding = root / "cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv"
+    canonical_finding = root / "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv"
     finding_path = canonical_finding if canonical_finding.is_file() else review / "QA_FINDING_REVALIDATION.csv"
-    canonical_requirement = root / "cpf-docs/work/REQUIREMENT_STATUS.csv"
+    canonical_requirement = root / "cpf-docs/governance/development-harness/current/CANONICAL_PRODUCT_REQUIREMENTS.csv"
     requirement_path = canonical_requirement if canonical_requirement.is_file() else review / "REQUIREMENT_STATUS.csv"
     if not finding_path.is_file():
         raise GateError(f"missing developer finding ledger: {finding_path}")
@@ -324,13 +324,13 @@ def verify(root: Path, review_dir: Path, expected_sha: str | None, source_head: 
     # a whole-tree runtime hash for the manifest's explicitly scoped source identity.
     if expected_sha:
         expected_sha = expected_sha.lower()
-        if not SHA1_RE.fullmatch(expected_sha):
+        if not (SHA1_RE.fullmatch(expected_sha) or SHA256_RE.fullmatch(expected_sha)):
             raise GateError("expected SHA format invalid")
         if not source_head:
             raise GateError("--expected-sha requires --source-head")
     if source_head:
         source_head = source_head.lower()
-        if not SHA1_RE.fullmatch(source_head):
+        if not (SHA1_RE.fullmatch(source_head) or SHA256_RE.fullmatch(source_head)):
             raise GateError("runtime source identity format invalid")
         if expected_sha and source_head != expected_sha:
             raise GateError(f"runtime source identity mismatch expected={expected_sha} actual={source_head}")
@@ -353,7 +353,65 @@ def verify(root: Path, review_dir: Path, expected_sha: str | None, source_head: 
     ids: set[str] = set()
     complete = incomplete = evidence_refs = 0
 
-    if "closure_state" in fields:
+    if "work_item_id" in fields and "overall_status" in fields:
+        mandatory = {
+            "work_item_id", "development_status", "verification_status", "runtime_status",
+            "overall_status", "source_identity", "verification_incomplete_reason", "current_action",
+        }
+        missing = mandatory - set(fields)
+        if missing:
+            raise GateError(f"Harness Current status missing columns: {sorted(missing)}")
+        if expected_findings is not None and len(findings) != expected_findings:
+            raise GateError(f"work item count mismatch expected={expected_findings} actual={len(findings)}")
+        # Current Harness owns role/test evidence; status alone can never prove completion.
+        role_path = root / "cpf-docs/governance/development-harness/current/ROLE_EXECUTION_LEDGER.csv"
+        test_path = root / "cpf-docs/governance/development-harness/current/TEST_EXECUTION_LEDGER.csv"
+        role_rows = _rows(role_path)[1] if role_path.is_file() else []
+        test_rows = _rows(test_path)[1] if test_path.is_file() else []
+        role_by: dict[str, list[dict[str,str]]] = {}
+        test_by: dict[str, list[dict[str,str]]] = {}
+        for rr in role_rows: role_by.setdefault(rr.get("work_item_id", ""), []).append(rr)
+        for tr in test_rows: test_by.setdefault(tr.get("work_item_id", ""), []).append(tr)
+        for row in findings:
+            wid = row["work_item_id"]
+            if not wid or wid in ids:
+                raise GateError(f"missing/duplicate work item id: {wid}")
+            ids.add(wid)
+            if row["source_identity"].lower() != package["sourceSha256"]:
+                raise GateError(f"{wid}: stale source identity")
+            is_complete = row["overall_status"] == "완료"
+            if is_complete:
+                if row["development_status"] != "완료" or row["verification_status"] != "완료" or row["runtime_status"] not in {"PASS", "NOT_APPLICABLE"}:
+                    raise GateError(f"{wid}: overall complete without development/verification/runtime completion")
+                wr = role_by.get(wid, [])
+                if {r.get("role") for r in wr} != {"DEVGPT", "INDEPENDENT_REVIEWER", "QA"}:
+                    raise GateError(f"{wid}: role ledger coverage incomplete")
+                for rr in wr:
+                    if rr.get("execution_status") != "PASS":
+                        raise GateError(f"{wid}: completed without {rr.get('role')} PASS")
+                    ev = (rr.get("evidence") or "").strip()
+                    if not ev or not _safe(root, ev).is_file():
+                        raise GateError(f"{wid}: completed role evidence missing {rr.get('role')}")
+                    evidence_refs += 1
+                mandatory_tests = [x for x in test_by.get(wid, []) if x.get("mandatory") == "true"]
+                if not mandatory_tests:
+                    raise GateError(f"{wid}: no mandatory tests")
+                for tr in mandatory_tests:
+                    if tr.get("status") != "PASS":
+                        raise GateError(f"{wid}: completed without mandatory test PASS {tr.get('test_execution_id')}")
+                    ev = (tr.get("evidence") or "").strip()
+                    if not ev or not _safe(root, ev).is_file():
+                        raise GateError(f"{wid}: mandatory test evidence missing {tr.get('test_execution_id')}")
+                    if tr.get("evidence_sha256") and _sha256(_safe(root, ev)) != tr["evidence_sha256"].lower():
+                        raise GateError(f"{wid}: mandatory test evidence SHA mismatch {tr.get('test_execution_id')}")
+                    evidence_refs += 1
+                complete += 1
+            else:
+                # Incomplete is valid state but never promoted. It must explain why/what next.
+                if not ((row.get("verification_incomplete_reason") or "").strip() or (row.get("current_action") or "").strip()):
+                    raise GateError(f"{wid}: incomplete work lacks reason/action")
+                incomplete += 1
+    elif "closure_state" in fields:
         mandatory = {
             "finding_key", "qa_source", "finding_id", "development_status",
             "verification_status", "runtime_status", "overall_status",
@@ -504,13 +562,13 @@ def main() -> int:
     parser.add_argument("--expected-sha")
     parser.add_argument("--source-head")
     parser.add_argument("--expected-requirements", type=int)
-    parser.add_argument("--expected-findings", type=int, default=63)
+    parser.add_argument("--expected-findings", type=int)
     parser.add_argument("--json-output")
     args = parser.parse_args()
     root = Path(args.root).resolve()
     expected_requirements=args.expected_requirements
     if expected_requirements is None:
-        canonical=root/"cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
+        canonical=root/"cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md"
         catalog_ids=[m.group(1) for line in canonical.read_text(encoding="utf-8-sig").splitlines() if (m:=re.match(r'^\| `([A-Z0-9-]+)` \|',line))]
         if not catalog_ids or len(catalog_ids)!=len(set(catalog_ids)):
             print(json.dumps({"status":"FAIL","message":f"canonical catalog invalid: {len(catalog_ids)}/{len(set(catalog_ids))}"},ensure_ascii=False)); return 1

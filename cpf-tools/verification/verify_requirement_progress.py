@@ -41,14 +41,14 @@ def main()->int:
     ap.add_argument('--expected-canonical',type=int)
     ap.add_argument('--json-output')
     ns=ap.parse_args()
-    root=Path(ns.root).resolve(); raw=ns.ledger or ns.csv or 'cpf-docs/work/REQUIREMENT_STATUS.csv'; path=Path(raw); path=path if path.is_absolute() else root/path
+    root=Path(ns.root).resolve(); raw=ns.ledger or ns.csv or 'cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv'; path=Path(raw); path=path if path.is_absolute() else root/path
     try: rows=load(path)
     except Exception as e:
         print('REQUIREMENT_PROGRESS_GATE=FAIL'); print('REQUIREMENT_PROGRESS_ERROR='+str(e)); return 1
     expected=ns.expected_canonical
     if expected is None:
         import re
-        canonical=root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'
+        canonical=root/'cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md'
         ids=[m.group(1) for line in canonical.read_text(encoding='utf-8-sig').splitlines() if (m:=re.match(r'^\| `([A-Z0-9-]+)` \|',line))]
         if not ids or len(ids)!=len(set(ids)):
             print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=canonical_catalog_invalid={len(ids)}/{len(set(ids))}'); return 1

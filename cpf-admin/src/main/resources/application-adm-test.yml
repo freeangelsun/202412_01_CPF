@@ -1,0 +1,24 @@
+# ADM test profile 설정입니다.
+# 용도: ADM 통합 테스트에서 실제 API/DB/OpenAPI 경계를 검증합니다.
+# 허용값: Port와 DB 접속정보는 테스트 환경에서 주입하며 Secret은 파일에 저장하지 않습니다.
+# 기본값: Port 8081, DB 접속정보는 미지정(fail-closed)입니다.
+# 운영 주의: test 전용 DB/User를 사용하고 운영 Credential을 재사용하지 않습니다.
+server:
+  port: ${ADM_SERVER_PORT:8081}
+
+spring:
+  datasource:
+    adm:
+      url: ${ADM_DATASOURCE_URL}
+      username: ${ADM_DATASOURCE_USERNAME}
+      password: ${ADM_DATASOURCE_PASSWORD}
+
+cpf:
+  adm:
+    integration-closure:
+      enabled: ${CPF_ADM_INTEGRATION_CLOSURE_ENABLED:true}
+      ephemeral-providers-enabled: ${CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_ENABLED:true}
+      correction-approval-ttl: ${CPF_ADM_INTEGRATION_CLOSURE_APPROVAL_TTL:15m}
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}

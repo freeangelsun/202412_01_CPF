@@ -23,7 +23,7 @@
     "verify"
   ],
   "transientState": {
-    "directory": "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-<domain>",
+    "directory": "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-<domain>",
     "stateFile": "generation-state.json",
     "verificationFile": "verify-result.json",
     "db3Directory": "db3/<vendor>",
@@ -55,7 +55,7 @@
       "cpf-member",
       "cpf-external"
     ],
-    "thirdDomainVerificationRoot": "cpf-docs/work/evidence/generated/domain-generator/verification/<scenario>"
+    "thirdDomainVerificationRoot": "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/<scenario>"
   },
   "releaseEvidence": {
     "requiredVendors": [
@@ -87,7 +87,7 @@
   ],
   "generatedDatabaseAssets": {
     "owner": "CPF_DB_RENDERER",
-    "root": "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-<domain>/db3/<vendor>",
+    "root": "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-<domain>/db3/<vendor>",
     "vendors": [
       "mariadb",
       "postgresql",

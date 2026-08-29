@@ -29,7 +29,7 @@ def is_generated_cache_path(path: str) -> bool:
     return False
 
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger',default='cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'); ap.add_argument('--manifest',default='cpf-docs/deliverables/DELETE_MANIFEST.csv'); a=ap.parse_args(); root=Path(a.root).resolve(); fail=[]
+ ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger',default='cpf-docs/governance/development-harness/current/CURRENT_GARBAGE_DECISIONS.csv'); ap.add_argument('--manifest',default='cpf-docs/deliverables/DELETE_MANIFEST.csv'); a=ap.parse_args(); root=Path(a.root).resolve(); fail=[]
  lp=root/a.ledger; mp=root/a.manifest
  if not lp.exists(): fail.append('garbage_ledger_missing')
  if not mp.exists(): fail.append('delete_manifest_missing')

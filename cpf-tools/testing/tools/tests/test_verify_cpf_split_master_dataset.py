@@ -6,7 +6,7 @@ def wcsv(p,fields,rows):p.parent.mkdir(parents=True,exist_ok=True);f=p.open('w',
 class T(unittest.TestCase):
  def root(self,malformed=False,reversed_order=False):
   td=tempfile.TemporaryDirectory();r=Path(td.name);subprocess.run(['git','init','-q',r],check=True);subprocess.run(['git','-C',r,'config','user.email','a@b.c']);subprocess.run(['git','-C',r,'config','user.name','t'])
-  d=r/'cpf-docs/work/current';d.mkdir(parents=True)
+  d=r/'cpf-docs/governance/development-harness/current';d.mkdir(parents=True)
   specs=[('requirement','requirement_id',['CPF-FR-000001']),('scenario','scenario_id',['CPF-SC-000001']),('execution','execution_order',['00-00000002' if reversed_order else '00-00000001'])]
   for kind,idc,ids in specs:
    part=d/f'{kind}.part.csv';fields=[idc]

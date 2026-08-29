@@ -185,7 +185,7 @@ DB Vendor는 Domain Source 정본과 분리하지만, 개발자가 처음 준비
 cpf domain setup --name payment --system-code PAY --table-prefix PAY --vendor postgresql --database-name businessDB
 ```
 
-이 명령은 `cpf-payment/gradle.properties` Developer Contract를 만들고 transient `cpf-docs/work/evidence/generated/domain-generator/cpf-local/payment/cpf-db-profile.local.json`에 환경별 DB Vendor/Host/Port/Database와 Secret 환경변수 참조만 저장합니다. Generator 입력 descriptor와 내부 state는 Domain Root에 저장하지 않습니다.
+이 명령은 `cpf-payment/gradle.properties` Developer Contract를 만들고 transient `cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/cpf-local/payment/cpf-db-profile.local.json`에 환경별 DB Vendor/Host/Port/Database와 Secret 환경변수 참조만 저장합니다. Generator 입력 descriptor와 내부 state는 Domain Root에 저장하지 않습니다.
 
 비밀번호 원문은 Profile에 저장하지 않습니다. Generated build도 MariaDB를 암묵 선택하지 않으며 `-PcpfDbVendor=<vendor>` 또는 `CPF_DB_VENDOR`가 없으면 fail-closed합니다.
 
@@ -491,7 +491,7 @@ Generated Project의 `src/main/resources` 아래에 Vendor별 SQL/Mapper를 복�
 Generated Project에 Lock/ownership/manifest를 저장하지 않습니다. Generator는 정본 입력과 현재 Template에서 expected seed를 재계산하고, 사용자 수정 보호에 필요한 실행 상태만 다음 transient 경로가 소유합니다.
 
 ```text
-cpf-docs/work/evidence/generated/domain-generator/verification/cpf-<domain>/generation-state.json
+cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-<domain>/generation-state.json
 ```
 
 이 상태는 state/Generator version, definition·Generator SHA-256, expected Generated file 경로·hash, 검증 결과를 저장합니다. `regenerate/upgrade/remove/restore`는 이 기준과 현재 파일을 대사하고 사용자 수정이 있으면 fail-closed합니다. 해당 `build/**` 상태를 임의 재생성하여 충돌을 숨기지 않습니다.
@@ -650,7 +650,7 @@ cpf-external/
 Batch는 선택형 Generated Runtime입니다. 회귀 기준인 member는 `modules.batch=true`로 `cpf-member/batch/`를 생성하고, external은 `modules.batch=false`로 online-only 조합을 검증합니다.
 ```
 
-Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름을 바꾼 lock/state/manifest, verification/Evidence, DB Vendor tree를 영구 저장하지 않습니다. Fresh 입력은 CLI option 또는 Domain Root 밖의 explicit transient `--file`이며, 생성 후 정본은 root `gradle.properties` Developer Contract입니다. transient state/DB3 Evidence는 `cpf-docs/work/evidence/generated/domain-generator/verification/**`만 소유합니다.
+Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름을 바꾼 lock/state/manifest, verification/Evidence, DB Vendor tree를 영구 저장하지 않습니다. Fresh 입력은 CLI option 또는 Domain Root 밖의 explicit transient `--file`이며, 생성 후 정본은 root `gradle.properties` Developer Contract입니다. transient state/DB3 Evidence는 `cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/**`만 소유합니다.
 
 ### `cpf-member/` - MBR 회귀 Domain
 
@@ -671,7 +671,7 @@ Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, `cpf-generator.lock.j
 `cpf-member/`와 `cpf-external/`만으로도 두 개의 독립 Domain을 검증하지만, Template가 이름에 특수화되지 않았는지 제3 임의 Domain을 fresh 생성해 확인합니다.
 
 ```text
-cpf-docs/work/evidence/generated/domain-generator/verification/<scenario>/
+cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/<scenario>/
 ```
 
 또는 Repository 외부 Temp Directory를 사용합니다.

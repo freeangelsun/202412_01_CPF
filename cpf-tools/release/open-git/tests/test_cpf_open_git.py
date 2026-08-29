@@ -180,7 +180,8 @@ def test_setup_integration_is_narrow_and_idempotent(tmp_path: Path):
     (root / "cpf-tools/verification/tools").mkdir(parents=True)
     (root / "cpf-tools/runtime/cli/java").mkdir(parents=True)
     (root / "cpf-tools/runtime/cli/contracts").mkdir(parents=True)
-    (root / "cpf-docs/governance").mkdir(parents=True)
+    (root / "cpf-docs/governance/development-harness/product").mkdir(parents=True)
+    (root / "cpf-docs/governance/development-harness/current").mkdir(parents=True)
     (root / "cpf-docs/work/current").mkdir(parents=True)
     (root / "settings.gradle").write_text("rootProject.name='x'\n", encoding="utf-8")
     (root / ".gitignore").write_text("# keep-existing\n", encoding="utf-8")
@@ -200,12 +201,12 @@ def test_setup_integration_is_narrow_and_idempotent(tmp_path: Path):
         }),
         encoding="utf-8",
     )
-    canonical = root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
+    canonical = root / "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md"
     canonical.write_text(
         "# Canonical\n\n### 21.3 Open Git Release Packaging\n\n- `cpf release open-git`\n\n## 22. EDU Canonical 35\n",
         encoding="utf-8",
     )
-    (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text(
+    (root / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text(
         "# Current Open Git Work Package\n", encoding="utf-8"
     )
 
@@ -221,7 +222,7 @@ def test_setup_integration_is_narrow_and_idempotent(tmp_path: Path):
     assert "sub.add_parser('open-git'" not in legacy_cli.read_text(encoding="utf-8")
     assert "cpf release open-git" in java_cli.read_text(encoding="utf-8")
     assert first["canonicalCli"] == "cpf release open-git"
-    assert (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").is_file()
+    assert (root / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").is_file()
 
 
 def test_setup_integration_rejects_legacy_independent_open_git_surface(tmp_path: Path):
@@ -229,7 +230,8 @@ def test_setup_integration_rejects_legacy_independent_open_git_surface(tmp_path:
     (root / "cpf-tools/verification/tools").mkdir(parents=True)
     (root / "cpf-tools/runtime/cli/java").mkdir(parents=True)
     (root / "cpf-tools/runtime/cli/contracts").mkdir(parents=True)
-    (root / "cpf-docs/governance").mkdir(parents=True)
+    (root / "cpf-docs/governance/development-harness/product").mkdir(parents=True)
+    (root / "cpf-docs/governance/development-harness/current").mkdir(parents=True)
     (root / "cpf-docs/work/current").mkdir(parents=True)
     (root / "settings.gradle").write_text("rootProject.name='x'\n", encoding="utf-8")
     (root / ".gitignore").write_text("/cpf-release/\n", encoding="utf-8")
@@ -245,10 +247,10 @@ def test_setup_integration_rejects_legacy_independent_open_git_surface(tmp_path:
     (root / "cpf-tools/runtime/cli/cpf.py").write_text(
         "open_git=sub.add_parser('open-git')\n", encoding="utf-8"
     )
-    (root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md").write_text(
+    (root / "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md").write_text(
         "### 21.3 Open Git Release Packaging\n`cpf release open-git`\n", encoding="utf-8"
     )
-    (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text("# current\n", encoding="utf-8")
+    (root / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text("# current\n", encoding="utf-8")
     with pytest.raises(MODULE.OpenGitReleaseError, match="legacy independent"):
         MODULE.setup_integration(root)
 
@@ -438,7 +440,8 @@ def test_setup_currentizes_only_owned_canonical_section(tmp_path: Path):
     (root / "cpf-tools/verification/tools").mkdir(parents=True)
     (root / "cpf-tools/runtime/cli/java").mkdir(parents=True)
     (root / "cpf-tools/runtime/cli/contracts").mkdir(parents=True)
-    (root / "cpf-docs/governance").mkdir(parents=True)
+    (root / "cpf-docs/governance/development-harness/product").mkdir(parents=True)
+    (root / "cpf-docs/governance/development-harness/current").mkdir(parents=True)
     (root / "cpf-docs/work/current").mkdir(parents=True)
     (root / "settings.gradle").write_text("rootProject.name='x'\n", encoding="utf-8")
     (root / ".gitignore").write_text("# existing\n", encoding="utf-8")
@@ -453,13 +456,13 @@ def test_setup_currentizes_only_owned_canonical_section(tmp_path: Path):
     # Legacy Python is retained only as an internal engine and must not own an
     # independent Open Git CLI surface.
     (root / "cpf-tools/runtime/cli/cpf.py").write_text("# internal engine only\n", encoding="utf-8")
-    canonical = root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
+    canonical = root / "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md"
     canonical.write_text(
         "# Canonical\n\n### 21.3 Open Git Release Packaging\n"
         "cpf release open-git\nOpen Git 개발자 Workspace는 `cpf bootstrap`으로 시작한다.\n"
         "\n## 22. EDU Canonical 35\nKEEP-EDU\n", encoding="utf-8"
     )
-    (root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text("# current\n", encoding="utf-8")
+    (root / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text("# current\n", encoding="utf-8")
     first = MODULE.setup_integration(root)
     assert first["status"] == "PASS"
     assert "/cpf-release/" in (root / ".gitignore").read_text(encoding="utf-8")
@@ -564,9 +567,9 @@ def test_open_git_git_boundary_is_read_only_until_user_review():
     assert '"result": "VERIFIED"' in source
     assert '"userReviewRequired": True' in source
 
-    final_target = (ROOT / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md").read_text(encoding="utf-8")
-    fresh_requirement = (ROOT / "cpf-docs/work/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md").read_text(encoding="utf-8")
-    work_package = (ROOT / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").read_text(encoding="utf-8")
+    final_target = (ROOT / "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md").read_text(encoding="utf-8")
+    fresh_requirement = (ROOT / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md").read_text(encoding="utf-8")
+    work_package = (ROOT / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").read_text(encoding="utf-8")
     command_catalog = json.loads((ROOT / "cpf-tools/runtime/cli/contracts/cpf-command-catalog.json").read_text(encoding="utf-8"))
 
     for text in (final_target, fresh_requirement, work_package):

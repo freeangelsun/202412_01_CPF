@@ -7,9 +7,9 @@ Set-StrictMode -Version Latest
 $Root = (Resolve-Path -LiteralPath $Root).Path
 . (Join-Path $Root "cpf-tools/db/tools/database-profile-common.ps1")
 $supportedVendors = @(Get-CpfSupportedDatabaseVendors)
-$sandbox = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/domain-db-bootstrap-static"
+$sandbox = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/domain-db-bootstrap-static"
 $sandboxRoot = Join-Path $sandbox "repository"
-$allowedCleanupRoot = [IO.Path]::GetFullPath((Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator"))
+$allowedCleanupRoot = [IO.Path]::GetFullPath((Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator"))
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $transientRoots = [Collections.Generic.List[string]]::new()
 
@@ -80,7 +80,7 @@ generation:
 "@
         [IO.File]::WriteAllText($definitionPath, $definition.Replace("`r`n", "`n"), $Utf8NoBom)
         $projectDir = Join-Path $sandboxRoot "cpf-$($case.domain)"
-        $transientRoot = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-$($case.domain)"
+        $transientRoot = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-$($case.domain)"
         $transientRoots.Add($transientRoot)
         & $cli dev domain generate --file $definitionPath --output $projectDir | Out-Null
         if ($LASTEXITCODE -ne 0) {

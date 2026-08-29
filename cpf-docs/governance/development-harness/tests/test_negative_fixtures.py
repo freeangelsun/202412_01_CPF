@@ -4,8 +4,32 @@ import csv,json,tempfile,shutil,subprocess,sys,os
 ROOT=Path(__file__).resolve().parents[4]; H=ROOT/'cpf-docs/governance/development-harness'
 c=json.loads((H/'contracts/contract-registry.json').read_text(encoding='utf-8'))
 checks=[]
+_NEG_GROUP=os.environ.get('CPF_HARNESS_NEGATIVE_GROUP','ALL').strip().upper() or 'ALL'
+_NEG_GROUPS={
+    'BASE': {
+        'mutation_empty_requirement_registry','mutation_self_migration','mutation_role_false_pass','mutation_vscode_nonzero',
+    },
+    'AUTH_A': {
+        'mutation_drop_single_canonical_requirement','mutation_product_contract_semantic_damage','mutation_canonical_trace_loss',
+        'mutation_current_authority_source_identity_drift','mutation_control_false_pass_without_evidence',
+    },
+    'AUTH_B': {
+        'mutation_harness_package_garbage','mutation_current_package_projection_stale','mutation_handover_registry_alias_loss',
+        'mutation_transitive_migration_terminal_missing','mutation_deprecated_active_reference_reentry',
+    },
+    'STRENGTH': {
+        'mutation_harness_strength_tracking_reduction','mutation_harness_strength_evidence_reduction',
+        'mutation_protected_retain_delete_reentry',
+    },
+}
+def _enabled(name):
+    if _NEG_GROUP=='ALL': return True
+    if _NEG_GROUP=='BASE': return not name.startswith('mutation_') or name in _NEG_GROUPS['BASE']
+    return name in _NEG_GROUPS.get(_NEG_GROUP,set())
+
 def record(name,ok,detail=''):
-    checks.append((name,ok,detail)); print(('PASS' if ok else 'FAIL'),name,detail)
+    if not _enabled(name): return
+    checks.append((name,ok,detail)); print(('PASS' if ok else 'FAIL'),name,detail,flush=True)
 record('forbid_not_executed','NOT_EXECUTED' in c['forbiddenCompletionSignals'])
 record('forbid_unknown','UNKNOWN' in c['forbiddenCompletionSignals'])
 record('forbid_fail','FAIL' in c['forbiddenCompletionSignals'])
@@ -19,19 +43,92 @@ record('reviewer_vscode_zero_gate_fields',set(c['independentReviewerSourceModifi
 with (H/'current/CANONICAL_PRODUCT_REQUIREMENTS.csv').open(encoding='utf-8-sig',newline='') as f: n=sum(1 for _ in csv.DictReader(f))
 record('non_vacuous_product_registry',n>0)
 
-# Mutation tests: copy only Harness and create a minimal root layout so validator resolves replacement paths.
+# Executable Delete Manifest must contain only approved/delete-eligible paths. Protected-retain
+# provenance lives only in Migration Map/Semantic Ledger so unrelated protected documentation
+# changes cannot block or be targeted by legacy cleanup.
+with (H/'DELETE_MANIFEST.csv').open(encoding='utf-8-sig',newline='') as f:
+    _delete_rows=list(csv.DictReader(f))
+_protected_prefixes=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/','cpf-docs/governance/documentation-harness/')
+record('delete_manifest_all_rows_executable', all(r.get('delete_eligible')=='true' and r.get('approved')=='true' and r.get('user_approved')=='true' for r in _delete_rows))
+record('delete_manifest_protected_retain_zero', not any(r.get('path','').startswith(_protected_prefixes) for r in _delete_rows))
+
+# 대용량 Current Dataset(약 220MB)을 mutation마다 byte-copy하면 로컬/CI에서 검증 자체가
+# timeout될 수 있다. 검수 강도는 그대로 유지하고 동일 파일시스템에서는 hard-link clone을
+# 사용한 뒤 mutation 대상 파일만 copy-on-write로 분리한다. hard-link가 지원되지 않으면
+# shutil.copy2로 자동 fallback한다.
+def _link_or_copy(src, dst):
+    try:
+        os.link(src, dst)
+        return dst
+    except OSError:
+        return shutil.copy2(src, dst)
+
+def _clone_harness(target: Path):
+    shutil.copytree(H, target, copy_function=_link_or_copy)
+
+def _detach(target: Path, *relative_paths: str):
+    for rel in relative_paths:
+        p=target/rel
+        if not p.exists() or not p.is_file():
+            continue
+        data=p.read_bytes()
+        p.unlink()
+        p.write_bytes(data)
+
+# Mutation tests use one reusable hard-link fixture. This preserves the exact mutation/validator
+# strength while avoiding 220MB Harness tree traversal for every single negative case.
+_MUTABLE_RELATIVE_PATHS=(
+    'current/CANONICAL_PRODUCT_REQUIREMENTS.csv',
+    'CANONICAL_MIGRATION_MAP.csv',
+    'current/ROLE_EXECUTION_LEDGER.csv',
+    'product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md',
+    'current/CANONICAL_REQUIREMENT_TRACE.csv',
+    'current/CURRENT_WORK_ITEM_REGISTRY.csv',
+    'current/CONTROL_EXECUTION_LEDGER.csv',
+    'current/PACKAGE_MANIFEST.json',
+    'current/CPF_DEVELOPMENT_HANDOVER.md',
+    'contracts/contract-registry.json',
+    'DELETE_MANIFEST.csv',
+)
+_NEG_ROOT=Path(tempfile.mkdtemp(prefix='cpf-harness-negative-shared-'))
+_NEG_TARGET=_NEG_ROOT/'cpf-docs/governance/development-harness'
+_NEG_TARGET.parent.mkdir(parents=True,exist_ok=True)
+_clone_harness(_NEG_TARGET)
+
+# migration replacements can point outside Harness; create only harmless placeholders required
+# for the migration structure validator. They never count as product evidence.
+with (_NEG_TARGET/'CANONICAL_MIGRATION_MAP.csv').open(encoding='utf-8-sig',newline='') as f:
+    _NEG_MIGRATION_ROWS=list(csv.DictReader(f))
+for _r in _NEG_MIGRATION_ROWS:
+    _p=_NEG_ROOT/_r['new_path']; _p.parent.mkdir(parents=True,exist_ok=True)
+    if not _p.exists() and not str(_p).startswith(str(_NEG_TARGET)+os.sep):
+        _p.write_text('fixture',encoding='utf-8')
+
+def _restore_negative_fixture():
+    for rel in _MUTABLE_RELATIVE_PATHS:
+        src=H/rel; dst=_NEG_TARGET/rel
+        if not src.exists():
+            if dst.exists():
+                if dst.is_dir(): shutil.rmtree(dst)
+                else: dst.unlink()
+            continue
+        dst.parent.mkdir(parents=True,exist_ok=True)
+        if dst.exists():
+            if dst.is_dir(): shutil.rmtree(dst)
+            else: dst.unlink()
+        shutil.copy2(src,dst)
+    garbage=_NEG_TARGET/'.pytest_cache'
+    if garbage.exists(): shutil.rmtree(garbage)
+    deprecated_fixture=_NEG_ROOT/'cpf-tools/deprecated-reentry-fixture.py'
+    if deprecated_fixture.exists(): deprecated_fixture.unlink()
+
 def run_mut(name, mutate, expected_fragment):
-    with tempfile.TemporaryDirectory(prefix='cpf-harness-neg-') as td:
-        root=Path(td); target=root/'cpf-docs/governance/development-harness'; target.parent.mkdir(parents=True); shutil.copytree(H,target,copy_function=shutil.copy2)
-        # migration replacements can point inside harness; any external replacement gets a harmless file placeholder.
-        with (target/'CANONICAL_MIGRATION_MAP.csv').open(encoding='utf-8-sig',newline='') as f: mm=list(csv.DictReader(f))
-        for r in mm:
-            p=root/r['new_path']; p.parent.mkdir(parents=True,exist_ok=True)
-            if not p.exists() and not str(p).startswith(str(target)+os.sep): p.write_text('fixture',encoding='utf-8')
-        mutate(target)
-        cp=subprocess.run([sys.executable,str(target/'validators/validate_development_harness.py')],cwd=root,text=True,capture_output=True)
-        ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
-        record(name,ok,('rc='+str(cp.returncode)+' expected='+expected_fragment))
+    if not _enabled(name): return
+    _restore_negative_fixture()
+    mutate(_NEG_TARGET)
+    cp=subprocess.run([sys.executable,str(_NEG_TARGET/'validators/validate_development_harness.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
+    ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+    record(name,ok,('rc='+str(cp.returncode)+' expected='+expected_fragment))
 
 def mut_empty_req(h):
     p=h/'current/CANONICAL_PRODUCT_REQUIREMENTS.csv'; data=p.read_bytes(); p.unlink(); p.write_bytes(data)
@@ -66,13 +163,12 @@ print(f'NEGATIVE_FIXTURES_BASE={sum(1 for x in checks if x[1])}/{len(checks)} PA
 
 # Authority/semantic negative mutations: the Harness must fail even when its basic structure still looks valid.
 def run_auth_mut(name, mutate, expected_fragment):
-    with tempfile.TemporaryDirectory(prefix='cpf-harness-auth-neg-') as td:
-        root=Path(td); target=root/'cpf-docs/governance/development-harness'; target.parent.mkdir(parents=True); shutil.copytree(H,target,copy_function=shutil.copy2)
-        # split master part paths resolve from repository root; materialize placeholders by copying only referenced parts from Harness.
-        mutate(target)
-        cp=subprocess.run([sys.executable,str(target/'validators/validate_harness_authority.py')],cwd=root,text=True,capture_output=True)
-        ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
-        record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
+    if not _enabled(name): return
+    _restore_negative_fixture()
+    mutate(_NEG_TARGET)
+    cp=subprocess.run([sys.executable,str(_NEG_TARGET/'validators/validate_harness_authority.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
+    ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+    record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
 
 def mut_drop_one_canonical(h):
     p=h/'current/CANONICAL_PRODUCT_REQUIREMENTS.csv'
@@ -109,6 +205,70 @@ def mut_harness_garbage(h):
     p=h/'.pytest_cache';p.mkdir();(p/'garbage.txt').write_text('x',encoding='utf-8')
 run_auth_mut('mutation_harness_package_garbage',mut_harness_garbage,'HARNESS_GARBAGE')
 
+
+def mut_package_projection_stale(h):
+    p=h/'current/PACKAGE_MANIFEST.json'; data=json.loads(p.read_text(encoding='utf-8')); data['currentSourceIdentity']='0'*64; p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+run_auth_mut('mutation_current_package_projection_stale',mut_package_projection_stale,'CURRENT_PACKAGE_SOURCE_IDENTITY_STALE')
+
+def mut_handover_registry_alias_loss(h):
+    p=h/'current/CURRENT_WORK_ITEM_REGISTRY.csv'
+    with p.open(encoding='utf-8-sig',newline='') as f: dr=csv.DictReader(f); hdr=dr.fieldnames; rr=list(dr)
+    for r in rr:
+        aliases=[x for x in r.get('handover_aliases','').split(';') if x and x!='WP-R01.21']
+        r['handover_aliases']=';'.join(aliases)
+    with p.open('w',encoding='utf-8-sig',newline='') as f: w=csv.DictWriter(f,fieldnames=hdr);w.writeheader();w.writerows(rr)
+run_auth_mut('mutation_handover_registry_alias_loss',mut_handover_registry_alias_loss,'HANDOVER_REGISTRY_CONSISTENCY')
+
+def mut_transitive_migration_terminal_missing(h):
+    p=h/'CANONICAL_MIGRATION_MAP.csv'
+    with p.open(encoding='utf-8-sig',newline='') as f: dr=csv.DictReader(f); hdr=dr.fieldnames; rr=list(dr)
+    rr[0]['new_path']='cpf-docs/governance/development-harness/missing-terminal.md'
+    with p.open('w',encoding='utf-8-sig',newline='') as f: w=csv.DictWriter(f,fieldnames=hdr);w.writeheader();w.writerows(rr)
+run_auth_mut('mutation_transitive_migration_terminal_missing',mut_transitive_migration_terminal_missing,'MIGRATION_TRANSITIVE_TERMINAL_MISSING')
+
+def mut_deprecated_active_reference_reentry(h):
+    root=h.parents[2]; p=root/'cpf-tools/deprecated-reentry-fixture.py'; p.parent.mkdir(parents=True,exist_ok=True); p.write_text("OLD='cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'\n",encoding='utf-8')
+run_auth_mut('mutation_deprecated_active_reference_reentry',mut_deprecated_active_reference_reentry,'DEPRECATED_ACTIVE_REFERENCE')
+
+
+# Harness 현행화 자체도 regression 대상이다. 기존 범위/증거 강도를 낮추면 FAIL해야 한다.
+def run_strength_mut(name, mutate, expected_fragment):
+    if not _enabled(name): return
+    _restore_negative_fixture()
+    mutate(_NEG_TARGET)
+    cp=subprocess.run([sys.executable,str(_NEG_TARGET/'validators/validate_harness_strength_regression.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
+    ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+    record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
+
+def mut_tracking_scope_reduced(h):
+    p=h/'current/CURRENT_WORK_ITEM_REGISTRY.csv'
+    with p.open(encoding='utf-8-sig',newline='') as f: dr=csv.DictReader(f); hdr=dr.fieldnames; rr=list(dr)
+    for i,r in enumerate(rr):
+        if r.get('item_role','TRACKING')=='TRACKING': rr.pop(i); break
+    with p.open('w',encoding='utf-8-sig',newline='') as f: w=csv.DictWriter(f,fieldnames=hdr);w.writeheader();w.writerows(rr)
+run_strength_mut('mutation_harness_strength_tracking_reduction',mut_tracking_scope_reduced,'TRACKING_WORK_REDUCED')
+
+def mut_test_evidence_reduced(h):
+    p=h/'contracts/contract-registry.json'; data=json.loads(p.read_text(encoding='utf-8'))
+    data['requiredTestEvidence']=data['requiredTestEvidence'][:-1]
+    p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+run_strength_mut('mutation_harness_strength_evidence_reduction',mut_test_evidence_reduced,'HARNESS_STRENGTH_REDUCED requiredTestEvidence')
+
+def mut_protected_retain_delete_reentry(h):
+    p=h/'DELETE_MANIFEST.csv'
+    with p.open(encoding='utf-8-sig',newline='') as f: dr=csv.DictReader(f); hdr=dr.fieldnames; rr=list(dr)
+    rr.append({
+        'path':'cpf-docs/deliverables/PROTECTED_RETAIN_FIXTURE.md','type':'FILE','approved':'false','user_approved':'false',
+        'precondition':'PROTECTED_PATH_RETAIN','lifecycle':'PROTECTED_RETAIN',
+        'replacement_path':'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md',
+        'expected_sha256':'0'*64,'semantic_status':'PASS','delete_eligible':'false','reason':'negative fixture'
+    })
+    with p.open('w',encoding='utf-8-sig',newline='') as f: w=csv.DictWriter(f,fieldnames=hdr);w.writeheader();w.writerows(rr)
+run_mut('mutation_protected_retain_delete_reentry',mut_protected_retain_delete_reentry,'DELETE_MIGRATION_PATH_SET_MISMATCH')
+
 failed=[x for x in checks if not x[1]]
-print(f'NEGATIVE_FIXTURES_FINAL={len(checks)-len(failed)}/{len(checks)} PASS')
+print(f'NEGATIVE_FIXTURES_FINAL={len(checks)-len(failed)}/{len(checks)} PASS group={_NEG_GROUP}',flush=True)
+# Explicitly remove the reusable scratch fixture before interpreter shutdown. This avoids
+# platform-dependent TemporaryDirectory finalizer delays while keeping repository garbage=0.
+shutil.rmtree(_NEG_ROOT, ignore_errors=True)
 raise SystemExit(1 if failed else 0)

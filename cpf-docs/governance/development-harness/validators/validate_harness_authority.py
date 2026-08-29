@@ -177,6 +177,26 @@ for fname,label in [('CPF_REQUIREMENT_MASTER.csv','Requirement'),('CPF_SCENARIO_
 for bad in ['208 Canonical Requirement','190 unique work items','40,789','30,558']:
     for p in [H/'product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md',C/'CPF_SPLIT_MASTER_DATASET_GUIDE.md',C/'CPF_REQUIREMENT_SOURCE_COVERAGE.csv']:
         if bad in p.read_text(encoding='utf-8-sig'): err(f'STALE_CURRENT_LITERAL {bad} in {p.relative_to(ROOT)}')
+# 6.1) Current package projection must never carry stale Source/registry counts.
+pm_path=C/'PACKAGE_MANIFEST.json'
+if not pm_path.is_file():
+    err('CURRENT_PACKAGE_MANIFEST_MISSING')
+else:
+    try:
+        pm=loadj(pm_path)
+        if pm.get('currentSourceIdentity')!=sid: err('CURRENT_PACKAGE_SOURCE_IDENTITY_STALE')
+        expected_counts={
+            'canonicalRequirementRows':len(reg),
+            'trackingWorkRows':len(tracking) if 'tracking' in globals() else len([r for r in work if r.get('item_role','TRACKING')=='TRACKING']),
+            'executionWorkRows':len(execution) if 'execution' in globals() else len([r for r in work if r.get('item_role')=='ROOT_CAUSE_EXECUTION']),
+            'workItemRows':len(work),
+            'testRows':len(tests),
+        }
+        for k,v in expected_counts.items():
+            if pm.get(k)!=v: err(f'CURRENT_PACKAGE_COUNT_STALE {k} expected={v} actual={pm.get(k)}')
+    except Exception as exc:
+        err('CURRENT_PACKAGE_MANIFEST_PARSE_FAILED '+str(exc))
+
 # 7) Harness/package garbage must never be tracked inside Harness or its delivery payload.
 package_roots=[H,ROOT/'cpf-docs/deliverables/development-harness']
 for scan_root in package_roots:
@@ -185,6 +205,57 @@ for scan_root in package_roots:
     for p in scan_root.rglob('*'):
         if any(part in {'.pytest_cache','__pycache__'} for part in p.parts) or p.suffix.lower() in {'.pyc','.pyo','.class'}:
             err('HARNESS_GARBAGE '+p.relative_to(ROOT).as_posix())
+
+# 8) Root-cause execution mapping, Handover aliases, deprecated active-reference reentry, transitive migration.
+tracking=[r for r in work if r.get('item_role','TRACKING')=='TRACKING']
+execution=[r for r in work if r.get('item_role')=='ROOT_CAUSE_EXECUTION']
+exec_ids={r['work_item_id'] for r in execution}
+if len(tracking)<394: err(f'TRACKING_WORK_SCOPE_REDUCED actual={len(tracking)} baseline=394')
+if len([r for r in tracking if r.get('source_type')=='CANONICAL_COVERAGE_UMBRELLA'])<193: err('CANONICAL_COVERAGE_UMBRELLA_REDUCED')
+for r in tracking:
+    links=[x for x in r.get('execution_wp_ids','').split(';') if x]
+    if not links: err('TRACKING_EXECUTION_LINK_MISSING '+r['work_item_id'])
+    for x in links:
+        if x not in exec_ids: err('TRACKING_EXECUTION_LINK_ORPHAN '+r['work_item_id']+' '+x)
+handover=(C/'CPF_DEVELOPMENT_HANDOVER.md').read_text(encoding='utf-8')
+mentioned=set(re.findall(r'WP-R(?:01\.21|03\.15|07\.17)',handover))
+known_alias={a for r in work for a in r.get('handover_aliases','').split(';') if a}
+if mentioned-known_alias: err('HANDOVER_REGISTRY_CONSISTENCY '+','.join(sorted(mentioned-known_alias)))
+# Active source/docs must not re-introduce deprecated canonical/current authority paths. Provenance/migration ledgers are narrow exceptions.
+deprecated=[
+ 'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md',
+ 'cpf-docs/work/current/CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv',
+ 'cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv',
+ 'cpf-docs/work/current/CPF_DEVELOPER_REQUIREMENT_REVIEW.csv',
+ 'cpf-docs/work/current/CPF_DEVELOPER_REQUIREMENT_REVIEW.md',
+ 'cpf-docs/work/current/CPF_DEVELOPMENT_COMPLETION_REVIEW.csv',
+ 'cpf-docs/work/current/CPF_DEVELOPMENT_COMPLETION_REVIEW.md',
+]
+scan_roots=[ROOT/'cpf-tools',ROOT/'cpf-docs/development',ROOT/'cpf-docs/governance/documentation-harness']
+for sr in scan_roots:
+    if not sr.exists(): continue
+    for p in sr.rglob('*'):
+        if not p.is_file() or p.suffix.lower() not in {'.py','.ps1','.sh','.md','.json','.txt','.yml','.yaml','.csv','.gradle','.kts','.java'}: continue
+        try: body=p.read_text(encoding='utf-8-sig')
+        except Exception: continue
+        for dep in deprecated:
+            if dep in body: err('DEPRECATED_ACTIVE_REFERENCE '+p.relative_to(ROOT).as_posix()+' -> '+dep)
+# Detailed source_basis must point to Current Product Contract, not old canonical.
+for idx in rows(C/'CPF_REQUIREMENT_MASTER.csv'):
+    p=ROOT/idx['part_path']
+    if not p.is_file(): continue
+    with p.open(encoding='utf-8-sig',newline='') as f:
+        for rr in csv.DictReader(f):
+            if 'CPF_FINAL_TARGET_REQUIREMENTS.md::' in (rr.get('source_basis') or ''): err('DEPRECATED_DETAILED_SOURCE_BASIS '+rr.get('requirement_id',''))
+# Migration chains must terminate at an existing non-deprecated target and be acyclic.
+mm_rows=rows(H/'CANONICAL_MIGRATION_MAP.csv'); mm_by={r['old_path']:r for r in mm_rows}
+for start,r in mm_by.items():
+    cur=r['new_path']; seen={start}
+    while cur in mm_by:
+        if cur in seen: err('MIGRATION_TRANSITIVE_CYCLE '+start); break
+        seen.add(cur); cur=mm_by[cur]['new_path']
+    if cur and not (ROOT/cur).is_file(): err('MIGRATION_TRANSITIVE_TERMINAL_MISSING '+start+' -> '+cur)
+
 if errors:
     for e in errors[:300]: print('FAIL',e)
     print(f'HARNESS_AUTHORITY_GATE=FAIL ERRORS={len(errors)}')

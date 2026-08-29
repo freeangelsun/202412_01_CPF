@@ -13,9 +13,9 @@ $stateJson=Join-Path $ResultDir 'current-source-identity.json'
 if($LASTEXITCODE -ne 0){throw 'source identity computation failed'}
 $source=Get-Content -Raw -LiteralPath $stateJson | ConvertFrom-Json
 $required=@(
- 'cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv',
- 'cpf-docs/work/REQUIREMENT_STATUS.csv',
- 'cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv',
+ 'cpf-docs/governance/development-harness/current/CPF_REQUIREMENT_MASTER.csv',
+ 'cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv',
+ 'cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv',
  'cpf-docs/deliverables/TEST_AND_EVIDENCE.md',
  'cpf-docs/deliverables/OPEN_ISSUES.md'
 )

@@ -1097,12 +1097,12 @@ def setup_integration(root: Path) -> dict[str, Any]:
     if legacy_cli.is_file() and "sub.add_parser('open-git'" in legacy_cli.read_text(encoding="utf-8"):
         raise OpenGitReleaseError("legacy independent 'cpf open-git' surface is still active")
 
-    canonical = root / "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
+    canonical = root / "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md"
     canonical_text = canonical.read_text(encoding="utf-8")
     if "### 21.3 Open Git Release Packaging" not in canonical_text or "cpf release open-git" not in canonical_text:
         raise OpenGitReleaseError("Current Open Git canonical steering is not integrated")
 
-    work_package = root / "cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md"
+    work_package = root / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md"
     if not work_package.is_file():
         raise OpenGitReleaseError("Current Open Git work package is missing")
 

@@ -22,8 +22,8 @@ def rows(p:Path):
   r=csv.DictReader(f);return list(r.fieldnames or []),list(r)
 
 def verify(root:Path)->dict:
- master=root/'cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv'
- projection=root/'cpf-docs/work/REQUIREMENT_STATUS.csv'
+ master=root/'cpf-docs/governance/development-harness/current/CPF_REQUIREMENT_MASTER.csv'
+ projection=root/'cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv'
  if not master.is_file() or not projection.is_file(): raise GateError('requirement master/projection missing')
  mf,mrows=rows(master)
  req={'dataset_kind','logical_record_count','part_sequence','part_path','part_record_count','size_bytes','sha256','consumer_rule'}
@@ -58,7 +58,7 @@ def verify(root:Path)->dict:
  forbidden=[c for c in pf if c.startswith('QA_') or c.startswith('Codex_')]
  if forbidden: raise GateError(f'developer projection must not own QA/Codex status columns: {forbidden}')
  if any(not (r.get('exact_id') or '').strip() for r in prows): raise GateError('developer ledger has blank exact_id')
- canonical_doc=root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'
+ canonical_doc=root/'cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md'
  import re
  catalog_ids=[]
  for line in canonical_doc.read_text(encoding='utf-8-sig').splitlines():

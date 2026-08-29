@@ -46,7 +46,7 @@ $verify = Invoke-CpfCanonicalCli -Root $Root -Arguments @(
 )
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/verify-domain/$domain"
+    $ResultDir = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/reports/verify-domain/$domain"
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
@@ -67,7 +67,7 @@ if (-not $SkipBuild) {
     # Public Artifact를 isolated repository에서 resolve해야 한다(-PcpfProductCompositeRoot 회귀검증과 별개 경로).
     # Root build가 이미 게시한 격리 Local Artifact Repository를 재사용하고, mavenLocal이나 실제 외부
     # network에는 의존하지 않는다(cpf-tools/build/cpf-root-conventions.gradle의 CpfLocal publication과 동일 경로).
-    $localArtifactRepository = Join-Path $Root 'cpf-docs/work/evidence/generated/gradle/root-build/cpf-local-artifact-repository'
+    $localArtifactRepository = Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/gradle/root-build/cpf-local-artifact-repository'
     if (-not (Test-Path -LiteralPath $localArtifactRepository -PathType Container)) {
         throw "Isolated Local Artifact Repository가 없습니다: $localArtifactRepository (Root Gradle 게시 단계를 먼저 실행하세요)"
     }

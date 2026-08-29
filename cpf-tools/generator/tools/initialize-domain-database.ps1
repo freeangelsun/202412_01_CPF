@@ -126,7 +126,7 @@ if ($Operation -eq "rollback" -and (-not $Apply -or -not $ConfirmRollback)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/domain-db-init/$domain"
+    $ResultDir = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/reports/domain-db-init/$domain"
 } elseif (-not [System.IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }

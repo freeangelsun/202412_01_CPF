@@ -142,7 +142,7 @@ foreach ($path in $allPaths) {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/generated-domain-parity/$reference-vs-$candidate"
+    $ResultDir = Join-Path $Root "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/reports/generated-domain-parity/$reference-vs-$candidate"
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }

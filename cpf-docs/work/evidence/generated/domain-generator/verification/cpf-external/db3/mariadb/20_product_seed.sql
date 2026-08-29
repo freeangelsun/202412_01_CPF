@@ -1,0 +1,2 @@
+-- GENERATED FROM cpf-tools/db/canonical/generated-domain-schema.json
+-- No business sample rows are inserted by framework seed.

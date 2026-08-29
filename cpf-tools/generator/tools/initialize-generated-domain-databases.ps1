@@ -104,7 +104,7 @@ foreach ($item in $selected) {
     }
 }
 
-$resultDir = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/db-install/generated-domains'
+$resultDir = Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/db-install/generated-domains'
 New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 $resultPath = Join-Path $resultDir 'generated-domain-batch-result.sanitized.json'
 $result = [ordered]@{

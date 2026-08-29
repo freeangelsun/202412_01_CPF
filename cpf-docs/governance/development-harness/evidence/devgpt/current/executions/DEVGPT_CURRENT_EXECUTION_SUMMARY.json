@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 2,
+  "sourceIdentitySha256": "2935d73aacade2af79f2d5dac994c8f5bb7e74350d98a2780dd765bad2a0d5d4",
+  "inputZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_224746.zip",
+  "inputZipSha256": "b1daa68a3508cd5dddec90cae25f8aeaaca636bae5703b83a322974c7f5938dc",
+  "sourceFileCount": 8449,
+  "environment": {
+    "java": "21.0.11",
+    "javac": "21.0.11",
+    "python": "3.13.5",
+    "node": "22.16.0",
+    "npm": "10.9.2",
+    "pwsh": "UNAVAILABLE",
+    "docker": "UNAVAILABLE"
+  },
+  "executed": {
+    "developmentHarnessFinalGate": {
+      "status": "PASS",
+      "failed": 0,
+      "workItems": 410,
+      "canonicalRequirements": 218,
+      "trackingWork": 394,
+      "executionWork": 16,
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/DEVELOPMENT_HARNESS_FINAL_GATE.log"
+    },
+    "harnessNegativeMutation": {
+      "status": "PASS",
+      "passed": 27,
+      "failed": 0,
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/HARNESS_NEGATIVE_27_FINAL.log"
+    },
+    "cpfToolsPytest": {
+      "status": "PASS",
+      "passed": 973,
+      "skipped": 37,
+      "subtestsPassed": 15,
+      "failed": 0,
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/DEVGPT_FULL_PYTEST_FINAL.log"
+    },
+    "affectedFinalRegression": {
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/AFFECTED_FINAL_REGRESSION.log"
+    },
+    "nxt3Layout": {
+      "status": "PASS",
+      "pass": 87,
+      "fail": 0,
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/NXT3_LAYOUT_FINAL.log"
+    },
+    "nxt3Garbage": {
+      "status": "PASS",
+      "deleteManifest": 246,
+      "protectedDelete": 0,
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/NXT3_GARBAGE_FINAL.log"
+    },
+    "nxt3Hygiene": {
+      "status": "PASS",
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/NXT3_HYGIENE_FINAL.log"
+    },
+    "migrationSemantic": {
+      "status": "PASS",
+      "rows": 265,
+      "deleteEligible": 246,
+      "protectedRetain": 19
+    },
+    "productConformance": {
+      "status": "PASS",
+      "findings": 0
+    },
+    "openGitActualAttempt": {
+      "status": "BLOCKED_EXTERNAL",
+      "exitCode": 1,
+      "reason": "Current runtime Java21 cannot execute cpf-cli.jar compiled for Java25 class version 69",
+      "evidence": "cpf-docs/governance/development-harness/evidence/devgpt/current/executions/OPEN_GIT_ACTUAL_ATTEMPT.log"
+    }
+  },
+  "blockedMandatory": [
+    {
+      "id": "JAVA25_ROOT",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Java25 Root Build/Test/Publication/SBOM not executable in current Java21 environment.",
+      "rerun": "Windows/Linux Java 25.0.3 + Gradle 9.1 available; execute canonical Root lifecycle and capture exit code/log."
+    },
+    {
+      "id": "VSCODE_FRESH",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Fresh VS Code/Buildship full workspace Error=0 Warning=0 cannot be executed in container.",
+      "rerun": "Windows Java25 workspace; Clean Java Language Server Workspace + Fresh Gradle reload + export Problems JSON."
+    },
+    {
+      "id": "DB3_PHYSICAL",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Docker unavailable. Oracle/PostgreSQL/MariaDB Fresh→Migration→Seed→Runtime→Recovery→Cleanup/Fresh Replay not executed.",
+      "rerun": "Docker available with official CPF DB3 fixture and secrets."
+    },
+    {
+      "id": "POWERSHELL_WINDOWS",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "pwsh unavailable; Windows CLI/Generator/Runtime gates not executed.",
+      "rerun": "PowerShell 7+ Windows environment with Java25."
+    },
+    {
+      "id": "BATCH_PHYSICAL",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "5-role/Worker×2/process-kill/takeover/fencing/UNKNOWN/reconcile requires Java25+DB runtime.",
+      "rerun": "Run required Full Runtime batch lifecycle on DB3-capable Windows host."
+    },
+    {
+      "id": "ONE_WAS_PHYSICAL",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Actual One-WAS transaction/file+DB log/runtime OpenAPI requires Java25+DB.",
+      "rerun": "Run canonical One-WAS stage after DB3 readiness."
+    },
+    {
+      "id": "FRONTEND_PHYSICAL",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "node_modules absent; npm ci cannot complete in current network; lint/typecheck/build/Playwright/a11y not executed.",
+      "rerun": "Network/package cache available; npm ci then canonical lint/typecheck/test/build/Playwright."
+    },
+    {
+      "id": "PERFORMANCE_LIVE",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Live runtime/probe endpoints unavailable; load/soak/backpressure not executed.",
+      "rerun": "Run signed sourceIdentity performance profile against live CPF runtime."
+    },
+    {
+      "id": "OPEN_GIT_ACTUAL",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Java25 Fresh Build/Publication and actual remote/fresh consumer environment required.",
+      "rerun": "After Product Source physical gates, run cpf release open-git build --profile binary on Java25 and Fresh Consumer."
+    },
+    {
+      "id": "FRESH_REPLAY",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Mandatory physical runtime prerequisites unavailable.",
+      "rerun": "Repeat same-source full runtime after all physical gates PASS."
+    },
+    {
+      "id": "INDEPENDENT_REVIEW_QA",
+      "status": "NOT_EXECUTED",
+      "reason": "Codex/Claude independent review and QA acceptance remain required.",
+      "rerun": "Independent reviewer on exact source identity, then QA final acceptance."
+    }
+  ],
+  "overallStatus": "VERIFICATION_PENDING",
+  "completionRule": "No mandatory BLOCKED_EXTERNAL/NOT_EXECUTED/VERIFICATION_PENDING/UNKNOWN/FAIL may be promoted to PASS."
+}

@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..\..\..").Path "cpf-docs/work/evidence/generated/domain-generator/quality-gate")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..\..\..").Path "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/quality-gate")
 )
 
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)

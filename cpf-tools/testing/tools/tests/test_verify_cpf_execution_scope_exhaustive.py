@@ -27,13 +27,13 @@ class GateTest(unittest.TestCase):
     def fixture(self):
         td=tempfile.TemporaryDirectory();root=Path(td.name)
         for stem in ("CPF_EXECUTION_SEQUENCE","CPF_REQUIREMENT_MASTER","CPF_SCENARIO_MASTER"):
-            (root/"cpf-docs/work/current"/(stem+".parts")).mkdir(parents=True)
+            (root/"cpf-docs/governance/development-harness/current"/(stem+".parts")).mkdir(parents=True)
         req=row("CPF-FR-000001","09-00000001")
         ex={k:req.get(k,"") for k in EXEC_FIELDS};ex.update({"phase_id":"P09","phase_name":"x"})
         sc={"scenario_id":"CPF-SC-000001","linked_requirement_id":req["requirement_id"],"scenario_type":"POSITIVE","title":"t","preconditions":"p","steps":"s","expected_result":"e","failure_criteria":"f","environment":"java21","topology":"single","required_evidence":"log","execution_phase_id":"P09","work_package_id":"P09-A"}
-        write_csv(root/"cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/p1.csv",EXEC_FIELDS,[ex])
-        write_csv(root/"cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/p1.csv",REQ_FIELDS,[req])
-        write_csv(root/"cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/p1.csv",SC_FIELDS,[sc])
+        write_csv(root/"cpf-docs/governance/development-harness/current/CPF_EXECUTION_SEQUENCE.parts/p1.csv",EXEC_FIELDS,[ex])
+        write_csv(root/"cpf-docs/governance/development-harness/current/CPF_REQUIREMENT_MASTER.parts/p1.csv",REQ_FIELDS,[req])
+        write_csv(root/"cpf-docs/governance/development-harness/current/CPF_SCENARIO_MASTER.parts/p1.csv",SC_FIELDS,[sc])
         for p in ["cpf-admin/frontend/src/app","cpf-admin/frontend/src/generated","cpf-admin/frontend/src/features","cpf-admin/src/main/java/com/cpf/admin","cpf-admin/src/test"]:(root/p).mkdir(parents=True,exist_ok=True)
         (root/"cpf-admin/frontend/src/app/routes.ts").write_text('export const admCapabilityRegistry={"x":{routeId:"x", expectedOperationIds:["op"], component:import("../features/x/X.vue")}}',encoding="utf-8")
         (root/"cpf-admin/frontend/src/generated/cpf-operation-contract.ts").write_text('export type CpfOperationId = "op";',encoding="utf-8")
@@ -85,7 +85,7 @@ class GateTest(unittest.TestCase):
     def test_direct_verification_title_drift_fails(self):
         td,root,args=self.fixture()
         try:
-            p=root/"cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/p1.csv"
+            p=root/"cpf-docs/governance/development-harness/current/CPF_SCENARIO_MASTER.parts/p1.csv"
             _,rows=mod.read_csv(p)
             rows[0]["scenario_type"]="DIRECT_VERIFICATION"
             rows[0]["title"]="[CPF-FR-999999] stale / TEST 직접 검증"
@@ -96,13 +96,13 @@ class GateTest(unittest.TestCase):
     def test_missing_scenario_fails(self):
         td,root,args=self.fixture()
         try:
-            write_csv(root/"cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/p1.csv",SC_FIELDS,[])
+            write_csv(root/"cpf-docs/governance/development-harness/current/CPF_SCENARIO_MASTER.parts/p1.csv",SC_FIELDS,[])
             with self.assertRaises(mod.AuditError):mod.verify(args)
         finally:td.cleanup()
     def test_placeholder_fails(self):
         td,root,args=self.fixture()
         try:
-            p=root/"cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/p1.csv";_,rows=mod.read_csv(p);rows[0]["acceptance_criteria"]="TODO";write_csv(p,REQ_FIELDS,rows)
+            p=root/"cpf-docs/governance/development-harness/current/CPF_REQUIREMENT_MASTER.parts/p1.csv";_,rows=mod.read_csv(p);rows[0]["acceptance_criteria"]="TODO";write_csv(p,REQ_FIELDS,rows)
             with self.assertRaises(mod.AuditError):mod.verify(args)
         finally:td.cleanup()
     def test_route_operation_drift_fails(self):

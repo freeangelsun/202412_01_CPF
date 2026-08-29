@@ -19,7 +19,7 @@ def test_disposable_remove_approval_is_hidden_and_scoped_to_physical_lifecycle_s
     wrapper=REMOVE_WRAPPER.read_text(encoding='utf-8')
     smoke=LIFECYCLE_SMOKE.read_text(encoding='utf-8')
     assert "approved_disposable_lifecycle: bool=False" in engine
-    assert "cpf-docs/work/evidence/generated/domain-generator" in engine
+    assert "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator" in engine
     assert "expected_definition=(lifecycle/'definition/cpf-domain.yaml').resolve()" in engine
     assert "--approved-disposable-lifecycle" in cli and "help=argparse.SUPPRESS" in cli
     assert "ApprovedDisposableLifecycle" in wrapper

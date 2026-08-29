@@ -13,14 +13,14 @@ ROOT = Path(__file__).resolve().parents[4]
 SCRIPT = ROOT / "cpf-tools/verification/tools/invoke-cpf-codex-preflight.ps1"
 
 REQUIRED_DOCUMENTS = (
-    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
-    "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv",
-    "cpf-docs/work/REQUIREMENT_STATUS.csv",
-    "cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv",
+    "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
+    "cpf-docs/governance/development-harness/current/CPF_REQUIREMENT_MASTER.csv",
+    "cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv",
+    "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.csv",
     "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
     "cpf-docs/deliverables/OPEN_ISSUES.md",
     "cpf-docs/work/REVIEW_INDEX.md",
-    "cpf-docs/work/current/CODEX_MID_REVIEW_INSTRUCTION.md",
+    "cpf-docs/governance/development-harness/current/CODEX_MID_REVIEW_INSTRUCTION.md",
 )
 
 RESTORED_BUILD_SOURCES = (

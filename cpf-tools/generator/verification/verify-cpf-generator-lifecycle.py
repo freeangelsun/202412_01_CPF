@@ -49,7 +49,7 @@ def validate_contract(root: Path, contract: dict) -> None:
     _require_tokens(engine,["def preflight(","def dry_run(","def generate(","def diff(","def regenerate(","def upgrade(","def restore(","def remove_owned(","def verify_generated(","_write_transient_state","generation-state.json","generatorMetadata':'ABSENT'"])
     _require_tokens(cli,["domain","generate","dry-run","diff","regenerate","upgrade","restore","remove","verify"])
     state=contract.get("transientState")
-    if not isinstance(state,dict) or state.get("customerProjectMetadata") != "NONE" or "cpf-docs/work/evidence/generated/domain-generator/verification" not in str(state.get("directory","")):
+    if not isinstance(state,dict) or state.get("customerProjectMetadata") != "NONE" or "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification" not in str(state.get("directory","")):
         raise ContractError("transientState must keep lifecycle state outside the generated customer project")
     lock=contract.get("workspaceOwnershipLock")
     if (not isinstance(lock,dict) or lock.get("sourceControlled") is not False or lock.get("status") != "FORBIDDEN"
@@ -70,7 +70,7 @@ def validate_contract(root: Path, contract: dict) -> None:
     db_assets=contract.get("generatedDatabaseAssets")
     if (not isinstance(db_assets,dict) or db_assets.get("sourceControlled") is not False
             or db_assets.get("generatedDomainRoot") is not False or db_assets.get("vendors") != VENDORS
-            or "cpf-docs/work/evidence/generated/domain-generator/verification" not in str(db_assets.get("root", ""))):
+            or "cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification" not in str(db_assets.get("root", ""))):
         raise ContractError("generatedDatabaseAssets must be externally rendered DB3 lifecycle assets outside Generated Domain source root")
 
 def _load_engine(root: Path, rel: str):
@@ -89,7 +89,7 @@ def validate_lifecycle_runtime(root: Path, contract: dict) -> None:
         for rel in ["cpf-tools/db/generated/domain-template",
                     "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect"]:
             src=root/rel; dst=repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst)
-        lifecycle=repo/"cpf-docs/work/evidence/generated/domain-generator/lifecycle-ledger"
+        lifecycle=repo/"cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/lifecycle-ledger"
         definition=lifecycle/"definition/cpf-domain.yaml"
         definition.parent.mkdir(parents=True,exist_ok=True)
         definition.write_text("""domain:
@@ -114,7 +114,7 @@ generation:
         output=lifecycle/"cpf-ledger"
         dry=engine.dry_run(repo,definition,output)
         if dry.get("status")!="DRY_RUN_PASS": raise ContractError("dry-run did not pass")
-        transient=repo/"cpf-docs/work/evidence/generated/domain-generator/verification/cpf-ledger"
+        transient=repo/"cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-ledger"
         if transient.exists(): raise ContractError("dry-run mutated persistent transient state/evidence")
         gen=engine.generate(repo,definition,output)
         if gen.get("status")!="GENERATED": raise ContractError("generate did not materialize project")
@@ -123,7 +123,7 @@ generation:
         if vr.get("status")!="PASS" or vr.get("generatorMetadata")!="ABSENT": raise ContractError("generated project verification failed")
         if not (output / "gradle.properties").is_file(): raise ContractError("Developer Domain contract missing from Generated Root")
         if any((output/name).exists() for name in contract["forbiddenPermanentProjectEntries"]): raise ContractError("generator-only metadata leaked into customer project")
-        state=repo/"cpf-docs/work/evidence/generated/domain-generator/verification/cpf-ledger/generation-state.json"
+        state=repo/"cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-ledger/generation-state.json"
         if not state.is_file(): raise ContractError("transient generation-state missing")
         target=next(output.rglob("SampleTransactionController.java")); original=target.read_text(encoding="utf-8")
         target.write_text(original+"\n// 사용자 변경\n",encoding="utf-8",newline="\n")
@@ -178,7 +178,7 @@ generation:
         if public_gen.get("status")!="GENERATED": raise ContractError("public workspace generate did not pass")
         if any((public_output/name).exists() for name in ("cpf-domain.yaml","cpf-generator.lock.json",".cpf")):
             raise ContractError("Generator metadata leaked into public workspace output")
-        transient_public=public_repo/"cpf-docs/work/evidence/generated/domain-generator/verification/cpf-ledger"
+        transient_public=public_repo/"cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/verification/cpf-ledger"
         if transient_public.exists(): shutil.rmtree(transient_public)
         recovered=engine.regenerate(public_repo,public_output/"gradle.properties",public_output)
         if recovered.get("status")!="REGENERATED": raise ContractError("fresh clone deterministic state recovery failed")

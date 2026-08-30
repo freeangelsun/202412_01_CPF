@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "engines": {
-    "node": ">=22.18.0 <25",
-    "npm": "10.9.2"
+    "node": ">=22.18.0",
+    "npm": ">=10"
   },
   "scripts": {
     "generate:api": "npm run validate:openapi:source && node scripts/generate-checked-client.mjs",
@@ -51,6 +51,5 @@
     "vite": "8.1.5",
     "vitest": "4.1.10",
     "vue-tsc": "3.3.7"
-  },
-  "packageManager": "npm@10.9.2"
+  }
 }

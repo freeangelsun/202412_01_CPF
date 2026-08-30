@@ -9,8 +9,15 @@ def test_required_runtime_wrapper_enforces_maximum_contract():
     assert "IncludePerformanceLoad=$true" in text
     assert "AllowDestructiveDbRollback=$true" in text
     assert "StrictExit=$true" in text
-    assert "Node >=22.18.0 <25" in text
-    assert "npm 10.9.2" in text
+    assert "cpf-toolchain-compatibility.json" in text
+    assert "CAPABILITY_FIRST" in text
+    assert "compatibilityFloor" in text
+    assert "npm ci capability" in text
+    assert "javac --release 25" in text
+    assert "CPF_JAVA25_CAPABILITY=PASS" in text
+    assert "Java major $javaMajor" not in text
+    assert "version \"25" not in text
+    assert "npm 10.9.2" not in text
     assert "[Console]::OutputEncoding" in text
     assert "PYTHONIOENCODING='utf-8'" in text
     assert "-Dstdout.encoding=UTF-8" in text

@@ -8,8 +8,11 @@ group = 'com.cpf.backoffice'
 version = '1.0.0-SNAPSHOT'
 
 java {
-    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
+
+tasks.withType(org.gradle.api.tasks.compile.JavaCompile).configureEach { options.release = 25 }
 
 repositories { mavenCentral() }
 

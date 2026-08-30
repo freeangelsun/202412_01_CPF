@@ -48,7 +48,7 @@ Evidence 파일명에 `final`, `latest`, `new`, `copy` 같은 의미 불명 이�
 - `sourceIdentity` / `sourceBasis`
 - `registrySha256AtStart`
 - `reportPath` / `reportSha256`
-- `workItems[]` — `workItemId`, 제안 상태, Evidence reference, Acceptance mapping
+- `workItems[]` — `workItemId`, 제안 상태, Evidence reference, Acceptance mapping. Acceptance mapping에는 `prerequisiteSource`, `requiredEnvironment`, `actualEnvironment`를 포함하며 `CLOSED/PASS` 제안 시 `finalSelfReview.complete=true`와 독립 Self Review 근거를 추가한다.
 - `evidenceFiles[]` — path, sha256, purpose
 - `gitWriteExecuted`
 - `mergeStatus` — `UNMERGED/PARTIAL/MERGED/CONFLICT/REJECTED`
@@ -137,7 +137,7 @@ Evidence 파일명에 `final`, `latest`, `new`, `copy` 같은 의미 불명 이�
 
 ## 8. Merge Control State
 
-`CPF_DEVELOPMENT_HARNESS.md` 본체에는 사람이 바로 확인할 수 있는 Current Merge Control State를 유지한다.
+Canonical `CPF_DEVELOPMENT_HARNESS.md`는 Merge Control 규칙을 소유하고, 가변 Current Merge Control State는 Source Identity 순환변경을 막기 위해 `current/CURRENT_MERGE_CONTROL_STATE.json` 한 파일에 유지한다.
 
 필수 필드:
 

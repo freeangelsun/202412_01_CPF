@@ -61,7 +61,7 @@ const marker = {
   sanitized: true
 };
 if (!marker.generator.version || !marker.nodeRequirement || !marker.npmRequirement) {
-  throw new Error("Orval/Node/npm exact requirement가 누락되었습니다.");
+  throw new Error("Orval/Node/npm compatibility requirement가 누락되었습니다.");
 }
 fs.writeFileSync(path.join(generatedDir, ".cpf-openapi-source.json"), JSON.stringify(marker, null, 2) + "\n", "utf8");
 const legacy = path.join(generatedDir, "source-sha.json");

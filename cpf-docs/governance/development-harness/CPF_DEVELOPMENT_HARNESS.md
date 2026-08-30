@@ -49,7 +49,7 @@ Validator와 Script는 Requirement 개수, Profile, DB Vendor, Header, 상태 en
 
 `standards/CPF_MAX_INTENSITY_TEST_AND_RUNTIME_STANDARD.md`가 모든 역할과 사용자 로컬 Test 요청의 기본 강도다. 환경 부족 시 smoke로 축소하지 않고 `BLOCKED_EXTERNAL` + Windows/Linux 최고강도 실행명령 + prerequisite + PASS/FAIL 기준 + Evidence 요구를 남긴다.
 
-실행 명령의 Java/Node/npm/Python/PowerShell/Docker/DB/Browser 등 prerequisite는 **대화 기억, 과거 Evidence, 사용자 PC의 현재 설치값에 맞춰 임의 작성하지 않는다.** 실행 직전 Current Source의 canonical bootstrap, verifier, package metadata, toolchain contract, lock/config에서 required 값을 다시 읽고 `required / actual / prerequisite source`를 기록한다. Source가 요구하는 값과 환경이 다르면 Product Contract를 로컬 환경에 맞춰 낮추지 않고 환경을 교정하거나 정확한 `BLOCKED_EXTERNAL`로 남긴다. 자세한 규칙은 `standards/CPF_RULE_MODEL_AND_IMPACT_SEARCH_STANDARD.md`의 Current Prerequisite 규칙을 따른다.
+실행 명령의 Java/Node/npm/Python/PowerShell/Docker/DB/Browser 등 prerequisite는 **대화 기억, 과거 Evidence, 사용자 PC의 현재 설치값에 맞춰 임의 작성하지 않는다.** 실행 직전 Current Source의 canonical bootstrap, verifier, package metadata, toolchain contract, lock/config에서 required 값을 다시 읽고 `required / actual / prerequisite source`를 기록한다. Source가 요구하는 값과 환경이 다르면 Product Contract를 로컬 환경에 맞춰 낮추지 않고 환경을 교정하거나 정확한 `BLOCKED_EXTERNAL`로 남긴다. 자세한 규칙은 `standards/CPF_RULE_MODEL_AND_IMPACT_SEARCH_STANDARD.md`의 Current Prerequisite 규칙을 따른다. Host Toolchain은 capability-first를 기본으로 하며 특정 patch/minor 고정을 개발 편의 때문에 추가하지 않는다. 설치된 버전이 실제 Source가 요구하는 기능/API/언어·바이너리 target을 수행할 수 있으면 그대로 사용하고, exact pin은 Gradle Wrapper·npm lock·CPF-owned Container/Image 등 Project가 소유하는 재현성 경계에만 허용한다. Java는 Java 25 target을 유지하되 Host JDK를 정확히 25로 고정하지 않고 `javac --release 25`와 실제 Gradle Build capability로 판정하며, 다른 Host Tool도 기술적으로 증명된 hard compatibility 경계가 아니면 버전 숫자만으로 차단하지 않는다.
 
 ## 8. Profile·YAML·JavaDoc·UTF-8
 
@@ -132,20 +132,9 @@ Harness를 수정할 때도 제품 개발과 같은 규칙을 적용한다. 변�
 
 ### Current Merge Control State
 
-아래 Block은 **상태 기록 영역**이며 규칙 설명 영역과 구분한다. Harness 적용 직후 또는 새 Session 시작 시 먼저 currentize한다.
+가변 Merge 상태는 Product Source Identity 순환변경을 방지하기 위해 `current/CURRENT_MERGE_CONTROL_STATE.json` 한 파일이 소유한다. 이 본체는 상태값 자체가 아니라 규칙과 필수 Field 계약만 소유한다. Validator는 해당 Current state를 읽어 전체 Session discovery 결과와 `pending/conflict/merged set digest`를 exact 비교한다.
 
-| Field | Current Value | 해석 |
-| --- | --- | --- |
-| merge_protocol_version | `1` | Session Merge 규약 버전 |
-| merge_baseline_source_identity | `CURRENTIZE_REQUIRED` | 적용 시점 Current Product Source Identity로 교체해야 함 |
-| last_merged_session_key | `PRE_PROTOCOL_BASELINE` | 편의용 Watermark. 이것만으로 Merge 완전성을 판정하지 않음 |
-| merged_session_set_digest | `DISCOVERY_REQUIRED` | 전체 merged sessionKey 집합의 정렬 digest |
-| pending_session_keys | `DISCOVERY_REQUIRED` | 세션 전체 검색 후 정확한 목록으로 갱신 |
-| conflict_session_keys | `DISCOVERY_REQUIRED` | 충돌 없음이면 `NONE` |
-| last_merge_review_at | `NOT_INITIALIZED` | 마지막 실제 Merge 검토 시각 |
-| last_merge_reviewer_session_key | `NOT_INITIALIZED` | 마지막 Merge를 검증한 sessionKey |
-
-`CURRENTIZE_REQUIRED/DISCOVERY_REQUIRED/NOT_INITIALIZED`가 남은 상태는 **신규 개발 시작 허용 상태가 아니다**. 최초 다음 작업자는 세션 전체를 검색해 이 Block을 실제 값으로 currentize하고, Mandatory Pending/Conflict=0을 확인한 뒤 자신의 신규 개발로 넘어간다.
+필수 Field: `merge_protocol_version`, `merge_baseline_source_identity`, `last_merged_session_key`, `merged_session_set_digest`, `pending_session_keys`, `conflict_session_keys`, `last_merge_review_at`, `last_merge_reviewer_session_key`.
 
 ## 21. 역할별 Merge 권한과 QA
 

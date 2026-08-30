@@ -1,90 +1,110 @@
 [CmdletBinding()]
 param(
     [string]$DockerRoot = 'C:\dev\Docker',
-    [string]$RepoRoot = 'C:\dev\projects\jck\202412_01_CPF',
-    [switch]$SkipPull,
-    [switch]$SkipToolchainBuild
+    [string]$AdminPassword,
+    [switch]$SkipImagePull
 )
+
+<#
+.SYNOPSIS
+현재 CPF Working Tree를 기준으로 Docker 개발·테스트 전체 환경을 Created/Stopped 상태로 준비한다.
+
+.DESCRIPTION
+- Repository 안의 Compose/Runtime 파일은 매 실행마다 C:\dev\Docker\CPF로 강제 동기화한다.
+- Repository 밖 Secret과 named volume은 기존 값을 보존한다.
+- 실행 중인 CPF Container가 있으면 작업을 중단해 부분 덮어쓰기와 데이터 손상을 막는다.
+- Host Docker/Compose는 특정 patch 버전을 요구하지 않고 실제 명령 capability로 판정한다.
+- 업무 Schema/Seed/Topic은 생성하지 않는다. 설치의 완료 상태는 Container Created/Stopped이다.
+#>
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
-[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
-$OutputEncoding = [Text.UTF8Encoding]::new($false)
-$env:DOTNET_CLI_UI_LANGUAGE = 'en-US'
-$env:JAVA_TOOL_OPTIONS = (($env:JAVA_TOOL_OPTIONS, '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8') -join ' ').Trim()
+$utf8 = [Text.UTF8Encoding]::new($false)
+try {
+    [Console]::InputEncoding = $utf8
+    [Console]::OutputEncoding = $utf8
+    $OutputEncoding = $utf8
+    $global:OutputEncoding = $utf8
+} catch { }
 $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
-$env:NODE_OPTIONS = (($env:NODE_OPTIONS, '--no-warnings') -join ' ').Trim()
-
-function Invoke-DockerChecked {
-    param([Parameter(Mandatory)][string[]]$Arguments, [switch]$Quiet)
-    if ($Quiet) { & docker @Arguments *> $null } else { & docker @Arguments }
-    if ($LASTEXITCODE -ne 0) { throw "Docker 단계 실패(exit=$LASTEXITCODE). Secret 보호를 위해 인자는 출력하지 않습니다." }
+$javaUtf8Options = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8'
+if ([string]::IsNullOrWhiteSpace($env:JAVA_TOOL_OPTIONS)) {
+    $env:JAVA_TOOL_OPTIONS = $javaUtf8Options
+} elseif ($env:JAVA_TOOL_OPTIONS -notmatch '-Dfile\.encoding=UTF-8') {
+    $env:JAVA_TOOL_OPTIONS = "$($env:JAVA_TOOL_OPTIONS) $javaUtf8Options"
 }
-
-function New-CpfSecretValue {
-    param([int]$Bytes = 32)
-    $buffer = New-Object byte[] $Bytes
-    [Security.Cryptography.RandomNumberGenerator]::Fill($buffer)
-    return [Convert]::ToHexString($buffer).ToLowerInvariant()
-}
-
-function Write-SecretIfMissing {
-    param([Parameter(Mandatory)][string]$Path)
-    if (Test-Path -LiteralPath $Path -PathType Leaf) {
-        if ((Get-Item -LiteralPath $Path).Length -le 0) { throw "비어 있는 기존 Secret 파일: $Path" }
-        return
-    }
-    [IO.File]::WriteAllText($Path, ((New-CpfSecretValue) + "`n"), [Text.UTF8Encoding]::new($false))
-}
-
-function Read-EnvMap {
-    param([Parameter(Mandatory)][string]$Path)
-    $map = [ordered]@{}
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $map }
-    foreach ($line in [IO.File]::ReadAllLines($Path, [Text.UTF8Encoding]::new($false))) {
-        if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$') { $map[$Matches[1]] = $Matches[2] }
-    }
-    return $map
-}
-
-function Write-EnvMap {
-    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][System.Collections.IDictionary]$Map)
-    $lines = @($Map.Keys | ForEach-Object { "$_=$($Map[$_])" })
-    [IO.File]::WriteAllLines($Path, $lines, [Text.UTF8Encoding]::new($false))
-}
-
-if (-not (Test-Path -LiteralPath $RepoRoot -PathType Container)) { throw "Repository가 없습니다: $RepoRoot" }
-Invoke-DockerChecked -Arguments @('version') -Quiet
 
 $sourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $cpfRoot = Join-Path $DockerRoot 'CPF'
 $secretRoot = Join-Path $DockerRoot 'Secrets'
+$toolEnvPath = Join-Path $cpfRoot 'tool-images.env'
+$secretEnvPath = Join-Path $secretRoot 'cpf-runtime.env'
+
+function Write-Step([string]$Message) { Write-Host "[CPF Docker] $Message" -ForegroundColor Cyan }
+function Invoke-Docker([string[]]$Arguments) {
+    & docker @Arguments
+    if ($LASTEXITCODE -ne 0) { throw "docker $($Arguments -join ' ') 실패(exit=$LASTEXITCODE)" }
+}
+function New-CpfSecret([int]$Bytes = 32) {
+    $buffer = New-Object byte[] $Bytes
+    [Security.Cryptography.RandomNumberGenerator]::Fill($buffer)
+    return ([Convert]::ToBase64String($buffer)).TrimEnd('=').Replace('+','A').Replace('/','B')
+}
+function Read-EnvMap([string]$Path) {
+    $map = [ordered]@{}
+    if (Test-Path -LiteralPath $Path -PathType Leaf) {
+        foreach ($line in [IO.File]::ReadAllLines($Path, $utf8)) {
+            if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$') { $map[$Matches[1]] = $Matches[2] }
+        }
+    }
+    return $map
+}
+function Write-EnvMap([string]$Path, [System.Collections.IDictionary]$Map) {
+    $lines = foreach ($key in $Map.Keys) { "$key=$($Map[$key])" }
+    [IO.File]::WriteAllText($Path, (($lines -join "`n") + "`n"), $utf8)
+}
+function Ensure-SecretFile([string]$Name, [string]$Value) {
+    $path = Join-Path $secretRoot $Name
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        [IO.File]::WriteAllText($path, ($Value + "`n"), $utf8)
+    }
+}
+
+Write-Step '사전조건 확인'
+if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw 'Docker CLI가 설치되어 있지 않습니다.' }
+& docker version --format '{{.Server.Version}}' *> $null
+if ($LASTEXITCODE -ne 0) { throw 'Docker Engine에 연결할 수 없습니다. Docker Desktop/Engine 기동 상태를 확인하세요.' }
+& docker compose version *> $null
+if ($LASTEXITCODE -ne 0) { throw 'docker compose 기능을 사용할 수 없습니다.' }
+
+$expectedContainers = @(
+    'cpf-mariadb','cpf-postgresql','cpf-oracle','cpf-redis','cpf-kafka',
+    'cpf-wiremock','cpf-sftp','cpf-vault','cpf-keycloak','cpf-toxiproxy','cpf-otel-collector'
+)
+$runningNames = @(docker ps --format '{{.Names}}')
+$runningCpf = @($expectedContainers | Where-Object { $runningNames -contains $_ })
+if ($runningCpf.Count -gt 0) {
+    throw "기존 CPF Container가 실행 중입니다. 먼저 정지하세요: $($runningCpf -join ', ')"
+}
+
 New-Item -ItemType Directory -Force -Path $cpfRoot, $secretRoot | Out-Null
 
-$managedContainers = @('cpf-mariadb','cpf-postgresql','cpf-oracle','cpf-redis','cpf-kafka','cpf-wiremock','cpf-sftp','cpf-vault','cpf-keycloak','cpf-toxiproxy','cpf-otel-collector')
-$running = @(docker ps --format '{{.Names}}' | Where-Object { $_ -in $managedContainers })
-if ($running.Count -gt 0) { throw "설치 전 CPF Container를 중지하세요: $($running -join ', ')" }
-
-# Repository의 현재 Runtime Source를 매 설치마다 강제로 동기화한다. Destination 존재 여부로 skip하지 않는다.
+Write-Step '현재 Workspace Runtime 파일 동기화'
 $baseRuntimeFiles = @(
     'compose.yml','compose.redis.yml','compose.kafka.yml','compose.integration.yml','compose.tooling.yml',
     'cpf-env.ps1','cpf-tooling.ps1','initialize-integration-fixtures.ps1','ensure-cpf-runtime-secrets.ps1',
-    'verify-complete-environment.ps1','run-full-toolchain.ps1','run-trivy.ps1','run-ort.ps1',
-    'Dockerfile.full-toolchain','Dockerfile.sftp-fixture','sftp-entrypoint.sh','toxiproxy.json','otel-collector-config.yml',
-    'CPF_도커_개발테스트환경_전체설치.ps1','CPF_도커_확장연동환경_증분설치.ps1',
-    'compose.qa39-runtime.yml','CPF_도커_QA39_Runtime_증분설치.ps1','verify-qa39-runtime.ps1',
-    'start-qa39-runtime.ps1','stop-qa39-runtime.ps1','cleanup-qa39-runtime.ps1','run-qa39-runtime-validation.ps1',
-    'run-qa39-runtime-fault-smoke.ps1','repair-qa39-runtime-r3.ps1','CPF_QA39_DOCKER_RUNTIME_MANIFEST.json'
+    'verify-complete-environment.ps1','verify-clean-prepared.ps1',
+    'Dockerfile.full-toolchain','Dockerfile.sftp-fixture','sftp-entrypoint.sh',
+    'toxiproxy.json','otel-collector-config.yml'
 )
 foreach ($name in $baseRuntimeFiles) {
     $source = Join-Path $sourceRoot $name
-    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "필수 Runtime Source가 없습니다: $source" }
     $destination = Join-Path $cpfRoot $name
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Workspace Runtime 파일이 없습니다: $source" }
     Copy-Item -LiteralPath $source -Destination $destination -Force
 }
-# Secrets and persistent volumes are intentionally preserved across idempotent reinstall.
+# Secrets and persistent volumes are deliberately outside this owned-file refresh and are preserved.
 $ownedFiles = @('fixtures')
 foreach ($name in $ownedFiles) {
     $source = Join-Path $sourceRoot $name
@@ -94,68 +114,80 @@ foreach ($name in $ownedFiles) {
 }
 New-Item -ItemType Directory -Force -Path (Join-Path $cpfRoot 'output\otel') | Out-Null
 
-$runtimeEnv = Join-Path $secretRoot 'cpf-runtime.env'
-$runtimeMap = Read-EnvMap -Path $runtimeEnv
+Write-Step 'Tool Image 계약 준비'
+# Image version은 재현 가능한 개발환경을 위한 Container-side 계약이며 Host Docker/PowerShell 버전 고정과 별개다.
+# 이미 tool-images.env가 있으면 운영자가 선택한 호환 Image override를 보존하고, 누락 Key만 canonical default로 채운다.
+$toolImages = Read-EnvMap $toolEnvPath
 $defaults = [ordered]@{
-    CPF_SFTP_USER='cpfuser'
-    CPF_KEYCLOAK_ADMIN_USER='cpfadmin'
-    CPF_KEYCLOAK_TEST_USER='cpf-reviewer'
-    CPF_KEYCLOAK_REALM='cpf-test'
-    CPF_KEYCLOAK_PUBLIC_CLIENT='cpf-browser'
-    CPF_KEYCLOAK_SERVICE_CLIENT='cpf-service'
-    CPF_RABBITMQ_USER='cpf'
-    CPF_RABBITMQ_VHOST='cpf'
-    CPF_ARTEMIS_USER='cpf'
-    CPF_IBM_MQ_QMGR='CPFQM1'
+    TOXIPROXY_IMAGE = 'ghcr.io/shopify/toxiproxy:2.12.0'
+    OTEL_COLLECTOR_IMAGE = 'otel/opentelemetry-collector-contrib:0.132.0'
+    TRIVY_IMAGE = 'aquasec/trivy:0.66.0'
+    ORT_IMAGE = 'ghcr.io/oss-review-toolkit/ort:latest'
+    FULL_TOOLCHAIN_IMAGE = 'cpf-full-development-test-runner:current'
+    WIREMOCK_IMAGE = 'wiremock/wiremock:3.13.1'
+    VAULT_IMAGE = 'hashicorp/vault:1.20'
+    KEYCLOAK_IMAGE = 'quay.io/keycloak/keycloak:26.3'
+    ALPINE_IMAGE = 'alpine:3.23.5'
+    SFTP_FIXTURE_IMAGE = 'cpf-sftp-fixture:current'
 }
-foreach ($key in $defaults.Keys) { if (-not $runtimeMap.Contains($key)) { $runtimeMap[$key] = $defaults[$key] } }
-if (-not $runtimeMap.Contains('CPF_ADMIN_PASSWORD')) { $runtimeMap['CPF_ADMIN_PASSWORD'] = New-CpfSecretValue }
-Write-EnvMap -Path $runtimeEnv -Map $runtimeMap
-& (Join-Path $sourceRoot 'ensure-cpf-runtime-secrets.ps1') -SecretFile $runtimeEnv | Out-Null
-
-foreach ($name in @('redis-password.txt','sftp-password.txt','vault-token.txt','keycloak-admin-password.txt','keycloak-test-password.txt','keycloak-service-client-secret.txt')) {
-    Write-SecretIfMissing -Path (Join-Path $secretRoot $name)
+foreach ($key in $defaults.Keys) {
+    if (-not $toolImages.Contains($key) -or [string]::IsNullOrWhiteSpace([string]$toolImages[$key])) { $toolImages[$key] = $defaults[$key] }
 }
+Write-EnvMap $toolEnvPath $toolImages
 
-$toolEnv = [ordered]@{
-    TOXIPROXY_IMAGE='ghcr.io/shopify/toxiproxy:2.12.0'
-    OTEL_COLLECTOR_IMAGE='otel/opentelemetry-collector-contrib:0.157.0'
-    TRIVY_IMAGE='aquasec/trivy:0.67.2'
-    ORT_IMAGE='ghcr.io/oss-review-toolkit/ort:69.0.0'
-    FULL_TOOLCHAIN_IMAGE='cpf-full-development-test-runner:java25-node22.18-pwsh7.6.5-playwright1.62.0'
-    WIREMOCK_IMAGE='wiremock/wiremock:3.13.1'
-    VAULT_IMAGE='hashicorp/vault:1.20.4'
-    KEYCLOAK_IMAGE='quay.io/keycloak/keycloak:26.3.3'
-    ALPINE_IMAGE='alpine:3.22.1'
-    SFTP_FIXTURE_IMAGE='cpf-sftp-fixture:current'
+Write-Step 'Secret 준비(기존 값 보존)'
+$envMap = Read-EnvMap $secretEnvPath
+if (-not $envMap.Contains('CPF_ADMIN_PASSWORD') -or [string]::IsNullOrWhiteSpace([string]$envMap['CPF_ADMIN_PASSWORD'])) {
+    $envMap['CPF_ADMIN_PASSWORD'] = $(if ([string]::IsNullOrWhiteSpace($AdminPassword)) { New-CpfSecret 32 } else { $AdminPassword })
 }
-Write-EnvMap -Path (Join-Path $cpfRoot 'tool-images.env') -Map $toolEnv
+$secretDefaults = [ordered]@{
+    CPF_SFTP_USER = 'cpf'
+    CPF_KEYCLOAK_ADMIN_USER = 'admin'
+    CPF_KEYCLOAK_TEST_USER = 'cpf-test'
+    CPF_KEYCLOAK_REALM = 'cpf-test'
+    CPF_KEYCLOAK_PUBLIC_CLIENT = 'cpf-public'
+    CPF_KEYCLOAK_SERVICE_CLIENT = 'cpf-service'
+}
+foreach ($key in $secretDefaults.Keys) {
+    if (-not $envMap.Contains($key) -or [string]::IsNullOrWhiteSpace([string]$envMap[$key])) { $envMap[$key] = $secretDefaults[$key] }
+}
+Write-EnvMap $secretEnvPath $envMap
+Ensure-SecretFile 'redis-password.txt' (New-CpfSecret 32)
+Ensure-SecretFile 'sftp-password.txt' (New-CpfSecret 24)
+Ensure-SecretFile 'vault-token.txt' (New-CpfSecret 32)
+Ensure-SecretFile 'keycloak-admin-password.txt' (New-CpfSecret 32)
+Ensure-SecretFile 'keycloak-test-password.txt' (New-CpfSecret 24)
+Ensure-SecretFile 'keycloak-service-client-secret.txt' (New-CpfSecret 32)
+& (Join-Path $cpfRoot 'ensure-cpf-runtime-secrets.ps1') -SecretFile $secretEnvPath | Out-Null
 
-if (-not $SkipPull) {
+if (-not $SkipImagePull) {
+    Write-Step '필수 Image 준비'
     $images = @(
         'mariadb:12.3.2','postgres:18.4-trixie','container-registry.oracle.com/database/free:26ai-free-23.26.2.0.0',
         'redis:8.8.1-trixie','apache/kafka:4.3.1','eclipse-temurin:25.0.3_9-jdk','node:22.18.0-bookworm',
-        'mcr.microsoft.com/playwright:v1.62.0-noble',$toolEnv.TOXIPROXY_IMAGE,$toolEnv.OTEL_COLLECTOR_IMAGE,
-        $toolEnv.TRIVY_IMAGE,$toolEnv.ORT_IMAGE,$toolEnv.WIREMOCK_IMAGE,$toolEnv.VAULT_IMAGE,$toolEnv.KEYCLOAK_IMAGE,$toolEnv.ALPINE_IMAGE
+        'mcr.microsoft.com/playwright:v1.62.0-noble',
+        $toolImages['TOXIPROXY_IMAGE'],$toolImages['OTEL_COLLECTOR_IMAGE'],$toolImages['TRIVY_IMAGE'],$toolImages['ORT_IMAGE'],
+        $toolImages['WIREMOCK_IMAGE'],$toolImages['VAULT_IMAGE'],$toolImages['KEYCLOAK_IMAGE'],$toolImages['ALPINE_IMAGE']
     )
-    foreach ($image in $images) { Write-Host "Image 준비: $image"; Invoke-DockerChecked -Arguments @('pull',$image) }
+    foreach ($image in $images) { Invoke-Docker @('pull',[string]$image) }
 }
 
-Invoke-DockerChecked -Arguments @('build','-t',$toolEnv.SFTP_FIXTURE_IMAGE,'-f',(Join-Path $cpfRoot 'Dockerfile.sftp-fixture'),$cpfRoot)
-if (-not $SkipToolchainBuild) {
-    Invoke-DockerChecked -Arguments @('build','-t',$toolEnv.FULL_TOOLCHAIN_IMAGE,'-f',(Join-Path $cpfRoot 'Dockerfile.full-toolchain'),$cpfRoot)
+Write-Step 'CPF Local Tool Image 생성'
+Invoke-Docker @('build','-f',(Join-Path $cpfRoot 'Dockerfile.sftp-fixture'),'--build-arg',"ALPINE_IMAGE=$($toolImages['ALPINE_IMAGE'])",'-t',[string]$toolImages['SFTP_FIXTURE_IMAGE'],$cpfRoot)
+Invoke-Docker @('build','-f',(Join-Path $cpfRoot 'Dockerfile.full-toolchain'),'-t',[string]$toolImages['FULL_TOOLCHAIN_IMAGE'],$cpfRoot)
+
+Write-Step 'Base·Integration·Tooling Container Created/Stopped 준비'
+$compose = @('compose','--env-file',$secretEnvPath,'--env-file',$toolEnvPath)
+foreach ($file in @('compose.yml','compose.redis.yml','compose.kafka.yml','compose.integration.yml','compose.tooling.yml')) {
+    $compose += @('-f',(Join-Path $cpfRoot $file))
 }
+Invoke-Docker ($compose + @('create'))
 
-& (Join-Path $sourceRoot 'CPF_도커_확장연동환경_증분설치.ps1') -DockerRoot $DockerRoot -RepoRoot $RepoRoot -SkipPull:$SkipPull
-if ($LASTEXITCODE -ne 0) { throw "확장 연동 환경 설치 실패(exit=$LASTEXITCODE)" }
-& (Join-Path $sourceRoot 'CPF_도커_QA39_Runtime_증분설치.ps1') -DockerRoot $DockerRoot -RepoRoot $RepoRoot -SkipPull:$SkipPull
-if ($LASTEXITCODE -ne 0) { throw "QA39 Runtime 환경 설치 실패(exit=$LASTEXITCODE)" }
-
-$compose = @('compose','--project-name','cpf','--env-file',$runtimeEnv,'--env-file',(Join-Path $cpfRoot 'tool-images.env'),'-f',(Join-Path $cpfRoot 'compose.yml'),'-f',(Join-Path $cpfRoot 'compose.redis.yml'),'-f',(Join-Path $cpfRoot 'compose.kafka.yml'),'-f',(Join-Path $cpfRoot 'compose.integration.yml'),'-f',(Join-Path $cpfRoot 'compose.tooling.yml'))
-Invoke-DockerChecked -Arguments ($compose + @('config','--quiet'))
-Invoke-DockerChecked -Arguments ($compose + @('create','--force-recreate','mariadb','postgresql','oracle','redis','kafka','wiremock','sftp','vault','keycloak','toxiproxy','otel-collector'))
-foreach ($name in $managedContainers) { docker update --restart=no $name *> $null; if ($LASTEXITCODE -ne 0) { throw "Restart Policy 설정 실패: $name" } }
-
+Write-Step '설치 결과 최대 검증'
 & (Join-Path $cpfRoot 'verify-complete-environment.ps1') -DockerRoot $DockerRoot -RequireStopped
-if ($LASTEXITCODE -ne 0) { throw "CPF Docker 전체 환경 검증 실패(exit=$LASTEXITCODE)" }
-Write-Host 'CPF Docker 개발·테스트 전체 환경 설치 완료 / Container Created-Stopped / restart=no' -ForegroundColor Green
+if ($LASTEXITCODE -ne 0) { throw "전체환경 검증 실패(exit=$LASTEXITCODE)" }
+
+Write-Host 'CPF Docker 개발·테스트 전체 환경 설치 완료 (Created/Stopped)' -ForegroundColor Green
+Write-Host "Runtime Root: $cpfRoot"
+Write-Host "Secret Root: $secretRoot"
+Write-Host '업무 Schema/Seed/Topic은 생성하지 않았습니다.'

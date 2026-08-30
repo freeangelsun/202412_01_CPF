@@ -24,6 +24,7 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
+from collections import deque
 from urllib.parse import unquote
 from datetime import datetime, timezone
 from pathlib import Path
@@ -86,13 +87,13 @@ def print_failure_summary(root: Path, message: str, code: int = 1) -> None:
     log = ACTIVE_LOG_FILE
     log_text = str(log) if log is not None else "N/A (Release workspace 생성 전 실패)"
     print("", file=sys.stderr)
-    print("CPF OPEN GIT RELEASE FAILED", file=sys.stderr)
+    print("CPF OPEN GIT RELEASE 실패", file=sys.stderr)
     print("---------------------------", file=sys.stderr)
-    print(f"Stage     : {ACTIVE_STAGE_NO:02d}/{BUILD_STAGE_TOTAL:02d} {ACTIVE_STAGE_LABEL}", file=sys.stderr)
-    print(f"Reason    : {message}", file=sys.stderr)
-    print(f"ExitCode  : {code}", file=sys.stderr)
-    print(f"Log       : {log_text}", file=sys.stderr)
-    print(f"Next      : {recovery_hint(message)}", file=sys.stderr)
+    print(f"실패 단계 : {ACTIVE_STAGE_NO:02d}/{BUILD_STAGE_TOTAL:02d} {ACTIVE_STAGE_LABEL}", file=sys.stderr)
+    print(f"원인      : {message}", file=sys.stderr)
+    print(f"Exit Code : {code}", file=sys.stderr)
+    print(f"상세 로그 : {log_text}", file=sys.stderr)
+    print(f"다음 조치 : {recovery_hint(message)}", file=sys.stderr)
     print("Commit    : NOT_EXECUTED", file=sys.stderr)
     print("Push      : NOT_EXECUTED", file=sys.stderr)
 
@@ -149,36 +150,86 @@ def _redact_sensitive_text(value: str, secrets: set[str]) -> str:
     return redacted
 
 
+def _command_console_label(cmd: list[str]) -> str:
+    if not cmd:
+        return "명령 실행"
+    executable = Path(str(cmd[0])).name.lower()
+    args = [str(x).lower() for x in cmd[1:]]
+    if executable in {"gradlew", "gradlew.bat"}:
+        return "Gradle 빌드/검증/Publication"
+    if executable in {"npm", "npm.cmd"}:
+        if "ci" in args:
+            return "Frontend 의존성 설치(npm ci)"
+        return "Frontend 검증(npm)"
+    if executable.startswith("python") or executable == Path(sys.executable).name.lower():
+        return "CPF 검증 도구 실행(Python)"
+    if executable in {"git", "git.exe"}:
+        return "Open Git Repository 확인"
+    if executable in {"pwsh", "pwsh.exe", "powershell", "powershell.exe"}:
+        return "PowerShell 검증 도구 실행"
+    return f"{Path(str(cmd[0])).name} 실행"
+
+
+def _is_gradle_command(cmd: list[str]) -> bool:
+    return bool(cmd) and Path(str(cmd[0])).name.lower() in {"gradlew", "gradlew.bat"}
+
+
+def _should_echo_gradle_line(line: str) -> bool:
+    stripped=line.strip()
+    if not stripped:
+        return False
+    important=("FAILURE:", "BUILD FAILED", "BUILD SUCCESSFUL", "* What went wrong:", "Execution failed for task",
+               "FAILED", "ERROR", "Exception", "CPF_", "npm error", "npm ERR!")
+    return any(token.lower() in stripped.lower() for token in important)
+
+
 def run(cmd: list[str], cwd: Path, *, capture: bool = False, env: dict[str, str] | None = None) -> str:
     secrets = _command_secrets(cmd)
     display_cmd = [_redact_sensitive_text(str(arg), secrets) for arg in cmd]
     command_line = "[CPF][OPEN-GIT][RUN] " + " ".join(display_cmd)
-    print(command_line, flush=True)
+    console_label = _command_console_label(cmd)
+    print(f"[CPF][OPEN-GIT][실행] {console_label} (상세 명령/전체 출력: cpf-release/logs/open-git-release.log)", flush=True)
     _append_log(command_line)
     if capture:
-        # CPF 도구/Gradle 출력에는 한글이 포함된다. text=True에 encoding을 지정하지 않으면
-        # Windows 기본 로케일(cp949 등)로 디코딩하다 UnicodeDecodeError로 실패한다.
         cp = subprocess.run(cmd, cwd=cwd, text=True, encoding="utf-8", errors="replace",
                             capture_output=True, env=env, check=False)
         combined = _redact_sensitive_text((cp.stdout or "") + (cp.stderr or ""), secrets)
         if combined:
             _append_log(combined)
         if cp.returncode:
-            sys.stderr.write(combined)
-            raise OpenGitReleaseError(f"command failed exit={cp.returncode}: {display_cmd}")
+            if combined:
+                sys.stderr.write(combined)
+            raise OpenGitReleaseError(f"{console_label} 실패(exit={cp.returncode}). 상세 로그를 확인하세요.")
         return (cp.stdout or "").strip()
 
+    gradle_mode = _is_gradle_command(cmd)
+    gradle_tasks = 0
+    recent = deque(maxlen=30)
     process = subprocess.Popen(cmd, cwd=cwd, text=True, encoding="utf-8", errors="replace",
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, bufsize=1)
     assert process.stdout is not None
     for line in process.stdout:
         safe_line = _redact_sensitive_text(line, secrets)
-        sys.stdout.write(safe_line)
-        sys.stdout.flush()
         _append_log(safe_line.rstrip("\n"))
+        recent.append(safe_line)
+        if gradle_mode and safe_line.lstrip().startswith("> Task "):
+            gradle_tasks += 1
+            if gradle_tasks == 1 or gradle_tasks % 100 == 0:
+                print(f"[CPF][OPEN-GIT][진행] {ACTIVE_STAGE_NO:02d}/{BUILD_STAGE_TOTAL:02d} {ACTIVE_STAGE_LABEL} - Gradle 내부 작업 {gradle_tasks}건 처리", flush=True)
+            continue
+        if not gradle_mode or _should_echo_gradle_line(safe_line):
+            sys.stdout.write(safe_line)
+            sys.stdout.flush()
     code = process.wait()
+    if gradle_mode:
+        state = "완료" if code == 0 else "실패"
+        print(f"[CPF][OPEN-GIT][{state}] {ACTIVE_STAGE_LABEL} - Gradle 내부 작업 {gradle_tasks}건, exit={code}", flush=True)
     if code:
-        raise OpenGitReleaseError(f"command failed exit={code}: {display_cmd}")
+        if gradle_mode:
+            tail = "".join(recent)
+            if tail:
+                sys.stderr.write("[CPF][OPEN-GIT][실패 상세 마지막 출력]\n" + tail)
+        raise OpenGitReleaseError(f"{console_label} 실패(exit={code}). 상세 로그를 확인하세요.")
     return ""
 
 
@@ -892,10 +943,16 @@ def verify_cross_platform_cli(open_git: Path, expected_source_identity: str | No
         missing_entries = sorted(required_classes - names)
         if missing_entries:
             raise OpenGitReleaseError(f"cpf-cli.jar canonical implementation entries missing: {missing_entries}")
-    java = shutil.which("java")
+    java_home = os.environ.get("JAVA_HOME", "").strip()
+    java_candidate = Path(java_home) / "bin" / ("java.exe" if os.name == "nt" else "java") if java_home else None
+    java = str(java_candidate) if java_candidate and java_candidate.is_file() else shutil.which("java")
     version_result = None
     if java:
-        cp = subprocess.run([java, "-jar", str(cli_jar), "version"], cwd=open_git,
+        verify_env = dict(os.environ)
+        # Release verification must read the identity embedded in this JAR. Full-runtime orchestration
+        # may export CPF_SOURCE_IDENTITY for other children; allowing that override here creates a false mismatch.
+        verify_env.pop("CPF_SOURCE_IDENTITY", None)
+        cp = subprocess.run([java, "-jar", str(cli_jar), "version"], cwd=open_git, env=verify_env,
                             text=True, encoding="utf-8", errors="replace", capture_output=True, check=False)
         if cp.returncode != 0:
             raise OpenGitReleaseError(f"cpf-cli.jar version execution failed: {cp.stdout}{cp.stderr}")
@@ -925,7 +982,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
 
     # Every accepted build attempt invalidates the previous generated release first.
     # Safety checks run before deletion and cleanup is restricted to exact <CPF_ROOT>/cpf-release.
-    release_stage(1, "Release Root 안전 확인", "이전 생성물 전체 재생성 준비")
+    release_stage(1, "Release 작업공간 안전 확인", "이전 생성물 전체 재생성 준비")
     release = clean_release_root(root)
     reports = release / REPORTS_DIR_NAME; reports.mkdir()
     logs = release / LOGS_DIR_NAME; logs.mkdir()
@@ -938,7 +995,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     final_repo = release / BINARY_DIR_NAME
     open_git = release / OPEN_GIT_DIR_NAME
 
-    release_stage(2, "Private Source 확인", "Local Working Tree / Git provenance / Source Identity / Version / Remote")
+    release_stage(2, "개발 Source 확인", "Local Working Tree / Git provenance / Source Identity / Version / Remote")
     private_git = private_git_context(root)
     private_git_sha = str(private_git["head"])
     source_state = canonical_source_state(root)
@@ -946,7 +1003,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     version = platform_version(root)
     remote = canonical_remote(root, remote_arg)
 
-    release_stage(3, "Artifact 공개 정책 확인", f"profile={profile} / sources.jar=DENY / javadoc.jar=DENY")
+    release_stage(3, "공개 Artifact 정책 확인", f"profile={profile} / sources.jar=DENY / javadoc.jar=DENY")
     verify_artifact_catalog_contract(root)
 
     backend = _legacy_backend(root)
@@ -954,28 +1011,28 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     if skip_build:
         raise OpenGitReleaseError("--skip-build is reserved for tests and cannot create a production Open Git release")
 
-    release_stage(4, "Private Release Gate", "Secret / Leakage / Canonical release prerequisites")
+    release_stage(4, "Private Release 사전검증", "Secret / Leakage / Canonical release prerequisites")
     backend.private_gates(root, sys.executable)
 
-    release_stage(5, "Framework Binary Publication", f"version={version}")
+    release_stage(5, "Framework Binary 생성·Publication", f"version={version}")
     backend.private_build_and_publication(root, raw_repo, version)
 
-    release_stage(6, "Generator Distribution", "Windows/Linux 공개 Generator 산출물")
+    release_stage(6, "Generator Windows/Linux 배포본 생성", "Windows/Linux 공개 Generator 산출물")
     generator_result = backend.publish_generator_distributions(
         root, raw_repo, version, Path(generator_artifacts).resolve() if generator_artifacts else None
     )
 
-    release_stage(7, "Raw Binary Repository 검증", "Publication closure")
+    release_stage(7, "원본 Binary Repository 검증", "Publication closure")
     old_verifier = root / LEGACY_PUBLIC_REL / "verify-cpf-public-binary-repository.py"
     run([sys.executable, str(old_verifier), "--root", str(root), "--repository", str(raw_repo), "--version", version], root)
 
-    release_stage(8, "Artifact 공개 필터 적용", f"profile={profile} / Binary만 유지")
+    release_stage(8, "공개 Artifact 필터 적용", f"profile={profile} / Binary만 유지")
     sanitize_result = sanitize_binary_repository(root, raw_repo, final_repo, profile)
 
     release_stage(9, "최종 Binary Repository 검증", "Maven 좌표 / Dependency / Source disclosure")
     binary_result = verify_binary_repository(root, final_repo, version, profile)
 
-    release_stage(10, "Open Git Source Projection", "Generated Domain / Backoffice / EDU / Developer Command")
+    release_stage(10, "Open Git 공개 Source 구성", "Generated Domain / Backoffice / EDU / Developer Command")
     env = dict(os.environ)
     env["CPF_MAVEN_REPOSITORY_URL"] = final_repo.resolve().as_uri()
     env["CPF_VERSION"] = version
@@ -985,7 +1042,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     verify_open_git_tree(root, staging, profile)
     verify_cross_platform_cli(staging, source_identity)
 
-    release_stage(11, "Open Git Fresh Clone", "이전 Open Git Working Copy 재사용 금지")
+    release_stage(11, "Open Git Fresh Clone 준비", "이전 Open Git Working Copy 재사용 금지")
     git = shutil.which("git") or "git"
     run([git, "clone", "--no-tags", remote, str(open_git)], release)
     if run([git, "status", "--porcelain=v1", "--untracked-files=all"], open_git, capture=True):
@@ -994,7 +1051,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     verify_open_git_tree(root, open_git, profile)
     verify_cross_platform_cli(open_git, source_identity)
 
-    release_stage(12, "Fresh Workspace Build/Test", "Open Git + isolated Binary Repository")
+    release_stage(12, "Fresh Workspace 빌드·테스트", "Open Git + isolated Binary Repository")
     verifier = open_git / "tools" / ("verify-open-git-workspace.ps1" if os.name == "nt" else "verify-open-git-workspace.sh")
     if os.name == "nt":
         shell = shutil.which("pwsh") or shutil.which("powershell")
@@ -1004,12 +1061,12 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     else:
         run(["bash", str(verifier)], open_git, env=env)
 
-    release_stage(13, "Open Git Working Tree 검증", "Git index/write 없이 diff/status 확인; 사용자 검토 전 add/commit/push 금지")
+    release_stage(13, "Open Git 변경사항 검증", "Git index/write 없이 diff/status 확인; 사용자 검토 전 add/commit/push 금지")
     run([git, "diff", "--check"], open_git)
     open_git_status = run([git, "status", "--short", "--untracked-files=all"], open_git, capture=True)
     changed = [line for line in open_git_status.splitlines() if line.strip()]
 
-    release_stage(14, "Manifest / SHA / Status", "VERIFIED 결과와 사용자 Git 반영용 read-only 정보 생성")
+    release_stage(14, "Manifest·SHA·최종 상태 생성", "VERIFIED 결과와 사용자 Git 반영용 read-only 정보 생성")
     open_file_count = write_file_manifest(root, open_git, reports / "OPEN_GIT_FILE_MANIFEST.csv")
     binary_file_count = write_artifact_manifest(final_repo, reports / "OPEN_GIT_ARTIFACT_MANIFEST.csv")
     write_json(reports / "OPEN_GIT_ARTIFACT_FILTER_RESULT.json", sanitize_result)
@@ -1077,13 +1134,13 @@ def status_release(root: Path) -> dict[str, Any]:
     result = load_json(status_path)
     print("CPF Open Git Release")
     print("--------------------")
-    print(f"Source        : {'PASS' if result.get('sourceIdentitySha256') else 'FAIL'}")
-    print(f"Package       : {result.get('status', 'UNKNOWN')}")
-    print(f"Profile       : {result.get('releaseProfile', 'binary')}")
-    print(f"Binary        : {'PASS' if result.get('binaryFileCount', 0) else 'FAIL'}")
-    print(f"Git Diff      : {result.get('changedFiles', 0)} files")
-    print(f"Status        : {result.get('result', result.get('status', 'UNKNOWN'))}")
-    print(f"Path          : {result.get('openGit', '')}")
+    print(f"Source 검증   : {'PASS' if result.get('sourceIdentitySha256') else 'FAIL'}")
+    print(f"Package 상태  : {result.get('status', 'UNKNOWN')}")
+    print(f"Release Profile: {result.get('releaseProfile', 'binary')}")
+    print(f"Binary 검증   : {'PASS' if result.get('binaryFileCount', 0) else 'FAIL'}")
+    print(f"Git 변경 파일 : {result.get('changedFiles', 0)} files")
+    print(f"최종 상태     : {result.get('result', result.get('status', 'UNKNOWN'))}")
+    print(f"Open Git 경로 : {result.get('openGit', '')}")
     return result
 
 
@@ -1223,17 +1280,17 @@ Framework 내부 Source Tree는 공개하지 않고 Maven-compatible Binary Repo
 def print_release_summary(result: dict[str, Any]) -> None:
     print("CPF Open Git Release")
     print("--------------------")
-    print(f"Root          : {result.get('privateRepositoryRoot', '')}")
+    print(f"Private Root  : {result.get('privateRepositoryRoot', '')}")
     print(f"Branch        : {result.get('privateGitBranch', '')}")
     print(f"HEAD          : {result.get('privateGitSha', '')}")
-    print(f"Source        : {'PASS' if result.get('sourceIdentitySha256') else result.get('status', 'UNKNOWN')}")
-    print(f"Package       : {result.get('status', 'UNKNOWN')}")
-    print(f"Binary        : {'PASS' if result.get('binaryFileCount', 0) else 'N/A'}")
-    print(f"Open Git      : {'PASS' if result.get('openGitFileCount', 0) else 'N/A'}")
-    print(f"Git Diff      : {result.get('changedFiles', 0)} files")
-    print(f"Status        : {result.get('result', result.get('status', 'UNKNOWN'))}")
+    print(f"Source 검증   : {'PASS' if result.get('sourceIdentitySha256') else result.get('status', 'UNKNOWN')}")
+    print(f"Package 상태  : {result.get('status', 'UNKNOWN')}")
+    print(f"Binary 검증   : {'PASS' if result.get('binaryFileCount', 0) else 'N/A'}")
+    print(f"Open Git 검증 : {'PASS' if result.get('openGitFileCount', 0) else 'N/A'}")
+    print(f"Git 변경 파일 : {result.get('changedFiles', 0)} files")
+    print(f"최종 상태     : {result.get('result', result.get('status', 'UNKNOWN'))}")
     if result.get('openGit'):
-        print(f"Path          : {result.get('openGit')}")
+        print(f"Open Git 경로 : {result.get('openGit')}")
 
 
 def main() -> int:

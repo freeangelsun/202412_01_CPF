@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "sessionKey": "20260830_devgpt_harness_vscode_cli_batch_frontend_closure",
+  "role": "DEVGPT",
+  "startedAt": "2026-08-30T14:06:00+09:00",
+  "endedAt": "2026-08-30T15:15:00+09:00",
+  "sourceIdentity": "c089260cac1250da7c8fb4c73bcf7338577aa0538d9fa5c2fbbb0ef8128917a1",
+  "sourceBasis": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260830_140354.zip + root-relative DevGPT fixes",
+  "registrySha256AtStart": "5c8507dc4626168c9af499366707966d6b2f791284388b3ee958854c9072ebbb",
+  "reportPath": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+  "reportSha256": "bf3079b42fcd197b07ec0f0a63095e855d27abf290feee0b0ae1e1c9a5fb889f",
+  "workItems": [
+    {
+      "workItemId": "WP-H00",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/AFFECTED_REGRESSION.log"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical verifier/toolchain metadata",
+        "requiredEnvironment": "Current Source required environment; physical gates remain mandatory where declared",
+        "actualEnvironment": "Linux container Python3.13 Node22.16; Windows Java25/pwsh/Docker/Fresh VS Code unavailable"
+      },
+      "reportAnchor": "## WP-H00"
+    },
+    {
+      "workItemId": "WP-H02",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/AFFECTED_REGRESSION.log"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical verifier/toolchain metadata",
+        "requiredEnvironment": "Current Source required environment; physical gates remain mandatory where declared",
+        "actualEnvironment": "Linux container Python3.13 Node22.16; Windows Java25/pwsh/Docker/Fresh VS Code unavailable"
+      },
+      "reportAnchor": "## WP-H02"
+    },
+    {
+      "workItemId": "WP-B02",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/AFFECTED_REGRESSION.log"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical verifier/toolchain metadata",
+        "requiredEnvironment": "Current Source required environment; physical gates remain mandatory where declared",
+        "actualEnvironment": "Linux container Python3.13 Node22.16; Windows Java25/pwsh/Docker/Fresh VS Code unavailable"
+      },
+      "reportAnchor": "## WP-B02"
+    },
+    {
+      "workItemId": "WP-CLI01",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/AFFECTED_REGRESSION.log"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical verifier/toolchain metadata",
+        "requiredEnvironment": "Current Source required environment; physical gates remain mandatory where declared",
+        "actualEnvironment": "Linux container Python3.13 Node22.16; Windows Java25/pwsh/Docker/Fresh VS Code unavailable"
+      },
+      "reportAnchor": "## WP-CLI01"
+    },
+    {
+      "workItemId": "WP-BAT01",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/AFFECTED_REGRESSION.log"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical verifier/toolchain metadata",
+        "requiredEnvironment": "Current Source required environment; physical gates remain mandatory where declared",
+        "actualEnvironment": "Linux container Python3.13 Node22.16; Windows Java25/pwsh/Docker/Fresh VS Code unavailable"
+      },
+      "reportAnchor": "## WP-BAT01"
+    },
+    {
+      "workItemId": "WP-FE01",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/AFFECTED_REGRESSION.log"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical verifier/toolchain metadata",
+        "requiredEnvironment": "Current Source required environment; physical gates remain mandatory where declared",
+        "actualEnvironment": "Linux container Python3.13 Node22.16; Windows Java25/pwsh/Docker/Fresh VS Code unavailable"
+      },
+      "reportAnchor": "## WP-FE01"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/SESSION_REPORT.md",
+      "sha256": "bf3079b42fcd197b07ec0f0a63095e855d27abf290feee0b0ae1e1c9a5fb889f",
+      "purpose": "DevGPT session report"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_harness_vscode_cli_batch_frontend_closure/AFFECTED_REGRESSION.log",
+      "sha256": "24e0f58e745707c22e4306476c115e045074a479cb9c0538b9a95fd8c3f95007",
+      "purpose": "Affected regression execution"
+    }
+  ],
+  "gitWriteExecuted": false,
+  "mergeStatus": "MERGED",
+  "mergedBySessionKey": "HARNESS-20260830T061500Z-MERGE",
+  "mergedAt": "2026-08-30T15:15:00+09:00",
+  "mergeTargetSourceIdentity": "c089260cac1250da7c8fb4c73bcf7338577aa0538d9fa5c2fbbb0ef8128917a1",
+  "pendingReasons": [],
+  "conflicts": [],
+  "rerunConditions": [
+    "Source change invalidates affected evidence",
+    "Mandatory physical acceptance must be rerun on exact Source"
+  ]
+}

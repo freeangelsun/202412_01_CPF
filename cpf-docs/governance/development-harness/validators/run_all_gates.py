@@ -2,7 +2,7 @@
 from pathlib import Path
 import os,subprocess,sys
 ROOT=Path(__file__).resolve().parents[4]; H=ROOT/'cpf-docs/governance/development-harness'; py=sys.executable
-steps=['validators/validate_current_product_conformance.py','validators/validate_harness_strength_regression.py','validators/validate_control_registry.py','validators/validate_harness_authority.py','validators/validate_migration_semantic_closure.py','validators/validate_development_harness.py','validators/validate_split_datasets.py','tests/test_negative_fixtures.py','validators/generate_detailed_review.py']
+steps=['validators/validate_session_merge_protocol.py','validators/validate_current_product_conformance.py','validators/validate_harness_strength_regression.py','validators/validate_control_registry.py','validators/validate_harness_authority.py','validators/validate_migration_semantic_closure.py','validators/validate_development_harness.py','validators/validate_split_datasets.py','tests/test_negative_fixtures.py','validators/generate_detailed_review.py']
 fail=[]
 for s in steps:
     if s=='tests/test_negative_fixtures.py':

@@ -416,12 +416,12 @@ def test_open_git_short_cli_and_compatibility_wrappers_are_canonical(tmp_path: P
 def test_open_git_release_build_progress_and_failure_guidance_are_visible():
     source = TOOL.read_text(encoding="utf-8")
     assert 'BUILD_STAGE_TOTAL = 14' in source
-    assert 'Release Root 안전 확인' in source
-    assert 'Fresh Workspace Build/Test' in source
-    assert 'Open Git Working Tree 검증' in source
-    assert 'CPF OPEN GIT RELEASE FAILED' in source
-    assert 'ExitCode' in source
-    assert 'Next      :' in source
+    assert 'Release 작업공간 안전 확인' in source
+    assert 'Fresh Workspace 빌드·테스트' in source
+    assert 'Open Git 변경사항 검증' in source
+    assert 'CPF OPEN GIT RELEASE 실패' in source
+    assert 'Exit Code' in source
+    assert '다음 조치 :' in source
     assert 'Commit    : NOT_EXECUTED' in source
     assert 'Push      : NOT_EXECUTED' in source
 

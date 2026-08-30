@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 2,
+  "policy": "CAPABILITY_FIRST",
+  "principles": {
+    "hostExactPatchPinForbidden": true,
+    "installedCompatibleToolPreferred": true,
+    "projectOwnedWrapperLockContainerPinAllowed": true,
+    "mismatchMayNotLowerProductContract": true,
+    "hostMinorPatchGateForbidden": true,
+    "capabilityProbePrecedesVersionRejection": true,
+    "versionFloorIsAdvisoryUnlessHardCompatibilityIsDocumented": true
+  },
+  "tools": {
+    "java": {
+      "required": true,
+      "minMajor": 25,
+      "exactPatchRequired": false,
+      "capabilities": [
+        "java --version",
+        "javac --release 25 + execute compiled probe",
+        "Gradle canonical build"
+      ],
+      "reason": "CPF bytecode/language target은 Java 25로 유지하되 host JDK의 정확한 버전은 고정하지 않는다. 설치된 JDK가 --release 25 컴파일과 생성 class 실행을 실제로 통과하면 사용하고 최종 Gradle Build로 Acceptance한다.",
+      "enforcement": "CAPABILITY_FIRST_RELEASE_25",
+      "compatibilityFloorMajor": 25,
+      "hardMinMajor": null
+    },
+    "node": {
+      "requiredFor": [
+        "frontend",
+        "browser",
+        "open-git-release"
+      ],
+      "maxVersion": null,
+      "exactPatchRequired": false,
+      "capabilities": [
+        "node --version",
+        "node -e ESM/fetch probe",
+        "npm ci (frontend lifecycle)"
+      ],
+      "reason": "Node patch/minor는 실행 전 차단하지 않는다. package/dependency engine 범위는 호환성 안내이며 실제 npm ci/verify/build 성공 여부를 Acceptance로 사용한다.",
+      "compatibilityFloor": "22.18.0",
+      "hardMinMajor": null,
+      "enforcement": "CAPABILITY_FIRST"
+    },
+    "npm": {
+      "requiredFor": [
+        "frontend",
+        "open-git-release"
+      ],
+      "maxMajor": null,
+      "exactPatchRequired": false,
+      "capabilities": [
+        "npm ci",
+        "npm run"
+      ],
+      "reason": "npm patch/minor/major 숫자만으로 host를 거절하지 않고 npm ci/npm run 실제 capability와 lockfile 재현성으로 판정한다.",
+      "compatibilityFloorMajor": 10,
+      "hardMinMajor": null,
+      "enforcement": "CAPABILITY_FIRST"
+    },
+    "python": {
+      "requiredFor": [
+        "verification",
+        "generator",
+        "release"
+      ],
+      "minVersion": "3.11.0",
+      "maxVersion": null,
+      "exactPatchRequired": false,
+      "capabilities": [
+        "python --version",
+        "UTF-8",
+        "pathlib",
+        "venv"
+      ],
+      "reason": "Verifier가 사용하는 언어 기능의 최소선만 요구하고 patch/minor exact pin을 금지한다.",
+      "enforcement": "LANGUAGE_CAPABILITY_MINIMUM"
+    },
+    "powershell": {
+      "requiredFor": [
+        "windows-runtime",
+        "db-runtime",
+        "release"
+      ],
+      "minMajor": 7,
+      "maxMajor": null,
+      "exactPatchRequired": false,
+      "capabilities": [
+        "pwsh -NoProfile",
+        "UTF-8",
+        "Set-StrictMode"
+      ],
+      "reason": "Windows/Linux 공통 PowerShell 7 capability만 요구하며 7.x patch는 고정하지 않는다.",
+      "enforcement": "LANGUAGE_RUNTIME_MAJOR"
+    },
+    "docker": {
+      "requiredFor": [
+        "physical-db",
+        "broker-runtime",
+        "full-runtime"
+      ],
+      "versionConstraint": "INSTALLED_AND_DAEMON_READY",
+      "exactPatchRequired": false,
+      "capabilities": [
+        "docker info",
+        "docker compose version"
+      ],
+      "reason": "Host Docker patch가 아니라 daemon/compose 실제 capability와 pinned CPF-owned test image로 재현성을 보장한다."
+    },
+    "browser": {
+      "requiredFor": [
+        "browser-e2e",
+        "accessibility"
+      ],
+      "versionConstraint": "PLAYWRIGHT_COMPATIBLE_INSTALLED_OR_MANAGED",
+      "exactPatchRequired": false,
+      "capabilities": [
+        "Playwright browser launch"
+      ],
+      "reason": "Host browser patch 고정 대신 Playwright 호환성/managed browser 실행으로 판정한다."
+    }
+  }
+}

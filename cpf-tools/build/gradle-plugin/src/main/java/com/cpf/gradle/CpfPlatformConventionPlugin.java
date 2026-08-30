@@ -5,12 +5,11 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 /**
  * CPF 전체 Java 모듈이 공통으로 사용하는 최소 Gradle Convention을 적용한다.
  *
- * <p>이 플러그인은 Java Toolchain, 인코딩, 파라미터 메타데이터와 의존성 충돌 정책만 소유한다.
+ * <p>이 플러그인은 Java 25 bytecode/language target, 인코딩, 파라미터 메타데이터와 의존성 충돌 정책만 소유한다.
  * Generated Customer Domain의 Starter 조합과 정책 검증은 Generator/Verification 계층의 책임이며,
  * 이 플러그인이 프로젝트 내부 manifest를 읽거나 특정 CPF 모듈 의존성을 암묵적으로 주입하지 않는다.</p>
  */
@@ -18,8 +17,12 @@ public final class CpfPlatformConventionPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
-        project.getExtensions().configure(JavaPluginExtension.class,
-                java -> java.getToolchain().getLanguageVersion().set(JavaLanguageVersion.of(25)));
+        project.getExtensions().configure(JavaPluginExtension.class, java -> {
+            // Host JDK의 정확한 patch/minor/major를 고정하지 않고 Java 25 bytecode 계약만 유지한다.
+            // 설치된 JDK가 --release 25를 지원하면 그대로 사용하고 실제 Gradle Build로 최종 호환성을 판정한다.
+            java.setSourceCompatibility(org.gradle.api.JavaVersion.VERSION_25);
+            java.setTargetCompatibility(org.gradle.api.JavaVersion.VERSION_25);
+        });
         project.getTasks().withType(JavaCompile.class).configureEach(task -> {
             // CPF 공식 Source/Generated Source는 운영체제와 무관하게 UTF-8로 컴파일한다.
             task.getOptions().setEncoding("UTF-8");

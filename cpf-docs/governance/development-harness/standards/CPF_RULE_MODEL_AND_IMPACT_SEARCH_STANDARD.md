@@ -78,6 +78,7 @@
 | CR-19 | Fresh Replay | 수정 후 동일 Source에서 Fresh 초기화/재실행으로 결과가 재현되어야 한다. |
 | CR-20 | Final Self Review | 최종 완료 전 모든 Mandatory Work Item을 한 건씩 다시 읽고 요구→Source→Consumer→Test→Runtime→Evidence→Source Identity→상태를 검증한다. |
 | CR-21 | Current Prerequisite Source-of-Truth | Java/Node/npm/Python/PowerShell/Docker/DB/Browser 등 실행 prerequisite는 과거 대화·이전 세션·사용자 PC의 현재 설치값을 기준으로 추정하지 않는다. Current Source의 canonical verifier/bootstrap/toolchain/package metadata에서 required 값을 재탐색하고 actual과 대조한 뒤 실행한다. |
+| CR-22 | Capability-first Toolchain Compatibility | Host 개발도구는 특정 patch/minor 버전을 습관적으로 고정하지 않는다. 설치된 도구가 Current Source가 요구하는 실제 기능/API/언어·바이너리 target을 수행할 수 있으면 우선 사용하고, exact pin은 Project가 소유하는 Wrapper/Lock/Container/Image처럼 재현성 산출물에만 허용한다. Java는 CPF의 Java 25 source/bytecode target을 유지하되 Host JDK 자체를 정확히 25로 고정하지 않고 `javac --release 25` 컴파일·실행 및 실제 Gradle Build capability로 판정한다. PowerShell/Node/npm/Python/Docker/Browser도 버전 숫자보다 실제 필요한 capability를 우선하며, 기술적으로 증명된 hard compatibility 경계만 fail-closed한다. Release/CLI/Runtime/Test는 동일 canonical compatibility policy를 소비한다. |
 
 `해당 없음(N/A)`은 기능과 정말 무관한 축에만 허용한다. N/A 사유가 없거나 단순 미구현/환경부족을 N/A로 바꾸면 False Green이다.
 
@@ -116,10 +117,10 @@
 개발자와 검수자는 실행 명령을 만들 때 다음 순서를 고정한다.
 
 1. 현재 Work Item과 Feature Rule에서 필요한 실행 도구를 식별한다.
-2. **Current Source에서** canonical bootstrap/verifier, Gradle toolchain, package metadata/lock, runtime script, DB/runtime contract를 검색해 required version/range/capability를 확정한다.
+2. **Current Source에서** canonical bootstrap/verifier, Gradle toolchain, package metadata/lock, runtime script, DB/runtime contract를 검색해 required version/range/capability를 확정한다. Host 도구의 exact patch/minor pin은 기본 금지하고 `cpf-tools/verification/contracts/cpf-toolchain-compatibility.json`의 capability-first 정책을 우선한다.
 3. 실제 환경에서 같은 도구의 actual version/path/capability를 측정한다.
 4. `required`, `actual`, `prerequisite_source`, 판정(`MATCH/MISMATCH/BLOCKED`)을 session Evidence에 남긴다.
-5. MISMATCH이면 Framework 요구조건을 사용자 PC 버전에 맞춰 낮추거나 verifier의 expected 값을 바꿔 PASS시키지 않는다.
+5. MISMATCH이면 Framework 요구조건을 사용자 PC 버전에 맞춰 낮추거나 verifier의 expected 값을 바꿔 PASS시키지 않는다. 반대로 Source가 불필요한 exact host patch pin을 가지고 있으면 actual 환경을 강제 교체하는 대신 해당 pin의 기술적 필요성을 검증하고 불필요하면 compatibility range/capability 계약으로 수정한다.
 6. Canonical bootstrap이 환경 설치/격리를 소유하면 그 경로를 사용한다. 그렇지 않은 전역 Toolchain 변경은 사용자 환경에 side effect가 있으므로 자동 수행을 기본값으로 삼지 않고 정확한 교정 명령·영향·복구 방법을 제시한다.
 7. 환경을 교정한 뒤에는 **동일 Current Source의 원래 canonical command**를 처음부터 재실행한다. prerequisite gate만 PASS했다고 Runtime/Test 전체 PASS로 승격하지 않는다.
 8. 과거 세션의 required version, 모델의 기억, 대화에 복사된 숫자는 현재 Source 재탐색 없이 실행 기준으로 재사용하지 않는다.

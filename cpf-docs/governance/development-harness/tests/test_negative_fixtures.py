@@ -19,7 +19,7 @@ _NEG_GROUPS={
     },
     'STRENGTH': {
         'mutation_harness_strength_tracking_reduction','mutation_harness_strength_evidence_reduction',
-        'mutation_protected_retain_delete_reentry',
+        'mutation_protected_retain_delete_reentry','mutation_session_manifest_missing','mutation_toolchain_exact_host_patch_reentry','mutation_toolchain_exact_java_host_major_reentry',
     },
 }
 def _enabled(name):
@@ -42,6 +42,57 @@ record('required_test_evidence',len(c['requiredTestEvidence'])>=10)
 record('reviewer_vscode_zero_gate_fields',set(c['independentReviewerSourceModificationEvidence']) >= {'source_modified','vscode_fresh_import','vscode_scope','vscode_problems_json','vscode_error_count','vscode_warning_count'})
 with (H/'current/CANONICAL_PRODUCT_REQUIREMENTS.csv').open(encoding='utf-8-sig',newline='') as f: n=sum(1 for _ in csv.DictReader(f))
 record('non_vacuous_product_registry',n>0)
+
+# Session Merge Protocol negative mutation is exercised from a known-positive isolated fixture.
+# This prevents an already-pending real session from making the mutation look green by accident.
+def _session_merge_missing_manifest_mutation():
+    import hashlib
+    root=Path(tempfile.mkdtemp(prefix='cpf-session-merge-negative-'))
+    try:
+        h=root/'cpf-docs/governance/development-harness'
+        (h/'current').mkdir(parents=True)
+        d=h/'evidence/claude/current/sessions/FIXTURE_SESSION'
+        d.mkdir(parents=True)
+        (h/'current/CURRENT_WORK_ITEM_REGISTRY.csv').write_text('work_item_id\nWP-H00\n',encoding='utf-8-sig')
+        key='FIXTURE_SESSION'
+        digest=hashlib.sha256(key.encode('utf-8')).hexdigest()
+        (h/'CPF_DEVELOPMENT_HARNESS.md').write_text(
+            '### Current Merge Control State\n\nstate: current/CURRENT_MERGE_CONTROL_STATE.json\n\n## 21. roles\n',
+            encoding='utf-8'
+        )
+        (h/'current/CURRENT_MERGE_CONTROL_STATE.json').write_text(json.dumps({
+            'merge_protocol_version':'1','merge_baseline_source_identity':'1'*64,'last_merged_session_key':key,
+            'merged_session_set_digest':digest,'pending_session_keys':'NONE','conflict_session_keys':'NONE',
+            'last_merge_review_at':'2026-08-30T14:00:00+09:00','last_merge_reviewer_session_key':'HARNESS_FIXTURE'
+        },ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        report=d/'SESSION_REPORT.md'
+        report.write_text('# Report\n\n## WI-WP-H00\n',encoding='utf-8')
+        ev=d/'evidence.txt'
+        ev.write_text('PASS\n',encoding='utf-8')
+        rel=lambda x: x.relative_to(root).as_posix()
+        manifest={
+          'schemaVersion':1,'sessionKey':key,'role':'CLAUDE','startedAt':'2026-08-30T14:00:00+09:00','endedAt':'2026-08-30T14:01:00+09:00',
+          'sourceIdentity':'1'*64,'sourceBasis':'fixture','registrySha256AtStart':'2'*64,
+          'reportPath':rel(report),'reportSha256':hashlib.sha256(report.read_bytes()).hexdigest(),
+          'workItems':[{'workItemId':'WP-H00','proposedStatus':'SOURCE_FIXED','evidence':[rel(ev)],'reportAnchor':'WI-WP-H00',
+                        'acceptanceMapping':{'prerequisiteSource':'fixture','requiredEnvironment':'fixture','actualEnvironment':'fixture'}}],
+          'evidenceFiles':[{'path':rel(ev),'sha256':hashlib.sha256(ev.read_bytes()).hexdigest(),'purpose':'fixture'}],
+          'gitWriteExecuted':False,'mergeStatus':'MERGED','mergedBySessionKey':'HARNESS_FIXTURE','mergedAt':'2026-08-30T14:02:00+09:00','mergeTargetSourceIdentity':'1'*64,
+          'pendingReasons':[],'conflicts':[],'rerunConditions':[]}
+        mf=d/'SESSION_MANIFEST.json'
+        mf.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        env=os.environ.copy()
+        env['CPF_HARNESS_ROOT']=str(h)
+        env['CPF_REPOSITORY_ROOT']=str(root)
+        validator=H/'validators/validate_session_merge_protocol.py'
+        before=subprocess.run([sys.executable,str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
+        mf.unlink()
+        after=subprocess.run([sys.executable,str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
+        return before.returncode==0 and after.returncode!=0 and 'MANIFEST_MISSING:FIXTURE_SESSION' in (after.stdout+after.stderr)
+    finally:
+        shutil.rmtree(root,ignore_errors=True)
+if _enabled('mutation_session_manifest_missing'):
+    record('mutation_session_manifest_missing',_session_merge_missing_manifest_mutation(),'positive fixture -> missing manifest must fail closed')
 
 # Executable Delete Manifest must contain only approved/delete-eligible paths. Protected-retain
 # provenance lives only in Migration Map/Semantic Ledger so unrelated protected documentation
@@ -94,6 +145,13 @@ _NEG_ROOT=Path(tempfile.mkdtemp(prefix='cpf-harness-negative-shared-'))
 _NEG_TARGET=_NEG_ROOT/'cpf-docs/governance/development-harness'
 _NEG_TARGET.parent.mkdir(parents=True,exist_ok=True)
 _clone_harness(_NEG_TARGET)
+# Strength validator also consumes the canonical toolchain compatibility policy outside Harness.
+# Copy that single authority into the isolated negative fixture so mutations test the rule itself,
+# not an unrelated missing-file condition.
+_policy_src=ROOT/'cpf-tools/verification/contracts/cpf-toolchain-compatibility.json'
+_policy_dst=_NEG_ROOT/'cpf-tools/verification/contracts/cpf-toolchain-compatibility.json'
+_policy_dst.parent.mkdir(parents=True,exist_ok=True)
+shutil.copy2(_policy_src,_policy_dst)
 
 # migration replacements can point outside Harness; create only harmless placeholders required
 # for the migration structure validator. They never count as product evidence.
@@ -247,6 +305,19 @@ def mut_tracking_scope_reduced(h):
         if r.get('item_role','TRACKING')=='TRACKING': rr.pop(i); break
     with p.open('w',encoding='utf-8-sig',newline='') as f: w=csv.DictWriter(f,fieldnames=hdr);w.writeheader();w.writerows(rr)
 run_strength_mut('mutation_harness_strength_tracking_reduction',mut_tracking_scope_reduced,'TRACKING_WORK_REDUCED')
+
+def mut_toolchain_exact_host_patch(h):
+    root=h.parents[2]; p=root/'cpf-tools/verification/contracts/cpf-toolchain-compatibility.json'
+    data=json.loads(p.read_text(encoding='utf-8'));data['tools']['npm']['exactPatchRequired']=True
+    p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+run_strength_mut('mutation_toolchain_exact_host_patch_reentry',mut_toolchain_exact_host_patch,'HOST_EXACT_PATCH_PIN_REINTRODUCED')
+
+def mut_toolchain_exact_java_host_major(h):
+    root=h.parents[2]; p=root/'cpf-tools/verification/contracts/cpf-toolchain-compatibility.json'
+    data=json.loads(p.read_text(encoding='utf-8'));data['tools']['java']['maxMajor']=25
+    p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+run_strength_mut('mutation_toolchain_exact_java_host_major_reentry',mut_toolchain_exact_java_host_major,'HOST_JAVA_EXACT_MAJOR_PIN_REINTRODUCED')
+
 
 def mut_test_evidence_reduced(h):
     p=h/'contracts/contract-registry.json'; data=json.loads(p.read_text(encoding='utf-8'))

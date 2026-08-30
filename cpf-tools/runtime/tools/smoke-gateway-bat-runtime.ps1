@@ -45,6 +45,14 @@ function Save-Result {
     Write-CpfRuntimeJson -Path $resultPath -Value $result
 }
 
+function Get-CpfOptionalRuntimeProperty {
+    param([object] $Value,[string] $Name,[object] $Default = $null)
+    if ($null -eq $Value) { return $Default }
+    $property = $Value.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) { return $Default }
+    return $property.Value
+}
+
 try {
     $startArgs = @{
         Root = $Root
@@ -74,29 +82,29 @@ try {
         status = [string] $startResult.status
         modules = @($startResult.modules | ForEach-Object {
                 [ordered]@{
-                    module = [string] $_.module
-                    status = [string] $_.status
-                    port = [int] $_.port
-                    healthCheckPassed = [bool] $_.healthCheckPassed
-                    processStillAliveAfterProbe = [bool] $_.processStillAliveAfterProbe
-                    finalRuntimeUsable = [bool] $_.finalRuntimeUsable
-                    failureClassification = [string] $_.failureClassification
-                    failureRootCause = [string] $_.failureRootCause
-                    bootJarBuildStatus = [string] $_.bootJarBuildStatus
-                    stdout = [string] $_.stdout
-                    stderr = [string] $_.stderr
-                    stdoutTail = [string] $_.stdoutTail
-                    stderrTail = [string] $_.stderrTail
+                    module = [string] (Get-CpfOptionalRuntimeProperty $_ "module" "UNKNOWN")
+                    status = [string] (Get-CpfOptionalRuntimeProperty $_ "status" $statusNotVerified)
+                    port = [int] (Get-CpfOptionalRuntimeProperty $_ "port" 0)
+                    healthCheckPassed = [bool] (Get-CpfOptionalRuntimeProperty $_ "healthCheckPassed" $false)
+                    processStillAliveAfterProbe = [bool] (Get-CpfOptionalRuntimeProperty $_ "processStillAliveAfterProbe" $false)
+                    finalRuntimeUsable = [bool] (Get-CpfOptionalRuntimeProperty $_ "finalRuntimeUsable" $false)
+                    failureClassification = [string] (Get-CpfOptionalRuntimeProperty $_ "failureClassification" "UNKNOWN")
+                    failureRootCause = [string] (Get-CpfOptionalRuntimeProperty $_ "failureRootCause" "")
+                    bootJarBuildStatus = [string] (Get-CpfOptionalRuntimeProperty $_ "bootJarBuildStatus" $statusNotVerified)
+                    stdout = [string] (Get-CpfOptionalRuntimeProperty $_ "stdout" "")
+                    stderr = [string] (Get-CpfOptionalRuntimeProperty $_ "stderr" "")
+                    stdoutTail = [string] (Get-CpfOptionalRuntimeProperty $_ "stdoutTail" "")
+                    stderrTail = [string] (Get-CpfOptionalRuntimeProperty $_ "stderrTail" "")
                 }
             })
     }
-    $unusable = @($startResult.modules | Where-Object { $_.finalRuntimeUsable -ne $true })
+    $unusable = @($startResult.modules | Where-Object { [bool] (Get-CpfOptionalRuntimeProperty $_ "finalRuntimeUsable" $false) -ne $true })
     if ($unusable.Count -gt 0) {
         $failureDetails = @($unusable | ForEach-Object {
-                $moduleName = [string] $_.module
-                $classification = [string] $_.failureClassification
-                $rootCause = [string] $_.failureRootCause
-                $stderrTail = ([string] $_.stderrTail -replace "`r`n", ' ' -replace "`n", ' ').Trim()
+                $moduleName = [string] (Get-CpfOptionalRuntimeProperty $_ "module" "UNKNOWN")
+                $classification = [string] (Get-CpfOptionalRuntimeProperty $_ "failureClassification" "UNKNOWN")
+                $rootCause = [string] (Get-CpfOptionalRuntimeProperty $_ "failureRootCause" "")
+                $stderrTail = ([string] (Get-CpfOptionalRuntimeProperty $_ "stderrTail" "") -replace "`r`n", ' ' -replace "`n", ' ').Trim()
                 if ($stderrTail.Length -gt 600) { $stderrTail = $stderrTail.Substring($stderrTail.Length - 600) }
                 "$moduleName classification=$classification rootCause=$rootCause stderrTail=$stderrTail"
             })
@@ -104,13 +112,13 @@ try {
     }
 
     $batchResult = $startResult.modules | Where-Object { $_.module -eq "BAT" } | Select-Object -First 1
-    if ($null -eq $batchResult -or -not [bool] $batchResult.healthCheckPassed) {
+    if ($null -eq $batchResult -or -not [bool] (Get-CpfOptionalRuntimeProperty $batchResult "healthCheckPassed" $false)) {
         throw "BAT Control Server readiness 검증 결과가 없습니다."
     }
     $result.batchReadiness = [ordered]@{
         status = $statusDone
-        port = [int] $batchResult.port
-        health = $batchResult.health
+        port = [int] (Get-CpfOptionalRuntimeProperty $batchResult "port" 0)
+        health = Get-CpfOptionalRuntimeProperty $batchResult "health" $null
     }
 
     & (Join-Path $PSScriptRoot "smoke-openapi.ps1") `

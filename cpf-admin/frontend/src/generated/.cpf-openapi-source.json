@@ -12,9 +12,9 @@
   "generatorConfigPath": "orval.config.ts",
   "generatorConfigSha256": "b66ce9fcab98fcc2b3bca2522e5a64d7fe39bc3d13a7c096949066772802a76c",
   "packageLockPath": "package-lock.json",
-  "packageLockSha256": "144caaa9f083dfa4219b05fc46947cafea970864dd10fd463649e34c3b007a81",
-  "nodeRequirement": ">=22.18.0 <25",
-  "npmRequirement": "10.9.2",
+  "packageLockSha256": "5e27deaceceab7efea25eb6a467ba6ac64bc4b40e118c78322d3a1f936c172fa",
+  "nodeRequirement": ">=22.18.0",
+  "npmRequirement": ">=10",
   "generatedFiles": [
     {
       "path": "src/generated/adm-route-operation-contract.ts",

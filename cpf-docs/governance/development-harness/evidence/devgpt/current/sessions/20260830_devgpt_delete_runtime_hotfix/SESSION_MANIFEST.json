@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "sessionKey": "20260830_devgpt_delete_runtime_hotfix",
+  "role": "DEVGPT",
+  "startedAt": "2026-08-30T17:37:00+09:00",
+  "endedAt": "2026-08-30T17:50:00+09:00",
+  "sourceIdentity": "1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839",
+  "sourceBasis": "CPF_C_DEV_QA_2_6_SOURCE_OVERLAY_20260830_173530 applied + user DELETE SHA mismatch evidence + current Source hotfix",
+  "registrySha256AtStart": "d5f94ec3168b4ba72b2dc9cb00fa55cf60c4a3ea2d4eaddea1de7a2b5876b066",
+  "reportPath": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SESSION_REPORT.md",
+  "reportSha256": "039538303c21f87363a147e8f4be89b18b8c4ba84252524102376863194e87eb",
+  "workItems": [
+    {
+      "workItemId": "WP-H02",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HOTFIX_TARGETED_REGRESSION.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/TOOLCHAIN_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HARNESS_STRENGTH_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/CLEAN_SOURCE_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.json",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/LOCAL_MAX_RUNTIME_COMMAND.txt",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/CPF_C_DEV_QA_2_6_DELETE_MANIFEST.csv"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical toolchain/Harness/runtime contracts",
+        "requiredEnvironment": "Compatible installed host tools proven by capability; physical Windows/Docker/Browser where required",
+        "actualEnvironment": "DevGPT Linux static/pytest environment; user Windows physical runtime not executed in this session"
+      },
+      "reportAnchor": "## WP-H02"
+    },
+    {
+      "workItemId": "WP-B01",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HOTFIX_TARGETED_REGRESSION.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/TOOLCHAIN_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HARNESS_STRENGTH_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/CLEAN_SOURCE_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.json",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/LOCAL_MAX_RUNTIME_COMMAND.txt",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/CPF_C_DEV_QA_2_6_DELETE_MANIFEST.csv"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical toolchain/Harness/runtime contracts",
+        "requiredEnvironment": "Compatible installed host tools proven by capability; physical Windows/Docker/Browser where required",
+        "actualEnvironment": "DevGPT Linux static/pytest environment; user Windows physical runtime not executed in this session"
+      },
+      "reportAnchor": "## WP-B01"
+    },
+    {
+      "workItemId": "WP-FIN01",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HOTFIX_TARGETED_REGRESSION.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/TOOLCHAIN_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HARNESS_STRENGTH_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/CLEAN_SOURCE_HOTFIX.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.log",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.json",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/LOCAL_MAX_RUNTIME_COMMAND.txt",
+        "cpf-docs/governance/development-harness/evidence/devgpt/current/CPF_C_DEV_QA_2_6_DELETE_MANIFEST.csv"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Current Source canonical toolchain/Harness/runtime contracts",
+        "requiredEnvironment": "Compatible installed host tools proven by capability; physical Windows/Docker/Browser where required",
+        "actualEnvironment": "DevGPT Linux static/pytest environment; user Windows physical runtime not executed in this session"
+      },
+      "reportAnchor": "## WP-FIN01"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HOTFIX_TARGETED_REGRESSION.log",
+      "sha256": "ea9786655e130105694a42b61733d673f90098974ba3b65dfb43b66927820b82",
+      "purpose": "HOTFIX_TARGETED_REGRESSION.log"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/TOOLCHAIN_HOTFIX.log",
+      "sha256": "2bf9f2d2a2212bfbf1a9f706e3d4544ce1a5b09350fb9df1787203cb36b69e08",
+      "purpose": "TOOLCHAIN_HOTFIX.log"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/HARNESS_STRENGTH_HOTFIX.log",
+      "sha256": "acf014b0deee007f48748cc080977dd3d8e8c28cddd1c890163fb510ddc616ac",
+      "purpose": "HARNESS_STRENGTH_HOTFIX.log"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/CLEAN_SOURCE_HOTFIX.log",
+      "sha256": "c2275a8998f65799f6669092d74e9a1a937c0371d3eed98e4184943bf0325114",
+      "purpose": "CLEAN_SOURCE_HOTFIX.log"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.log",
+      "sha256": "51b78fc12552351091c17c61d6ead980386a202fee44c55cfdf62f9562bd03d1",
+      "purpose": "SOURCE_IDENTITY.log"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/SOURCE_IDENTITY.json",
+      "sha256": "51b78fc12552351091c17c61d6ead980386a202fee44c55cfdf62f9562bd03d1",
+      "purpose": "SOURCE_IDENTITY.json"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_delete_runtime_hotfix/LOCAL_MAX_RUNTIME_COMMAND.txt",
+      "sha256": "b5cd1a6f72bf24bebf18726f9239562733345f5fb716bf3af16c5a6644d35c77",
+      "purpose": "LOCAL_MAX_RUNTIME_COMMAND.txt"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/CPF_C_DEV_QA_2_6_DELETE_MANIFEST.csv",
+      "sha256": "c1c6bc9db2d3da1df8b4f66a06716ef2efd3ecde2153f299ec3a30152260fb52",
+      "purpose": "CPF_C_DEV_QA_2_6_DELETE_MANIFEST.csv"
+    }
+  ],
+  "gitWriteExecuted": false,
+  "mergeStatus": "MERGED",
+  "mergedBySessionKey": "HARNESS-20260830T175000+0900-DELETE-RUNTIME-HOTFIX-MERGE",
+  "mergedAt": "2026-08-30T17:50:00+09:00",
+  "mergeTargetSourceIdentity": "1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839",
+  "pendingReasons": [
+    "Fresh Windows VS Code 0/0 및 same-source physical Runtime 미실행",
+    "Independent Reviewer/QA Final Acceptance 미실행"
+  ],
+  "conflicts": [],
+  "rerunConditions": [
+    "Apply corrected hotfix overlay and generated-root cleanup",
+    "Fresh VS Code Error=0 Warning=0",
+    "Run LOCAL_MAX_RUNTIME_COMMAND.txt",
+    "Codex/Claude Independent Review",
+    "QA Final Acceptance"
+  ]
+}

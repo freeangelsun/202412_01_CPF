@@ -60,6 +60,7 @@ $log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; ./gradle
 - 사용자 PC의 actual version에 맞춰 Framework requirement나 verifier expected를 바꾸지 않는다.
 - Current Source의 canonical bootstrap/verifier/toolchain/package metadata/lock/runtime script를 우선 조회하고 `required / actual / source`를 기록한다.
 - mismatch이면 어떤 prerequisite gate에서 막혔는지 먼저 판정한다. 아직 진입하지 못한 DB3/Batch/Frontend 등 후속 Runtime을 FAIL/PASS로 추정하지 않는다.
+- Host Tool은 exact patch/minor 숫자보다 `cpf-tools/verification/contracts/cpf-toolchain-compatibility.json`의 최소 기능/major compatibility를 우선한다. Project-owned Wrapper/Lock/Container pin과 Host prerequisite pin을 혼동하지 않는다.
 - 환경 교정은 canonical bootstrap이 소유하는 경우 그 방식을 우선한다. 전역 설치·다운그레이드처럼 사용자 환경을 바꾸는 조치는 자동 기본값으로 만들지 않고 영향과 복구를 명시한다.
 - 환경 교정 후에는 prerequisite gate 다음 단계만 부분 실행해 완료 처리하지 말고 원래의 최대강도 canonical command를 다시 실행한다.
 - 명령 자체가 stale version을 고정해 사용자가 반복 수정해야 하는 구조를 만들지 않는다. Source가 이미 요구값을 제공하는 경우 그 값을 검증하는 canonical entrypoint를 사용한다.

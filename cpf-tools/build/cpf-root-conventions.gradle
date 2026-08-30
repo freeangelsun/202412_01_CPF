@@ -232,9 +232,18 @@ version = ext.cpfPlatformVersion
 // VS Code Build Server/JDT resolves every in-build Java project dependency twice: once as an
 // Eclipse project reference and once as an absolute class-folder library entry, because Gradle
 // compile-avoidance hands a java-library consumer the compile output directory instead of a jar.
-// JDT requires that class folder to exist, so a clean must be followed by a real compile.
-// Never add fake Java API/classes, never materialize an empty output directory to hide the
-// diagnostic, and never introduce an IDE-only directory that would survive as garbage.
+// JDT requires that class folder to exist. Source-bearing projects get it from compileJava;
+// dependency-assembly Java projects have no bytecode by design, so Fresh Buildship import must
+// materialize only their canonical Gradle classes/java/main directory. This is not a fake API or
+// IDE-only output: it is the declared Java output location and remains removable by clean.
+gradle.afterProject { target, state ->
+    if (target != rootProject && target.plugins.hasPlugin('java') && target.sourceSets.main.java.files.empty) {
+        def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
+        if (!output.isDirectory() && !output.mkdirs() && !output.isDirectory()) {
+            throw new GradleException("CPF source-empty canonical compile output could not be created: ${target.path} -> ${output}")
+        }
+    }
+}
 
 tasks.register('cpfPrepareIdeClasspath') {
     group = 'verification'
@@ -247,15 +256,37 @@ tasks.register('cpfPrepareIdeClasspath') {
     doLast {
         def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
         def compiled = javaProjects.findAll { !it.sourceSets.main.java.files.empty }
+        def sourceEmpty = javaProjects.findAll { it.sourceSets.main.java.files.empty }
+        sourceEmpty.each { target ->
+            def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
+            if (!output.isDirectory() && !output.mkdirs() && !output.isDirectory()) {
+                throw new GradleException("CPF source-empty canonical compile output could not be created: ${target.path} -> ${output}")
+            }
+        }
         def missing = []
-        compiled.each { target ->
+        javaProjects.each { target ->
             def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
             if (!output.isDirectory()) missing << "${target.path}:compile-output-missing=${output}"
         }
         if (!missing.isEmpty()) {
             throw new GradleException("CPF IDE classpath preparation failed:\n - ${missing.join('\\n - ')}")
         }
-        println "CPF_IDE_CLASSPATH_READY compiled=${compiled.size()} scope=gradle-canonical-compile-output"
+        println "CPF_IDE_CLASSPATH_READY javaProjects=${javaProjects.size()} compiled=${compiled.size()} sourceEmpty=${sourceEmpty.size()} scope=gradle-canonical-compile-output"
+    }
+}
+
+tasks.register('cpfVerifyIdeClasspathReady') {
+    group = 'verification'
+    description = 'Buildship/JDT가 참조하는 모든 canonical Java class folder가 실제 존재하는지 검증합니다.'
+    doLast {
+        def missing = subprojects.findAll { it.plugins.hasPlugin('java') }.collect { target ->
+            def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
+            output.isDirectory() ? null : "${target.path}:compile-output-missing=${output}"
+        }.findAll { it != null }
+        if (!missing.isEmpty()) {
+            throw new GradleException("CPF IDE classpath readiness failed:\n - ${missing.join('\\n - ')}")
+        }
+        println "CPF_IDE_CLASSPATH_READY_GATE=PASS scope=all-java-projects"
     }
 }
 
@@ -269,6 +300,9 @@ tasks.register('cpfVerifyIdeClasspathModel') {
             def actual = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile.canonicalFile
             def canonical = target.layout.buildDirectory.dir('classes/java/main').get().asFile.canonicalFile
             if (actual != canonical) failures << "${target.path}:non-canonical-compile-output=${actual}"
+            if (target.sourceSets.main.java.files.empty && !canonical.isDirectory()) {
+                failures << "${target.path}:source-empty-canonical-output-missing=${canonical}"
+            }
             if (new File(target.projectDir, '.cpf-ide').exists()) {
                 failures << "${target.path}:ide-only-output-directory-present"
             }

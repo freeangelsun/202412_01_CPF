@@ -890,7 +890,11 @@ def cpfSha256 = {{ String value ->
 
 subprojects {{
     plugins.withId('java') {{
-        java {{ toolchain {{ languageVersion = JavaLanguageVersion.of({java}) }} }}
+        java {{
+            sourceCompatibility = JavaVersion.VERSION_{java}
+            targetCompatibility = JavaVersion.VERSION_{java}
+        }}
+        tasks.withType(org.gradle.api.tasks.compile.JavaCompile).configureEach {{ options.release = {java} }}
         tasks.withType(Test).configureEach {{ useJUnitPlatform() }}
 
         // Runtime discovery descriptor는 업무 Source가 아니라 Build 산출물로만 생성합니다.

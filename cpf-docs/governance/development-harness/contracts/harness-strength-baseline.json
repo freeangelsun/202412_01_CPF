@@ -21,7 +21,7 @@
     "WP-RL02",
     "WP-FIN01"
   ],
-  "minimumControlCount": 32,
+  "minimumControlCount": 33,
   "requiredControlIds": [
     "HARN-CTRL-001",
     "HARN-CTRL-002",
@@ -54,12 +54,13 @@
     "HARN-CTRL-029",
     "HARN-CTRL-030",
     "HARN-CTRL-031",
-    "HARN-CTRL-032"
+    "HARN-CTRL-032",
+    "HARN-CTRL-033"
   ],
   "minimumScenarioCount": 40806,
   "minimumDetailedRequirementCount": 30605,
   "minimumExecutionSequenceCount": 30605,
-  "minimumNegativeMutationCount": 27,
+  "minimumNegativeMutationCount": 28,
   "requiredRoles": [
     "DEVGPT",
     "INDEPENDENT_REVIEWER",

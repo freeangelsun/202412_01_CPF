@@ -850,7 +850,7 @@ export function resolveCpfOperation(method: string, rawUrl: string): CpfOperatio
         "sanitized": True,
     }
     if not marker["nodeRequirement"] or not marker["npmRequirement"]:
-        raise ContractError("Node/npm exact requirement missing")
+        raise ContractError("Node/npm compatibility requirement missing")
     (output / ".cpf-openapi-source.json").write_text(json.dumps(marker, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 

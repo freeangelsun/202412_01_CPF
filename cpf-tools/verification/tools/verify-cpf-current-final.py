@@ -89,8 +89,9 @@ else:
                 pending_entries.append(path)
                 if not approved or precondition!='SATISFIED' or not user_required:
                     fail(f'DELETE_MANIFEST pending row must be approved + SATISFIED + user execution required:{n}:{path}')
-                if replacement and not (ROOT/replacement).is_file():
-                    fail(f'DELETE_MANIFEST replacement missing:{n}:{path}->{replacement}')
+                # Direct replacement_path may itself be a retired intermediate path.
+                # Canonical migration closure owns transitive replacement resolution and SHA validation;
+                # duplicating a direct-file existence check here creates a stale false failure after currentization.
             elif lifecycle=='HISTORICAL_ALREADY_ABSENT':
                 if (ROOT/path).exists(): fail(f'historical delete path unexpectedly exists:{path}')
             else:

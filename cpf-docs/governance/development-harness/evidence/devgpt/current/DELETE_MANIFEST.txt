@@ -1,2 +1,7 @@
-# Root-relative delete manifest
-# Product source deletion: none
+# Root-relative delivery generated-garbage delete manifest
+# Canonical legacy delete set remains current/DELETE_MANIFEST.csv
+# Mutable generated roots intentionally do not use content SHA.
+cpf-tools/build/gradle-plugin/.gradle
+cpf-tools/build/gradle-plugin/build
+cpf-tools/build/platform-bom/.gradle
+cpf-tools/build/tools/__pycache__

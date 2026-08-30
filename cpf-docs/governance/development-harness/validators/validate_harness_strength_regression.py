@@ -29,6 +29,25 @@ else:
  negative_count=base_checks+mutation_checks
  if negative_count<b.get('minimumNegativeMutationCount',0):
   e.append(f'NEGATIVE_MUTATION_REDUCED {negative_count}<{b.get("minimumNegativeMutationCount",0)}')
+
+# Capability-first host toolchain policy is a Common Rule and may not regress to exact host patch pins.
+rule_text=(H/'standards/CPF_RULE_MODEL_AND_IMPACT_SEARCH_STANDARD.md').read_text(encoding='utf-8')
+if 'CR-22' not in rule_text or 'Capability-first Toolchain Compatibility' not in rule_text:
+ e.append('CAPABILITY_FIRST_COMMON_RULE_MISSING')
+policy_path=ROOT/'cpf-tools/verification/contracts/cpf-toolchain-compatibility.json'
+if not policy_path.is_file():
+ e.append('TOOLCHAIN_COMPATIBILITY_POLICY_MISSING')
+else:
+ policy=load(policy_path)
+ if policy.get('policy')!='CAPABILITY_FIRST' or (policy.get('principles') or {}).get('hostExactPatchPinForbidden') is not True or (policy.get('principles') or {}).get('hostMinorPatchGateForbidden') is not True or (policy.get('principles') or {}).get('capabilityProbePrecedesVersionRejection') is not True:
+  e.append('TOOLCHAIN_COMPATIBILITY_POLICY_WEAKENED')
+ for name,spec in (policy.get('tools') or {}).items():
+  if spec.get('exactPatchRequired') is True:
+   e.append('HOST_EXACT_PATCH_PIN_REINTRODUCED '+name)
+ java=(policy.get('tools') or {}).get('java') or {}
+ if java.get('maxMajor') is not None or java.get('hardMinMajor') is not None or java.get('enforcement')!='CAPABILITY_FIRST_RELEASE_25':
+  e.append('HOST_JAVA_EXACT_MAJOR_PIN_REINTRODUCED')
+
 # tracking -> execution exact mechanical linkage; 193 canonical umbrellas retained.
 execids={r['work_item_id'] for r in execs}
 for r in tracking:

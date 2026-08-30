@@ -171,3 +171,17 @@ def test_development_harness_current_authority_does_not_make_source_identity_cir
 
     assert source_before["contentSha256"] == source_after["contentSha256"]
     assert managed_before["contentSha256"] != managed_after["contentSha256"]
+
+
+def test_development_harness_current_merge_state_does_not_change_product_source_identity(tmp_path: Path):
+    product = tmp_path / "cpf-core" / "src"
+    product.mkdir(parents=True)
+    (product / "Core.java").write_text("class Core {}", encoding="utf-8")
+    current = tmp_path / "cpf-docs" / "governance" / "development-harness" / "current"
+    current.mkdir(parents=True)
+    state = current / "CURRENT_MERGE_CONTROL_STATE.json"
+    state.write_text('{"merge_baseline_source_identity":"before"}', encoding="utf-8")
+    before = module.snapshot(tmp_path, "source")
+    state.write_text('{"merge_baseline_source_identity":"after"}', encoding="utf-8")
+    after = module.snapshot(tmp_path, "source")
+    assert before["contentSha256"] == after["contentSha256"]

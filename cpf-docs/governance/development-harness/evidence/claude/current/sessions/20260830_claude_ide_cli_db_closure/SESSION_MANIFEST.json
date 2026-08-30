@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "sessionKey": "20260830_claude_ide_cli_db_closure",
+  "role": "CLAUDE",
+  "startedAt": "2026-08-30T10:00:00+09:00",
+  "endedAt": "2026-08-30T13:20:00+09:00",
+  "sourceIdentity": "90e4890dd4630ea2683d3b90223a2b8fd9a739f7444adeaeb3ee9d3d61e049a2",
+  "sourceBasis": "Local Working Tree recorded by Claude report",
+  "registrySha256AtStart": "UNAVAILABLE_PRE_PROTOCOL",
+  "reportPath": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+  "reportSha256": "798a40b9d68f79f7175bd74e8ba2c969d2fded6937757c673c12a0d727073df8",
+  "workItems": [
+    {
+      "workItemId": "WP-R02.07",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Claude SESSION_REPORT current-source commands/environment",
+        "requiredEnvironment": "As declared per Work Item; current Source replay required",
+        "actualEnvironment": "Windows JDK25/Gradle9.1/Python3.13 per report; evidence belongs to prior Source Identity"
+      },
+      "reportAnchor": "## WP-R02.07 — VS Code Buildship/JDT Build Path"
+    },
+    {
+      "workItemId": "WP-R03.05",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Claude SESSION_REPORT current-source commands/environment",
+        "requiredEnvironment": "As declared per Work Item; current Source replay required",
+        "actualEnvironment": "Windows JDK25/Gradle9.1/Python3.13 per report; evidence belongs to prior Source Identity"
+      },
+      "reportAnchor": "## WP-R03.05 — Harness Evidence Identity (canonical registry 변조)"
+    },
+    {
+      "workItemId": "WP-R07.13",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Claude SESSION_REPORT current-source commands/environment",
+        "requiredEnvironment": "As declared per Work Item; current Source replay required",
+        "actualEnvironment": "Windows JDK25/Gradle9.1/Python3.13 per report; evidence belongs to prior Source Identity"
+      },
+      "reportAnchor": "## WP-R07.13 — Windows CLI Launcher (`cpf.cmd`)"
+    },
+    {
+      "workItemId": "WP-R07.14",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Claude SESSION_REPORT current-source commands/environment",
+        "requiredEnvironment": "As declared per Work Item; current Source replay required",
+        "actualEnvironment": "Windows JDK25/Gradle9.1/Python3.13 per report; evidence belongs to prior Source Identity"
+      },
+      "reportAnchor": "## WP-R07.14 — Unified CLI / Entrypoint Inventory"
+    },
+    {
+      "workItemId": "WP-R10.12",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Claude SESSION_REPORT current-source commands/environment",
+        "requiredEnvironment": "As declared per Work Item; current Source replay required",
+        "actualEnvironment": "Windows JDK25/Gradle9.1/Python3.13 per report; evidence belongs to prior Source Identity"
+      },
+      "reportAnchor": "## WP-R10.12 — DB Vendor Lifecycle / refDB Garbage / Common Cache 계약"
+    },
+    {
+      "workItemId": "WP-RL02",
+      "proposedStatus": "VERIFICATION_PENDING",
+      "evidence": [
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+        "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json"
+      ],
+      "acceptanceMapping": {
+        "prerequisiteSource": "Claude SESSION_REPORT current-source commands/environment",
+        "requiredEnvironment": "As declared per Work Item; current Source replay required",
+        "actualEnvironment": "Windows JDK25/Gradle9.1/Python3.13 per report; evidence belongs to prior Source Identity"
+      },
+      "reportAnchor": "## WP-RL02 / Open Git — Stage 06 Generator Distribution"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
+      "sha256": "798a40b9d68f79f7175bd74e8ba2c969d2fded6937757c673c12a0d727073df8",
+      "purpose": "Claude detailed work-item report"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json",
+      "sha256": "6f2073a740fe846263fedd679ba808599cec7c9271568846bee212264dbc4f66",
+      "purpose": "Claude terminal source state"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SHA256SUMS.txt",
+      "sha256": "fa913258f212b3631d689e36a00c8fe744eada2eafdb997c7ac7b1af8956e20f",
+      "purpose": "Claude evidence checksum index"
+    }
+  ],
+  "gitWriteExecuted": false,
+  "mergeStatus": "MERGED",
+  "mergedBySessionKey": "HARNESS-20260830T061500Z-MERGE",
+  "mergedAt": "2026-08-30T15:15:00+09:00",
+  "mergeTargetSourceIdentity": "c089260cac1250da7c8fb4c73bcf7338577aa0538d9fa5c2fbbb0ef8128917a1",
+  "pendingReasons": [],
+  "conflicts": [],
+  "rerunConditions": [
+    "Prior-source PASS is provenance only; replay affected current Source before PASS promotion"
+  ]
+}

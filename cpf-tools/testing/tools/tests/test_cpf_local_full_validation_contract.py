@@ -125,8 +125,10 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
 
     def test_frontend_toolchain_memory_and_managed_drift_are_fail_closed(self):
         self.assertIn("FRONTEND_TOOLCHAIN", self.text)
-        self.assertIn("npm=10.9.2", self.text)
-        self.assertIn("major -lt 25", self.text)
+        self.assertIn("policy=CAPABILITY_FIRST", self.text)
+        self.assertIn("compatibilityFloor", self.text)
+        self.assertIn("npmCi=", self.text)
+        self.assertNotIn("npm=10.9.2", self.text)
         self.assertIn("--max-old-space-size=1000", self.text)
         self.assertIn("managed-state-diff.json", self.text)
         self.assertIn("beforeSha256", self.text)
@@ -139,7 +141,7 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertIn("$Status -ne 'PASS'", self.text)
         self.assertIn("DETAIL:", self.text)
         self.assertIn("NOTE:", self.text)
-        self.assertIn("node=$nodeText npm=$npmText required=node>=22.18.0<25 npm=10.9.2", self.text)
+        self.assertIn("policy=CAPABILITY_FIRST node=$nodeText npm=$npmText", self.text)
 
     def test_runtime_mojibake_is_fail_closed(self):
         self.assertIn("function Test-CpfMojibakeText", self.text)
@@ -155,3 +157,15 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_batch_runtime_preserves_application_credential_owner():
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "CPF_CORE_DB_RUNTIME_PASSWORD" in text and "CPF_DB_APP_PASSWORD" in text
+    assert "$runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_CORE_DB_RUNTIME_PASSWORD','Process')" in text
+    assert "$runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_DB_APP_PASSWORD','Process')" in text
+    assert "$batchRuntimeEnv=@{CPF_DB_APP_PASSWORD=$runtimeDbPassword;CPF_CORE_DB_RUNTIME_PASSWORD=$runtimeDbPassword}" in text
+    assert "if(-not [string]::IsNullOrWhiteSpace($rootPassword)){$batchRuntimeEnv.CPF_DB_ROOT_PASSWORD=$rootPassword}" in text
+    assert "if(-not [string]::IsNullOrWhiteSpace($adminPassword)){$batchRuntimeEnv.CPF_ADMIN_PASSWORD=$adminPassword}" in text
+    assert "CPF_DB_APP_PASSWORD=$adminPassword" not in text
+    assert "CPF_CORE_DB_RUNTIME_PASSWORD=$adminPassword" not in text

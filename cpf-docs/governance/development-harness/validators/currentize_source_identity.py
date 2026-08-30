@@ -109,6 +109,22 @@ def update_execution_summary(path: Path, source: dict) -> bool:
     return changed
 
 
+def update_merge_control_state(path: Path, identity: str) -> bool:
+    """Bind mutable Merge Control baseline to the exact current Product Source Identity.
+
+    The state file lives under current/ and is excluded from Product Source Identity, so this
+    currentization cannot create an identity feedback loop. Session provenance fields remain intact.
+    """
+    if not path.is_file():
+        return False
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("merge_baseline_source_identity") == identity:
+        return False
+    data["merge_baseline_source_identity"] = identity
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return True
+
+
 def update_package_manifest(path: Path, source: dict) -> bool:
     """Currentize generated package projection identity/counts without changing completion semantics."""
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -240,6 +256,10 @@ def main() -> int:
     for path in (H / "SOURCE_IDENTITY.json", C / "SOURCE_IDENTITY.json"):
         update_identity_file(path, source)
         changed.append(path.relative_to(ROOT).as_posix())
+
+    merge_state = C / "CURRENT_MERGE_CONTROL_STATE.json"
+    if update_merge_control_state(merge_state, identity):
+        changed.append(merge_state.relative_to(ROOT).as_posix())
 
     package_manifest = C / "PACKAGE_MANIFEST.json"
     if package_manifest.is_file() and update_package_manifest(package_manifest, source):

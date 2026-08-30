@@ -12,6 +12,8 @@
 - 이전 Source Identity의 PASS 승계
 - 과거 세션/대화의 tool version을 Current Source 재확인 없이 재사용
 - 사용자 PC actual version에 맞춰 Framework prerequisite/expected를 낮춰 PASS 생성
+- 기술적 근거 없이 Host Java/Node/npm/Python/PowerShell/Docker/Browser의 exact patch/minor를 고정해 호환 가능한 설치환경을 불필요하게 FAIL 처리
+- 서로 다른 Release/Runtime/Test Script가 각자 다른 tool version 규칙을 하드코딩하여 canonical compatibility policy와 drift
 - 실패 후 expected/waiver/suppression을 낮춰 PASS 생성
 
 ## 완료 연계

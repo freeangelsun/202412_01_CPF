@@ -107,6 +107,10 @@ $resourceHelper = Join-Path $RepoRoot 'cpf-tools\runtime\tools\cpf-resource-poli
 $dockerCpfRoot = Join-Path $DockerRoot 'CPF'
 $dockerEnvTool = Join-Path $dockerCpfRoot 'cpf-env.ps1'
 $sourceStateTool = Join-Path $RepoRoot 'cpf-tools\verification\tools\cpf-source-state.py'
+$toolchainPolicyPath = Join-Path $RepoRoot 'cpf-tools\verification\contracts\cpf-toolchain-compatibility.json'
+if (-not (Test-Path -LiteralPath $toolchainPolicyPath -PathType Leaf)) { throw "CPF Toolchain compatibility policy가 없습니다: $toolchainPolicyPath" }
+$toolchainPolicy = Get-Content -LiteralPath $toolchainPolicyPath -Raw -Encoding UTF8 | ConvertFrom-Json
+if ([string]$toolchainPolicy.policy -ne 'CAPABILITY_FIRST') { throw "지원하지 않는 Toolchain 정책입니다: $($toolchainPolicy.policy)" }
 
 function Add-CpfResult(
     [string]$Name,
@@ -400,29 +404,41 @@ function Stop-CpfDockerTargetIfOwned([string]$Target,$State) {
 
 
 
+function Test-CpfJavaRelease25Home([string]$Candidate) {
+    if([string]::IsNullOrWhiteSpace($Candidate)){return $false}
+    $javaExe=Join-Path $Candidate $(if($IsWindows){'bin\java.exe'}else{'bin/java'})
+    $javacExe=Join-Path $Candidate $(if($IsWindows){'bin\javac.exe'}else{'bin/javac'})
+    if(-not(Test-Path -LiteralPath $javaExe -PathType Leaf) -or -not(Test-Path -LiteralPath $javacExe -PathType Leaf)){return $false}
+    $probeRoot=Join-Path ([IO.Path]::GetTempPath()) ("cpf-java25-home-probe-{0}-{1}" -f $PID,[guid]::NewGuid().ToString('N'))
+    try {
+        [IO.Directory]::CreateDirectory($probeRoot)|Out-Null
+        $source=Join-Path $probeRoot 'CpfJava25CapabilityProbe.java'
+        [IO.File]::WriteAllText($source,'public final class CpfJava25CapabilityProbe { public static void main(String[] args) { System.out.print("CPF_JAVA25_CAPABILITY=PASS"); } }',[Text.UTF8Encoding]::new($false))
+        & $javacExe --release 25 -d $probeRoot $source *> $null
+        if($LASTEXITCODE-ne0){return $false}
+        $out=(& $javaExe -cp $probeRoot CpfJava25CapabilityProbe 2>&1|Out-String).Trim()
+        return ($LASTEXITCODE-eq0 -and $out-eq'CPF_JAVA25_CAPABILITY=PASS')
+    } catch { return $false }
+    finally { if(Test-Path -LiteralPath $probeRoot){Remove-Item -LiteralPath $probeRoot -Recurse -Force -ErrorAction SilentlyContinue} }
+}
+
 function Resolve-CpfJava25Home {
     $candidates=[Collections.Generic.List[string]]::new()
     if(-not [string]::IsNullOrWhiteSpace($JavaHome)){$candidates.Add($JavaHome)}
+    if(-not [string]::IsNullOrWhiteSpace($env:CPF_JAVA_HOME)){$candidates.Add($env:CPF_JAVA_HOME)}
     if(-not [string]::IsNullOrWhiteSpace($env:CPF_JAVA25_HOME)){$candidates.Add($env:CPF_JAVA25_HOME)}
     if(-not [string]::IsNullOrWhiteSpace($env:JAVA_HOME)){$candidates.Add($env:JAVA_HOME)}
+    $pathJava=Find-CpfCommand 'java'
+    if($pathJava){$pathHome=Split-Path -Parent (Split-Path -Parent $pathJava);if($pathHome){$candidates.Add($pathHome)}}
     if($IsWindows){
-        $candidates.Add('C:\dev\java\jdk-25.0.3.9-hotspot')
         foreach($base in @('C:\dev\java','C:\Program Files\Eclipse Adoptium','C:\Program Files\Java')){
             if(Test-Path -LiteralPath $base -PathType Container){
-                foreach($dir in Get-ChildItem -LiteralPath $base -Directory -Filter 'jdk-25*' -ErrorAction SilentlyContinue | Sort-Object Name -Descending){
-                    $candidates.Add($dir.FullName)
-                }
+                foreach($dir in Get-ChildItem -LiteralPath $base -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending){$candidates.Add($dir.FullName)}
             }
         }
     }
     foreach($candidate in @($candidates | Select-Object -Unique)){
-        if([string]::IsNullOrWhiteSpace($candidate)){continue}
-        $javaExe=Join-Path $candidate $(if($IsWindows){'bin\java.exe'}else{'bin/java'})
-        if(-not(Test-Path -LiteralPath $javaExe -PathType Leaf)){continue}
-        $versionText=(& $javaExe -version 2>&1 | Out-String)
-        if($versionText -match '(?im)(?:openjdk|java) version "25(?:\.|")'){
-            return (Resolve-Path -LiteralPath $candidate).Path
-        }
+        if(Test-CpfJavaRelease25Home $candidate){return (Resolve-Path -LiteralPath $candidate).Path}
     }
     return $null
 }
@@ -430,15 +446,15 @@ function Resolve-CpfJava25Home {
 function Initialize-CpfJava25 {
     $resolved=Resolve-CpfJava25Home
     if([string]::IsNullOrWhiteSpace($resolved)){
-        Add-CpfTextResult 'JAVA25_ENV' 'FAIL' "JAVA25_HOME=NOT_FOUND`nREQUIRED_MAJOR=25" 'Java 25 is required for CPF Gradle/runtime validation'
+        Add-CpfTextResult 'JAVA25_ENV' 'FAIL' "JAVA_RELEASE_25_CAPABLE_HOME=NOT_FOUND" '정확한 JDK 버전이 아니라 javac --release 25 컴파일과 Java 25 target class 실행 capability가 필요합니다.'
         return $false
     }
     $env:JAVA_HOME=$resolved
     $bin=Join-Path $resolved 'bin'
     $separator=[IO.Path]::PathSeparator
     $env:PATH=$bin+$separator+($env:PATH -split [regex]::Escape([string]$separator) | Where-Object {$_ -ne $bin} | Join-String -Separator $separator)
-    $version=(& (Join-Path $bin $(if($IsWindows){'java.exe'}else{'java'})) -version 2>&1 | Out-String).Trim()
-    Add-CpfTextResult 'JAVA25_ENV' 'PASS' "JAVA_HOME=$resolved`n$version" 'CPF Gradle/runtime is pinned to Java 25 for this validation process'
+    $version=(& (Join-Path $bin $(if($IsWindows){'java.exe'}else{'java'})) --version 2>&1 | Out-String).Trim()
+    Add-CpfTextResult 'JAVA25_ENV' 'PASS' "JAVA_HOME=$resolved`n$version" 'Host JDK exact version은 고정하지 않고 Java 25 target compile/run capability로 선택했습니다.'
     return $true
 }
 
@@ -448,8 +464,14 @@ function Initialize-CpfPythonEnvironment {
         return $null
     }
     $versionText=(& $hostPython --version 2>&1 | Out-String).Trim()
-    if($versionText -notmatch '^Python 3\.13(?:\.|$)'){
-        Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "EXPECTED=Python 3.13`nACTUAL=$versionText" 'CPF local validation requires Python 3.13'
+    if($versionText -notmatch '^Python (?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)'){
+        Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "ACTUAL=$versionText" 'Python version을 해석할 수 없습니다.'
+        return $null
+    }
+    $actualPython=[version]("$($Matches.major).$($Matches.minor).$($Matches.patch)")
+    $requiredPython=[version][string]$toolchainPolicy.tools.python.minVersion
+    if($actualPython-lt$requiredPython){
+        Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "REQUIRED=>=$requiredPython`nACTUAL=$versionText" 'Python patch/minor exact pin 없이 verifier language capability 최소선만 요구합니다.'
         return $null
     }
     $localValidationHome=if($env:LOCALAPPDATA){Join-Path $env:LOCALAPPDATA 'CPF\validation'}else{Join-Path ([IO.Path]::GetTempPath()) 'CPF\validation'}
@@ -764,8 +786,10 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
     Invoke-CpfStage 'GRADLE_CPF_HELP' $gradle (@('cpfHelp')+$gradleBase)
     Invoke-CpfStage 'GRADLE_CPF_MODULES' $gradle (@('cpfModules')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH' $gradle (@('cpfPrepareIdeClasspath')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_READY' $gradle (@('cpfVerifyIdeClasspathReady')+$gradleBase)
     Invoke-CpfStage 'GRADLE_FULL_BUILD_QUALITY' $gradle (@('clean','cpfBuild','qualityGate','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_AFTER_BUILD' $gradle (@('cpfPrepareIdeClasspath')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_READY_AFTER_BUILD' $gradle (@('cpfVerifyIdeClasspathReady')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_MODEL_AFTER_BUILD' $gradle (@('cpfVerifyIdeClasspathModel')+$gradleBase)
     Invoke-CpfStage 'GRADLE_ALL_JAVA_TESTS' $gradle (@('cpfTest','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_QA34_INTEGRATION' $gradle (@('qa34IntegrationTest','--continue')+$gradleBase)
@@ -794,18 +818,19 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
 
 # 3. ADM/BACKOFFICE Frontend를 Java와 겹치지 않게 순차 실행한다.
 function Test-CpfFrontendToolchain {
-    if(-not $node -or -not $npm){return [pscustomobject]@{ready=$false;detail='node/npm missing'}}
-    $nodeText=(& $node --version 2>&1 | Out-String).Trim()
-    $npmText=(& $npm --version 2>&1 | Out-String).Trim()
-    $nodeMatch=[regex]::Match($nodeText,'^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$')
+    if(-not $node -or -not $npm){return [pscustomobject]@{ready=$false;detail='Node/npm command missing'}}
+    $nodeText=(& $node --version 2>&1 | Out-String).Trim();$npmText=(& $npm --version 2>&1 | Out-String).Trim()
+    $nodeMatch=[regex]::Match($nodeText,'^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$');$npmMatch=[regex]::Match($npmText,'^(?<major>\d+)(?:\.|$)')
     if(-not $nodeMatch.Success){return [pscustomobject]@{ready=$false;detail="Node version parse failed: $nodeText"}}
-    $major=[int]$nodeMatch.Groups['major'].Value;$minor=[int]$nodeMatch.Groups['minor'].Value
-    $nodeOk=($major -gt 22 -or ($major -eq 22 -and $minor -ge 18)) -and $major -lt 25
-    $npmOk=($npmText -eq '10.9.2')
-    return [pscustomobject]@{ready=($nodeOk -and $npmOk);detail="node=$nodeText npm=$npmText required=node>=22.18.0<25 npm=10.9.2"}
+    if(-not $npmMatch.Success){return [pscustomobject]@{ready=$false;detail="npm version parse failed: $npmText"}}
+    $actualNode=[version]("$($nodeMatch.Groups['major'].Value).$($nodeMatch.Groups['minor'].Value).$($nodeMatch.Groups['patch'].Value)");$nodeFloor=[version][string]$toolchainPolicy.tools.node.compatibilityFloor;$npmFloor=[int]$toolchainPolicy.tools.npm.compatibilityFloorMajor
+    $advisory=@();if($actualNode-lt$nodeFloor){$advisory+="node-below-engine-floor:$nodeText<$nodeFloor"};if([int]$npmMatch.Groups['major'].Value-lt$npmFloor){$advisory+="npm-below-advisory-major:$npmText<$npmFloor"}
+    & $node --input-type=module -e 'if(typeof fetch!=="function")process.exit(3); await Promise.resolve();' *> $null;$nodeCapability=($LASTEXITCODE-eq0)
+    & $npm ci --help *> $null;$npmCapability=($LASTEXITCODE-eq0)
+    return [pscustomobject]@{ready=($nodeCapability -and $npmCapability);detail="policy=CAPABILITY_FIRST node=$nodeText npm=$npmText nodeCapability=$nodeCapability npmCi=$npmCapability advisory=$($advisory -join ',')"}
 }
 $frontendToolchain=Test-CpfFrontendToolchain
-Add-CpfTextResult 'FRONTEND_TOOLCHAIN' $(if($frontendToolchain.ready){'PASS'}else{'FAIL'}) $frontendToolchain.detail 'package.json engines/packageManager contract is fail-closed'
+Add-CpfTextResult 'FRONTEND_TOOLCHAIN' $(if($frontendToolchain.ready){'PASS'}else{'FAIL'}) $frontendToolchain.detail 'Current Source capability-first toolchain policy + package.json engines contract'
 $frontendSandboxes=@{}
 if(-not $SkipFrontend -and $npm -and $frontendToolchain.ready){
     foreach($frontend in @('cpf-admin\frontend','cpf-backoffice-web/frontend')){
@@ -897,10 +922,16 @@ if($IncludeRuntimeClosure){
             }else{
                 $workerJar=Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'cpf-batch\worker\build\libs') -File -Filter '*.jar' -ErrorAction SilentlyContinue | Where-Object {$_.Name -notmatch 'plain'} | Select-Object -First 1
                 $adminPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
+                $rootPassword=[Environment]::GetEnvironmentVariable('CPF_DB_ROOT_PASSWORD','Process')
+                $runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_CORE_DB_RUNTIME_PASSWORD','Process')
+                if([string]::IsNullOrWhiteSpace($runtimeDbPassword)){$runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_DB_APP_PASSWORD','Process')}
                 if(-not $workerJar){Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'Batch worker bootJar unavailable after Gradle build'}
-                elseif([string]::IsNullOrWhiteSpace($adminPassword)){Add-CpfTextResult 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'FAIL' 'CPF_ADMIN_PASSWORD missing from Docker secret env' 'Batch two-worker runtime requires local MariaDB credentials'}
+                elseif([string]::IsNullOrWhiteSpace($runtimeDbPassword)){Add-CpfTextResult 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'FAIL' 'CPF_CORE_DB_RUNTIME_PASSWORD/CPF_DB_APP_PASSWORD missing from Docker secret env' 'Batch two-worker runtime requires canonical application Runtime DB credentials'}
                 else{
-                    Invoke-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-bat-two-worker-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'batch-two-worker'),'-ClientAdapter','Docker','-MariaDbContainer','cpf-mariadb') $RepoRoot @{CPF_DB_ROOT_PASSWORD=$adminPassword;CPF_ADMIN_PASSWORD=$adminPassword;CPF_DB_APP_PASSWORD=$adminPassword;CPF_CORE_DB_RUNTIME_PASSWORD=$adminPassword}
+                    $batchRuntimeEnv=@{CPF_DB_APP_PASSWORD=$runtimeDbPassword;CPF_CORE_DB_RUNTIME_PASSWORD=$runtimeDbPassword}
+                    if(-not [string]::IsNullOrWhiteSpace($rootPassword)){$batchRuntimeEnv.CPF_DB_ROOT_PASSWORD=$rootPassword}
+                    if(-not [string]::IsNullOrWhiteSpace($adminPassword)){$batchRuntimeEnv.CPF_ADMIN_PASSWORD=$adminPassword}
+                    Invoke-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-bat-two-worker-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'batch-two-worker'),'-ClientAdapter','Docker','-MariaDbContainer','cpf-mariadb') $RepoRoot $batchRuntimeEnv
                     Invoke-CpfStage 'GATEWAY_BATCH_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-gateway-bat-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'gateway-batch-runtime'),'-DbVendor','mariadb')
                 }
             }

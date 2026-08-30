@@ -21,3 +21,13 @@ def test_current_authority_source_identity_is_rewritten(tmp_path: Path):
     p.write_text("work_item_id,source_identity\nWP-X,old\n", encoding="utf-8")
     assert module.rewrite_csv_source_identity(p, "new") is True
     assert ",new" in p.read_text(encoding="utf-8-sig")
+
+
+def test_merge_control_baseline_is_currentized_without_rewriting_session_provenance(tmp_path: Path):
+    p = tmp_path / "CURRENT_MERGE_CONTROL_STATE.json"
+    p.write_text('{"merge_baseline_source_identity":"old","last_merged_session_key":"session-a"}\n', encoding="utf-8")
+    assert module.update_merge_control_state(p, "a" * 64) is True
+    text = p.read_text(encoding="utf-8")
+    assert '"merge_baseline_source_identity": "' + ("a" * 64) + '"' in text
+    assert '"last_merged_session_key": "session-a"' in text
+    assert module.update_merge_control_state(p, "a" * 64) is False

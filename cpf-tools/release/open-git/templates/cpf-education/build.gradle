@@ -22,7 +22,11 @@ def jdbcDriverByVendor = [
         postgresql:'org.postgresql:postgresql'
 ]
 
-java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+tasks.withType(org.gradle.api.tasks.compile.JavaCompile).configureEach { options.release = 25 }
 repositories {
     maven {
         name = 'cpfPublicBinary'

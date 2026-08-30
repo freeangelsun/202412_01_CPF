@@ -1,35 +1,27 @@
 # CPF OPEN ISSUES — Current
 
-현재 Source/Static Harness 보정은 완료됐지만 전체 QA 완료는 아니다. 아래 Mandatory Physical Acceptance가 남아 있다.
+Current Product Source Identity: `1289304269e6f684cb9c32414efadbcfa179b5f7208bcd42f6ff1d5dff15a87f` / 8,450 files.
 
-- `BLOCKED_EXTERNAL` Java25 Root Build/Test/Publication/SBOM
-- `BLOCKED_EXTERNAL` Fresh Windows VS Code/Gradle Buildship Error=0 Warning=0
-- `BLOCKED_EXTERNAL` Oracle/PostgreSQL/MariaDB DB3 Physical lifecycle
-- `BLOCKED_EXTERNAL` Windows PowerShell Unified CLI/Generator lifecycle
-- `BLOCKED_EXTERNAL` Batch 5-role + Worker×2 + kill/takeover/fencing/UNKNOWN/reconcile
-- `BLOCKED_EXTERNAL` One-WAS transaction + File/DB log correlation + Runtime OpenAPI
-- `BLOCKED_EXTERNAL` Frontend npm lint/typecheck/test/build + Browser E2E/a11y/error states
-- `BLOCKED_EXTERNAL` Performance load/soak/backpressure
-- `BLOCKED_EXTERNAL` Actual Open Git Fresh Release + Fresh Consumer + leakage 0
-- `BLOCKED_EXTERNAL` Same Source Full Runtime Fresh Replay
-- `NOT_EXECUTED` Codex/Claude Independent Review
-- `NOT_EXECUTED` QA Final Acceptance
+현재 DevGPT가 재현 가능한 Source/Static/Harness mandatory defect는 이번 범위에서 수정 및 회귀검증됐다. **전체 CPF 완료는 아니며 아래 Physical/Independent/QA Acceptance가 남아 있다.**
 
-위 항목 중 하나라도 남으면 CPF 전체 완료가 아니다.
+- `VERIFICATION_PENDING` Windows Fresh VS Code/Buildship/JDT Error=0 Warning=0.
+- `VERIFICATION_PENDING` Current Source Java25-target Root Build/Test/Publication/SBOM Fresh Replay.
+- `VERIFICATION_PENDING` DB3 Oracle/PostgreSQL/MariaDB Physical Full Lifecycle Fresh Replay.
+- `VERIFICATION_PENDING` Windows/Linux Unified CLI/Generator Physical Lifecycle.
+- `VERIFICATION_PENDING` Batch 5-role + Worker×2 + kill/takeover/fencing/UNKNOWN/reconcile.
+- `VERIFICATION_PENDING` One-WAS actual transaction + File/DB log correlation + Runtime OpenAPI.
+- `VERIFICATION_PENDING` ADM/Backoffice Fresh npm lifecycle + Browser E2E/a11y/401/403/404/409/429/500/503.
+- `VERIFICATION_PENDING` Performance load/soak/backpressure/resource leak.
+- `NOT_EXECUTED` Actual Open Git Fresh Release + Public Consumer + Leakage 0.
+- `VERIFICATION_PENDING` Same Source Full Runtime + Fresh Replay.
+- `NOT_EXECUTED` Codex/Claude Independent Review.
+- `NOT_EXECUTED` QA Final Acceptance.
 
-## 20260830 Claude 세션 신규 Finding (현재 WP와 Root Cause 별개)
+과거 `90e4890d...` Source에서 Java25 Build/Publication/SBOM 및 DB3 Physical PASS 근거가 있으나 Current Source와 다르므로 provenance일 뿐 Current PASS로 승계하지 않는다.
 
-- **CMN Common cache refresh 기능 미완성** — `cpf-common` 의 `JdbcCpfCodeService` / `JdbcCpfParameterService` 가
-  Working Tree 에서 수정 중(M)이며, `test_cmn_code_message_durable_cache` 가 요구하는
-  `refresh() { requireCache().clear(); }`, cache refresh event repository, listener 가 아직 없다.
-  다중 파일 기능 구현이 필요하고 진행 중인 다른 작업과 충돌할 수 있어 이번 WP 에서 구현하지 않았다.
-  상태: `OPEN` / 재실행 조건: 해당 기능 구현 완료 후 `pytest cpf-tools/db/tests/test_cmn_code_message_durable_cache.py`.
-- **PostgreSQL DB lifecycle 미완성** — `check-admin-data-safety.ps1` 이
-  `Selectable vendor has incomplete lifecycle: postgresql` 로 실패한다. DB3 lifecycle 작업 범위이며
-  WP-R10 계열에 속한다. 상태: `OPEN` / 재실행 조건: postgresql lifecycle 완성 후 재실행.
-- **`cryptography` prerequisite 미설치** — `cpf-tools/db/tools/cpf-backup-crypto.py` 의 의존성 선언을
-  `cpf-tools/db/tools/requirements.txt` 로 추가했다(이번 세션 수정). 실제 설치는 사용자 환경 결정 사항이며
-  설치 전까지 `test_cpf_backup_crypto` 5건은 FAIL 로 남는다.
-  재실행 조건: `python -m pip install -r cpf-tools/db/tools/requirements.txt` 후 재실행.
-- **openssl PATH prerequisite** — openssl 은 시스템에 존재하나(Git 3.5.4) PowerShell PATH 에 없어
-  `test_release_target_trust` 7건이 FAIL 했다. PATH 에 포함하면 전부 PASS 한다(실측 확인).
+### 이번 세션에서 닫힌 stale Open Issue
+
+- Claude session `MANIFEST_MISSING`: provenance 검증 Manifest 복구 및 Merge 완료.
+- PostgreSQL lifecycle 미완성/cryptography/openssl PATH를 Current Source 자체의 unresolved product defect로 유지하던 과거 문구: 최신 Runtime/Source 근거와 불일치하여 제거. 실제 Current Source Fresh Replay 결과가 새 Finding을 만들 때만 재개방한다.
+- `npm ci` prettier lock mismatch: Source 수정 및 contract regression PASS. Physical online npm lifecycle은 별도 Acceptance로 남김.
+- VS Code source-empty profile class output: Source 수정 및 regression PASS. Physical Windows Problems 0/0은 별도 Acceptance로 남김.

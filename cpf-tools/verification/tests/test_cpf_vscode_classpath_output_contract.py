@@ -10,7 +10,8 @@ def test_every_java_project_keeps_canonical_gradle_compile_output():
     assert "non-canonical-compile-output" in text
     assert "classes/java/main" in text
     assert "compileJava.destinationDirectory.set(" not in text
-    assert "Never add fake Java API/classes" in text
+    assert "fake API or" in text
+    assert "source-empty-canonical-output-missing" in text
 
 
 def test_no_ide_only_output_directory_is_introduced():
@@ -20,7 +21,8 @@ def test_no_ide_only_output_directory_is_introduced():
     assert "cpfIdeClasspathRoot" not in text
     assert "cpf-ide-classpath/" not in text
     assert "cpfIdeClasspathMaterializedOnConfiguration" not in text
-    assert "never materialize an empty output directory" in text
+    assert "target.sourceSets.main.java.files.empty" in text
+    assert "output.mkdirs()" in text
 
 
 def test_ide_model_gate_runs_before_explicit_repair_and_after_build():
@@ -45,4 +47,5 @@ def test_ide_classpath_repair_is_discovery_driven_and_does_not_override_dependen
     assert "tasks.named('compileJava')" in block
     assert "project(" not in block
     assert "dependencies {" not in block
-    assert "fake Java API/classes" in block
+    assert "fake API or" in block
+    assert "sourceEmpty.each" in block

@@ -45,3 +45,7 @@ def test_gateway_bat_failure_evidence_is_preserved():
     for token in ('failureClassification','failureRootCause','bootJarBuildStatus','stdoutTail','stderrTail'):
         assert token in script
     assert 'Gateway/BAT runtime readiness failed:' in script
+    assert 'Get-CpfOptionalRuntimeProperty' in script
+    for field in ('stdout','stderr','stdoutTail','stderrTail','failureRootCause','failureClassification'):
+        assert f'Get-CpfOptionalRuntimeProperty $_ "{field}"' in script
+        assert f'$_.{field}' not in script

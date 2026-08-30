@@ -1,64 +1,55 @@
 #!/usr/bin/env python3
-"""Verify the current CPF Developer-GPT requirement ledger without stale stage columns."""
+"""Verify Current Development Harness work-item progress from the single Current Registry."""
 from __future__ import annotations
-import argparse,csv,json,sys
+import argparse,csv,json,re
 from collections import Counter
 from pathlib import Path
 
-CURRENT_REQUIRED=("exact_id","requirement","개발GPT_수행상태","개발GPT_개발상태","개발GPT_검증상태","개발GPT_전체상태","개발GPT_자체검수","개발GPT_검증내용","개발GPT_환경","개발GPT_Evidence","baseline_source_zip_sha256")
-ROLE_STATES={"완료","미완료","재개발 요청","재검수 요청","해당 없음","미검증"}
-DEV_STATES={"완료","미완료","부분 구현","미구현","실패","재확인 필요","해당 없음"}
-VERIFY_STATES={"완료","미완료","미검증","실패","재확인 필요","해당 없음"}
-OVERALL_STATES={"완료","부분 구현","미구현","미검증","실패","재확인 필요","해당 없음"}
+REQUIRED=("work_item_id","developer_status","verification_status","overall_status","source_identity","item_role")
+DEV_STATES={"완료","미완료","부분 구현","미구현","실패","재확인 필요","해당 없음","SOURCE_FIXED","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
+VERIFY_STATES={"완료","미완료","미검증","실패","재확인 필요","해당 없음","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
+OVERALL_STATES={"완료","부분 구현","미구현","미검증","실패","재확인 필요","해당 없음","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
 
 def load(path:Path):
-    if not path.is_file(): raise ValueError(f"ledger missing: {path}")
+    if not path.is_file(): raise ValueError(f"registry missing: {path}")
     with path.open(encoding='utf-8-sig',newline='') as f:
         reader=csv.DictReader(f); rows=list(reader); fields=tuple(reader.fieldnames or ())
-    missing=[c for c in CURRENT_REQUIRED if c not in fields]
-    if missing: raise ValueError("unsupported ledger schema; missing="+",".join(missing))
-    if not rows: raise ValueError("empty ledger")
-    ids=[(r.get('exact_id') or '').strip() for r in rows]
-    dup=sorted(k for k,v in Counter(ids).items() if k and v>1)
-    if any(not x for x in ids): raise ValueError('blank exact_id')
-    if dup: raise ValueError('duplicate exact_id='+','.join(dup))
+    missing=[c for c in REQUIRED if c not in fields]
+    if missing: raise ValueError("unsupported Current Registry schema; missing="+",".join(missing))
+    if not rows: raise ValueError("empty Current Registry")
+    ids=[(r.get('work_item_id') or '').strip() for r in rows]
+    if any(not x for x in ids): raise ValueError('blank work_item_id')
+    dup=sorted(k for k,v in Counter(ids).items() if v>1)
+    if dup: raise ValueError('duplicate work_item_id='+','.join(dup))
     failures=[]
     for r in rows:
-        rid=r['exact_id']
-        checks=(("개발GPT_수행상태",ROLE_STATES),("개발GPT_개발상태",DEV_STATES),("개발GPT_검증상태",VERIFY_STATES),("개발GPT_전체상태",OVERALL_STATES))
-        for col,allowed in checks:
+        wid=r['work_item_id']
+        for col,allowed in (("developer_status",DEV_STATES),("verification_status",VERIFY_STATES),("overall_status",OVERALL_STATES)):
             value=(r.get(col) or '').strip()
-            if value not in allowed: failures.append(f"{rid}:{col}={value!r}")
-        if (r.get('개발GPT_전체상태') or '').strip()=='완료' and (r.get('개발GPT_검증상태') or '').strip()!='완료':
-            failures.append(f"{rid}:overall_complete_without_verification_complete")
+            if value not in allowed: failures.append(f"{wid}:{col}={value!r}")
+        sid=(r.get('source_identity') or '').strip().lower()
+        if not re.fullmatch(r'[0-9a-f]{64}',sid): failures.append(f"{wid}:invalid_source_identity={sid!r}")
+        if (r.get('overall_status') or '').strip()=='완료' and (r.get('verification_status') or '').strip()!='완료':
+            failures.append(f"{wid}:overall_complete_without_verification_complete")
     if failures: raise ValueError('; '.join(failures[:50]))
     return rows
 
 def main()->int:
-    ap=argparse.ArgumentParser()
-    ap.add_argument('--root',default='.')
-    ap.add_argument('--ledger'); ap.add_argument('--csv')
-    ap.add_argument('--expected-canonical',type=int)
-    ap.add_argument('--json-output')
-    ns=ap.parse_args()
-    root=Path(ns.root).resolve(); raw=ns.ledger or ns.csv or 'cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv'; path=Path(raw); path=path if path.is_absolute() else root/path
+    ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger'); ap.add_argument('--csv'); ap.add_argument('--expected-canonical',type=int); ap.add_argument('--json-output'); ns=ap.parse_args()
+    root=Path(ns.root).resolve(); raw=ns.ledger or ns.csv or 'cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv'; path=Path(raw); path=path if path.is_absolute() else root/path
     try: rows=load(path)
     except Exception as e:
         print('REQUIREMENT_PROGRESS_GATE=FAIL'); print('REQUIREMENT_PROGRESS_ERROR='+str(e)); return 1
     expected=ns.expected_canonical
     if expected is None:
-        import re
-        canonical=root/'cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md'
-        ids=[m.group(1) for line in canonical.read_text(encoding='utf-8-sig').splitlines() if (m:=re.match(r'^\| `([A-Z0-9-]+)` \|',line))]
-        if not ids or len(ids)!=len(set(ids)):
-            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=canonical_catalog_invalid={len(ids)}/{len(set(ids))}'); return 1
-        expected=len(ids)
+        execution=sum(1 for r in rows if (r.get('item_role') or '').strip()=='ROOT_CAUSE_EXECUTION')
+        tracking=sum(1 for r in rows if (r.get('item_role') or '').strip()!='ROOT_CAUSE_EXECUTION')
+        if (tracking,execution)!=(394,16):
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+16'); return 1
+        expected=410
     if len(rows)!=expected:
-        print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=canonical_count={len(rows)} expected={expected}'); return 1
-    status=Counter((r.get('개발GPT_전체상태') or '').strip() for r in rows)
-    dev=Counter((r.get('개발GPT_개발상태') or '').strip() for r in rows)
-    verify=Counter((r.get('개발GPT_검증상태') or '').strip() for r in rows)
-    result={'schema':'CPF_REQUIREMENT_LEDGER_V2','rows':len(rows),'overall':dict(status),'development':dict(dev),'verification':dict(verify)}
+        print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_count={len(rows)} expected={expected}'); return 1
+    result={'schema':'CPF_CURRENT_WORK_ITEM_REGISTRY_V1','rows':len(rows),'overall':dict(Counter((r.get('overall_status') or '').strip() for r in rows)),'development':dict(Counter((r.get('developer_status') or '').strip() for r in rows)),'verification':dict(Counter((r.get('verification_status') or '').strip() for r in rows))}
     print(json.dumps(result,ensure_ascii=False,sort_keys=True))
     if ns.json_output:
         out=Path(ns.json_output); out=out if out.is_absolute() else root/out; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

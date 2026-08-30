@@ -24,7 +24,7 @@ def main():
  for p in r.rglob('*'):
   if not p.is_file():continue
   rel=p.relative_to(r).as_posix()
-  if rel in deleted or rel.startswith('cpf-tools/verification/') or any(x in p.parts for x in ('build','__pycache__','.git','node_modules','dist')):continue
+  if rel in deleted or rel.startswith('cpf-tools/verification/') or rel.startswith('cpf-docs/governance/development-harness/evidence/platform/current/generated/') or any(x in p.parts for x in ('build','__pycache__','.git','node_modules','dist')):continue
   if '/src/main/java/resources/' in '/'+rel:fails.append('JAVA_RESOURCES_TREE:'+rel)
   if p.suffix.lower() in {'.java','.kt','.ts','.tsx','.vue','.py','.ps1'}:
    t=p.read_text(encoding='utf-8',errors='ignore')

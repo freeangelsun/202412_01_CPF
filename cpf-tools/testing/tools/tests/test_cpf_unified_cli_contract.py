@@ -53,7 +53,9 @@ def _cli_command(*args: str) -> list[str]:
 
 def test_internal_cli_cross_platform_version_status_and_java25_fail_closed():
     env={**os.environ,'CPF_WORKSPACE':str(ROOT)}
-    actual=subprocess.check_output(['java','-version'],stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace').splitlines()[0]
+    java_home=env.get('JAVA_HOME','').strip()
+    java_bin=(Path(java_home)/'bin'/('java.exe' if sys.platform=='win32' else 'java')) if java_home else Path('java')
+    actual=subprocess.check_output([str(java_bin),'-version'],stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace').splitlines()[0]
     java25=bool(re.search(r'version\s+"25(?:\.|")', actual))
     for command in ('version','status'):
         cp=subprocess.run(_cli_command(command),cwd=ROOT,env=env,text=True,encoding='utf-8',errors='replace',capture_output=True)

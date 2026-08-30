@@ -3,6 +3,7 @@
 <img src="cpf-docs/assets/product-docs/hero.png" alt="CPF Core Platform Framework가 업무 Domain을 중심으로 Public Contract, Runtime Recovery, Operations Audit를 연결하는 제품 개요" width="100%" />
 
 업무 Domain의 소유권은 유지하면서 개발·실행·연계·배치·DB3·운영·복구를 하나의 제품 계약으로 연결합니다.
+<br><br>
 
 # Core Platform Framework
 
@@ -14,9 +15,13 @@ CPF(Core Platform Framework)는 업무 규칙과 업무 데이터를 Framework �
 
 개발자는 업무 기능과 필요한 Capability에 집중하고, 운영자는 같은 거래를 Transaction·Operation·Runtime·Recovery 축으로 연결해 추적합니다. Same JVM에서 시작한 Domain이 분리 WAS/MSA로 이동해도 업무 코드가 배포 Topology에 끌려가지 않도록 계약을 유지하는 것이 CPF의 기본 방향입니다.
 
+<br><br>
+
 ---
 
-## 전체 Architecture는 Owner 경계부터 봅니다
+<br><br>
+
+## 1. 전체 Architecture는 Owner 경계부터 봅니다
 
 <img src="cpf-docs/assets/product-docs/architecture.png" alt="CPF 전체 Architecture에서 Channel Edge, Business Domain, Public Starter, cpf-core와 cpf-common, Platform Operations Runtime, Backoffice, DB3의 Owner 경계를 구분한 구조" width="100%" />
 
@@ -48,9 +53,13 @@ Gateway는 외부 Trust Boundary의 Optional Edge입니다. 내부 Business Doma
 
 </details>
 
+<br><br>
+
 ---
 
-## Public Capability는 필요한 기능만 조합합니다
+<br><br>
+
+## 2. Public Capability는 필요한 기능만 조합합니다
 
 <img src="cpf-docs/assets/product-docs/capabilities.png" alt="CPF Public Capability 지도에서 Web Data Transaction Cache Messaging Integration File Security Observability Batch 기능을 Business Contract 중심으로 조합하는 구조" width="100%" />
 
@@ -80,9 +89,13 @@ Integration은 HTTP, SOAP, TCP, Fixed Length, ISO8583, Webhook, Realtime, AI Pro
 
 </details>
 
+<br><br>
+
 ---
 
-## Domain 개발은 생성부터 Runtime 확인까지 이어집니다
+<br><br>
+
+## 3. Domain 개발은 생성부터 Runtime 확인까지 이어집니다
 
 <img src="cpf-docs/assets/product-docs/development.png" alt="CPF Domain 개발이 환경 확인, Domain 생성, Capability 선택, 업무 구현, DB3 OpenAPI 동기화, Build Test Runtime 검증으로 이어지는 개발 여정" width="100%" />
 
@@ -112,9 +125,13 @@ Integration은 HTTP, SOAP, TCP, Fixed Length, ISO8583, Webhook, Realtime, AI Pro
 
 </details>
 
+<br><br>
+
 ---
 
-## Generator는 Generated와 User-owned를 분리합니다
+<br><br>
+
+## 4. Generator는 Generated와 User-owned를 분리합니다
 
 <img src="cpf-docs/assets/product-docs/generator.png" alt="CPF Generator가 Domain Contract에서 Generated IA, DB Binding, OpenAPI, Sample Test Runtime을 만들고 User-owned Feature와 분리하는 흐름" width="100%" />
 
@@ -142,9 +159,13 @@ DB Vendor나 Runtime 구성이 바뀌더라도 Generated 영역과 업무 영역
 
 </details>
 
+<br><br>
+
 ---
 
-## Domain Invocation은 배치 위치가 달라도 같은 계약을 사용합니다
+<br><br>
+
+## 5. Domain Invocation은 배치 위치가 달라도 같은 계약을 사용합니다
 
 <img src="cpf-docs/assets/product-docs/invoke.png" alt="CPF Domain Invocation에서 Same JVM Local Binding과 Remote MSA Registry Transport가 같은 Domain Operation, System6, Deadline, Result Error 계약을 사용하는 구조" width="100%" />
 
@@ -174,9 +195,13 @@ Transaction ID와 Original System은 최초 확정 후 유지되고 Caller/Targe
 
 </details>
 
+<br><br>
+
 ---
 
-## Transaction은 실패 종류와 다음 행동을 구분합니다
+<br><br>
+
+## 6. Transaction은 실패 종류와 다음 행동을 구분합니다
 
 <img src="cpf-docs/assets/product-docs/tx.png" alt="CPF Transaction Result State가 SUCCESS BUSINESS FAILURE TECHNICAL FAILURE UNKNOWN을 구분하고 Idempotency Deadline Reconcile Compensation으로 이어지는 상태도" width="100%" />
 
@@ -204,9 +229,13 @@ Remote Side Effect가 포함되면 Local DB Commit만으로 전체 결과를 단
 
 </details>
 
+<br><br>
+
 ---
 
-## Integration과 Messaging은 실패·복구 의미를 공유합니다
+<br><br>
+
+## 7. Integration과 Messaging은 실패·복구 의미를 공유합니다
 
 <img src="cpf-docs/assets/product-docs/integration.png" alt="CPF Integration 지도에서 HTTP Fixed Length Webhook Realtime Kafka MQ Notification AI Provider File Object가 Domain Operation과 Timeout Retry Idempotency UNKNOWN Reconcile을 공유하는 구조" width="100%" />
 
@@ -234,9 +263,13 @@ Provider 응답이 유실되면 성공/실패를 추측하지 않습니다. 외�
 
 </details>
 
+<br><br>
+
 ---
 
-## Batch는 실행 소유권과 복구 지점을 명확히 합니다
+<br><br>
+
+## 8. Batch는 실행 소유권과 복구 지점을 명확히 합니다
 
 <img src="cpf-docs/assets/product-docs/batch.png" alt="CPF Batch에서 Control Plane Scheduler Worker Center Cut Agent가 Policy Schedule Lease Fencing Checkpoint Heartbeat Resume Reconcile 흐름으로 연결되는 구조" width="100%" />
 
@@ -264,9 +297,13 @@ Control Plane/Scheduler가 실행을 결정하고 Worker가 실제 Job/Step을 �
 
 </details>
 
+<br><br>
+
 ---
 
-## Gateway는 외부 Entry의 선택 경계입니다
+<br><br>
+
+## 9. Gateway는 외부 Entry의 선택 경계입니다
 
 <img src="cpf-docs/assets/product-docs/gateway.png" alt="CPF Gateway 배포에서 L4와 Gateway 함께 사용, L4 only, Gateway only 세 외부 Entry 선택을 비교한 구조" width="100%" />
 
@@ -294,9 +331,13 @@ CPF가 장애를 감지했다고 보안 수준이 다른 Direct 경로로 자동
 
 </details>
 
+<br><br>
+
 ---
 
-## DB3는 Canonical Source에서 Runtime Query까지 닫습니다
+<br><br>
+
+## 10. DB3는 Canonical Source에서 Runtime Query까지 닫습니다
 
 <img src="cpf-docs/assets/product-docs/db3.png" alt="CPF DB3 Lifecycle에서 Canonical Schema Vendor Render Migration Seed Runtime Recovery가 Oracle PostgreSQL MariaDB와 연결되는 흐름" width="100%" />
 
@@ -324,9 +365,13 @@ Vendor별 문법 차이는 인정하지만 업무 Schema 의미와 Runtime 계�
 
 </details>
 
+<br><br>
+
 ---
 
-## Security는 실행 권한과 운영 조치의 이유를 남깁니다
+<br><br>
+
+## 11. Security는 실행 권한과 운영 조치의 이유를 남깁니다
 
 <img src="cpf-docs/assets/product-docs/security.png" alt="CPF Security 구조에서 Identity Permission Secret Crypto Approval Audit가 Trusted Entry Fail Close Reason Approval Tamper Audit와 연결되는 구조" width="100%" />
 
@@ -354,9 +399,13 @@ OIDC/Resource Server, Browser Session, Service Identity는 각 Trust Boundary에
 
 </details>
 
+<br><br>
+
 ---
 
-## Operations는 거래·Instance·Recovery를 같은 Timeline으로 봅니다
+<br><br>
+
+## 12. Operations는 거래·Instance·Recovery를 같은 Timeline으로 봅니다
 
 <img src="cpf-docs/assets/product-docs/ops.png" alt="CPF Operations Dashboard가 Transaction Operation Instance Recovery Audit Timeline, Runtime Health, Risk Action, Recovery Path를 함께 보여주는 운영 구조" width="100%" />
 
@@ -386,9 +435,13 @@ OIDC/Resource Server, Browser Session, Service Identity는 각 Trust Boundary에
 
 </details>
 
+<br><br>
+
 ---
 
-## Public CLI는 개발과 Runtime 진입점을 하나로 맞춥니다
+<br><br>
+
+## 13. Public CLI는 개발과 Runtime 진입점을 하나로 맞춥니다
 
 <img src="cpf-docs/assets/product-docs/development.png" alt="CPF Public CLI가 doctor bootstrap domain-new domain-sync build test run status stop reset version help로 개발과 Runtime 수명주기를 연결하는 흐름" width="100%" />
 
@@ -432,24 +485,34 @@ cpf help
 
 </details>
 
+<br><br>
+
 ---
 
-## 역할에 맞는 공식 문서로 이어서 확인합니다
+<br><br>
+
+## 14. 역할에 맞는 공식 문서로 이어서 확인합니다
 
 <img src="cpf-docs/assets/product-docs/hero.png" alt="CPF 공식 문서가 개발자, 배치 개발자, 운영자, Gateway 사용자, 아키텍트, DB 담당자의 역할별 상세 절차로 이어지는 문서 탐색 개요" width="100%" />
 
-README는 전체 제품과 주요 흐름을 빠르게 이해하는 브로셔형 진입점입니다. 실제 구현 옵션, Working Example, 실패·복구, 운영 Runbook, DB 표준은 아래 역할별 PDF에서 이어서 확인합니다.
+README는 CPF 전체 제품과 주요 흐름을 빠르게 이해하는 첫 안내 문서입니다. 실제 구현 옵션, Working Example, 실패·복구, 운영 Runbook, DB 표준은 아래 역할별 PDF에서 이어서 확인합니다.
+
+<br>
 
 ### 업무·Batch 개발
 
 - [프레임워크 개발자 가이드 PDF](cpf-docs/guides/02_%ED%94%84%EB%A0%88%EC%9E%84%EC%9B%8C%ED%81%AC_%EA%B0%9C%EB%B0%9C%EC%9E%90_%EA%B0%80%EC%9D%B4%EB%93%9C.pdf) — CRUD/Persistence, Transaction/UNKNOWN, Domain·외부 호출, Messaging/Cache/File/Security, Starter/Generator/Test를 실제 개발 순서로 확인합니다.
 - [배치 개발자 가이드 PDF](cpf-docs/guides/03_%EB%B0%B0%EC%B9%98_%EA%B0%9C%EB%B0%9C%EC%9E%90_%EA%B0%80%EC%9D%B4%EB%93%9C.pdf) — Job/Step, Partition, Lease/Fencing, Checkpoint, Center-Cut, Restart/Rerun/Reconcile과 Process Kill 복구를 확인합니다.
 
+<br>
+
 ### 운영·Gateway
 
 - [운영자 매뉴얼 PDF](cpf-docs/guides/04_%EC%9A%B4%EC%98%81%EC%9E%90_%EB%A7%A4%EB%89%B4%EC%96%BC.pdf) — 거래 식별, Runtime/Config, Incident, Security, Gateway/Batch/DB 장애를 좁히고 복구하는 절차를 확인합니다.
 - [배치 운영 가이드 PDF](cpf-docs/guides/05_%EB%B0%B0%EC%B9%98_%EC%9A%B4%EC%98%81_%EA%B0%80%EC%9D%B4%EB%93%9C.pdf) — Scheduler/Worker/Lease/Fencing, Restart/Rerun/Reprocess/Reconcile 선택과 Takeover를 확인합니다.
 - [Gateway 개발·사용 가이드 PDF](cpf-docs/guides/06_Gateway_%EA%B0%9C%EB%B0%9C_%EC%82%AC%EC%9A%A9_%EA%B0%80%EC%9D%B4%EB%93%9C.pdf) — 세 배포 선택, Route/Security/Timeout/Retry, HA/Canary/Drain을 확인합니다.
+
+<br>
 
 ### 설계·규격·표준
 

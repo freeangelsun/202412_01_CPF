@@ -1,4 +1,4 @@
-# CPF Documentation 최종 Gate Checklist — Harness v2.15.1
+# CPF Documentation 최종 Gate Checklist — Harness v2.15.4
 
 **한 항목이라도 미실행·FAIL·BLOCKED·UNKNOWN이면 최종 PASS 불가.** 마지막 판정은 `validate_final_acceptance`가 수행한다.
 
@@ -101,7 +101,7 @@
 - [ ] `AUTOMATED_PASS_ONLY/NOT_EXECUTED/BLOCKED/UNKNOWN/PARTIAL/WAIVED` 상태 0
 
 
-## v2.15.1 강제 보강
+## v2.15.4 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -132,4 +132,6 @@
 - [ ] 각 핵심 기능 설명이 Keyword/카드 한 줄이 아니라 충분한 동작·선택·실패/복구/운영 맥락을 가짐
 - [ ] 장점이 구조·동작의 결과로 5개 이상 기능 Section에 자연스럽게 분산됨
 - [ ] 사용자 Finding open=0, Human Review SHA stale=0
+- [ ] README 900/1200/1440 전체 Render가 현재 README SHA와 결속되고 첫 Viewport 브로셔/Section Boundary/Text Wall 0을 통과함
+- [ ] Hero/Architecture/Invocation/Transaction/Batch/Development/Capabilities/Gateway/Operations 9개 핵심 Visual 역할이 실제 README에서 유지됨
 

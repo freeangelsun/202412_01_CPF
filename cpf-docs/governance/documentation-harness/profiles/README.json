@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -491,7 +491,9 @@
     "tableHeaderWrap": "900/1200/1440px에서 README 표 Header 2줄 0건. 폭이 부족하면 표를 prose/list/cards로 재구성",
     "visualSafeArea": "9개 의미 Visual의 text/label/canvas 경계 침범·crop 0",
     "productValueCoverage": "Source-backed 구조·개발·실패/복구·Batch·DB3·운영 가치가 별도 장점 Heading 없이 설명 흐름에 충분히 분산",
-    "windowsVsCodePreview": "Windows VS Code built-in Markdown Preview는 환경별 Runtime Gate. 실행 환경이 없으면 미검증으로 기록하고 PASS로 위조하지 않음"
+    "windowsVsCodePreview": "Windows VS Code built-in Markdown Preview는 환경별 Runtime Gate. 실행 환경이 없으면 미검증으로 기록하고 PASS로 위조하지 않음",
+    "previewImageIntegrity": "900/1200/1440 Screenshot 전체 Decode/CRC PASS. Header/Dimension만 읽히는 truncated PNG는 FAIL",
+    "previewEvidencePortability": "README Preview HTML은 repository-relative asset base만 허용. 임시 작업 경로/절대 file URI는 FAIL"
   },
   "artifactEvolution": {
     "mode": "PATCH_FIRST; approved/good baseline content and visuals preserved unless finding impact requires change"
@@ -524,5 +526,21 @@
     "wholeArchitecture": "Channel/Gateway/Domain/Starter/Core/Common/Batch/ADM/Backoffice/DB/Trace가 하나의 전체 구조로 이해됨",
     "benefitDepth": "장점 전용 홍보 장 없이 각 구조/기능 설명에서 실제 편의·운영효과가 충분히 이해됨",
     "developerJourney": "일반 개발자가 Public cpf CLI를 언제 어떤 순서로 쓰는지 README만 보고 시작 가능함"
+  },
+  "majorFunctionCoverage": {
+    "required": true,
+    "sourceBackedFamilies": [
+      "web/application/common",
+      "data/transaction/cache/lock/session",
+      "integration/protocol/resilience",
+      "messaging/async/schema",
+      "file/object-storage/archive/tabular",
+      "security/crypto/secret/identity",
+      "config/feature-flag/health/observability",
+      "ai/realtime/graphql",
+      "batch/runtime",
+      "db3/generator/operations"
+    ],
+    "rule": "대표 README는 기능명 나열이 아니라 각 Family의 선택 기준, 정상 흐름, 실패/복구 또는 운영 의미를 독자가 이해할 수 있게 설명한다. 프로젝트 규모를 이유로 Coverage를 축약하지 않는다."
   }
 }

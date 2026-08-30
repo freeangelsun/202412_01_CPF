@@ -24,6 +24,17 @@ def good_readme():
     ]
     out=['# Core Platform Framework','',rich*4,'','![CPF 전체 Architecture](cpf-docs/assets/product-docs/architecture.png)','',arch]
     for h,b in sections: out += ['',f'## {h}','',b]
+    coverage_sections=[
+      ('Data·Cache·Lock·Session', 'JDBC, MyBatis, JPA를 선택해 Persistence 경계를 구성하고 Cache와 Lock, Session을 업무 특성에 맞게 조합한다. Cache는 TTL과 invalidation, Lock은 동시성 경합과 해제, Session은 사용자 상태 경계를 함께 고려하며 실패 시 복구와 관측 경로를 문서에서 확인한다. ' * 4),
+      ('Integration과 Protocol', 'HTTP, SOAP, TCP, Fixed Length, ISO8583, Webhook 등 외부 Protocol을 Integration 경계에서 사용하고 Resilience 정책으로 timeout, retry, circuit-breaker와 오류 매핑을 일관되게 다룬다. 외부 호출 결과가 불확실하면 UNKNOWN과 Reconcile 경로를 사용해 업무 결과를 확정한다. ' * 4),
+      ('Messaging과 Async', 'Kafka, RabbitMQ, JMS 기반 Messaging은 Async 처리, Schema 계약, DLQ와 Replay를 함께 다룬다. 발행과 소비의 멱등성, 순서, 재처리, 실패 보관과 운영 추적을 같은 거래 식별자와 Audit 정보로 연결해 장애 상황에서도 원인을 찾고 안전하게 복구한다. ' * 4),
+      ('File·Storage·Archive', 'File 처리와 Object Storage, S3 호환 저장소, Archive, Tabular 입출력은 Checksum과 메타데이터 검증을 포함해 대용량 데이터 이동과 보관을 안전하게 다룬다. 파일 생성, 전송, 보존, 재처리 과정에서 검증 결과와 실패 원인을 추적할 수 있도록 표준 Operation과 관측 정보를 남긴다. ' * 4),
+      ('Security·Crypto·Secret', 'Permission과 Approval은 위험 기능 실행을 제어하고 Audit은 누가 무엇을 언제 실행했는지 남긴다. Secret, Crypto, OIDC, Certificate 처리는 업무 코드에 흩어지지 않도록 보안 Capability에서 관리하며 환경별 설정과 회전, 실패 진단, 접근 권한을 운영 절차와 연결한다. ' * 4),
+      ('Config·Feature·Health', 'Config와 Feature Flag는 환경과 배포 단계별 동작을 제어하고 Health, Drain, Telemetry는 기동·중지·트래픽 수용 상태를 운영자에게 제공한다. 설정 변경은 검증과 Audit을 거치고 인스턴스 상태와 배포 결과를 함께 확인해 부분 적용이나 잘못된 전환을 줄인다. ' * 4),
+      ('AI와 Realtime 확장', 'AI 기능은 CpfAiOperations 같은 공식 Operation을 통해 연결하고 Realtime 요구는 SSE, GraphQL 같은 경계를 사용해 확장한다. 업무 Domain은 기술 구현에 직접 결합하지 않고 Public Capability와 계약을 선택해 사용하며 Trace와 Security 정책을 동일하게 적용한다. ' * 4),
+      ('Profile과 Starter 선택', 'Public Profile과 Starter는 필요한 Capability만 선택하도록 구성한다. 개발자는 업무 목적에 맞는 Profile을 선택한 뒤 실제 Consumer 예제와 설정, 실패 대응, 검증 절차를 따라 기능을 연결하며 Framework 내부 구현에 직접 결합하지 않는다. ' * 12)
+    ]
+    for h,b in coverage_sections: out += ['',f'## {h}','',b]
     out += ['', 'CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.']
     return '\n'.join(out)
 def main():

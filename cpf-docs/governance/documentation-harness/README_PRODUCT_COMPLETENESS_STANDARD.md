@@ -1,4 +1,4 @@
-# CPF README Product Completeness Standard — Harness 2.15.1
+# CPF README Product Completeness Standard — Harness 2.15.4
 
 ## 목적
 Root README는 짧은 마케팅 카드나 기능 목차가 아니라 **CPF 전체 제품을 처음 보는 사람이 구조·기능·개발·운영 흐름까지 이해하는 대표 문서**다. 자동 검사에 몇 개 키워드가 존재한다는 이유만으로 PASS하지 않는다.
@@ -13,3 +13,12 @@ Root README는 짧은 마케팅 카드나 기능 목차가 아니라 **CPF 전�
 
 ## User Finding 우선
 사용자가 README가 전체 프로젝트를 설명하지 못하거나 얇다고 판단하면 자동 PASS는 즉시 무효다. 같은 Finding을 이 Standard, Validator, Negative Fixture, Final Required Gate에 반영하기 전 다시 완료 처리하지 않는다.
+
+
+## 2.15.4 Large-product README completeness reinforcement
+
+- CPF처럼 기능 범위가 큰 제품의 Root README를 얇은 개요로 축약하지 않는다. 제품 대표 문서에서 실제 Source로 확인되는 주요 Capability Family를 충분히 설명한다.
+- 최소 Coverage는 Web/Application/Common, Data/Transaction/Cache/Lock/Session, Integration/Protocol/Resilience, Messaging/Async/Schema, File/Object Storage/Archive/Tabular, Security/Crypto/Secret/Identity, Config/Feature Flag/Health/Observability, AI/Realtime/GraphQL, Batch Runtime, DB3/Generator/Operations를 포함한다.
+- 기능명만 나열하면 충족으로 인정하지 않는다. 독자가 무엇을 선택하는지, 실패 또는 운영 경계가 무엇인지, 어떤 결과를 얻는지 설명 흐름 안에서 확인할 수 있어야 한다.
+- 정보량을 늘릴 때 장문 Text Wall로 바꾸는 것도 FAIL이다. 900/1200/1440 Rendered Brochure Review에서 Figure, 짧은 설명, 의미 그룹, 충분한 Section Boundary가 유지되어야 한다.
+- 사용자 Finding으로 “대표 README가 제품 규모에 비해 내용이 부족하다”가 발생하면 이전 Completeness/Visual PASS는 즉시 무효화하고 현재 README SHA로 전체 Gate를 재실행한다.

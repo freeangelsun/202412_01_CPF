@@ -2,7 +2,7 @@
 import json,hashlib,re,subprocess,sys
 from pathlib import Path
 H=Path(__file__).resolve().parents[1]
-VER='2.15.1'
+VER='2.15.4'
 
 def fail(msg):
     print('HARNESS=FAIL',msg); raise SystemExit(1)
@@ -82,7 +82,7 @@ if len(rc.get('requiredTaskDimensions',[]))<8: fail('reader task dimensions')
 if 'term presence is only a pre-check' not in rc.get('policy',''): fail('reader keyword-only false green')
 # User visual connector finding remains hard-zero.
 vq=load('visual-qa.json'); hf=vq.get('hardFail',{})
-for k in ['connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','promotionalBenefitHeading','readmeDenseWallOfText','semanticTableWidthInversion','shortTokenWrap','readerTaskKeywordOnlyFalseGreen','manualGateNotExecuted','manualEvidenceMissing','requiredGateNonPass','automatedOnlyFinalPassAttempt','documentTotalSizeCap','coverageTruncatedForLength','readmeBrochureStructureMissing','readmeVisualKoreanCompanionMissing','readmeImageAltMissing','readmeBrochureVisualRhythmMissing','informationArchitectureReaderNeedMismatch','longDocumentNavigationMissing','fixedWidthTableCausesWrap','manualFreshEyesReviewMissing','selectionWithoutNextAction','apiSummaryWithoutWorkingExample','developerChapterTableWall','readmeDenseCenteredHero','readmeFlatLongNavigation','readmeStackedCodeBlocks','longFlatListWall','consecutiveLongBulletWall','heavyBlockWall','uniformManualScoresWithoutEvidence','genericReaderPassEvidence','pagePackedForLength','architectureVisualOwnerMisclassified','backofficePlacedInOperationsEdge','backofficeBffConflated','pdfOpenabilityFailure','readmeProductTooThin','readmeArchitectureCoverageMissing','readmeArchitectureModuleListOnly','readmeCliCommandListWithoutExplanation','readmeCliCurrentSourceMismatch','readmeBenefitKeywordOnly','visualReviewShaMismatch','visualContactSheetOnlyReview','visualRepeatedGrammarFingerprint','visualConnectorThroughText','visualNodeOutsideCanvas','userFindingStillOpen','previousPassNotReopenedAfterUserFinding','sourceValidatorHardcodedIdentity']:
+for k in ['connectorTargetNodeIntrusion','connectorArrowheadInsideTargetNode','connectorCrossesTextOrLabel','connectorEndpointNotOnTargetBoundary','connectorSourceNodeIntrusion','promotionalBenefitHeading','readmeDenseWallOfText','semanticTableWidthInversion','shortTokenWrap','readerTaskKeywordOnlyFalseGreen','manualGateNotExecuted','manualEvidenceMissing','requiredGateNonPass','automatedOnlyFinalPassAttempt','documentTotalSizeCap','coverageTruncatedForLength','readmeBrochureStructureMissing','readmeVisualKoreanCompanionMissing','readmeImageAltMissing','readmeBrochureVisualRhythmMissing','informationArchitectureReaderNeedMismatch','longDocumentNavigationMissing','fixedWidthTableCausesWrap','manualFreshEyesReviewMissing','selectionWithoutNextAction','apiSummaryWithoutWorkingExample','developerChapterTableWall','readmeDenseCenteredHero','readmeFlatLongNavigation','readmeStackedCodeBlocks','longFlatListWall','consecutiveLongBulletWall','heavyBlockWall','uniformManualScoresWithoutEvidence','genericReaderPassEvidence','pagePackedForLength','architectureVisualOwnerMisclassified','backofficePlacedInOperationsEdge','backofficeBffConflated','pdfOpenabilityFailure','readmeProductTooThin','readmeArchitectureCoverageMissing','readmeArchitectureModuleListOnly','readmeCliCommandListWithoutExplanation','readmeCliCurrentSourceMismatch','readmeBenefitKeywordOnly','visualReviewShaMismatch','visualContactSheetOnlyReview','visualRepeatedGrammarFingerprint','visualConnectorThroughText','visualNodeOutsideCanvas','userFindingStillOpen','previousPassNotReopenedAfterUserFinding','sourceValidatorHardcodedIdentity','readmeRenderedPreviewCorrupt','readmePreviewAbsoluteBase','visualAssetImageCorrupt']:
     if hf.get(k)!=0: fail('hardFail key '+k)
 # High-quality human review threshold must not be weakened.
 ms=qa.get('manualVisualScore',{})
@@ -181,9 +181,9 @@ for rel in ['ARCHITECTURE_VISUAL_SEMANTIC_STANDARD.md','PDF_OPENABILITY_STANDARD
 
 # No-excuse README/Visual hardening contract.
 rpc=load('readme-product-completeness.json')
-if int(rpc.get('minimumDepth',{}).get('visibleCharactersTotal',0))<14000: fail('README minimum explanation depth weakened')
-if int(rpc.get('minimumDepth',{}).get('architectureSectionCharacters',0))<1600: fail('README architecture depth weakened')
-if len(rpc.get('requiredCoverageGroups',[]))<12: fail('README product coverage groups incomplete')
+if int(rpc.get('minimumDepth',{}).get('visibleCharactersTotal',0))<22000: fail('README minimum explanation depth weakened')
+if int(rpc.get('minimumDepth',{}).get('architectureSectionCharacters',0))<1800: fail('README architecture depth weakened')
+if len(rpc.get('requiredCoverageGroups',[]))<19: fail('README product coverage groups incomplete')
 if rpc.get('developerGoldenPath',{}).get('sourceAuthorityMode')!='DISCOVER_CURRENT_SOURCE_AT_VALIDATION': fail('README CLI source authority mode')
 own=load('ownership-boundary.json')
 if own.get('ownedRoot')!='cpf-docs/governance/documentation-harness/': fail('harness owned root')
@@ -199,6 +199,12 @@ for k in ['textOutsideCanvas','nodeOutsideCanvas','textNodeOverlap','connectorTe
 hex64=re.compile(r'(?<![A-Fa-f0-9])[A-Fa-f0-9]{64}(?![A-Fa-f0-9])')
 for vp in (H/'validators').glob('*.py'):
     if hex64.search(vp.read_text(encoding='utf-8')): fail('hardcoded 64-hex identity in validator '+vp.name)
+# Render evidence integrity recurrence guard.
+rr=(H/'validators/validate_readme_render_review.py').read_text(encoding='utf-8')
+if 'im.verify()' not in rr or 'im2.load()' not in rr: fail('README render validator full-decode integrity guard missing')
+va=(H/'validators/validate_visual_assets.py').read_text(encoding='utf-8')
+if 'im.verify()' not in va or 'im2.load()' not in va: fail('visual asset validator full-decode integrity guard missing')
+
 # Hardening self-test must physically prove stale review/negative fixtures are rejected.
 r=subprocess.run([sys.executable,str(H/'validators/selftest_no_false_green.py')],capture_output=True,text=True)
 if r.returncode!=0: fail('hardening selftest\n'+r.stdout+r.stderr)

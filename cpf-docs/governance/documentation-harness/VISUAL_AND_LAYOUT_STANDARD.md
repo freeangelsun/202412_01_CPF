@@ -1,4 +1,4 @@
-# CPF 산출물 시각·레이아웃 표준 — Harness v2.15.1
+# CPF 산출물 시각·레이아웃 표준 — Harness v2.15.4
 
 ## 1. 목표
 
@@ -54,7 +54,7 @@ README Light/Dark, DOCX 삽입 크기, 최종 PDF를 모두 확인한다. Crop, 
 Contact Sheet는 탐색 도구일 뿐 승인 Evidence가 아니다. 전페이지를 실제 크기로 검수하며 Cover/TOC/Wide Table/Figure/Code-heavy/마지막 페이지는 고위험 Page로 별도 확인한다. 사용자가 보기 어렵다고 판단한 결과는 자동 PASS를 무효화한다.
 
 
-## v2.15.1 강제 보강
+## v2.15.4 강제 보강
 
 - README와 모든 공식 DOCX/PDF에는 총 파일 크기·페이지·문자·단어·Section/Figure 수 상한을 두지 않는다.
 - 국소 Density/Paragraph/Table Threshold는 **재구성 Trigger**이며 정보 삭제 근거가 아니다.
@@ -64,7 +64,7 @@ Contact Sheet는 탐색 도구일 뿐 승인 Evidence가 아니다. 전페이지
 - 최종 시각검수는 전페이지 Scan pass + Detail pass 두 번을 모두 수행하고 Evidence를 남긴다.
 
 
-## Harness 2.15.1 Visual Quality Uplift
+## Harness 2.15.4 Visual Quality Uplift
 
 - 자동 Validator PASS보다 실제 사용자/육안 Finding을 우선한다. 표 Header 2줄, 답답한 문단 호흡, 저대비 Header, 저밀도 마지막 페이지가 보이면 자동 PASS라도 FAIL이다.
 - 승인되거나 잘 된 현행본은 PATCH_FIRST로 보존하며 Finding 영향 밖의 구조·내용·Visual을 전면 재작성하지 않는다.
@@ -81,4 +81,10 @@ Contact Sheet는 탐색 도구일 뿐 승인 Evidence가 아니다. 전페이지
 - `cpf-backoffice-web`은 **DB-less Channel/BFF**, `cpf-gateway`는 **Edge**, `cpf-admin`은 **Platform Control Plane**, `cpf-batch`는 **Batch Runtime**으로 분리합니다.
 - `cpf-backoffice`와 `cpf-backoffice-web`을 하나의 Node/Label로 합치지 않습니다.
 - Geometry PASS보다 Semantic Owner/Flow 정합성이 우선이며 불일치 시 Figure 전체 FAIL입니다.
+
+## Harness 2.15.4 Render Evidence Integrity
+
+- README 900/1200/1440 Render Evidence와 Product Visual은 최종 승인 전에 **전체 이미지 Decode**를 수행한다. Header만 읽히는 truncated/corrupt PNG는 PASS 금지다.
+- 시각 Evidence HTML은 repository-relative asset base를 사용하며 임시 작업 경로·절대 `file:///` 경로를 포함하지 않는다.
+- 시각 검수는 `Render 생성 → 전체 Decode 무결성 → SHA 결속 → Scan → Detail` 순서이며 한 단계라도 실패하면 Current Artifact Review를 폐기하고 재생성한다.
 

@@ -1,0 +1,3 @@
+PDF_OPENABILITY=PASS PDF=11 PAGES=128
+PARSERS_RENDERERS=pypdf,PyMuPDF,PDFium,pdfinfo,Poppler
+NOTE=VS Code Text Editor may display valid PDF bytes as %PDF binary text; that is an editor association issue, not PDF corruption.

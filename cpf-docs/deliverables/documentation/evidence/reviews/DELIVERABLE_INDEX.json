@@ -1,26 +1,31 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.4",
   "artifactId": "DELIVERABLE_INDEX",
   "artifact": "cpf-docs/deliverables/산출물목록.docx",
-  "baselineState": "2.9.0 patch-first baseline + latest 191735 source currentization",
-  "baselineRef": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
+  "baselineState": "BASELINE_REJECTED -> INITIAL_FRESH_REBUILD -> GOLDEN_BASELINE_CANDIDATE; current 220256 source",
+  "baselineRef": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip",
   "changeScope": [
-    "source currentization",
+    "current source-backed content completeness",
     "reader actionability",
-    "visual comfort",
-    "false-green recurrence prevention"
+    "visual hierarchy and page composition",
+    "user finding closure",
+    "no-false-green evidence currentization"
   ],
   "preservedBlocks": [
-    "validated existing structure/visuals retained where not defective"
+    "source-valid content and established document design patterns retained where they remained correct"
   ],
   "patchedBlocks": [
-    "reader flow, spacing/density, current public contracts, final-page/section-start balance as applicable"
+    "Reader Task/selection-action/failure-recovery gaps",
+    "page composition/orphan fixes",
+    "README product breadth and brochure structure",
+    "current Source/Public contract alignment"
   ],
   "intentionallyRegeneratedBlocks": [
-    "DOCX/PDF render outputs"
+    "DOCX/PDF render outputs",
+    "README 900/1200/1440 rendered review surfaces"
   ],
-  "regenerationJustification": "Latest source-backed content and Harness 2.13 visual/actionability and semantic/openability gates require deterministic fresh render.",
+  "regenerationJustification": "User explicitly rejected the prior artifact baseline. Harness permits one fresh rebuild from BASELINE_REJECTED; current result is revalidated against Source and rendered surfaces before approval.",
   "automated": {
     "harnessSchema": "PASS",
     "artifactStructure": "PASS",
@@ -75,7 +80,10 @@
     "visual_comfort": 4.8,
     "information_hierarchy": 4.9,
     "flat_list_density": 4.8,
-    "heavy_block_rhythm": 4.7
+    "heavy_block_rhythm": 4.7,
+    "visual_semantic_clarity": 4.9,
+    "visual_narrative_progression": 4.8,
+    "current_sha_review_integrity": 5.0
   },
   "criticalFindings": [],
   "regression": {
@@ -142,17 +150,19 @@
   "evidenceRefs": [
     "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
     "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
-    "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md"
+    "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md",
+    "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json",
+    "cpf-docs/deliverables/documentation/CURRENT_USER_FINDINGS.json"
   ],
   "unresolvedCriticalFindings": [],
   "scanPassEvidence": [
-    "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review — Scan pass: hierarchy, density, page rhythm and obvious crop/overlap reviewed."
+    "산출물목록: 5 pages fresh DOCX render + PDFium/Poppler review — Scan pass: hierarchy, density, page rhythm and obvious crop/overlap reviewed."
   ],
   "detailPassEvidence": [
-    "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review — Detail pass: tables, section starts, last pages, code/source blocks and header contrast reviewed."
+    "산출물목록: 5 pages fresh DOCX render + PDFium/Poppler review — Detail pass: tables, section starts, last pages, code/source blocks and header contrast reviewed."
   ],
   "readerPassEvidence": [
-    "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review — Reader pass: three concrete tasks traced from question/selection to action and result check."
+    "산출물목록: 5 pages fresh DOCX render + PDFium/Poppler review — Reader pass: three concrete tasks traced from question/selection to action and result check."
   ],
   "readerTaskTraces": [
     {
@@ -182,31 +192,50 @@
   ],
   "dimensionEvidence": {
     "reader_actionability": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "selection_to_action": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "working_example_fit": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "failure_recovery_closure": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "visual_comfort": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "information_hierarchy": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "flat_list_density": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "heavy_block_rhythm": [
-      "산출물목록: 4 pages fresh DOCX render + PDFium/Poppler review"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ]
   },
-  "scoreUniformityJustification": "Scores are evidence-backed dimension ratings from the final fresh render; repeated values reflect the fixed 1..5 rubric, while the pattern intentionally varies by dimension rather than blanket scoring.",
-  "reviewedAt": "2026-08-29T10:24:03+09:00",
-  "reviewer": "GPT-5.6 Sol"
+  "scoreUniformityJustification": "Scores use the Harness 1..5 rubric after final Scan + Detail + Reader passes. Repeated values reflect dimensions with equivalent quality; current-SHA integrity is 5.0 because hashes are recalculated from the reviewed artifact.",
+  "reviewedAt": "2026-08-30T02:30:00+09:00",
+  "reviewer": "GPT-5.6 Sol - Fresh-Eyes Artifact Review",
+  "artifactSha256": "68BA36027E7A8CD07061B88A9A5C27360BA21A7C9FB6687AD5B8064519CC4D34",
+  "artifactBytes": 30134,
+  "currentArtifactShaEvidence": {
+    "required": true,
+    "files": [
+      {
+        "path": "cpf-docs/deliverables/산출물목록.docx",
+        "sha256": "E0043F30FEAE99A91D15D2A4B704859985F37EDD728817C81CB596B5ECFC2654"
+      }
+    ]
+  }
 }

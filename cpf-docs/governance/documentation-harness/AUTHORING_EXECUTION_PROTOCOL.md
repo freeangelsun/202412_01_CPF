@@ -1,4 +1,4 @@
-# Authoring Execution Protocol — v2.15.1
+# Authoring Execution Protocol — v2.15.4
 
 누가 작성해도 Harness를 같은 순서로 적용하도록 실행 절차를 고정한다.
 

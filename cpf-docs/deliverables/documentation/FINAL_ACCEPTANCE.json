@@ -1,20 +1,20 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.4",
   "sourceIdentity": "cpf-docs/deliverables/documentation/SOURCE_IDENTITY.json",
   "targetArtifacts": [
-    "README",
-    "FRAMEWORK_DEVELOPER_GUIDE",
-    "BATCH_DEVELOPER_GUIDE",
-    "OPERATOR_MANUAL",
-    "BATCH_OPERATOR_GUIDE",
-    "GATEWAY_GUIDE",
-    "SPECIFICATION",
     "ARCHITECTURE_DESIGN",
-    "TECHNICAL_SPECIFICATION",
-    "TECHNICAL_STANDARD",
+    "BATCH_DEVELOPER_GUIDE",
+    "BATCH_OPERATOR_GUIDE",
     "DATABASE_STANDARD",
-    "DELIVERABLE_INDEX"
+    "DELIVERABLE_INDEX",
+    "FRAMEWORK_DEVELOPER_GUIDE",
+    "GATEWAY_GUIDE",
+    "OPERATOR_MANUAL",
+    "README",
+    "SPECIFICATION",
+    "TECHNICAL_SPECIFICATION",
+    "TECHNICAL_STANDARD"
   ],
   "gates": {
     "HARNESS_SCHEMA_PASS": "PASS",
@@ -47,6 +47,8 @@
     "TABLE_PROPORTION_RENDER_PASS": "PASS",
     "READER_TASK_COMPLETENESS_PASS": "PASS",
     "MANUAL_EVIDENCE_COMPLETE_PASS": "PASS",
+    "ARCHITECTURE_VISUAL_SEMANTIC_PASS": "PASS",
+    "PDF_OPENABILITY_PASS": "PASS",
     "FINAL_ACCEPTANCE_AGGREGATOR_PASS": "PASS",
     "SOURCE_IDENTITY_PASS": "PASS",
     "SEMANTIC_PASS": "PASS",
@@ -55,6 +57,7 @@
     "DOCUMENT_SIZE_CAP_ABSENCE_PASS": "PASS",
     "CONTENT_COVERAGE_NOT_TRUNCATED_PASS": "PASS",
     "README_BROCHURE_PASS": "PASS",
+    "README_RENDERED_BROCHURE_REVIEW_PASS": "PASS",
     "README_AI_TEXT_COMPANION_PASS": "PASS",
     "INFORMATION_ARCHITECTURE_PASS": "PASS",
     "FULL_PAGE_FRESH_EYES_REVIEW_PASS": "PASS",
@@ -65,45 +68,52 @@
     "DEVELOPER_WORKING_EXAMPLE_PASS": "PASS",
     "VISUAL_COMFORT_AND_DENSITY_PASS": "PASS",
     "SOURCE_ALIGNMENT_PASS": "PASS",
-    "ARCHITECTURE_VISUAL_SEMANTIC_PASS": "PASS",
-    "PDF_OPENABILITY_PASS": "PASS"
+    "README_PRODUCT_COMPLETENESS_PASS": "PASS",
+    "README_ARCHITECTURE_COMPLETENESS_PASS": "PASS",
+    "README_EXPLANATION_DEPTH_PASS": "PASS",
+    "README_DEVELOPER_GOLDEN_PATH_PASS": "PASS",
+    "VISUAL_SEMANTIC_QUALITY_PASS": "PASS",
+    "CURRENT_ARTIFACT_SHA_REVIEW_PASS": "PASS",
+    "USER_FINDING_CLOSURE_PASS": "PASS",
+    "FALSE_GREEN_PREVENTION_PASS": "PASS"
   },
   "gateEvidence": {
     "HARNESS_SCHEMA_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_harness_2_13_final.txt"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_harness_2_15_4_final.txt"
     ],
     "ARTIFACT_STRUCTURE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_2_13_final.txt"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_2_15_4_final.txt"
     ],
     "READER_TASK_FIT_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "TABLE_SEMANTIC_FIT_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "HEADING_AND_VERTICAL_RHYTHM_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "EMBEDDED_FIGURE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "RENDER_TECHNICAL_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md",
-      "cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY_2_13.json"
+      "cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY_2_15_4.json"
     ],
     "FIGURE_GEOMETRY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json"
     ],
     "HUMAN_VISUAL_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
-      "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+      "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "REGRESSION_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
-      "cpf-docs/deliverables/documentation/evidence/manual/HARNESS_RECURRENCE_FIX.md"
+      "cpf-docs/deliverables/documentation/evidence/manual/HARNESS_RECURRENCE_FIX.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "CLICK_THROUGH_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
@@ -116,86 +126,90 @@
       "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md"
     ],
     "OPENING_SUMMARY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+      "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json"
     ],
     "CONNECTOR_BOUNDARY_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md"
     ],
     "CONTRAST_AND_NON_TEXT_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json"
     ],
     "NEGATIVE_FIXTURE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_quality_fixtures_2_13_final.txt"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_quality_fixtures_2_15_4_final.txt"
     ],
     "HUMAN_READER_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "SOURCE_ZIP_COMPLETENESS_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_source_zip_2_13_final.txt"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_source_zip_2_15_4_final.txt"
     ],
     "DOCX_CONTENT_STRUCTURE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_2_13_final.txt"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_2_15_4_final.txt"
     ],
     "PAGE_DENSITY_AND_ORPHAN_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_rendered_page_composition_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_rendered_page_composition_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "TABLE_WIDTH_AND_WRAP_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "VERTICAL_RHYTHM_DENSITY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "READER_TASK_COVERAGE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "TABLE_FRAGMENT_ORPHAN_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_rendered_page_composition_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_rendered_page_composition_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "README_NATURAL_VALUE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json"
     ],
     "README_SCANABILITY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json"
     ],
     "TABLE_PROPORTION_RENDER_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "READER_TASK_COMPLETENESS_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "MANUAL_EVIDENCE_COMPLETE_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
-      "cpf-docs/deliverables/documentation/evidence/reviews/README.json"
+      "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json"
+    ],
+    "ARCHITECTURE_VISUAL_SEMANTIC_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_architecture_visual_semantics_2_15_4_final.txt"
+    ],
+    "PDF_OPENABILITY_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_pdf_openability_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/TWO_RENDERER_PAGE_COUNT_2_15_4.json"
     ],
     "FINAL_ACCEPTANCE_AGGREGATOR_PASS": [
       "cpf-docs/deliverables/documentation/FINAL_ACCEPTANCE.json"
     ],
     "SOURCE_IDENTITY_PASS": [
       "cpf-docs/deliverables/documentation/SOURCE_IDENTITY.json",
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_source_zip_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/SOURCE_CURRENTIZATION_FINALVALIDATION.json"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_source_currentization_2_15_4_final.txt"
     ],
     "SEMANTIC_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md",
-      "cpf-docs/deliverables/documentation/SOURCE_CURRENTIZATION_FINALVALIDATION.json"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_source_alignment_2_15_4_final.txt"
     ],
     "ACCESSIBILITY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/A11Y_SUMMARY_2_13.json",
-      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/automated/A11Y_SUMMARY_2_15_4.json"
     ],
     "PDF_PREFLIGHT_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY_2_13.json",
-      "cpf-docs/deliverables/documentation/evidence/automated/render_counts/TWO_RENDERER_PAGE_COUNT.json",
+      "cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY_2_15_4.json",
       "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md"
     ],
     "DOCUMENT_SIZE_CAP_ABSENCE_PASS": [
@@ -206,12 +220,15 @@
       "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md"
     ],
     "README_BROCHURE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json"
+    ],
+    "README_RENDERED_BROCHURE_REVIEW_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_render_review_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json"
     ],
     "README_AI_TEXT_COMPANION_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_15_4_final.txt"
     ],
     "INFORMATION_ARCHITECTURE_PASS": [
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
@@ -226,74 +243,66 @@
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "READABILITY_AND_ACTIONABILITY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_readability_actionability_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readability_actionability_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "SELECTION_TO_ACTION_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_readability_actionability_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readability_actionability_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "DEVELOPER_WORKING_EXAMPLE_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_readability_actionability_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readability_actionability_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     ],
     "VISUAL_COMFORT_AND_DENSITY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_rendered_page_composition_2_13_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_rendered_page_composition_2_15_4_final.txt",
       "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "SOURCE_ALIGNMENT_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_source_alignment_2_13_final.txt"
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_source_alignment_2_15_4_final.txt"
     ],
-    "ARCHITECTURE_VISUAL_SEMANTIC_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_architecture_visual_semantics_2_13_final.txt"
+    "README_PRODUCT_COMPLETENESS_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_product_completeness_2_15_4_final.txt"
     ],
-    "PDF_OPENABILITY_PASS": [
-      "cpf-docs/deliverables/documentation/evidence/automated/validate_pdf_openability_2_13_final.txt",
-      "cpf-docs/deliverables/documentation/evidence/automated/PDFIUM_PAGE_COUNT_2_13.json",
-      "cpf-docs/deliverables/documentation/evidence/automated/POPPLER_OPENABILITY_2_13.json"
+    "README_ARCHITECTURE_COMPLETENESS_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_product_completeness_2_15_4_final.txt"
+    ],
+    "README_EXPLANATION_DEPTH_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_product_completeness_2_15_4_final.txt"
+    ],
+    "README_DEVELOPER_GOLDEN_PATH_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_product_completeness_2_15_4_final.txt"
+    ],
+    "VISUAL_SEMANTIC_QUALITY_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_human_review_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json"
+    ],
+    "CURRENT_ARTIFACT_SHA_REVIEW_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_human_review_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json"
+    ],
+    "USER_FINDING_CLOSURE_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_user_finding_closure_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/CURRENT_USER_FINDINGS.json"
+    ],
+    "FALSE_GREEN_PREVENTION_PASS": [
+      "cpf-docs/deliverables/documentation/evidence/automated/validate_false_green_prevention_2_15_4_final.txt",
+      "cpf-docs/deliverables/documentation/evidence/manual/HARNESS_RECURRENCE_FIX.md"
     ]
   },
   "artifactReviews": [
     {
-      "artifactId": "README",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/README.json"
-    },
-    {
-      "artifactId": "FRAMEWORK_DEVELOPER_GUIDE",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/FRAMEWORK_DEVELOPER_GUIDE.json"
+      "artifactId": "ARCHITECTURE_DESIGN",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/ARCHITECTURE_DESIGN.json"
     },
     {
       "artifactId": "BATCH_DEVELOPER_GUIDE",
       "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/BATCH_DEVELOPER_GUIDE.json"
     },
     {
-      "artifactId": "OPERATOR_MANUAL",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/OPERATOR_MANUAL.json"
-    },
-    {
       "artifactId": "BATCH_OPERATOR_GUIDE",
       "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/BATCH_OPERATOR_GUIDE.json"
-    },
-    {
-      "artifactId": "GATEWAY_GUIDE",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/GATEWAY_GUIDE.json"
-    },
-    {
-      "artifactId": "SPECIFICATION",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/SPECIFICATION.json"
-    },
-    {
-      "artifactId": "ARCHITECTURE_DESIGN",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/ARCHITECTURE_DESIGN.json"
-    },
-    {
-      "artifactId": "TECHNICAL_SPECIFICATION",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/TECHNICAL_SPECIFICATION.json"
-    },
-    {
-      "artifactId": "TECHNICAL_STANDARD",
-      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/TECHNICAL_STANDARD.json"
     },
     {
       "artifactId": "DATABASE_STANDARD",
@@ -302,12 +311,40 @@
     {
       "artifactId": "DELIVERABLE_INDEX",
       "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/DELIVERABLE_INDEX.json"
+    },
+    {
+      "artifactId": "FRAMEWORK_DEVELOPER_GUIDE",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/FRAMEWORK_DEVELOPER_GUIDE.json"
+    },
+    {
+      "artifactId": "GATEWAY_GUIDE",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/GATEWAY_GUIDE.json"
+    },
+    {
+      "artifactId": "OPERATOR_MANUAL",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/OPERATOR_MANUAL.json"
+    },
+    {
+      "artifactId": "README",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/README.json"
+    },
+    {
+      "artifactId": "SPECIFICATION",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/SPECIFICATION.json"
+    },
+    {
+      "artifactId": "TECHNICAL_SPECIFICATION",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/TECHNICAL_SPECIFICATION.json"
+    },
+    {
+      "artifactId": "TECHNICAL_STANDARD",
+      "reviewFile": "cpf-docs/deliverables/documentation/evidence/reviews/TECHNICAL_STANDARD.json"
     }
   ],
   "unresolvedCriticalFindings": [],
   "unresolvedFindings": [],
-  "manualReviewer": "GPT-5.6 Sol",
-  "reviewedAt": "2026-08-29T10:25:02+09:00",
+  "manualReviewer": "DevGPT Fresh-Eyes Human Visual Review",
+  "reviewedAt": "2026-08-30T03:20:00+09:00",
   "finalStatus": "PASS",
   "reviewPasses": {
     "scanPass": "PASS",
@@ -317,31 +354,38 @@
   "contentTruncationForLength": false,
   "totalDocumentSizeCapApplied": false,
   "evidenceRefs": [
-    "cpf-docs/deliverables/documentation/TEST_AND_EVIDENCE.md",
-    "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
+    "cpf-docs/deliverables/documentation/CURRENT_USER_FINDINGS.json",
+    "cpf-docs/deliverables/documentation/FINAL_ACCEPTANCE.json",
+    "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json",
+    "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json",
+    "cpf-docs/deliverables/documentation/SOURCE_IDENTITY.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/A11Y_SUMMARY_2_15_4.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/PDF_PREFLIGHT_SUMMARY_2_15_4.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/TWO_RENDERER_PAGE_COUNT_2_15_4.json",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_architecture_visual_semantics_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_docx_artifacts_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_false_green_prevention_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_harness_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_pdf_openability_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_quality_fixtures_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_readability_actionability_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_reader_task_coverage_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_product_completeness_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_readme_render_review_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_rendered_page_composition_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_source_alignment_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_source_currentization_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_source_zip_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_user_finding_closure_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_assets_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_comfort_2_15_4_final.txt",
+    "cpf-docs/deliverables/documentation/evidence/automated/validate_visual_human_review_2_15_4_final.txt",
     "cpf-docs/deliverables/documentation/evidence/manual/CONTENT_CURRENTIZATION.md",
-    "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
-  ],
-  "executionFacts": {
-    "docx": 11,
-    "pdf": 11,
-    "finalPages": 117,
-    "visualAssets": 9,
-    "negativeFixtures": 104,
-    "a11yFindings": 0,
-    "pdfPreflightWarnings": 0,
-    "pdftoppmPages": 117,
-    "pdfiumPages": 117,
-    "readmeBrowserWidths": [
-      900,
-      1200,
-      1440
-    ],
-    "sourceCurrentizationFiles": 10039,
-    "sourceFingerprint": "7F400D8B4D525F1A5D4B6CE0DC6B6FE8BF0723798E0F97F63DDA8292DC86E9A4"
-  },
-  "environmentSpecificNotExecuted": {
-    "windowsPowerShellWrappers": "미검증 - Linux container only",
-    "windowsVsCodeBuiltInMarkdownPreview": "미검증 - Windows VS Code WebView unavailable in Linux container"
-  }
+    "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md",
+    "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
+    "cpf-docs/deliverables/documentation/evidence/manual/HARNESS_RECURRENCE_FIX.md",
+    "cpf-docs/deliverables/documentation/evidence/manual/PACKAGE_REPLAY.md",
+    "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
+  ]
 }

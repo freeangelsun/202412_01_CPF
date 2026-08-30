@@ -1,9 +1,9 @@
 {
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "createdAtKst": "2026-08-29T21:00:00+09:00",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_153927.zip",
-  "sha256": "0866C9D3548981E0E406AFF1EBB71ED17B87B16CEB9731B189B474FD9F4D88A7",
-  "canonicalRequirements": "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip",
+  "sha256": "6AEC7A50D69F140B30968EAD21B7242E1D2A6252446DAC0D5A27CC4C4566D7DC",
+  "canonicalRequirements": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
   "starterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "publicProfiles": [
     "web-api",
@@ -217,15 +217,15 @@
   "branch": "master",
   "sourceCommit": "UNAVAILABLE_IN_SUPPLIED_ZIP",
   "workingSourceAuthority": "USER_PROVIDED_FINAL_SOURCE_ZIP",
-  "sourceIdentity": "PRODUCT_SOURCE_IDENTITY:398EBF1EE0D80F9FFC2BF80E9AD8B0E6834CEA8AB0A84E2E5B131AA64672C717",
+  "sourceIdentity": "PRODUCT_SOURCE_IDENTITY:B162D358B4F127F7C4E3A816F89DCC8AB5FC2F66423EC7C37CBBEFD6414FDE9E",
   "documentationAssetsObserved": {
     "README": 1,
     "officialDocx": 11,
     "officialPdf": 11,
     "productVisualPng": 9,
-    "sourceZipTotalFiles": 8838
+    "sourceZipTotalFiles": 8910
   },
-  "productSourceIdentity": "398EBF1EE0D80F9FFC2BF80E9AD8B0E6834CEA8AB0A84E2E5B131AA64672C717",
-  "productSourceFileCount": 8320,
+  "productSourceIdentity": "B162D358B4F127F7C4E3A816F89DCC8AB5FC2F66423EC7C37CBBEFD6414FDE9E",
+  "productSourceFileCount": 8351,
   "fullTreeCurrentFileCount": 8832
 }

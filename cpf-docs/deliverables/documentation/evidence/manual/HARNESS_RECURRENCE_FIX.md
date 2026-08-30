@@ -1,7 +1,21 @@
-# Harness 2.13.0 Recurrence Fix
+# Harness 2.15.4 Recurrence Fix
 
-User-visible false greens were promoted into executable Harness rules, fixtures and fresh-eyes review obligations. The final Harness requires source currentization before authoring and immediately before acceptance, reader-task closure instead of keyword-only coverage, selection-to-action, developer working examples, UNKNOWN/recovery closure, readable semantic grouping, heavy-block rhythm, page/section balance and cross-renderer verification.
+This session did not treat the prior automated PASS as approval. User-visible regressions were reopened and promoted into executable Harness checks before the artifact was accepted again.
 
-Negative fixtures: **104/104 PASS**. Existing 2.9 geometry/accessibility/package protections were preserved and strengthened rather than discarded.
+Current hardening includes:
+
+- rendered README first-viewport brochure requirement
+- clear section-boundary requirement
+- nine core visual-role retention requirement
+- rendered text-wall rejection
+- large-product README major-function coverage minimum
+- current artifact/image SHA-bound human visual review
+- contact-sheet-only visual review rejection
+- user finding closure trace: Artifact + Harness Rule + Validator + Negative Fixture + Final Gate
+- stale Source identity / stale Evidence rejection
+- Architecture Owner semantics check for Backoffice/BFF/ADM/Gateway
+- rendered page-composition checks for blank/orphan/sparse-tail regressions
+
+Negative fixtures: **123/123 PASS**. Harness hardening self-test proves both reachable positive paths and rejection of thin/stale/false-green cases.
 
 **PASS.**

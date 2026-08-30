@@ -1,13 +1,13 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
-  "baselineSourceSha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
-  "reviewPolicy": "CURRENT_ONLY; PATCH_FIRST; original PNG + 900/1200/1440 README surfaces manually reviewed; crop/boundary/header-wrap false-green forbidden",
+  "harnessVersion": "2.15.4",
+  "baselineSourceSha256": "6AEC7A50D69F140B30968EAD21B7242E1D2A6252446DAC0D5A27CC4C4566D7DC",
+  "reviewPolicy": "CURRENT_ONLY; current asset SHA + original PNG + 900/1200/1440 README surfaces manually reviewed; full PNG decode; crop/boundary/connector/text collision false-green forbidden",
   "assets": [
     {
       "asset": "cpf-docs/assets/product-docs/hero.png",
       "sha256": "34741A87A5B1B5BD064D72CE91DDCD9F4736B17EB9A0BCE1CBEFA0CB0D9AA625",
-      "grammar": "cpf_product_visual",
+      "grammar": "hero-contract-flow-v2",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -18,33 +18,33 @@
           "id": "titleZone",
           "kind": "annotation",
           "x": 80,
-          "y": 58,
+          "y": 52,
           "w": 1440,
-          "h": 150
+          "h": 138
         },
         {
           "id": "contentZone",
           "kind": "node",
           "x": 80,
-          "y": 220,
+          "y": 205,
           "w": 1440,
-          "h": 500
+          "h": 545
         },
         {
           "id": "captionZone",
           "kind": "annotation",
           "x": 100,
-          "y": 755,
+          "y": 770,
           "w": 1400,
-          "h": 80
+          "h": 66
         }
       ],
       "connectors": [],
       "embeddedRenders": [
         {
           "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
           "effectiveMinTextPt": 10.5,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -52,8 +52,8 @@
         },
         {
           "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -61,8 +61,8 @@
         },
         {
           "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -73,7 +73,7 @@
     {
       "asset": "cpf-docs/assets/product-docs/architecture.png",
       "sha256": "6DDC54EBEDC9CB4D74D39BBB1557884A2D814A4883C65AFB3EAAE3C25D80B8AA",
-      "grammar": "cpf_product_visual",
+      "grammar": "three-zone-owner-map-v2",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -84,33 +84,33 @@
           "id": "titleZone",
           "kind": "annotation",
           "x": 80,
-          "y": 58,
+          "y": 52,
           "w": 1440,
-          "h": 150
+          "h": 138
         },
         {
           "id": "contentZone",
           "kind": "node",
           "x": 80,
-          "y": 220,
+          "y": 205,
           "w": 1440,
-          "h": 500
+          "h": 545
         },
         {
           "id": "captionZone",
           "kind": "annotation",
           "x": 100,
-          "y": 755,
+          "y": 770,
           "w": 1400,
-          "h": 80
+          "h": 66
         }
       ],
       "connectors": [],
       "embeddedRenders": [
         {
           "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
           "effectiveMinTextPt": 10.5,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -118,8 +118,8 @@
         },
         {
           "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -127,8 +127,8 @@
         },
         {
           "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -141,9 +141,9 @@
       "backofficeWebZone": "CHANNEL_EDGE"
     },
     {
-      "asset": "cpf-docs/assets/product-docs/invoke.png",
-      "sha256": "6F16C7FAC7B37AD90E6D164DEA6E9047FEF8068FB0E9B2BF2297839506E141A8",
-      "grammar": "cpf_product_visual",
+      "asset": "cpf-docs/assets/product-docs/capabilities.png",
+      "sha256": "CCDA034499D322854D96207052ABD96C55E2B3CDE42230A5BC9DA01AAE4CC0F7",
+      "grammar": "capability-landscape-v2",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -154,33 +154,33 @@
           "id": "titleZone",
           "kind": "annotation",
           "x": 80,
-          "y": 58,
+          "y": 52,
           "w": 1440,
-          "h": 150
+          "h": 138
         },
         {
           "id": "contentZone",
           "kind": "node",
           "x": 80,
-          "y": 220,
+          "y": 205,
           "w": 1440,
-          "h": 500
+          "h": 545
         },
         {
           "id": "captionZone",
           "kind": "annotation",
           "x": 100,
-          "y": 755,
+          "y": 770,
           "w": 1400,
-          "h": 80
+          "h": 66
         }
       ],
       "connectors": [],
       "embeddedRenders": [
         {
           "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
           "effectiveMinTextPt": 10.5,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -188,8 +188,8 @@
         },
         {
           "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -197,140 +197,8 @@
         },
         {
           "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
-          "effectiveMinTextPt": 11.0,
-          "crop": 0,
-          "boundaryIntrusion": 0,
-          "contrastPass": true
-        }
-      ]
-    },
-    {
-      "asset": "cpf-docs/assets/product-docs/tx.png",
-      "sha256": "89C94859B63E59E7105FA8C4108B380E1106B2358E19C67D169534D7E2D64498",
-      "grammar": "cpf_product_visual",
-      "canvas": {
-        "width": 1600,
-        "height": 900,
-        "safeMargin": 64
-      },
-      "objects": [
-        {
-          "id": "titleZone",
-          "kind": "annotation",
-          "x": 80,
-          "y": 58,
-          "w": 1440,
-          "h": 150
-        },
-        {
-          "id": "contentZone",
-          "kind": "node",
-          "x": 80,
-          "y": 220,
-          "w": 1440,
-          "h": 500
-        },
-        {
-          "id": "captionZone",
-          "kind": "annotation",
-          "x": 100,
-          "y": 755,
-          "w": 1400,
-          "h": 80
-        }
-      ],
-      "connectors": [],
-      "embeddedRenders": [
-        {
-          "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
-          "effectiveMinTextPt": 10.5,
-          "crop": 0,
-          "boundaryIntrusion": 0,
-          "contrastPass": true
-        },
-        {
-          "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
-          "effectiveMinTextPt": 11.0,
-          "crop": 0,
-          "boundaryIntrusion": 0,
-          "contrastPass": true
-        },
-        {
-          "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
-          "effectiveMinTextPt": 11.0,
-          "crop": 0,
-          "boundaryIntrusion": 0,
-          "contrastPass": true
-        }
-      ]
-    },
-    {
-      "asset": "cpf-docs/assets/product-docs/batch.png",
-      "sha256": "B0B47DDA788EE9E295342D8B95B8E903D60E2AFFC37428F6B955C225C4075D34",
-      "grammar": "cpf_product_visual",
-      "canvas": {
-        "width": 1600,
-        "height": 900,
-        "safeMargin": 64
-      },
-      "objects": [
-        {
-          "id": "titleZone",
-          "kind": "annotation",
-          "x": 80,
-          "y": 58,
-          "w": 1440,
-          "h": 150
-        },
-        {
-          "id": "contentZone",
-          "kind": "node",
-          "x": 80,
-          "y": 220,
-          "w": 1440,
-          "h": 500
-        },
-        {
-          "id": "captionZone",
-          "kind": "annotation",
-          "x": 100,
-          "y": 755,
-          "w": 1400,
-          "h": 80
-        }
-      ],
-      "connectors": [],
-      "embeddedRenders": [
-        {
-          "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
-          "effectiveMinTextPt": 10.5,
-          "crop": 0,
-          "boundaryIntrusion": 0,
-          "contrastPass": true
-        },
-        {
-          "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
-          "effectiveMinTextPt": 11.0,
-          "crop": 0,
-          "boundaryIntrusion": 0,
-          "contrastPass": true
-        },
-        {
-          "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -341,7 +209,7 @@
     {
       "asset": "cpf-docs/assets/product-docs/development.png",
       "sha256": "DD3AC5717B470D0448CDE8387B6A2C5AA7E56818A1939BB9856F40D6B0456922",
-      "grammar": "cpf_product_visual",
+      "grammar": "five-step-journey-v2",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -352,33 +220,33 @@
           "id": "titleZone",
           "kind": "annotation",
           "x": 80,
-          "y": 58,
+          "y": 52,
           "w": 1440,
-          "h": 150
+          "h": 138
         },
         {
           "id": "contentZone",
           "kind": "node",
           "x": 80,
-          "y": 220,
+          "y": 205,
           "w": 1440,
-          "h": 500
+          "h": 545
         },
         {
           "id": "captionZone",
           "kind": "annotation",
           "x": 100,
-          "y": 755,
+          "y": 770,
           "w": 1400,
-          "h": 80
+          "h": 66
         }
       ],
       "connectors": [],
       "embeddedRenders": [
         {
           "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
           "effectiveMinTextPt": 10.5,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -386,8 +254,8 @@
         },
         {
           "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -395,8 +263,8 @@
         },
         {
           "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -405,9 +273,75 @@
       ]
     },
     {
-      "asset": "cpf-docs/assets/product-docs/capabilities.png",
-      "sha256": "CCDA034499D322854D96207052ABD96C55E2B3CDE42230A5BC9DA01AAE4CC0F7",
-      "grammar": "cpf_product_visual",
+      "asset": "cpf-docs/assets/product-docs/generator.png",
+      "sha256": "7668F0195F75B8112545EEC0E2BB3A255A88818C251E73DB7AE803A77C508028",
+      "grammar": "chevron-ownership-split-v2",
+      "canvas": {
+        "width": 1800,
+        "height": 950,
+        "safeMargin": 64
+      },
+      "objects": [
+        {
+          "id": "titleZone",
+          "kind": "annotation",
+          "x": 80,
+          "y": 52,
+          "w": 1640,
+          "h": 138
+        },
+        {
+          "id": "contentZone",
+          "kind": "node",
+          "x": 80,
+          "y": 205,
+          "w": 1640,
+          "h": 595
+        },
+        {
+          "id": "captionZone",
+          "kind": "annotation",
+          "x": 100,
+          "y": 820,
+          "w": 1600,
+          "h": 66
+        }
+      ],
+      "connectors": [],
+      "embeddedRenders": [
+        {
+          "surface": "README_900",
+          "displayWidthPx": 812,
+          "displayHeightPx": 429,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1200",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 576,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1440",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 576,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/invoke.png",
+      "sha256": "6F16C7FAC7B37AD90E6D164DEA6E9047FEF8068FB0E9B2BF2297839506E141A8",
+      "grammar": "dual-topology-bridge-v2",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -418,33 +352,33 @@
           "id": "titleZone",
           "kind": "annotation",
           "x": 80,
-          "y": 58,
+          "y": 52,
           "w": 1440,
-          "h": 150
+          "h": 138
         },
         {
           "id": "contentZone",
           "kind": "node",
           "x": 80,
-          "y": 220,
+          "y": 205,
           "w": 1440,
-          "h": 500
+          "h": 545
         },
         {
           "id": "captionZone",
           "kind": "annotation",
           "x": 100,
-          "y": 755,
+          "y": 770,
           "w": 1400,
-          "h": 80
+          "h": 66
         }
       ],
       "connectors": [],
       "embeddedRenders": [
         {
           "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
           "effectiveMinTextPt": 10.5,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -452,8 +386,8 @@
         },
         {
           "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -461,8 +395,206 @@
         },
         {
           "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/tx.png",
+      "sha256": "89C94859B63E59E7105FA8C4108B380E1106B2358E19C67D169534D7E2D64498",
+      "grammar": "result-state-radial-v2",
+      "canvas": {
+        "width": 1600,
+        "height": 900,
+        "safeMargin": 64
+      },
+      "objects": [
+        {
+          "id": "titleZone",
+          "kind": "annotation",
+          "x": 80,
+          "y": 52,
+          "w": 1440,
+          "h": 138
+        },
+        {
+          "id": "contentZone",
+          "kind": "node",
+          "x": 80,
+          "y": 205,
+          "w": 1440,
+          "h": 545
+        },
+        {
+          "id": "captionZone",
+          "kind": "annotation",
+          "x": 100,
+          "y": 770,
+          "w": 1400,
+          "h": 66
+        }
+      ],
+      "connectors": [],
+      "embeddedRenders": [
+        {
+          "surface": "README_900",
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1200",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1440",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/integration.png",
+      "sha256": "BA347E7138DBC88F16A538AAFE13324D19077CE977F747B3047072308B20D4D9",
+      "grammar": "radial-protocol-hub-v2",
+      "canvas": {
+        "width": 1600,
+        "height": 900,
+        "safeMargin": 64
+      },
+      "objects": [
+        {
+          "id": "titleZone",
+          "kind": "annotation",
+          "x": 80,
+          "y": 52,
+          "w": 1440,
+          "h": 138
+        },
+        {
+          "id": "contentZone",
+          "kind": "node",
+          "x": 80,
+          "y": 205,
+          "w": 1440,
+          "h": 545
+        },
+        {
+          "id": "captionZone",
+          "kind": "annotation",
+          "x": 100,
+          "y": 770,
+          "w": 1400,
+          "h": 66
+        }
+      ],
+      "connectors": [],
+      "embeddedRenders": [
+        {
+          "surface": "README_900",
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1200",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1440",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/batch.png",
+      "sha256": "B0B47DDA788EE9E295342D8B95B8E903D60E2AFFC37428F6B955C225C4075D34",
+      "grammar": "three-lane-runtime-map-v2",
+      "canvas": {
+        "width": 1600,
+        "height": 900,
+        "safeMargin": 64
+      },
+      "objects": [
+        {
+          "id": "titleZone",
+          "kind": "annotation",
+          "x": 80,
+          "y": 52,
+          "w": 1440,
+          "h": 138
+        },
+        {
+          "id": "contentZone",
+          "kind": "node",
+          "x": 80,
+          "y": 205,
+          "w": 1440,
+          "h": 545
+        },
+        {
+          "id": "captionZone",
+          "kind": "annotation",
+          "x": 100,
+          "y": 770,
+          "w": 1400,
+          "h": 66
+        }
+      ],
+      "connectors": [],
+      "embeddedRenders": [
+        {
+          "surface": "README_900",
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1200",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1440",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -473,7 +605,7 @@
     {
       "asset": "cpf-docs/assets/product-docs/gateway.png",
       "sha256": "9D02E6A2075699C08BD2B3F0C55A9F922DEE533B32AF4E2A6C9F36538A8D8F28",
-      "grammar": "cpf_product_visual",
+      "grammar": "three-option-topology-compare-v2",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -484,33 +616,33 @@
           "id": "titleZone",
           "kind": "annotation",
           "x": 80,
-          "y": 58,
+          "y": 52,
           "w": 1440,
-          "h": 150
+          "h": 138
         },
         {
           "id": "contentZone",
           "kind": "node",
           "x": 80,
-          "y": 220,
+          "y": 205,
           "w": 1440,
-          "h": 500
+          "h": 545
         },
         {
           "id": "captionZone",
           "kind": "annotation",
           "x": 100,
-          "y": 755,
+          "y": 770,
           "w": 1400,
-          "h": 80
+          "h": 66
         }
       ],
       "connectors": [],
       "embeddedRenders": [
         {
           "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
           "effectiveMinTextPt": 10.5,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -518,8 +650,8 @@
         },
         {
           "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -527,8 +659,140 @@
         },
         {
           "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/db3.png",
+      "sha256": "B6E29E13482AC8E61CFAAAD34F7ABF2C455E4413B36A57A1ADAB716E6134F1C9",
+      "grammar": "serpentine-db3-lifecycle-v2",
+      "canvas": {
+        "width": 1600,
+        "height": 900,
+        "safeMargin": 64
+      },
+      "objects": [
+        {
+          "id": "titleZone",
+          "kind": "annotation",
+          "x": 80,
+          "y": 52,
+          "w": 1440,
+          "h": 138
+        },
+        {
+          "id": "contentZone",
+          "kind": "node",
+          "x": 80,
+          "y": 205,
+          "w": 1440,
+          "h": 545
+        },
+        {
+          "id": "captionZone",
+          "kind": "annotation",
+          "x": 100,
+          "y": 770,
+          "w": 1400,
+          "h": 66
+        }
+      ],
+      "connectors": [],
+      "embeddedRenders": [
+        {
+          "surface": "README_900",
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1200",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1440",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        }
+      ]
+    },
+    {
+      "asset": "cpf-docs/assets/product-docs/security.png",
+      "sha256": "654F725679ACB4A715D5B6D2A5782C25CAC59E033042B785BDCFDFB9ACE8F63F",
+      "grammar": "shield-control-stack-v2",
+      "canvas": {
+        "width": 1800,
+        "height": 950,
+        "safeMargin": 64
+      },
+      "objects": [
+        {
+          "id": "titleZone",
+          "kind": "annotation",
+          "x": 80,
+          "y": 52,
+          "w": 1640,
+          "h": 138
+        },
+        {
+          "id": "contentZone",
+          "kind": "node",
+          "x": 80,
+          "y": 205,
+          "w": 1640,
+          "h": 595
+        },
+        {
+          "id": "captionZone",
+          "kind": "annotation",
+          "x": 100,
+          "y": 820,
+          "w": 1600,
+          "h": 66
+        }
+      ],
+      "connectors": [],
+      "embeddedRenders": [
+        {
+          "surface": "README_900",
+          "displayWidthPx": 812,
+          "displayHeightPx": 429,
+          "effectiveMinTextPt": 10.5,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1200",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 576,
+          "effectiveMinTextPt": 11.0,
+          "crop": 0,
+          "boundaryIntrusion": 0,
+          "contrastPass": true
+        },
+        {
+          "surface": "README_1440",
+          "displayWidthPx": 1092,
+          "displayHeightPx": 576,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -539,7 +803,7 @@
     {
       "asset": "cpf-docs/assets/product-docs/ops.png",
       "sha256": "E8379C1C8B36472A62E5428EB740231E999713B628E8823FBB3E5704C4065AE1",
-      "grammar": "cpf_product_visual",
+      "grammar": "operations-dashboard-timeline-v2",
       "canvas": {
         "width": 1600,
         "height": 900,
@@ -550,33 +814,33 @@
           "id": "titleZone",
           "kind": "annotation",
           "x": 80,
-          "y": 58,
+          "y": 52,
           "w": 1440,
-          "h": 150
+          "h": 138
         },
         {
           "id": "contentZone",
           "kind": "node",
           "x": 80,
-          "y": 220,
+          "y": 205,
           "w": 1440,
-          "h": 500
+          "h": 545
         },
         {
           "id": "captionZone",
           "kind": "annotation",
           "x": 100,
-          "y": 755,
+          "y": 770,
           "w": 1400,
-          "h": 80
+          "h": 66
         }
       ],
       "connectors": [],
       "embeddedRenders": [
         {
           "surface": "README_900",
-          "displayWidthPx": 900,
-          "displayHeightPx": 506,
+          "displayWidthPx": 812,
+          "displayHeightPx": 457,
           "effectiveMinTextPt": 10.5,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -584,8 +848,8 @@
         },
         {
           "surface": "README_1200",
-          "displayWidthPx": 1200,
-          "displayHeightPx": 675,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -593,8 +857,8 @@
         },
         {
           "surface": "README_1440",
-          "displayWidthPx": 1440,
-          "displayHeightPx": 810,
+          "displayWidthPx": 1092,
+          "displayHeightPx": 614,
           "effectiveMinTextPt": 11.0,
           "crop": 0,
           "boundaryIntrusion": 0,
@@ -603,5 +867,5 @@
       ]
     }
   ],
-  "baselineSourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip"
+  "baselineSourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip"
 }

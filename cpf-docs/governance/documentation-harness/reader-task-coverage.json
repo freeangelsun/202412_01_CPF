@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "policy": "term presence is only a pre-check. Final PASS requires task-level actionability, Selection-to-Action closure, real consumer/procedure evidence, failure/recovery closure, verification and manual evidence.",
   "artifacts": [
     {

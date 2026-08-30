@@ -1,15 +1,16 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.4",
   "repository": "https://github.com/freeangelsun/202412_01_CPF",
   "branch": "master",
   "canonicalRequirement": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
-  "sourceZipSha256": "34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip",
+  "sourceZipSha256": "6AEC7A50D69F140B30968EAD21B7242E1D2A6252446DAC0D5A27CC4C4566D7DC",
+  "productSourceIdentity": "B162D358B4F127F7C4E3A816F89DCC8AB5FC2F66423EC7C37CBBEFD6414FDE9E",
   "gitExactSha": "UNAVAILABLE_IN_SUPPLIED_ZIP",
-  "gitReason": "Supplied source ZIP contains no .git; no historical commit was substituted.",
-  "sourceCurrentizationFingerprint": "7F400D8B4D525F1A5D4B6CE0DC6B6FE8BF0723798E0F97F63DDA8292DC86E9A4",
-  "sourceCurrentizationFiles": 10039,
+  "gitReason": "Supplied source ZIP is the task authority; no Git history was substituted.",
+  "sourceCurrentizationFingerprint": "7D0388CDF0FEFB8DFD7BE4247A7047B83FBB5BDDF3CCD5509889485BB9C70518",
+  "sourceCurrentizationFiles": 8587,
   "preAuthoring": "PASS",
   "finalValidation": "PASS",
   "productNonDocumentationDrift": {
@@ -17,5 +18,5 @@
     "missing": 0,
     "added": 0
   },
-  "recordedAt": "2026-08-29T10:24:03+09:00"
+  "recordedAt": "2026-08-30T02:35:00+09:00"
 }

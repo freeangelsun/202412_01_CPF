@@ -1,0 +1,100 @@
+{
+  "harnessVersion": "2.15.4",
+  "readmeSha256": "46DEB9332C344EB2C83E344DACFFA66803CBCCC6457BA79D7EC2B91F24B466FC",
+  "reviewer": "DevGPT Fresh-Eyes Visual Review",
+  "reviewedAt": "2026-08-30T17:05:00+09:00",
+  "surfaces": [
+    {
+      "width": 900,
+      "screenshot": "cpf-docs/deliverables/documentation/evidence/visual/README_900.png",
+      "screenshotSha256": "996166D87F11368CD196D462E8C0F368E6DB6EC53337E982A29F13433E8E1D47",
+      "scanPass": true,
+      "detailPass": true,
+      "firstViewportBrochure": true,
+      "sectionBoundaryClear": true,
+      "architectureExplanationUseful": true,
+      "naturalValueUseful": true,
+      "textWallCount": 0,
+      "cropOverflowCount": 0,
+      "visualRolesPresent": [
+        "hero",
+        "architecture",
+        "invoke",
+        "tx",
+        "batch",
+        "development",
+        "capabilities",
+        "gateway",
+        "ops"
+      ],
+      "observations": [
+        "첫 화면에서 Hero visual과 CPF 제품 정의가 먼저 읽히고, 바로 다음 핵심 구간에서 전체 Architecture가 충분한 폭으로 노출된다.",
+        "13개 대표 Visual이 긴 본문을 끊어 주며 각 그림 바로 아래 1~2문장 설명과 최대 3개 핵심 포인트가 연결되고, 상세 계약은 details로 접혀 기본 화면에 텍스트 벽이 없다.",
+        "Integration/DB3 신규 Visual을 포함해 900px에서 이미지·표·코드의 좌우 overflow와 crop이 없고 섹션 separator와 상하 여백이 유지된다.",
+        "900px PNG를 전체 decode/CRC/pixel load로 다시 확인했고 truncation 0건이다."
+      ]
+    },
+    {
+      "width": 1200,
+      "screenshot": "cpf-docs/deliverables/documentation/evidence/visual/README_1200.png",
+      "screenshotSha256": "E911A4D13E6FF12AE8509079B1EF5852C5284FE5BC3CE4DAE8A0B9BB377775B7",
+      "scanPass": true,
+      "detailPass": true,
+      "firstViewportBrochure": true,
+      "sectionBoundaryClear": true,
+      "architectureExplanationUseful": true,
+      "naturalValueUseful": true,
+      "textWallCount": 0,
+      "cropOverflowCount": 0,
+      "visualRolesPresent": [
+        "hero",
+        "architecture",
+        "invoke",
+        "tx",
+        "batch",
+        "development",
+        "capabilities",
+        "gateway",
+        "ops"
+      ],
+      "observations": [
+        "Hero → 전체 Architecture → Capability → Development/Generator → Invocation/Transaction → Integration/Batch/Gateway → DB3/Security/Operations 순으로 시각적 Story가 이어진다.",
+        "전체 Architecture가 Hero 다음의 핵심 대표 Visual로 배치되어 Channel/Edge, Business Domain/CPF, Platform Operations/Runtime, DB3 Owner 경계를 먼저 이해한 뒤 세부 기능으로 내려간다.",
+        "13개 Visual은 Journey, Layer/Zone, Capability landscape, dual topology, radial state/hub, lane, split compare, lifecycle, shield, timeline 등 서로 다른 문법을 사용해 동일 네모+화살표 갤러리처럼 보이지 않는다.",
+        "1200px PNG 전체 decode/CRC/pixel load 및 구간 Detail 검수에서 crop/overflow/텍스트 벽/섹션 경계 혼동 0건이다."
+      ]
+    },
+    {
+      "width": 1440,
+      "screenshot": "cpf-docs/deliverables/documentation/evidence/visual/README_1440.png",
+      "screenshotSha256": "50C6B1FA0F9FA692B5B7839D4107D233A4A7FD516C058D02119C1417295A0F33",
+      "scanPass": true,
+      "detailPass": true,
+      "firstViewportBrochure": true,
+      "sectionBoundaryClear": true,
+      "architectureExplanationUseful": true,
+      "naturalValueUseful": true,
+      "textWallCount": 0,
+      "cropOverflowCount": 0,
+      "visualRolesPresent": [
+        "hero",
+        "architecture",
+        "invoke",
+        "tx",
+        "batch",
+        "development",
+        "capabilities",
+        "gateway",
+        "ops"
+      ],
+      "observations": [
+        "1440px에서도 content column이 과도하게 늘어나지 않아 본문 line length와 이미지 초점이 유지되고 각 대섹션 경계가 명확하다.",
+        "전체 Architecture와 주요 기능 Visual이 밝은 neutral canvas로 dark README surface와 분리되어 제품 브로셔의 focal surface로 유지된다.",
+        "후반 DB3/Security/Operations/Public CLI/문서 Navigation까지 이미지-설명-핵심 포인트 리듬이 유지되며 기본 화면에서 상세 장문이 펼쳐지지 않는다.",
+        "1440px PNG 전체 decode/CRC/pixel load를 재검증했고 손상·truncation 0건이다."
+      ]
+    }
+  ],
+  "previewHtml": "cpf-docs/deliverables/documentation/evidence/visual/README_PREVIEW.html",
+  "previewHtmlSha256": "DFF5096D5B8FB7888ED8063A2AAF8E2E30BE1B6DF0BD04C7636ACDA4C6B869FD"
+}

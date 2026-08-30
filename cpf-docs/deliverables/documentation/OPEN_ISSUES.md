@@ -1,9 +1,7 @@
-# Open Issues — Documentation 2.13.0
+# Open Issues — Documentation 2.15.4
 
-No known source/document/harness validation failure remains in the Linux final validation environment.
+## Documentation artifact scope
 
-Environment-specific unverified items:
-- Windows PowerShell `APPLY.ps1` / `DELETE_ONLY.ps1` / `VERIFY.ps1` native runtime — 미검증.
-- Windows VS Code built-in Markdown Preview WebView — 미검증.
-
-These are not marked PASS and require Windows runtime evidence after application.
+- Required documentation findings: **0 open**.
+- Windows-native PowerShell apply/delete/verify execution is **BLOCKED_EXTERNAL / NOT_EXECUTED in this Linux container**; supplied PowerShell scripts are provided for user-PC evidence.
+- Independent QA acceptance remains owned by QA and is not replaced by DevGPT self-validation.

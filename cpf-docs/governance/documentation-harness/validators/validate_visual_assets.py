@@ -15,7 +15,7 @@ def dist_to_boundary(x,y,r):
     return min(abs(x-rx),abs(x-(rx+rw)),abs(y-ry),abs(y-(ry+rh)))
 if not M.is_file(): fail('manifest missing')
 d=json.loads(M.read_text(encoding='utf-8'))
-if d.get('harnessVersion')!='2.15.1': fail('manifest harnessVersion; current assets must be regenerated/re-manifested for Harness 2.15.1')
+if d.get('harnessVersion')!='2.15.4': fail('manifest harnessVersion; current assets must be regenerated/re-manifested for Harness 2.15.4')
 if d.get('schemaVersion')!='2.0': fail('manifest schemaVersion 2.0 required')
 assets=d.get('assets',[])
 if not assets: fail('assets empty')
@@ -29,7 +29,10 @@ for a in assets:
         from PIL import Image
         with Image.open(ap) as im:
             if im.size!=(int(cw),int(ch)): fail('canvas/image dimension mismatch '+name)
-    except Exception as e: fail('image decode '+name+' '+str(e))
+            im.verify()
+        with Image.open(ap) as im2:
+            im2.load()
+    except Exception as e: fail('image full-decode integrity '+name+' '+str(e))
     if a.get('sha256') and hashlib.sha256(ap.read_bytes()).hexdigest().upper()!=str(a['sha256']).upper(): fail('asset sha256 mismatch '+name)
     objs={o['id']:o for o in a.get('objects',[])}
     meaningful=[o for o in objs.values() if o.get('kind') in ('node','text','annotation','junction')]

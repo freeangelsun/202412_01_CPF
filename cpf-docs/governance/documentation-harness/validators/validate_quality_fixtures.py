@@ -88,6 +88,7 @@ def evaluate(x):
     if trig=='backofficeBffConflated': return i.get('conflated') is True and set(i.get('singleNodeLabels',[]))>={'cpf-backoffice','cpf-backoffice-web'}
     if trig=='pdfOpenabilityFailure': return i.get('pdfHeaderValid') is not True or i.get('parserOpen') is not True or i.get('firstLastRender') is not True
     if trig=='readmeProductTooThin': return int(i.get('visibleCharacters',0))<int(i.get('minimum',0))
+    if trig=='readmeMajorFunctionCoverageMissing': return int(i.get('coveredFamilies',0))<int(i.get('requiredFamilies',0))
     if trig=='readmeArchitectureCoverageMissing': return int(i.get('coveredGroups',0))<int(i.get('requiredGroups',0))
     if trig=='readmeArchitectureModuleListOnly': return i.get('architectureSection')=='module names only' and i.get('flowExplained') is not True
     if trig=='readmeCliCommandListWithoutExplanation': return int(i.get('commandsMentioned',0))>0 and int(i.get('commandsExplained',0))==0
@@ -101,6 +102,13 @@ def evaluate(x):
     if trig=='userFindingStillOpen': return int(i.get('openFindings',0))>0
     if trig=='previousPassNotReopenedAfterUserFinding': return i.get('userFinding') is True and i.get('previousPassInvalidated') is not True
     if trig=='sourceValidatorHardcodedIdentity': return i.get('validatorContains64HexLiteral') is True
+    if trig=='readmeFirstViewportNotBrochure': return int(i.get('viewerWidthPx',0)) in (900,1200,1440) and (i.get('firstViewportBrochure') is not True or i.get('textDominated') is True)
+    if trig=='readmeSectionBoundaryUnclear': return int(i.get('viewerWidthPx',0)) in (900,1200,1440) and i.get('sectionBoundaryClear') is not True
+    if trig=='readmeCoreVisualRoleLost': return int(i.get('presentVisualRoles',0)) < int(i.get('requiredVisualRoles',9))
+    if trig=='readmeRenderedTextWall': return int(i.get('viewerWidthPx',0)) in (900,1200,1440) and int(i.get('textWallCount',0)) > 0
+    if trig=='readmeRenderedPreviewCorrupt': return i.get('fullDecodePass') is not True
+    if trig=='readmePreviewAbsoluteBase': return bool(re.match(r'^(?:file:///|/|[A-Za-z]:[\\/])',str(i.get('previewBase','')))) or '/mnt/data/' in str(i.get('previewBase',''))
+    if trig=='visualAssetImageCorrupt': return i.get('fullDecodePass') is not True
     return False
 
 errors=[]

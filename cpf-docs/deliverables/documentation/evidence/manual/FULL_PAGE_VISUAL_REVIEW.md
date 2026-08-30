@@ -1,26 +1,53 @@
-# Full Page Visual Review — Harness 2.13.0
+# Full Page Visual Review — Harness 2.15.4
 
-- Final DOCX set: **11 documents / 117 pages** rendered fresh from the current DOCX files.
-- Final PDF set: **11 documents / 117 pages**.
-- Every page is represented in the final DOCX/PDF render contact review; high-risk pages (selection/action tables, code continuation, section starts, dense pages, final pages) were additionally opened individually during correction loops.
-- Hard findings after the final correction loop: clipping 0, overlap 0, broken Korean glyph 0, dark-header/black-text 0, table-header wrap hard failure 0, source-only orphan page 0, major-section orphan 0, heavy-block wall hard failure 0.
-- Visual comfort uses increased body/heading spacing and table padding; page count was allowed to grow rather than globally shrinking fonts or margins.
-- Section-start and last-page findings were corrected locally in Framework, Batch Developer, Gateway, Technical Standard and Database Standard artifacts; Harness gates were refined only when a rendered page was demonstrably a false positive.
+## Scope
+
+- Final DOCX: **11 documents**
+- Final PDF: **11 documents / 128 pages**
+- README: full-length dark renders at **900 / 1200 / 1440 px**
+- README product visuals: **13 total; original core visual set 9/9 retained**
+- Architecture figure: source image + README surfaces + Architecture Design DOCX/PDF insertion surfaces reviewed
+
+## Review method
+
+The final DOCX files were freshly rendered and all pages were scanned in document contact sheets. The page-composition validator then identified high-density/interior-balance/last-page review signals. Those pages were opened separately in the correction loop and were not accepted from contact-sheet existence alone. README was reviewed in full-length rendered surfaces and detail crops, with current README/image SHA binding.
+
+## Findings closed during the final loop
+
+- isolated trailing content page: corrected
+- unintended blank page: corrected in two documents
+- sparse/imbalanced last pages: four documents corrected with source-backed content rather than font/margin compression
+- Architecture figure DOCX Alt Text omission: corrected and re-audited
+- README text-wall / weak section-boundary regression: rejected, rebuilt, and re-rendered
+- README product breadth too thin for CPF scale: rebuilt to 14 H2 / about 22.2k visible characters with 13 visual-first product sections while preserving brochure flow
 
 ## Final page counts
 
-- 프레임워크 개발자 가이드: 23 pages
-- 배치 개발자 가이드: 16 pages
-- 운영자 매뉴얼: 10 pages
-- 배치 운영 가이드: 8 pages
-- Gateway 개발/사용 가이드: 8 pages
-- Specification 기술 명세: 13 pages
-- 아키텍처설계서: 9 pages
-- 기술사양서: 9 pages
-- 기술표준서: 7 pages
-- 데이터베이스표준서: 9 pages
-- 산출물목록: 4 pages
+- 프레임워크 개발자 가이드: **24**
+- 배치 개발자 가이드: **17**
+- 운영자 매뉴얼: **11**
+- 배치 운영 가이드: **9**
+- Gateway 개발/사용 가이드: **9**
+- Specification 기술 명세: **14**
+- 아키텍처설계서: **11**
+- 기술사양서: **10**
+- 기술표준서: **8**
+- 데이터베이스표준서: **10**
+- 산출물목록: **5**
 
-## Result
+## Final hard-fail metrics
 
-**PASS — current 2.13.0 final render only.**
+- clipping / crop: **0**
+- overlap: **0**
+- broken Korean glyph: **0**
+- empty page: **0**
+- isolated trailing content hard failure: **0**
+- page outside writable area: **0**
+- table header hard wrap failure: **0**
+- semantically incomplete Architecture visual: **0**
+- README horizontal overflow: **0**
+- README rendered text wall: **0**
+
+`validate_rendered_page_composition.py` reports **PASS**. Its remaining review signals are advisory human-review candidates, not hard failures, and were included in the final flagged-page review rather than silently ignored.
+
+**PASS — current 2.15.4 artifact set only.**

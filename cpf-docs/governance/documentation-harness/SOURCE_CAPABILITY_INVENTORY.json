@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.15.1",
-  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_153927.zip",
-  "sourceSha256": "0866C9D3548981E0E406AFF1EBB71ED17B87B16CEB9731B189B474FD9F4D88A7",
+  "harnessVersion": "2.15.4",
+  "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip",
+  "sourceSha256": "6AEC7A50D69F140B30968EAD21B7242E1D2A6252446DAC0D5A27CC4C4566D7DC",
   "apiPackageCategories": [
     {
       "category": "platform/operations/observability",
@@ -1578,5 +1578,5 @@
     }
   ],
   "use": "Current supplied source API/package category inventory. Every sample basename is rechecked against the current repository by validate_source_alignment.py; documentation must re-check exact API/consumer semantics before authoring.",
-  "productSourceIdentity": "398EBF1EE0D80F9FFC2BF80E9AD8B0E6834CEA8AB0A84E2E5B131AA64672C717"
+  "productSourceIdentity": "B162D358B4F127F7C4E3A816F89DCC8AB5FC2F66423EC7C37CBBEFD6414FDE9E"
 }

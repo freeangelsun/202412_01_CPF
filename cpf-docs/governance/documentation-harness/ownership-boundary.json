@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "ownedRoot": "cpf-docs/governance/documentation-harness/",
   "applicationScope": "HARNESS_ONLY",
   "externalInputs": "READ_ONLY_DYNAMIC_CONTEXT",

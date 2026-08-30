@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -200,7 +200,15 @@
     "visualNodeOutsideCanvas": 0,
     "userFindingStillOpen": 0,
     "previousPassNotReopenedAfterUserFinding": 0,
-    "sourceValidatorHardcodedIdentity": 0
+    "sourceValidatorHardcodedIdentity": 0,
+    "readmeFirstViewportNotBrochure": 0,
+    "readmeSectionBoundaryUnclear": 0,
+    "readmeCoreVisualRoleLost": 0,
+    "readmeRenderedTextWall": 0,
+    "readmeMajorFunctionCoverageMissing": 0,
+    "readmeRenderedPreviewCorrupt": 0,
+    "readmePreviewAbsoluteBase": 0,
+    "visualAssetImageCorrupt": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,

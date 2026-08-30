@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "locked": true,
   "rules": [
     "사용자가 실제 화면에서 결함을 발견하면 이전 자동 PASS/수동 PASS를 즉시 무효화한다.",
@@ -8,7 +8,10 @@
     "README 전체성/설명 깊이는 keyword 존재만으로 PASS하지 않는다.",
     "Visual은 파일 존재/이미지 크기/Contact Sheet만으로 PASS하지 않는다.",
     "Human Review Evidence는 현재 Artifact SHA와 일치해야 하며 변경 후 자동 승계하지 않는다.",
-    "Source Identity/CLI Surface는 Validator에 64자리 SHA나 Command Set으로 하드코딩하지 않는다."
+    "Source Identity/CLI Surface는 Validator에 64자리 SHA나 Command Set으로 하드코딩하지 않는다.",
+    "README 900/1200/1440 Preview는 전체 Image Decode/CRC를 통과해야 하며 Header/Dimension/SHA 일치만으로 PASS하지 않는다.",
+    "README Preview HTML은 repository-relative 경로만 사용하며 임시 작업 경로/절대 file URI가 남으면 FAIL한다.",
+    "Product Visual 원본은 전체 Decode를 통과해야 하며 손상 이미지 1건이라도 있으면 Visual PASS를 금지한다."
   ],
   "finalPassInvalidators": [
     "OPEN_USER_FINDING",
@@ -17,6 +20,9 @@
     "AUTOMATION_ONLY_VISUAL_PASS",
     "SOURCE_DRIFT",
     "MISSING_WHOLE_ARCHITECTURE",
-    "INSUFFICIENT_EXPLANATION_DEPTH"
+    "INSUFFICIENT_EXPLANATION_DEPTH",
+    "CORRUPT_RENDER_EVIDENCE",
+    "NON_PORTABLE_PREVIEW_BASE",
+    "CORRUPT_VISUAL_ASSET"
   ]
 }

@@ -1,26 +1,31 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.13.0",
+  "harnessVersion": "2.15.4",
   "artifactId": "README",
   "artifact": "README.md",
-  "baselineState": "2.9.0 patch-first baseline + latest 191735 source currentization",
-  "baselineRef": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip",
+  "baselineState": "BASELINE_REJECTED -> INITIAL_FRESH_REBUILD -> GOLDEN_BASELINE_CANDIDATE; current 220256 source",
+  "baselineRef": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip",
   "changeScope": [
-    "source currentization",
+    "current source-backed content completeness",
     "reader actionability",
-    "visual comfort",
-    "false-green recurrence prevention"
+    "visual hierarchy and page composition",
+    "user finding closure",
+    "no-false-green evidence currentization"
   ],
   "preservedBlocks": [
-    "validated existing structure/visuals retained where not defective"
+    "source-valid content and established document design patterns retained where they remained correct"
   ],
   "patchedBlocks": [
-    "reader flow, spacing/density, current public contracts, final-page/section-start balance as applicable"
+    "Reader Task/selection-action/failure-recovery gaps",
+    "page composition/orphan fixes",
+    "README product breadth and brochure structure",
+    "current Source/Public contract alignment"
   ],
   "intentionallyRegeneratedBlocks": [
-    "DOCX/PDF render outputs"
+    "DOCX/PDF render outputs",
+    "README 900/1200/1440 rendered review surfaces"
   ],
-  "regenerationJustification": "Latest source-backed content and Harness 2.13 visual/actionability and semantic/openability gates require deterministic fresh render.",
+  "regenerationJustification": "User explicitly rejected the prior artifact baseline. Harness permits one fresh rebuild from BASELINE_REJECTED; current result is revalidated against Source and rendered surfaces before approval.",
   "automated": {
     "harnessSchema": "PASS",
     "artifactStructure": "PASS",
@@ -75,7 +80,14 @@
     "visual_comfort": 4.9,
     "information_hierarchy": 4.8,
     "flat_list_density": 4.7,
-    "heavy_block_rhythm": 4.9
+    "heavy_block_rhythm": 4.9,
+    "readme_product_completeness": 4.9,
+    "readme_architecture_completeness": 4.9,
+    "readme_explanation_depth": 4.8,
+    "readme_developer_golden_path": 4.8,
+    "visual_semantic_clarity": 4.9,
+    "visual_narrative_progression": 4.8,
+    "current_sha_review_integrity": 5.0
   },
   "criticalFindings": [],
   "regression": {
@@ -137,77 +149,106 @@
     "readmeScanability": "PASS",
     "readmeNaturalValue": "PASS",
     "readmeBrochure": "PASS",
-    "readmeAiTextCompanion": "PASS"
+    "readmeAiTextCompanion": "PASS",
+    "readmeProductCompleteness": "PASS",
+    "readmeWholeArchitecture": "PASS",
+    "readmeExplanationDepth": "PASS",
+    "readmeDeveloperGoldenPath": "PASS",
+    "visualSemanticQuality": "PASS",
+    "currentArtifactShaReview": "PASS",
+    "userFindingClosure": "PASS",
+    "falseGreenPrevention": "PASS"
   },
   "evidenceRefs": [
     "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md",
     "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
     "cpf-docs/deliverables/documentation/evidence/manual/CROSS_RENDERER_CHECK.md",
-    "cpf-docs/deliverables/documentation/evidence/manual/README_DARK_PREVIEW_REVIEW.md"
+    "cpf-docs/deliverables/documentation/HUMAN_VISUAL_REVIEW.json",
+    "cpf-docs/deliverables/documentation/CURRENT_USER_FINDINGS.json",
+    "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json"
   ],
   "unresolvedCriticalFindings": [],
   "scanPassEvidence": [
-    "Root README: 900/1200/1440 dark preview — Scan pass: hierarchy, density, page rhythm and obvious crop/overlap reviewed."
+    "README 900/1200/1440 full-length dark render Scan pass: brochure first viewport, H2 boundaries, nine visual roles and no horizontal overflow."
   ],
   "detailPassEvidence": [
-    "Root README: 900/1200/1440 dark preview — Detail pass: tables, section starts, last pages, code/source blocks and header contrast reviewed."
+    "README 900/1200/1440 Detail pass: architecture/gateway/transaction/batch/capability/operations figures, tables, code, final navigation and image captions reviewed at current README SHA."
   ],
   "readerPassEvidence": [
-    "Root README: 900/1200/1440 dark preview — Reader pass: three concrete tasks traced from question/selection to action and result check."
+    "README Reader pass: architecture choice, developer Public CLI journey, failure/UNKNOWN/recovery, DB3/Batch and document navigation traced to next action."
   ],
   "readerTaskTraces": [
     {
-      "task": "배포 구조가 바뀌어도 Domain 호출 계약이 유지되는지 파악",
-      "startSection": "1. 배포 구조가 달라져도 Domain 호출 코드는 다시 만들지 않습니다",
-      "selection": "Same JVM/Remote 경계를 비교",
-      "action": "Domain Invocation 그림과 설명에서 동일 계약을 확인",
-      "resultCheck": "호출 경계와 후속 상세 문서 위치를 확인",
+      "task": "전체 Architecture와 Owner 경계 파악",
+      "startSection": "전체 Architecture와 Owner 경계",
+      "selection": "Channel/Gateway/Business Domain/Platform Operations 역할과 Gateway 배치 선택 비교",
+      "action": "Architecture visual과 Owner 설명을 읽고 자신의 배포 경로를 L4 + Gateway / L4 only / Gateway only 중 선택",
+      "resultCheck": "Business Domain 호출이 Gateway 중앙 허브로 왜곡되지 않고 Backoffice/BFF/ADM Owner가 분리됨을 확인",
+      "evidenceRef": "cpf-docs/deliverables/documentation/README_RENDER_REVIEW.json"
+    },
+    {
+      "task": "일반 개발자가 개발·검증 흐름 시작",
+      "startSection": "Domain 생성과 Public Starter 선택부터 검증까지 한 흐름으로 이어집니다",
+      "selection": "Public CLI와 Profile/Starter를 Application 성격에 맞게 선택",
+      "action": "bootstrap -> domain-new/domain-sync -> build -> test -> run/status -> stop/reset/doctor 흐름과 상세 개발자 가이드로 이동",
+      "resultCheck": "Public/Internal CLI 경계와 실행 후 검증 위치를 확인",
       "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     },
     {
-      "task": "UNKNOWN 이후 조치를 파악",
-      "startSection": "2. 실패를 하나의 `FAILED`로 뭉개지 않고 다음 행동까지 연결합니다",
-      "selection": "4상태 결과와 UNKNOWN을 구분",
-      "action": "Probe/Reconcile·멱등성 설명을 따라감",
-      "resultCheck": "단순 blind retry가 아닌 후속 복구 경로를 확인",
-      "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
-    },
-    {
-      "task": "처음 Build/Test를 시작",
-      "startSection": "10. 개발 시작·Build·Test·Runtime 진입점을 같은 방식으로 확인합니다",
-      "selection": "개발/검증 진입점을 선택",
-      "action": "제시된 실행 경로와 관련 문서로 이동",
-      "resultCheck": "개발자가 다음 실행과 검증 위치를 확인",
+      "task": "외부 Side Effect UNKNOWN과 복구 판단",
+      "startSection": "Transaction과 실패는 다음 행동까지 계약에 포함합니다",
+      "selection": "SUCCESS/FAILED/RETRYABLE/UNKNOWN과 Retry/Reconcile 차이 구분",
+      "action": "Operation 멱등성, Probe, Reconcile, transactionId/operationId/recoveryId 추적 설명을 따라감",
+      "resultCheck": "Blind Retry가 아니라 실제 결과 확정과 복구 Evidence 경로를 확인",
       "evidenceRef": "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md"
     }
   ],
   "dimensionEvidence": {
     "reader_actionability": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "selection_to_action": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "working_example_fit": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "failure_recovery_closure": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "visual_comfort": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "information_hierarchy": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "flat_list_density": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ],
     "heavy_block_rhythm": [
-      "Root README: 900/1200/1440 dark preview"
+      "cpf-docs/deliverables/documentation/evidence/manual/READER_REVIEW.md",
+      "cpf-docs/deliverables/documentation/evidence/manual/FULL_PAGE_VISUAL_REVIEW.md"
     ]
   },
-  "scoreUniformityJustification": "Scores are evidence-backed dimension ratings from the final fresh render; repeated values reflect the fixed 1..5 rubric, while the pattern intentionally varies by dimension rather than blanket scoring.",
-  "reviewedAt": "2026-08-29T10:24:03+09:00",
-  "reviewer": "GPT-5.6 Sol"
+  "scoreUniformityJustification": "Scores use the Harness 1..5 rubric after final Scan + Detail + Reader passes. Repeated values reflect dimensions with equivalent quality; current-SHA integrity is 5.0 because hashes are recalculated from the reviewed artifact.",
+  "reviewedAt": "2026-08-30T02:30:00+09:00",
+  "reviewer": "GPT-5.6 Sol - Fresh-Eyes Artifact Review",
+  "artifactSha256": "09E4A9EC42144684072797DB9740712F8FA8D459C5DD892C114F15B4A00EFB29",
+  "artifactBytes": 46342,
+  "currentArtifactShaEvidence": {
+    "required": true,
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "09E4A9EC42144684072797DB9740712F8FA8D459C5DD892C114F15B4A00EFB29"
+      }
+    ]
+  }
 }

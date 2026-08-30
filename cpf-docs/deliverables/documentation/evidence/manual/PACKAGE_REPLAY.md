@@ -1,18 +1,11 @@
-# Package Replay — Documentation Harness 2.13.0
+# Package Replay — Documentation Harness 2.15.4
 
-- Basis Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260828_191735.zip`
-- Basis Source SHA-256: `34D692419F7701EBC58439B00F0A5111DBBE629BC8C25F46ED17DB875D4E3EA5`
-- Exact Git SHA: `UNAVAILABLE_IN_SUPPLIED_ZIP` (supplied ZIP has no `.git`; no historical SHA substituted)
-- Replay mode: exact `DELETE_MANIFEST.txt` cleanup followed by Root-relative documentation overlay
-- Managed overlay files: **237**
-- Overlay archive files including self metadata: **239**
-- Fresh replay into an independent copy of the supplied Source: **PASS**
-- Fresh-replayed `verify_documentation_delivery.py`: **PASS**
-- Harness: **2.13.0 PASS**
-- Negative fixtures: **104/104 PASS**
-- README / DOCX 11 / PDF 11 / Reader Task 12 / Visual 9 / Final Acceptance / Manifest / SHA verification: **PASS**
-- Product non-documentation Source drift: **0 changed / 0 missing / 0 added**
-
-The final ZIP is additionally extracted and replayed again after Manifest/SHA locking. Its SHA-256 is reported outside the archive to avoid a self-referential package hash.
+- Basis Source: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip`
+- Basis Source SHA-256: `6AEC7A50D69F140B30968EAD21B7242E1D2A6252446DAC0D5A27CC4C4566D7DC`
+- Replay mode: exact `DELETE_MANIFEST.txt` cleanup followed by root-relative overlay
+- Candidate overlay Fresh Source replay: **PASS**
+- Candidate replay Harness gates: **all non-aggregator gates PASS**
+- Non-documentation Source drift after replay: **0**
+- Final overlay is re-built after this evidence and is replayed once more externally; the external replay log is reported beside the final ZIP to avoid self-referential archive mutation.
 
 **PACKAGE_REPLAY_PASS = PASS**

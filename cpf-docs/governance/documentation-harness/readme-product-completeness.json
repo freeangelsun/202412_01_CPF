@@ -1,16 +1,16 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "locked": true,
   "purpose": "CPF Root README를 기술 메모가 아니라 전체 제품 Architecture/기능/개발/운영을 충분히 설명하는 제품 간판으로 강제한다.",
   "minimumDepth": {
-    "visibleCharactersTotal": 14000,
-    "h2Sections": 8,
-    "substantiveParagraphs": 24,
-    "architectureSectionCharacters": 1600,
-    "developerJourneyCharacters": 1200,
-    "operationsFailureRecoveryCharacters": 900,
-    "documentationNavigationCharacters": 350
+    "visibleCharactersTotal": 22000,
+    "h2Sections": 12,
+    "substantiveParagraphs": 40,
+    "architectureSectionCharacters": 1800,
+    "developerJourneyCharacters": 1400,
+    "operationsFailureRecoveryCharacters": 1100,
+    "documentationNavigationCharacters": 450
   },
   "requiredCoverageGroups": [
     {
@@ -135,6 +135,91 @@
         "PDF"
       ],
       "minHits": 3
+    },
+    {
+      "id": "data_cache_lock_session",
+      "any": [
+        "JDBC",
+        "MyBatis",
+        "JPA",
+        "Cache",
+        "Lock",
+        "Session"
+      ],
+      "minHits": 4
+    },
+    {
+      "id": "integration_protocol_resilience",
+      "any": [
+        "HTTP",
+        "SOAP",
+        "TCP",
+        "Fixed Length",
+        "ISO8583",
+        "Webhook",
+        "Resilience"
+      ],
+      "minHits": 4
+    },
+    {
+      "id": "messaging_async_schema",
+      "any": [
+        "Kafka",
+        "RabbitMQ",
+        "JMS",
+        "DLQ",
+        "Replay",
+        "Schema",
+        "Async"
+      ],
+      "minHits": 4
+    },
+    {
+      "id": "file_storage_archive_tabular",
+      "any": [
+        "File",
+        "Object Storage",
+        "S3",
+        "Archive",
+        "Tabular",
+        "Checksum"
+      ],
+      "minHits": 4
+    },
+    {
+      "id": "security_crypto_secret",
+      "any": [
+        "Permission",
+        "Approval",
+        "Audit",
+        "Secret",
+        "Crypto",
+        "OIDC",
+        "Certificate"
+      ],
+      "minHits": 4
+    },
+    {
+      "id": "config_feature_health",
+      "any": [
+        "Config",
+        "Feature Flag",
+        "Health",
+        "Drain",
+        "Telemetry"
+      ],
+      "minHits": 3
+    },
+    {
+      "id": "ai_realtime_extension",
+      "any": [
+        "AI",
+        "CpfAiOperations",
+        "Realtime",
+        "SSE",
+        "GraphQL"
+      ],
+      "minHits": 3
     }
   ],
   "architecture": {
@@ -177,8 +262,8 @@
   },
   "valueExplanation": {
     "dedicatedBenefitHeadingForbidden": true,
-    "requiredValueThemesMin": 8,
-    "distinctSectionsMin": 5,
+    "requiredValueThemesMin": 10,
+    "distinctSectionsMin": 7,
     "keywordOnlyIsFail": true,
     "minimumContextCharsAroundEvidence": 120,
     "themes": [

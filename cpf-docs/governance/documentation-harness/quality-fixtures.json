@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "policy": "Every fixture is intentionally bad and MUST be rejected by the matching rule.",
   "fixtures": [
     {
@@ -1049,7 +1049,7 @@
       "mustTrigger": "readmeProductTooThin",
       "input": {
         "visibleCharacters": 5500,
-        "minimum": 14000
+        "minimum": 22000
       },
       "reason": "짧은 브로셔/기능 카드 모음이 대표 README로 통과하는 False Green 금지"
     },
@@ -1181,6 +1181,93 @@
         "validatorContains64HexLiteral": true
       },
       "reason": "Source Identity를 Validator 코드에 하드코딩 금지"
+    },
+    {
+      "id": "README_FIRST_VIEWPORT_TEXT_WALL",
+      "category": "readme_render",
+      "expect": "FAIL",
+      "input": {
+        "viewerWidthPx": 1200,
+        "firstViewportBrochure": false,
+        "textDominated": true
+      },
+      "mustTrigger": "readmeFirstViewportNotBrochure"
+    },
+    {
+      "id": "README_SECTION_BOUNDARY_UNCLEAR",
+      "category": "readme_render",
+      "expect": "FAIL",
+      "input": {
+        "viewerWidthPx": 1200,
+        "sectionBoundaryClear": false
+      },
+      "mustTrigger": "readmeSectionBoundaryUnclear"
+    },
+    {
+      "id": "README_CORE_VISUAL_ROLE_LOST",
+      "category": "readme_render",
+      "expect": "FAIL",
+      "input": {
+        "requiredVisualRoles": 9,
+        "presentVisualRoles": 6
+      },
+      "mustTrigger": "readmeCoreVisualRoleLost"
+    },
+    {
+      "id": "README_RENDER_TEXT_WALL",
+      "category": "readme_render",
+      "expect": "FAIL",
+      "input": {
+        "viewerWidthPx": 900,
+        "textWallCount": 2
+      },
+      "mustTrigger": "readmeRenderedTextWall"
+    },
+    {
+      "id": "README_MAJOR_FUNCTION_COVERAGE_MISSING_123",
+      "category": "readme_product",
+      "expect": "FAIL",
+      "mustTrigger": "readmeMajorFunctionCoverageMissing",
+      "input": {
+        "coveredFamilies": 4,
+        "requiredFamilies": 10
+      },
+      "reason": "대규모 CPF 제품 README가 일부 대표 기능만 설명하고 나머지 Public Capability Family를 생략하는 False Green 금지"
+    },
+    {
+      "id": "README_RENDER_CORRUPT_PNG_124",
+      "category": "readme_render",
+      "expect": "FAIL",
+      "mustTrigger": "readmeRenderedPreviewCorrupt",
+      "input": {
+        "pngHeaderReadable": true,
+        "widthMatches": true,
+        "shaMatches": true,
+        "fullDecodePass": false
+      },
+      "reason": "PNG Header/Width/SHA만 맞고 IDAT/CRC가 손상된 Render Evidence False Green 금지"
+    },
+    {
+      "id": "README_RENDER_ABSOLUTE_PREVIEW_BASE_125",
+      "category": "readme_render",
+      "expect": "FAIL",
+      "mustTrigger": "readmePreviewAbsoluteBase",
+      "input": {
+        "previewBase": "file:///mnt/data/cpf_finalwork/"
+      },
+      "reason": "임시 작업 경로에 묶인 README Preview Evidence는 다른 환경에서 재현할 수 없으므로 PASS 금지"
+    },
+    {
+      "id": "VISUAL_ASSET_CORRUPT_IMAGE_126",
+      "category": "visual_integrity",
+      "expect": "FAIL",
+      "mustTrigger": "visualAssetImageCorrupt",
+      "input": {
+        "imageHeaderReadable": true,
+        "dimensionsMatch": true,
+        "fullDecodePass": false
+      },
+      "reason": "Product Visual 원본도 Header/Dimension만으로 PASS하지 않고 전체 Decode 무결성 필수"
     }
   ]
 }

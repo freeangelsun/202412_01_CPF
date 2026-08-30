@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "locked": true,
   "purpose": "자동 규칙 존재 확인과 실제 문서 품질 승인을 분리하고, 승인된 품질을 다음 수정의 회귀 기준으로 사용한다.",
   "approvalStates": {
@@ -258,6 +258,12 @@
       "automated": false,
       "required": true,
       "meaning": "README Hero/dark brochure/visual narrative/scan rhythm이 제품 간판 수준으로 유지"
+    },
+    {
+      "id": "README_RENDERED_BROCHURE_REVIEW_PASS",
+      "required": true,
+      "mode": "MANUAL_HYBRID",
+      "description": "Current README SHA 900/1200/1440 full-page brochure review with first viewport, section boundary, text wall and core visual retention evidence."
     },
     {
       "id": "README_AI_TEXT_COMPANION_PASS",

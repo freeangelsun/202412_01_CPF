@@ -1,0 +1,74 @@
+{
+  "harnessVersion": "2.15.4",
+  "pdfs": [
+    {
+      "path": "cpf-docs/guides/02_프레임워크_개발자_가이드.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/01_02_프레임워크_개발자_가이드.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/guides/03_배치_개발자_가이드.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/02_03_배치_개발자_가이드.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/guides/04_운영자_매뉴얼.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/03_04_운영자_매뉴얼.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/guides/05_배치_운영_가이드.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/04_05_배치_운영_가이드.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/05_06_Gateway_개발_사용_가이드.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/guides/07_Specification_기술_명세.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/06_07_Specification_기술_명세.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/deliverables/기술사양서.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/07_기술사양서.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/deliverables/기술표준서.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/08_기술표준서.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/deliverables/데이터베이스표준서.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/09_데이터베이스표준서.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/deliverables/산출물목록.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/10_산출물목록.json",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "path": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "report": "cpf-docs/deliverables/documentation/evidence/automated/preflight/11_아키텍처설계서.json",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "warningCount": 0,
+  "errorCount": 0,
+  "status": "PASS"
+}

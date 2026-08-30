@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "harnessVersion": "2.15.1",
+  "harnessVersion": "2.15.4",
   "documentId": "DATABASE_STANDARD",
   "title": "CPF 데이터베이스표준서",
   "locked": true,

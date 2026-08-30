@@ -1,2 +1,0 @@
-DOCX_STRUCTURE=PASS DOCX=11
-NOTE=Rendered wrap/vertical-rhythm evidence is still mandatory; OOXML pass alone is not final PASS.

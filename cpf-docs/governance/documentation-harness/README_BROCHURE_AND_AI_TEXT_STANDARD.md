@@ -1,4 +1,4 @@
-# README Brochure & AI Text Standard — v2.15.1
+# README Brochure & AI Text Standard — v2.15.4
 
 README는 단순 Reference 문서가 아니라 **CPF의 첫 인상을 만드는 다크 브로셔형 제품 간판**이다. 동시에 이미지에 의존하지 않고 AI·검색·텍스트 독자가 내용을 이해할 수 있어야 한다.
 
@@ -56,4 +56,30 @@ Source로 확인 가능한 가치가 충분한데 README에서 이를 지나치�
 - 동일 Visual Grammar 반복
 ## 제품 설명 충분성
 Brochure는 얇게 쓰라는 뜻이 아니다. 전체 Architecture와 핵심 기능·개발·운영을 충분히 설명한 뒤 시각적으로 읽기 쉽게 구성한다. 설명을 줄여 간판처럼 보이게 만드는 것은 금지한다.
+## 6. Rendered Brochure Hard Gate
+
+README의 Markdown 구조 검사와 제품 설명 충분성 PASS만으로 브로셔 품질을 선언하지 않는다. 최종 README SHA에 대해 900/1200/1440px 전체 Render를 각각 생성하고 다음을 모두 수동 검수한다.
+
+- 첫 Viewport에서 Hero, 제품 정의, 시각적 focal point가 보이고 긴 본문이 화면을 지배하지 않아야 한다.
+- H2 전환마다 시각적 경계와 충분한 여백이 보여야 하며, 긴 본문이 화면 단위로 연속되는 Text Wall은 0건이어야 한다.
+- 기존 승인 Visual은 파일 존재가 아니라 README에서 역할·위치·가독성이 유지되어야 한다. Hero/Architecture/Invocation/Transaction/Batch/Development/Capabilities/Gateway/Operations 핵심 Visual 역할이 사라지면 FAIL이다.
+- Architecture 설명은 Figure 이름 나열이 아니라 Owner, 호출, Gateway 선택, Runtime/DB 경계를 읽은 뒤 독자가 구조를 설명할 수 있는 수준이어야 한다.
+- Human Review Evidence는 현재 README SHA, 각 Render Screenshot SHA, width, Scan/Detail 결과를 기록한다. 하나라도 stale이면 FAIL이다.
+
+`README_RENDERED_BROCHURE_REVIEW_PASS`가 PASS하지 않으면 자동 README Validator가 모두 PASS해도 Final Acceptance는 FAIL이다.
+
+
+## 2.15.4 Large-product README completeness reinforcement
+
+- CPF처럼 기능 범위가 큰 제품의 Root README를 얇은 개요로 축약하지 않는다. 제품 대표 문서에서 실제 Source로 확인되는 주요 Capability Family를 충분히 설명한다.
+- 최소 Coverage는 Web/Application/Common, Data/Transaction/Cache/Lock/Session, Integration/Protocol/Resilience, Messaging/Async/Schema, File/Object Storage/Archive/Tabular, Security/Crypto/Secret/Identity, Config/Feature Flag/Health/Observability, AI/Realtime/GraphQL, Batch Runtime, DB3/Generator/Operations를 포함한다.
+- 기능명만 나열하면 충족으로 인정하지 않는다. 독자가 무엇을 선택하는지, 실패 또는 운영 경계가 무엇인지, 어떤 결과를 얻는지 설명 흐름 안에서 확인할 수 있어야 한다.
+- 정보량을 늘릴 때 장문 Text Wall로 바꾸는 것도 FAIL이다. 900/1200/1440 Rendered Brochure Review에서 Figure, 짧은 설명, 의미 그룹, 충분한 Section Boundary가 유지되어야 한다.
+- 사용자 Finding으로 “대표 README가 제품 규모에 비해 내용이 부족하다”가 발생하면 이전 Completeness/Visual PASS는 즉시 무효화하고 현재 README SHA로 전체 Gate를 재실행한다.
+
+## 7. Render Evidence Integrity
+
+- 900/1200/1440 Screenshot은 `PIL.Image.verify()`에 준하는 전체 PNG 무결성 검사를 통과해야 한다. Width/Height Header 조회만으로 Rendered Brochure PASS를 선언할 수 없다.
+- Screenshot SHA는 무결성 검사를 통과한 최종 바이트에 대해 기록한다. 손상 파일의 SHA가 Review JSON과 일치하더라도 FAIL이다.
+- `README_PREVIEW.html`은 repository-relative Base/Asset 경로를 사용해 Package를 다른 PC/폴더에 적용한 뒤에도 동일 Visual을 재생성할 수 있어야 한다.
 

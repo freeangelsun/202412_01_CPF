@@ -1,0 +1,22 @@
+RENDERED_PAGE_COMPOSITION=PASS PDF=11
+REVIEW_SIGNALS=20
+~ FRAMEWORK_DEVELOPER_GUIDE: page 6/24 high-density review lines=77
+~ FRAMEWORK_DEVELOPER_GUIDE: page 9/24 high-density review lines=78
+~ FRAMEWORK_DEVELOPER_GUIDE: page 12/24 high-density review lines=78
+~ OPERATOR_MANUAL: page 3/11 interior balance review bottom=0.526
+~ OPERATOR_MANUAL: page 4/11 interior balance review bottom=0.587
+~ OPERATOR_MANUAL: page 5/11 interior balance review bottom=0.493
+~ OPERATOR_MANUAL: page 6/11 interior balance review bottom=0.535
+~ OPERATOR_MANUAL: page 7/11 interior balance review bottom=0.485
+~ OPERATOR_MANUAL: page 11/11 high-density review lines=81
+~ GATEWAY_GUIDE: page 8/9 high-density review lines=79
+~ SPECIFICATION: page 9/14 interior balance review bottom=0.538
+~ SPECIFICATION: page 11/14 interior balance review bottom=0.532
+~ ARCHITECTURE_DESIGN: page 10/11 high-density review lines=89
+~ TECHNICAL_STANDARD: page 4/8 interior balance review bottom=0.510
+~ TECHNICAL_STANDARD: page 5/8 interior balance review bottom=0.511
+~ TECHNICAL_STANDARD: page 6/8 high-density review lines=79
+~ TECHNICAL_STANDARD: page 7/8 high-density review lines=86
+~ TECHNICAL_STANDARD: page 8/8 high-density review lines=77
+~ DATABASE_STANDARD: page 6/10 interior balance review bottom=0.555
+~ DATABASE_STANDARD: page 9/10 high-density review lines=76

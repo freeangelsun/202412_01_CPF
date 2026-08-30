@@ -1,4 +1,4 @@
-# CPF Visual Human Quality Standard — Harness 2.15.1
+# CPF Visual Human Quality Standard — Harness 2.15.4
 
 Visual 파일이 존재하고 해상도/Canvas 검사가 통과했다는 이유만으로 품질 PASS하지 않는다.
 

@@ -11,21 +11,31 @@ def domainContract = { File dir ->
     return [name: p.getProperty('cpf.domain.name'), systemCode: p.getProperty('cpf.domain.systemCode')]
 }
 
-tasks.register('cpfBuild') {
-    group = 'CPF Build'
-    description = '현재 선택된 Domain/Backoffice/EDU를 Canonical Gradle graph로 Build합니다.'
+tasks.register('cpfBuildAll') {
+    group = '10. CPF 빌드'
+    description = '[전체] 현재 선택된 Domain/Backoffice/EDU를 Canonical Gradle graph로 Build합니다.'
     dependsOn includedNames.collect { gradle.includedBuild(it).task(':build') }
 }
 
-tasks.register('cpfTest') {
-    group = 'CPF Test'
-    description = '현재 선택된 Domain/Backoffice/EDU의 Canonical Test graph를 실행합니다.'
+tasks.register('cpfBuild') {
+    description = '[호환] cpfBuildAll을 실행합니다.'
+    dependsOn 'cpfBuildAll'
+}
+
+tasks.register('cpfTestAll') {
+    group = '10. CPF 빌드'
+    description = '[전체] 현재 선택된 Domain/Backoffice/EDU의 Canonical Test graph를 실행합니다.'
     dependsOn includedNames.collect { gradle.includedBuild(it).task(':test') }
 }
 
+tasks.register('cpfTest') {
+    description = '[호환] cpfTestAll을 실행합니다.'
+    dependsOn 'cpfTestAll'
+}
+
 tasks.register('cpfDomainDiscovery') {
-    group = 'CPF Domain'
-    description = '현재 선택된 Generated/Customer Domain을 Developer Contract에서 확인합니다.'
+    group = '40. CPF 구성'
+    description = '[조회] 현재 선택된 Generated/Customer Domain을 Developer Contract에서 확인합니다.'
     doLast {
         def rows = rootDir.listFiles()?.findAll { it.isDirectory() && it.name.startsWith('cpf-') }
             ?.collect { [dir:it, contract:domainContract(it)] }
@@ -40,40 +50,110 @@ tasks.register('cpfDomainDiscovery') {
 }
 
 tasks.register('cpfDatabaseDiscovery') {
-    group = 'CPF Database'
-    description = 'DB Vendor/Workspace 설정 확인 경로를 안내합니다.'
+    group = '40. CPF 구성'
+    description = '[조회] DB Vendor/Workspace 설정 확인 경로를 안내합니다.'
     doLast { println 'CPF_DATABASE=use cpf doctor or config/cpf-workspace.properties' }
 }
 
 tasks.register('cpfRuntimeDiscovery') {
-    group = 'CPF Runtime'
-    description = 'Runtime은 Unified cpf CLI(cpf run/status/stop/reset)를 사용합니다.'
+    group = '30. CPF 실행'
+    description = '[안내] Runtime은 Unified cpf CLI(cpf run/status/stop/reset)를 사용합니다.'
     doLast { println 'CPF_RUNTIME=cpf run | cpf status | cpf stop | cpf reset' }
 }
 
+tasks.register('cpfVerifyAll') {
+    group = '20. CPF 검증'
+    description = '[전체] Workspace Build/Test를 fail-closed로 검증합니다.'
+    dependsOn 'cpfBuildAll', 'cpfTestAll'
+}
+
 tasks.register('cpfVerify') {
-    group = 'CPF Verification'
-    description = 'Workspace Build/Test를 fail-closed로 검증합니다.'
-    dependsOn 'cpfBuild', 'cpfTest'
+    description = '[호환] cpfVerifyAll을 실행합니다.'
+    dependsOn 'cpfVerifyAll'
 }
 
 tasks.register('cpfPublicationDiscovery') {
-    group = 'CPF Publication'
-    description = '현재 선택 상태의 Publication/Repository 정보를 안내합니다.'
+    group = '60. CPF 배포'
+    description = '[조회] 현재 선택 상태의 Publication/Repository 정보를 안내합니다.'
     doLast { println 'CPF_PUBLICATION=repository/ + canonical BOM/POM' }
 }
 
 tasks.register('cpfWorkspace') {
-    group = 'CPF Configuration/Discovery'
-    description = 'Workspace의 Domain과 포함 Build를 표시합니다.'
+    group = '50. CPF 설정'
+    description = '[조회] Workspace의 Domain과 포함 Build를 표시합니다.'
     dependsOn 'cpfDomainDiscovery'
     doLast { println 'CPF_INCLUDED_BUILDS=' + includedNames.join(',') }
 }
 
 // Direct Gradle Golden Path and Unified CLI must execute the same graph.
-tasks.named('build') { dependsOn 'cpfBuild' }
+tasks.named('build') { dependsOn 'cpfBuildAll' }
 tasks.register('test') {
-    group = 'CPF Test'
-    description = 'Root direct Gradle test Golden Path; cpf test와 동일한 cpfTest graph를 사용합니다.'
-    dependsOn 'cpfTest'
+    description = 'Root direct Gradle test Golden Path; cpf test와 동일한 cpfTestAll graph를 사용합니다.'
+    dependsOn 'cpfTestAll'
+}
+
+def cpfVisibleTaskNames = [
+    'cpfBuildAll', 'cpfTestAll', 'cpfVerifyAll', 'cpfRuntimeDiscovery',
+    'cpfDomainDiscovery', 'cpfDatabaseDiscovery', 'cpfWorkspace', 'cpfPublicationDiscovery'
+] as Set
+def cpfInternalTaskGroups = [
+    build:'90. CPF 내부 빌드', verify:'91. CPF 내부 검증 Gate', test:'92. CPF 내부 테스트',
+    run:'93. CPF 내부 실행', deploy:'94. CPF 내부 배포', ide:'95. CPF 내부 IDE',
+    diagnose:'96. CPF 내부 진단',
+    compat:'98. CPF 구명령 호환 유지',
+    raw:'99. CPF 원시 명령 직접 사용 안 함'
+]
+// 예전 이름을 쓰던 Consumer 가 깨지지 않도록 유지하는 호환 별칭이다. 화면에서는 98 한 곳에 모은다.
+def cpfLegacyTaskAliases = ['cpfBuild':'cpfBuildAll', 'cpfTest':'cpfTestAll', 'cpfVerify':'cpfVerifyAll']
+def cpfInternalTaskGroupFor = { String taskName ->
+    if (cpfLegacyTaskAliases.containsKey(taskName)) return cpfInternalTaskGroups.compat
+    def lower = taskName.toLowerCase(Locale.ROOT)
+    def ideTask = lower.startsWith('eclipse') || taskName ==~ /.*Ide(?:$|[A-Z0-9]).*/
+    if (ideTask) return cpfInternalTaskGroups.ide
+    if (lower in ['bootrun', 'boottestrun'] || lower.startsWith('run') || lower.endsWith('run') ||
+            (lower.startsWith('resolve') && lower.endsWith('mainclassname'))) return cpfInternalTaskGroups.run
+    if (lower.startsWith('compile') || lower.startsWith('process') || lower.endsWith('classes')) return cpfInternalTaskGroups.build
+    if (lower == 'generatecpfbusinessoperationmanifest' || lower.endsWith('gate') ||
+            lower.contains('verify') || lower.contains('validation') ||
+            lower.contains('validate') || lower.contains('check') ||
+            lower.contains('quality') || lower.contains('contract') || lower.contains('audit') || lower.contains('lint')) {
+        return cpfInternalTaskGroups.verify
+    }
+    if (lower == 'test' || lower == 'cpftest' || lower.endsWith('test') || lower.contains('testreport')) return cpfInternalTaskGroups.test
+    if (lower.contains('publish') || lower.contains('publication') || lower.contains('staging') ||
+            lower.contains('generatepom') || lower.contains('modulemetadata') || lower.startsWith('sign') ||
+            lower.contains('maven') || lower.contains('ivy')) return cpfInternalTaskGroups.deploy
+    if (lower in ['help', 'tasks', 'projects', 'properties', 'dependencies', 'components',
+                  'buildenvironment', 'outgoingvariants', 'resolvableconfigurations',
+                  'dependencyinsight', 'javatoolchains'] || lower.contains('discovery') ||
+            lower.contains('diagnostic') || lower.contains('dependencymanagement') || lower.endsWith('report')) return cpfInternalTaskGroups.diagnose
+    if (lower in ['build', 'assemble', 'clean', 'classes', 'testclasses', 'builddependents',
+                  'buildneeded', 'bootjar', 'bootwar', 'bootbuildimage'] || lower.startsWith('compile') ||
+            lower.startsWith('process') || lower.startsWith('generate') || lower.endsWith('jar') ||
+            lower.endsWith('war') || lower.contains('javadoc') || lower.contains('sources') ||
+            lower.contains('resource') || lower.contains('build') || lower.contains('install') ||
+            lower.startsWith('cyclonedx')) return cpfInternalTaskGroups.build
+    return cpfInternalTaskGroups.raw
+}
+def cpfInternalTaskPurpose = [
+    (cpfInternalTaskGroups.build):'[내부 빌드] 빌드 시스템이 자동으로 사용하는 명령입니다.',
+    (cpfInternalTaskGroups.verify):'[내부 검증 Gate] 품질 계약이 자동으로 사용하는 명령입니다.',
+    (cpfInternalTaskGroups.test):'[내부 테스트] CPF 테스트 진입점이 자동으로 사용하는 명령입니다.',
+    (cpfInternalTaskGroups.run):'[내부 실행] CPF 실행 진입점이 내부적으로 사용하는 명령입니다.',
+    (cpfInternalTaskGroups.deploy):'[내부 배포] CPF 배포 진입점이 내부적으로 사용하는 명령입니다.',
+    (cpfInternalTaskGroups.ide):'[내부 IDE] VS Code와 Gradle 모델 동기화가 사용하는 명령입니다.',
+    (cpfInternalTaskGroups.diagnose):'[내부 진단] Gradle 구성과 의존성 상태를 조회하는 명령입니다.',
+    (cpfInternalTaskGroups.compat):'[호환] 예전 이름을 유지하기 위한 별칭입니다. 새 이름의 00~60 명령을 사용합니다.',
+    (cpfInternalTaskGroups.raw):'[원시 명령] 직접 실행하지 말고 00~60 CPF 명령을 사용합니다.'
+]
+tasks.configureEach { task ->
+    if (!cpfVisibleTaskNames.contains(task.name)) {
+        task.group = cpfInternalTaskGroupFor(task.name)
+        if (task.description == null || task.description.trim().isEmpty()) {
+            task.description = cpfInternalTaskPurpose[task.group]
+        } else if (!task.description.startsWith('[내부') && !task.description.startsWith('[원시') &&
+                !task.description.startsWith('[호환')) {
+            task.description = "${cpfInternalTaskPurpose[task.group]} ${task.description}"
+        }
+    }
 }

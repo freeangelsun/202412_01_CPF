@@ -7,7 +7,10 @@ from pathlib import Path
 BASE_ROOT_FILES={'.editorconfig','.gitattributes','.gitignore','README.md','build.gradle','gradle.properties','gradlew','gradlew.bat','settings.gradle'}
 BASE_ROOT_DIRS={'.git','.github','.gradle','.pytest_cache','.vscode','node_modules','out','cpf-admin','cpf-batch','cpf-backoffice','cpf-backoffice-web','cpf-core','cpf-common','cpf-docs','cpf-gateway','cpf-education','cpf-starters','cpf-tools','deploy','gradle'}
 EXPECTED_GENERATED={'cpf-member':'member','cpf-external':'external'}
-EPHEMERAL_DIRS={'.gradle','.pytest_cache','build','out','node_modules','__pycache__'}
+# canonical Source Identity(cpf-tools/verification/tools/cpf-source-state.py)가 제품 Source로
+# 계산하지 않는 생성/일시 entry다. .gitignore 로도 추적하지 않으므로 root IA 계약의 판정 대상이
+# 아니며, 릴리즈나 Runtime을 한 번 실행했는지에 따라 같은 Source가 PASS/FAIL로 갈리면 안 된다.
+EPHEMERAL_DIRS={'.gradle','.pytest_cache','build','out','node_modules','__pycache__','cpf-release','logs'}
 FORBIDDEN_ROOT={'member','external','cpf-biz-admin','cpf-biz-channel','cpf-biz-frontend','bin','BASE_SHA.txt','FINAL_DELIVERY_README.md','APPLY_VERIFY_CONTINUE_ON_ERROR.ps1','APPLY_VERIFY_CONTINUE_ON_ERROR.sh','DELETE_FROM_MANIFEST_CONTINUE_ON_ERROR.ps1'}
 def contract(path:Path)->dict[str,str]:
     values={}
@@ -34,7 +37,7 @@ def main()->int:
             add('optional-surface-policy-parse',False,str(exc))
     else:
         add('optional-surface-policy-present',False,str(optional_policy))
-    allowed=BASE_ROOT_FILES|BASE_ROOT_DIRS|set(EXPECTED_GENERATED)|optional_roots|{'build'}; extras=sorted(names-allowed); add('unexpected-root-entry-zero',not extras,extras)
+    allowed=BASE_ROOT_FILES|BASE_ROOT_DIRS|set(EXPECTED_GENERATED)|optional_roots|EPHEMERAL_DIRS; extras=sorted(names-allowed); add('unexpected-root-entry-zero',not extras,extras)
     add('optional-root-policy-closure',all((root/x).exists() for x in optional_roots if x in names),sorted(optional_roots))
     for physical,logical in EXPECTED_GENERATED.items():
         p=root/physical; definition=p/'gradle.properties'; values=contract(definition); add(f'{physical}-physical-root',p.is_dir(),str(p)); add(f'{physical}-logical-domain-name',values.get('cpf.domain.name')==logical,str(definition)); add(f'{physical}-developer-contract',values.get('cpf.domain.contractVersion')=='1',str(definition))

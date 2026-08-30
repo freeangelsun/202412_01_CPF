@@ -24,7 +24,11 @@ def main():
  for p in r.rglob('*'):
   if not p.is_file():continue
   rel=p.relative_to(r).as_posix()
-  if rel in deleted or rel.startswith('cpf-tools/verification/') or rel.startswith('cpf-docs/governance/development-harness/evidence/platform/current/generated/') or any(x in p.parts for x in ('build','__pycache__','.git','node_modules','dist')):continue
+  # cpf-release/ 는 릴리즈 생성 산출물이며 canonical Source Identity(cpf-source-state.py 의
+  # GENERATED_PARTS)도 제품 Source 로 계산하지 않는다. Open Git 릴리즈는 cpf-education 등을
+  # 의도적으로 projection 하므로 함께 스캔하면 원본과 사본이 DUPLICATE_FQCN 으로 잡히고,
+  # 릴리즈 생성 여부에 따라 같은 Source 가 PASS/FAIL 로 갈리는 비결정 Gate 가 된다.
+  if rel in deleted or rel.startswith('cpf-tools/verification/') or rel.startswith('cpf-release/') or rel.startswith('cpf-docs/governance/development-harness/evidence/platform/current/generated/') or any(x in p.parts for x in ('build','__pycache__','.git','node_modules','dist')):continue
   if '/src/main/java/resources/' in '/'+rel:fails.append('JAVA_RESOURCES_TREE:'+rel)
   if p.suffix.lower() in {'.java','.kt','.ts','.tsx','.vue','.py','.ps1'}:
    t=p.read_text(encoding='utf-8',errors='ignore')

@@ -1,6 +1,6 @@
 # CPF QA REWORK / REVALIDATION REQUEST — Current
 
-- Product Source Identity: `1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839`
+- Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f`
 - DevGPT Source/Static Closure: 완료
 - DevGPT Physical Verification: 미검증
 - Canonical Inventory: 190

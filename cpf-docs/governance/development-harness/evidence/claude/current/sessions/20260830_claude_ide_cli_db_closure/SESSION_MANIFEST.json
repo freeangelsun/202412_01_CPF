@@ -97,19 +97,44 @@
   ],
   "evidenceFiles": [
     {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/CLEAN_REPLAY_AND_LIFECYCLE_OWNERSHIP.log",
+      "sha256": "92c3c1d43bbb872b56d4c6029202a1e9b9627d78f659fa393f621740f57a4f1d",
+      "purpose": "Claude session evidence"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/CONTINUATION_REPORT.md",
+      "sha256": "2a858dcce5f5bcdf18495249c796ba5dcf35a3f693bb7f8c80ddd7056ef0a1ea",
+      "purpose": "Claude session evidence"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/HARNESS_FINAL_GATE_PASS.log",
+      "sha256": "916accd94fb5b10b077e5e8d57c64bdf7fd2e3ca83a03152473f1496175e987c",
+      "purpose": "Claude session evidence"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/OPEN_GIT_RELEASE_14_14_VERIFIED.log",
+      "sha256": "c0c458d316f44c9143b70a8b6939b09c05c6a357e77c359eff6932a10a53001a",
+      "purpose": "Claude session evidence"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/PYTEST_FINAL_ALL.log",
+      "sha256": "d7659997ab42ce1f673ca4310c6284d4588ff9f64910a000ea1b905aa50365dd",
+      "purpose": "Claude session evidence"
+    },
+    {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",
       "sha256": "798a40b9d68f79f7175bd74e8ba2c969d2fded6937757c673c12a0d727073df8",
-      "purpose": "Claude detailed work-item report"
+      "purpose": "Claude session evidence"
+    },
+    {
+      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SHA256SUMS.txt",
+      "sha256": "c98e5e043f77549a3def41bc5122ed87a7186b62ba0dd5c6ae48230174acffc2",
+      "purpose": "Claude session evidence"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SOURCE_STATE_SESSION_FINAL.json",
       "sha256": "6f2073a740fe846263fedd679ba808599cec7c9271568846bee212264dbc4f66",
-      "purpose": "Claude terminal source state"
-    },
-    {
-      "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SHA256SUMS.txt",
-      "sha256": "fa913258f212b3631d689e36a00c8fe744eada2eafdb997c7ac7b1af8956e20f",
-      "purpose": "Claude evidence checksum index"
+      "purpose": "Claude session evidence"
     }
   ],
   "gitWriteExecuted": false,

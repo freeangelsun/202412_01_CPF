@@ -5,7 +5,9 @@ import argparse, json, subprocess, tempfile, sys
 from pathlib import Path
 
 def run(cmd,cwd):
-    cp=subprocess.run(cmd,cwd=cwd,text=True,capture_output=True)
+    # encoding 을 지정하지 않으면 Windows 기본(cp949)으로 디코드하다 한글 진단에서 실패하고
+    # stdout/stderr 가 None 이 되어 json.loads(None) 로 무관한 TypeError 가 난다.
+    cp=subprocess.run(cmd,cwd=cwd,text=True,capture_output=True,encoding='utf-8',errors='replace')
     return {'cmd':cmd,'rc':cp.returncode,'stdout':cp.stdout,'stderr':cp.stderr}
 
 def definition(name,code,prefix,preset,features,sample,batch=False):
@@ -20,7 +22,7 @@ def definition(name,code,prefix,preset,features,sample,batch=False):
     return '\n'.join(lines)+'\n'
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True); ap.add_argument('--evidence',type=Path); ns=ap.parse_args(); root=ns.root.resolve(); cli_py=root/'cpf-tools/runtime/cli/cpf.py'; cli=[sys.executable,str(cli_py),'--root',str(root)]
+    ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True); ap.add_argument('--evidence',type=Path); ns=ap.parse_args(); root=ns.root.resolve(); cli_py=root/'cpf-tools/runtime/cli/cpf.py'; cli=[sys.executable,'-B',str(cli_py),'--root',str(root)]
     cases=[
       ('mini','MIN','MI','minimal',{},False,False),
       ('stdapi','STA','ST','standard-enterprise',{'persistence':'mybatis','httpClient':True,'resilience':True},True,True),

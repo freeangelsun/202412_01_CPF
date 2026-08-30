@@ -7,6 +7,8 @@ RETIRED_ROOTS = ('cpf-biz-admin','cpf-biz-channel','cpf-biz-frontend')
 GARBAGE_DIRS = {'__pycache__','.pytest_cache','node_modules','.gradle'}
 GARBAGE_SUFFIXES = {'.pyc','.class'}
 GENERATED_DOMAINS = ('cpf-member','cpf-external')
+# cpf-source-state.py 의 GENERATED_PATH_MARKERS 와 같은 경계다.
+GENERATED_EVIDENCE_PREFIX = 'cpf-docs/governance/development-harness/evidence/platform/current/generated/'
 LAYER_FIRST = ('online/controller','online/service','online/repository','online/dto','online/domaincall','domain/audit','domain/mapper','domain/policy','domain/repository')
 
 def main() -> int:
@@ -22,6 +24,20 @@ def main() -> int:
             if (p/rel).exists(): fail.append(f'generated domain layer-first path exists: {domain}/{rel}')
     for p in root.rglob('*'):
         rel=p.relative_to(root)
+        # cpf-release/ 는 릴리즈 생성 산출물이며 canonical Source Identity(cpf-source-state.py 의
+        # GENERATED_PARTS)도 제품 Source 로 계산하지 않는다. 릴리즈를 한 번 생성했는지에 따라
+        # 같은 Source 가 PASS/FAIL 로 갈리면 Gate 가 비결정적이 된다.
+        if rel.parts and rel.parts[0]=='cpf-release': continue
+        # build/ 는 Gradle 출력이지 source 가 아니다. source-empty project 의 canonical compile
+        # output(build/classes/java/main)은 IDE classpath 계약이 요구하는 정본 출력 위치이므로,
+        # 여기까지 검사하면 Gradle 을 한 번 실행하는 것만으로 이 Gate 가 항상 실패한다.
+        # 단 cpf-tools/build 는 Gradle plugin/BOM 제품 Source 라 계속 검사 대상이다.
+        # cpf-tools/build/gradle-plugin/build/** 처럼 build 가 두 번 나오므로 모든 위치를 본다.
+        if any(part=='build' and rel.parts[:i+1] != ('cpf-tools','build')
+               for i,part in enumerate(rel.parts)): continue
+        # canonical Source Identity 가 generated 로 분류하는 Harness platform 산출물(Gradle
+        # project-cache 등)도 제품 Source 가 아니다.
+        if rel.as_posix().startswith(GENERATED_EVIDENCE_PREFIX): continue
         if p.is_dir():
             if p.name in GARBAGE_DIRS: fail.append(f'garbage directory: {rel.as_posix()}')
             try:

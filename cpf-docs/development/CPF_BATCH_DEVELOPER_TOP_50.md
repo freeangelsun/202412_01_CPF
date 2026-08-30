@@ -79,7 +79,7 @@
 ```powershell
 .\gradlew.bat cpfVerifyFast
 .\gradlew.bat cpfVerifyTargeted -PcpfTargetCapabilities=batch
-.\gradlew.bat cpfRunBatch
+.\gradlew.bat cpfRunAllBatch
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\verification\tools\run-cpf-local-full-validation.ps1 -ResourceProfile local -OutputRoot "$HOME\Downloads" -FullLocal
 ```
 

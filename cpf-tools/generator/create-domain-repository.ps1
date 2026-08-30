@@ -78,7 +78,7 @@ function Invoke-CpfVerifiedLocalArtifactPublish {
     $gradle = if ($IsWindows) { Join-Path $frameworkRoot 'gradlew.bat' } else { Join-Path $frameworkRoot 'gradlew' }
     Push-Location $frameworkRoot
     try {
-        & $gradle publishCpfVerifiedLocalPlatformArtifacts `
+        & $gradle cpfPublishAllVerifiedLocalPlatformArtifacts `
             --no-daemon --max-workers=1 --console=plain `
             -PcpfArtifactMode=LOCAL_DEV `
             "-PcpfLocalArtifactRepository=$localRepository" `

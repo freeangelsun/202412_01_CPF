@@ -35,10 +35,15 @@ if not required_commands.issubset(commands): fail(f'missing public commands: {so
 
 for rel in ['cpf-tools/release/open-git/templates/build.gradle','cpf-tools/release/public/templates/build.gradle']:
     text=(ROOT/rel).read_text(encoding='utf-8')
-    for group in ['CPF Build','CPF Test','CPF Domain','CPF Database','CPF Runtime','CPF Verification','CPF Publication','CPF Configuration/Discovery']:
+    for group in [
+        '10. CPF 빌드','20. CPF 검증','30. CPF 실행','40. CPF 구성','50. CPF 설정','60. CPF 배포',
+        '90. CPF 내부 빌드','91. CPF 내부 검증 Gate','92. CPF 내부 테스트','93. CPF 내부 실행',
+        '94. CPF 내부 배포','95. CPF 내부 IDE','96. CPF 내부 진단',
+        '99. CPF 원시 명령 직접 사용 안 함',
+    ]:
         if group not in text: fail(f'{rel}: missing Gradle group {group}')
-    if "tasks.named('build')" not in text or "dependsOn 'cpfBuild'" not in text: fail(f'{rel}: root build parity missing')
-    if "tasks.register('test')" not in text or "dependsOn 'cpfTest'" not in text: fail(f'{rel}: root test parity missing')
+    if "tasks.named('build')" not in text or "dependsOn 'cpfBuildAll'" not in text: fail(f'{rel}: root build parity missing')
+    if "tasks.register('test')" not in text or "dependsOn 'cpfTestAll'" not in text: fail(f'{rel}: root test parity missing')
 
 for rel in ['settings.gradle','cpf-tools/release/open-git/templates/settings.gradle','cpf-tools/release/public/templates/settings.gradle']:
     text=(ROOT/rel).read_text(encoding='utf-8')

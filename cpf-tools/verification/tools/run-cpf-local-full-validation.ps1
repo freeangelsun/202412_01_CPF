@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string] $RepoRoot = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [ValidateSet('local','dev','test','stg','prod')]
@@ -416,8 +416,14 @@ function Test-CpfJavaRelease25Home([string]$Candidate) {
         [IO.File]::WriteAllText($source,'public final class CpfJava25CapabilityProbe { public static void main(String[] args) { System.out.print("CPF_JAVA25_CAPABILITY=PASS"); } }',[Text.UTF8Encoding]::new($false))
         & $javacExe --release 25 -d $probeRoot $source *> $null
         if($LASTEXITCODE-ne0){return $false}
-        $out=(& $javaExe -cp $probeRoot CpfJava25CapabilityProbe 2>&1|Out-String).Trim()
-        return ($LASTEXITCODE-eq0 -and $out-eq'CPF_JAVA25_CAPABILITY=PASS')
+        $raw=(& $javaExe -cp $probeRoot CpfJava25CapabilityProbe 2>&1|Out-String)
+        $runExit=$LASTEXITCODE
+        # JVM launcher는 JAVA_TOOL_OPTIONS/_JAVA_OPTIONS/JDK_JAVA_OPTIONS가 설정되어 있으면
+        # stderr에 "Picked up <VAR>: <값>" 알림을 낸다. 이 검증기 자신이 자식 JVM UTF-8 강제를
+        # 위해 JAVA_TOOL_OPTIONS를 설정하므로(위 참조), 그 알림을 probe 결과로 오인하면
+        # Java 25 capability 탐지가 항상 실패하고 CLI/Runtime/Browser 단계까지 연쇄로 무너진다.
+        $out=(($raw -split "`r?`n") | Where-Object { $_ -notmatch '^\s*Picked up (JAVA_TOOL_OPTIONS|_JAVA_OPTIONS|JDK_JAVA_OPTIONS):' } | Out-String).Trim()
+        return ($runExit-eq0 -and $out-eq'CPF_JAVA25_CAPABILITY=PASS')
     } catch { return $false }
     finally { if(Test-Path -LiteralPath $probeRoot){Remove-Item -LiteralPath $probeRoot -Recurse -Force -ErrorAction SilentlyContinue} }
 }
@@ -787,13 +793,13 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
     Invoke-CpfStage 'GRADLE_CPF_MODULES' $gradle (@('cpfModules')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH' $gradle (@('cpfPrepareIdeClasspath')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_READY' $gradle (@('cpfVerifyIdeClasspathReady')+$gradleBase)
-    Invoke-CpfStage 'GRADLE_FULL_BUILD_QUALITY' $gradle (@('clean','cpfBuild','qualityGate','--continue')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_FULL_BUILD_QUALITY' $gradle (@('clean','cpfBuildAll','qualityGate','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_AFTER_BUILD' $gradle (@('cpfPrepareIdeClasspath')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_READY_AFTER_BUILD' $gradle (@('cpfVerifyIdeClasspathReady')+$gradleBase)
     Invoke-CpfStage 'GRADLE_IDE_CLASSPATH_MODEL_AFTER_BUILD' $gradle (@('cpfVerifyIdeClasspathModel')+$gradleBase)
-    Invoke-CpfStage 'GRADLE_ALL_JAVA_TESTS' $gradle (@('cpfTest','--continue')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_ALL_JAVA_TESTS' $gradle (@('cpfTestAll','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_QA34_INTEGRATION' $gradle (@('qa34IntegrationTest','--continue')+$gradleBase)
-    Invoke-CpfStage 'GRADLE_PUBLICATION' $gradle (@('publicationGate','cpfPublishToIsolatedLocal','--continue')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_PUBLICATION' $gradle (@('publicationGate','cpfPublishAllToIsolatedLocal','--continue')+$gradleBase)
 
     # Root의 -PcpfIncludeGeneratedDomains=true는 Generated Customer Domain을 Composite로 Mount만 하고
     # 실제로 Build하지 않는다(--dry-run 기준 Generated Domain Task 0개). 따라서 Generated Domain 회귀

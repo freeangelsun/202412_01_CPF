@@ -15,6 +15,7 @@ _NEG_GROUPS={
     },
     'AUTH_B': {
         'mutation_harness_package_garbage','mutation_current_package_projection_stale','mutation_handover_registry_alias_loss',
+        'mutation_repository_python_cache_reentry',
         'mutation_transitive_migration_terminal_missing','mutation_deprecated_active_reference_reentry',
     },
     'STRENGTH': {
@@ -85,9 +86,9 @@ def _session_merge_missing_manifest_mutation():
         env['CPF_HARNESS_ROOT']=str(h)
         env['CPF_REPOSITORY_ROOT']=str(root)
         validator=H/'validators/validate_session_merge_protocol.py'
-        before=subprocess.run([sys.executable,str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
+        before=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
         mf.unlink()
-        after=subprocess.run([sys.executable,str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
+        after=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
         return before.returncode==0 and after.returncode!=0 and 'MANIFEST_MISSING:FIXTURE_SESSION' in (after.stdout+after.stderr)
     finally:
         shutil.rmtree(root,ignore_errors=True)
@@ -184,7 +185,7 @@ def run_mut(name, mutate, expected_fragment):
     if not _enabled(name): return
     _restore_negative_fixture()
     mutate(_NEG_TARGET)
-    cp=subprocess.run([sys.executable,str(_NEG_TARGET/'validators/validate_development_harness.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
+    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_development_harness.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
     ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
     record(name,ok,('rc='+str(cp.returncode)+' expected='+expected_fragment))
 
@@ -224,7 +225,7 @@ def run_auth_mut(name, mutate, expected_fragment):
     if not _enabled(name): return
     _restore_negative_fixture()
     mutate(_NEG_TARGET)
-    cp=subprocess.run([sys.executable,str(_NEG_TARGET/'validators/validate_harness_authority.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
+    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_harness_authority.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
     ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
     record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
 
@@ -264,6 +265,13 @@ def mut_harness_garbage(h):
 run_auth_mut('mutation_harness_package_garbage',mut_harness_garbage,'HARNESS_GARBAGE')
 
 
+def mut_repository_python_cache(h):
+    # GARBAGE-0637: regeneratable Python bytecode 는 Harness payload 밖에서도 product source 에 남으면 안 된다.
+    d=_NEG_ROOT/'cpf-tools/__pycache__'; d.mkdir(parents=True,exist_ok=True)
+    (d/'stale_module.cpython-313.pyc').write_bytes(b'cpf-stale-bytecode')
+run_auth_mut('mutation_repository_python_cache_reentry',mut_repository_python_cache,'REPOSITORY_PYTHON_CACHE')
+
+
 def mut_package_projection_stale(h):
     p=h/'current/PACKAGE_MANIFEST.json'; data=json.loads(p.read_text(encoding='utf-8')); data['currentSourceIdentity']='0'*64; p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 run_auth_mut('mutation_current_package_projection_stale',mut_package_projection_stale,'CURRENT_PACKAGE_SOURCE_IDENTITY_STALE')
@@ -294,7 +302,7 @@ def run_strength_mut(name, mutate, expected_fragment):
     if not _enabled(name): return
     _restore_negative_fixture()
     mutate(_NEG_TARGET)
-    cp=subprocess.run([sys.executable,str(_NEG_TARGET/'validators/validate_harness_strength_regression.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
+    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_harness_strength_regression.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
     ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
     record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
 

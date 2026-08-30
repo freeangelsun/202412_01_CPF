@@ -303,9 +303,9 @@ def main():
         if key in seen: fail(f'duplicate override: {key}')
         seen.add(key)
     # Generated drift check for all three vendors.
-    cp=subprocess.run([sys.executable,str(db/'render_vendor_pack.py'),'--root',str(root),'--check'],text=True,capture_output=True)
+    cp=subprocess.run([sys.executable,'-B',str(db/'render_vendor_pack.py'),'--root',str(root),'--check'],text=True,capture_output=True)
     if cp.returncode: fail('generated drift: '+(cp.stdout+cp.stderr).strip())
-    gd=subprocess.run([sys.executable,str(db/'render_generated_domain_template.py'),'--root',str(root),'--check'],text=True,capture_output=True)
+    gd=subprocess.run([sys.executable,'-B',str(db/'render_generated_domain_template.py'),'--root',str(root),'--check'],text=True,capture_output=True)
     if gd.returncode: fail('generated-domain template drift: '+(gd.stdout+gd.stderr).strip())
     # Generated current packs have the same canonical versions and no orphan vendor.
     generated=db/'generated/current'

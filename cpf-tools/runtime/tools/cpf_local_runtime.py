@@ -64,6 +64,26 @@ def pid_alive(pid:int)->bool:
     try: os.kill(pid,0); return True
     except OSError: return False
 
+def port_listening(host:str, port:int, timeout:float=1.0)->bool:
+    try:
+        with socket.create_connection((host,port),timeout=timeout): return True
+    except OSError: return False
+
+def wait_until_ready(process, host:str, port:int, timeout_seconds:float)->str:
+    """Runtime 이 실제 요청을 받을 수 있을 때까지 기다린다.
+
+    프로세스 생성만으로 STARTED 를 선언하면 뒤따르는 Runtime 검증이 아직 기동 중인 앱에
+    접속해 연쇄 실패하고, 기동에 실패해도 START 가 성공으로 남아 fail-closed 계약이 깨진다.
+    반환값: 'READY' | 'EXITED:<code>' | 'TIMEOUT'
+    """
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        code = process.poll()
+        if code is not None: return 'EXITED:%d' % code
+        if port_listening(host, port): return 'READY'
+        time.sleep(1.0)
+    return 'TIMEOUT'
+
 def port_free(host:str,port:int)->bool:
     s=socket.socket();
     try: s.bind((host,port)); return True
@@ -84,6 +104,9 @@ def start(root:Path,profile:str,mode:str,skip_build:bool)->int:
     if not port_free(host,port): return fail(f'port already in use: {host}:{port}',4)
     policy=resolve_policy(root,profile,mode)
     xms=policy.get('runtime.web.xms','250m'); xmx=policy.get('runtime.web.xmx','500m'); step=int(policy.get('heap.step.mb','250')); ceiling=int(policy.get('runtime.memory.ceiling.mb','1000'))
+    # 기동 완료를 기다리는 상한. 저사양/저메모리 로컬에서도 Spring Boot 기동이 끝나도록 잡되,
+    # 값 자체는 환경별 자원정책이 소유하고 여기서는 fallback 만 둔다.
+    ready_timeout=float(os.environ.get('CPF_LOCAL_RUNTIME_READY_TIMEOUT_SECONDS') or policy.get('runtime.startup.readyTimeoutSeconds','300'))
     if policy.get('runtime.memory.enforceCeiling','true').lower()=='true':
         for name,value in [('Xms',xms),('Xmx',xmx)]:
             n=mb(value)
@@ -107,7 +130,21 @@ def start(root:Path,profile:str,mode:str,skip_build:bool)->int:
     pf.write_text(str(p.pid)+'\n',encoding='ascii')
     state={'pid':p.pid,'host':host,'port':port,'mode':mode,'resourceProfile':profile,'xms':xms,'xmx':xmx,'startedAt':time.time(),'jar':str(jars[-1].relative_to(root))}
     state_file(root).write_text(json.dumps(state,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-    print(f'CPF_LOCAL_RUNTIME=STARTED pid={p.pid} address={host} port={port} mode={mode} resourceProfile={profile} Xms={xms} Xmx={xmx}')
+    readiness=wait_until_ready(p,host,port,ready_timeout)
+    if readiness!='READY':
+        tail=''
+        try:
+            errlog=logs/'LOCAL_WEB.err.log'
+            if errlog.is_file(): tail=errlog.read_text(encoding='utf-8',errors='replace')[-2000:]
+        except OSError: pass
+        if readiness=='TIMEOUT' and p.poll() is None:
+            try: p.kill()
+            except OSError: pass
+        pf.unlink(missing_ok=True)
+        detail=readiness if not tail else readiness+' lastError='+tail
+        return fail('runtime did not become ready on %s:%d within %ss (%s)'%(host,port,ready_timeout,detail),4)
+    ready_seconds=int(time.time()-state['startedAt'])
+    print(f'CPF_LOCAL_RUNTIME=STARTED pid={p.pid} address={host} port={port} mode={mode} resourceProfile={profile} Xms={xms} Xmx={xmx} readySeconds={ready_seconds}')
     return 0
 
 def status(root:Path)->int:

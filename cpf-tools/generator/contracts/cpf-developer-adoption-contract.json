@@ -82,7 +82,7 @@
       "selector": "-PcpfTargetCapabilities=<capability,...>"
     },
     "fullLocal": {
-      "entry": "cpfVerifyFullLocal",
+      "entry": "cpfVerifyAllLocal",
       "purpose": "Java25/DB3/Redis-Valkey/Kafka/Batch-fault/Browser/Gateway/Performance/Evidence"
     }
   },

@@ -18,7 +18,9 @@ def build_command(arguments: Sequence[str], repo_root: Path = REPO_ROOT) -> list
     if not config.is_file():
         raise FileNotFoundError(f"CPF pytest configuration is missing: {config}")
     requested = list(arguments) or ["cpf-tools"]
-    return [sys.executable, "-m", "pytest", "-c", str(config), *requested]
+    # Pass -B at interpreter startup as the primary fail-closed bytecode guard. The environment
+    # setting below is retained so Python subprocesses spawned by tests inherit the same policy.
+    return [sys.executable, "-B", "-m", "pytest", "-c", str(config), *requested]
 
 
 def run_pytest(arguments: Sequence[str], repo_root: Path = REPO_ROOT) -> int:

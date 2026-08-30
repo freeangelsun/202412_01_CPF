@@ -74,7 +74,6 @@ def npmVersionProvider = providers.exec { commandLine npmExecutable, '--version'
 sourceSets.main.resources.srcDir(frontendOutputDir)
 
 tasks.register('frontendInstall', Exec) {
-    group = 'frontend'
     description = 'ADM frontend의 package-lock 기준 의존성을 설치합니다.'
     workingDir frontendDir
     commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
@@ -90,7 +89,6 @@ tasks.register('frontendInstall', Exec) {
 
 ['Lint': 'lint', 'Typecheck': 'typecheck', 'Test': 'test'].each { taskSuffix, npmScript ->
     tasks.register("frontend${taskSuffix}", Exec) {
-        group = 'verification'
         dependsOn 'frontendInstall'
         workingDir frontendDir
         commandLine npmExecutable, 'run', npmScript
@@ -123,7 +121,6 @@ tasks.register('frontendBuild', Exec) {
 }
 
 tasks.register('frontendVerify') {
-    group = 'verification'
     description = 'ADM frontend lint, typecheck, test와 production build를 검증합니다.'
     dependsOn 'frontendLint', 'frontendTypecheck', 'frontendTest', 'frontendBuild'
 }

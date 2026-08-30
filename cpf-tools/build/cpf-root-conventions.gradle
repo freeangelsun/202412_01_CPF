@@ -246,7 +246,6 @@ gradle.afterProject { target, state ->
 }
 
 tasks.register('cpfPrepareIdeClasspath') {
-    group = 'verification'
     description = 'clean 이후 Buildship/JDT가 요구하는 Java compile output을 실제 compile로 복구합니다.'
     dependsOn {
         subprojects.findAll { it.plugins.hasPlugin('java') }
@@ -276,7 +275,6 @@ tasks.register('cpfPrepareIdeClasspath') {
 }
 
 tasks.register('cpfVerifyIdeClasspathReady') {
-    group = 'verification'
     description = 'Buildship/JDT가 참조하는 모든 canonical Java class folder가 실제 존재하는지 검증합니다.'
     doLast {
         def missing = subprojects.findAll { it.plugins.hasPlugin('java') }.collect { target ->
@@ -291,7 +289,6 @@ tasks.register('cpfVerifyIdeClasspathReady') {
 }
 
 tasks.register('cpfVerifyIdeClasspathModel') {
-    group = 'verification'
     description = '모든 Java project가 Gradle canonical compile output을 그대로 사용하고 IDE 전용 임시 output을 만들지 않는지 검증합니다.'
     doLast {
         def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
@@ -327,7 +324,6 @@ subprojects {
     if (cpfManagementModule != null) {
         def generatedCapabilityDir = layout.buildDirectory.dir('generated/cpf-runtime-capability')
         tasks.register('generateCpfRuntimeCapabilityMetadata') {
-            group = 'CPF Configuration/Discovery'
             description = 'Canonical Starter Catalog에서 Runtime/ADM Capability metadata를 자동 생성합니다.'
             inputs.file(rootProject.file('cpf-tools/generator/contracts/cpf-starter-catalog.json'))
             outputs.file(generatedCapabilityDir.map { it.file('META-INF/cpf/runtime-capability.properties') })
@@ -501,8 +497,8 @@ subprojects {
 }
 
 tasks.register('cpfResourcePolicy') {
-    group = 'CPF Configuration/Discovery'
-    description = '현재 CPF 환경별 중앙 자원정책과 모듈 override 우선순위를 표시합니다.'
+    group = '50. CPF 설정'
+    description = '[조회] 현재 CPF 환경별 중앙 자원정책과 모듈 override 우선순위를 표시합니다.'
     doLast {
         println "CPF_RESOURCE_PROFILE=${cpfResourceProfile}"
         println "CPF_RESOURCE_DIR=${file('gradle/cpf-runtime').absolutePath}"
@@ -515,7 +511,6 @@ tasks.register('cpfResourcePolicy') {
 }
 
 tasks.register('cpfResourcePolicyGate') {
-    group = 'verification'
     description = 'CPF 환경별 자원정책 파일, 250MB step/1000MB ceiling, module override contract를 검증합니다.'
     doLast {
         ['common','local','dev','test','stg','prod'].each { profile ->
@@ -531,7 +526,6 @@ tasks.register('cpfResourcePolicyGate') {
 }
 
 tasks.register('managedDependencyGate') {
-    group = 'verification'
     description = '무버전 External Dependency가 적용된 canonical BOM에서 실제 관리되는지 검증합니다.'
     doLast {
         def violations = []
@@ -575,7 +569,6 @@ tasks.register('managedDependencyGate') {
 }
 
 tasks.register('corePomPurityGate') {
-    group = 'verification'
     description = 'JDK-only cpf-core POM에 BOM/dependencyManagement 또는 Runtime dependency가 없는지 검증합니다.'
     dependsOn ':framework:core:generatePomFileForMavenJavaPublication'
     doLast {
@@ -588,38 +581,36 @@ tasks.register('corePomPurityGate') {
     }
 }
 
-def registerPythonGate = { String taskName, String scriptPath ->
+def registerPythonGate = { String taskName, String scriptPath, String purposeText ->
     tasks.register(taskName, Exec) {
-        group = 'verification'
-        description = "CPF static gate: ${scriptPath}"
+        description = purposeText
         workingDir rootDir
         commandLine cpfPython, scriptPath, '--root', rootDir.absolutePath
     }
 }
 
-registerPythonGate('cpfResourcePolicyStaticGate', 'cpf-tools/verification/verify-cpf-resource-policy.py')
-registerPythonGate('nxt3ConfigGate', 'cpf-tools/verification/nxt3/verify_nxt3_config_contract.py')
-registerPythonGate('nxt3HygieneGate', 'cpf-tools/verification/nxt3/verify_nxt3_hygiene.py')
-registerPythonGate('nxt3LayoutGate', 'cpf-tools/verification/nxt3/verify_nxt3_layout.py')
-registerPythonGate('nxt3Db3Gate', 'cpf-tools/verification/nxt3/verify_nxt3_query_db3.py')
-registerPythonGate('nxt3GeneratorGate', 'cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py')
-registerPythonGate('nxt3GeneratedBoundaryGate', 'cpf-tools/verification/nxt3/verify_generated_public_boundary.py')
-registerPythonGate('nxt3AnnotationGate', 'cpf-tools/verification/nxt3/verify_annotation_runtime_consumer.py')
-registerPythonGate('nxt3AdmBackofficeGate', 'cpf-tools/verification/nxt3/verify_nxt3_adm_backoffice_framework.py')
-registerPythonGate('nxt3FrontendGatewayGate', 'cpf-tools/verification/nxt3/verify_nxt3_adm_backoffice_frontend_gateway.py')
-registerPythonGate('nxt3CommonPropagationGate', 'cpf-tools/verification/nxt3/verify_nxt3_common_management_propagation.py')
-registerPythonGate('nxt3RedisValkeyGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_current.py')
-registerPythonGate('nxt3RedisValkeyProviderGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_provider_currentization.py')
-registerPythonGate('starterCatalogGate', 'cpf-tools/verification/verify_starter_catalog.py')
-registerPythonGate('developerAdoptionGate', 'cpf-tools/verification/verify_cpf_developer_adoption_contract.py')
-registerPythonGate('capabilityManagementGate', 'cpf-tools/verification/verify_cpf_capability_management_contract.py')
-registerPythonGate('batchDeveloperTop50Gate', 'cpf-tools/verification/verify_cpf_batch_developer_top50.py')
-registerPythonGate('gradleProjectDependencyClosureGate', 'cpf-tools/verification/verify_gradle_project_dependency_closure.py')
-registerPythonGate('gradleLogicalTreeGate', 'cpf-tools/verification/verify-cpf-gradle-logical-tree.py')
-registerPythonGate('batRuntimeRoleContractGate', 'cpf-tools/runtime/tools/sync_bat_runtime_roles.py')
+registerPythonGate('cpfResourcePolicyStaticGate', 'cpf-tools/verification/verify-cpf-resource-policy.py', '환경별 자원정책(Profile/메모리 단계) 파일 계약을 정적으로 검증합니다.')
+registerPythonGate('nxt3ConfigGate', 'cpf-tools/verification/nxt3/verify_nxt3_config_contract.py', 'NXT3 설정(Config) 계약 준수를 검증합니다.')
+registerPythonGate('nxt3HygieneGate', 'cpf-tools/verification/nxt3/verify_nxt3_hygiene.py', '삭제 Manifest와 Garbage Sweep 결정이 파일 단위로 지켜지는지 검증합니다.')
+registerPythonGate('nxt3LayoutGate', 'cpf-tools/verification/nxt3/verify_nxt3_layout.py', 'NXT3 표준 디렉터리/모듈 배치 계약을 검증합니다.')
+registerPythonGate('nxt3Db3Gate', 'cpf-tools/verification/nxt3/verify_nxt3_query_db3.py', 'Repository SQL/Query의 DB3 중립성과 단일 Owner를 검증합니다.')
+registerPythonGate('nxt3GeneratorGate', 'cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py', '생성기가 만든 Root/Domain/Lifecycle/Public 경계를 동일 Canonical Engine으로 검증합니다.')
+registerPythonGate('nxt3GeneratedBoundaryGate', 'cpf-tools/verification/nxt3/verify_generated_public_boundary.py', '생성 산출물이 Public 경계를 넘지 않는지 검증합니다.')
+registerPythonGate('nxt3AnnotationGate', 'cpf-tools/verification/nxt3/verify_annotation_runtime_consumer.py', 'Annotation 정본과 Runtime Consumer의 정합성을 검증합니다.')
+registerPythonGate('nxt3AdmBackofficeGate', 'cpf-tools/verification/nxt3/verify_nxt3_adm_backoffice_framework.py', 'ADM/Gateway 관리 경계와 Backoffice(MBW) 업무 Domain 분리를 검증합니다.')
+registerPythonGate('nxt3FrontendGatewayGate', 'cpf-tools/verification/nxt3/verify_nxt3_adm_backoffice_frontend_gateway.py', 'ADM/Backoffice Web 참조와 Gateway Consumer 폐쇄성을 검증합니다.')
+registerPythonGate('nxt3CommonPropagationGate', 'cpf-tools/verification/nxt3/verify_nxt3_common_management_propagation.py', 'Common 관리 요소가 하위 모듈로 올바르게 전파되는지 검증합니다.')
+registerPythonGate('nxt3RedisValkeyGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_current.py', 'Redis/Valkey 사용 현행화 상태를 검증합니다.')
+registerPythonGate('nxt3RedisValkeyProviderGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_provider_currentization.py', 'Redis/Valkey Provider 구현 현행화 상태를 검증합니다.')
+registerPythonGate('starterCatalogGate', 'cpf-tools/verification/verify_starter_catalog.py', 'Starter Catalog 정본과 실제 Starter 구성의 일치를 검증합니다.')
+registerPythonGate('developerAdoptionGate', 'cpf-tools/verification/verify_cpf_developer_adoption_contract.py', '개발자 Golden Path 채택 계약을 fail-closed로 검증합니다.')
+registerPythonGate('capabilityManagementGate', 'cpf-tools/verification/verify_cpf_capability_management_contract.py', 'Capability 관리(운영/로그추적/장애복구) 계약을 검증합니다.')
+registerPythonGate('batchDeveloperTop50Gate', 'cpf-tools/verification/verify_cpf_batch_developer_top50.py', 'Batch 개발자 상위 50 요구 계약을 검증합니다.')
+registerPythonGate('gradleProjectDependencyClosureGate', 'cpf-tools/verification/verify_gradle_project_dependency_closure.py', 'Gradle script가 선언되지 않은 project 경로를 참조하지 않는지 검증합니다.')
+registerPythonGate('gradleLogicalTreeGate', 'cpf-tools/verification/verify-cpf-gradle-logical-tree.py', 'Gradle 논리 project 트리 계약을 fail-closed로 검증합니다.')
+registerPythonGate('batRuntimeRoleContractGate', 'cpf-tools/runtime/tools/sync_bat_runtime_roles.py', 'BAT Runtime Role 정본 계약을 동기화하고 fail-closed로 검증합니다.')
 
 tasks.register('gradleProjectDependencyClosureTest', Exec) {
-    group = 'verification'
     description = 'Gradle project SCC/undeclared/aggregate boundary Gate fixtures.'
     workingDir rootDir
     commandLine cpfPython, '-m', 'unittest', 'discover',
@@ -629,7 +620,6 @@ tasks.register('gradleProjectDependencyClosureTest', Exec) {
 
 // 빠른 정적 품질 Gate. 한 실패가 다른 독립 Gate 실행을 막지 않도록 CI에서는 --continue와 함께 사용합니다.
 tasks.register('qualityGate') {
-    group = 'verification'
     dependsOn 'cpfResourcePolicyGate', 'cpfResourcePolicyStaticGate', 'starterCatalogGate', 'developerAdoptionGate', 'capabilityManagementGate', 'batchDeveloperTop50Gate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'batRuntimeRoleContractGate', 'managedDependencyGate', 'corePomPurityGate', 'nxt3ConfigGate', 'nxt3HygieneGate', 'nxt3LayoutGate', 'nxt3Db3Gate',
             'nxt3GeneratorGate', 'nxt3GeneratedBoundaryGate', 'nxt3AnnotationGate',
             'nxt3AdmBackofficeGate', 'nxt3FrontendGatewayGate', 'nxt3CommonPropagationGate',
@@ -637,7 +627,6 @@ tasks.register('qualityGate') {
 }
 
 tasks.register('aggregateQualityBuild') {
-    group = 'verification'
     description = '전체 CPF Java 모듈의 check/assemble과 static quality gate를 집계합니다.'
     dependsOn 'qualityGate'
 }
@@ -717,14 +706,248 @@ gradle.projectsEvaluated {
     }
 }
 
+// VS Code Gradle Tasks는 중첩 group과 task 표시명 치환을 지원하지 않는다. 사용자 Golden Path는
+// 00~60에만 노출하고, 계약상 이름을 바꿀 수 없는 Gradle/plugin/호환 task는 90~99에서 용도별로
+// 분리한다. 99는 사용자가 직접 실행하지 않는 저수준 원시 명령만 수용한다.
+// Domain 은 이름을 코드에 박지 않고 `cpf.domain.contractVersion=1` 계약으로 발견한다.
+// 생성기로 Domain 을 만들면 자동으로 Task 가 등록되고, 삭제하면 자동으로 사라진다. 0개도 정상이다.
+// Generated Domain 은 root build 에 mount 되지 않을 수 있으므로 각 Domain build 를 직접 호출한다.
+def cpfDiscoveredDomains = ((rootDir.listFiles() ?: new File[0]) as List).findAll { it.isDirectory() }.findResults { File dir ->
+    def propsFile = new File(dir, 'gradle.properties')
+    if (!propsFile.isFile()) return null
+    def props = new Properties()
+    propsFile.withInputStream { props.load(it) }
+    if (props.getProperty('cpf.domain.contractVersion') != '1') return null
+    def domainName = props.getProperty('cpf.domain.name')
+    if (domainName == null || domainName.trim().isEmpty()) return null
+    def settingsFile = new File(dir, 'settings.gradle')
+    def settingsText = settingsFile.isFile() ? settingsFile.getText('UTF-8') : ''
+    def modules = []
+    if (settingsText.contains("include 'online'") && new File(dir, 'online').isDirectory()) modules << 'online'
+    if (settingsText.contains("include 'batch'") && new File(dir, 'batch').isDirectory()) modules << 'batch'
+    if (modules.isEmpty()) return null
+    def systemCode = props.getProperty('cpf.domain.systemCode')
+    // root build 에 mount 된 Domain online 은 독립 build 를 다시 띄우지 않고 직접 실행한다.
+    def mountedOnline = findProject(":apps:${domainName.trim()}")
+    [dir: dir, name: domainName.trim(), mounted: (mountedOnline != null), mountedPath: mountedOnline?.path,
+     cap: domainName.trim().substring(0, 1).toUpperCase(Locale.ROOT) + domainName.trim().substring(1),
+     label: (systemCode == null || systemCode.trim().isEmpty()) ? domainName.trim() : "${domainName.trim()}(${systemCode.trim()})",
+     modules: modules]
+}.sort { it.name }
+
+// 최상위 cpf-* 디렉터리에 있고 Spring Boot 실행 계약을 가진 project 를 개별 App 으로 발견한다.
+// 상위 디렉터리가 rootDir 인 것만 App 이므로 cpf-tools/runtime/** 통합 Runtime 과
+// Domain 이 소유한 module(cpf-<domain>/online) 은 구조상 자연히 제외되어 축이 중복되지 않는다.
+// 이름을 코드에 박지 않으므로 App 이 추가/삭제되면 Task 도 자동으로 등록/제거된다.
+def cpfDiscoveredApps = rootProject.subprojects.findResults { p ->
+    def dir = p.projectDir
+    if (dir.parentFile != rootDir) return null
+    def buildFile = new File(dir, 'build.gradle')
+    if (!buildFile.isFile()) return null
+    if (!buildFile.getText('UTF-8').contains("id 'org.springframework.boot'")) return null
+    def raw = dir.name.startsWith('cpf-') ? dir.name.substring(4) : dir.name
+    def cap = raw.split('-').findAll { !it.isEmpty() }
+            .collect { it.substring(0, 1).toUpperCase(Locale.ROOT) + it.substring(1) }.join('')
+    [path: p.path, cap: cap, label: cap]
+}.sort { it.cap }
+
+// 발견된 App 마다 빌드/검증/실행/배포 4축을 동일하게 투영한다.
+def cpfAppVisibleTaskGroups = [:]
+cpfDiscoveredApps.each { a ->
+    cpfAppVisibleTaskGroups["cpfBuild${a.cap}".toString()] = '10. CPF 빌드'
+    cpfAppVisibleTaskGroups["cpfVerify${a.cap}".toString()] = '20. CPF 검증'
+    cpfAppVisibleTaskGroups["cpfRun${a.cap}".toString()] = '30. CPF 실행'
+    cpfAppVisibleTaskGroups["cpfDeploy${a.cap}".toString()] = '60. CPF 배포'
+}
+
+// 발견된 Domain 마다 빌드/검증/실행/배포 4축을 동일하게 투영해 그룹 간 일관성을 유지한다.
+def cpfDomainVisibleTaskGroups = [:]
+cpfDiscoveredDomains.each { d ->
+    cpfDomainVisibleTaskGroups["cpfBuild${d.cap}".toString()] = '10. CPF 빌드'
+    cpfDomainVisibleTaskGroups["cpfVerify${d.cap}".toString()] = '20. CPF 검증'
+    d.modules.each { m ->
+        def suffix = m.substring(0, 1).toUpperCase(Locale.ROOT) + m.substring(1)
+        def runName = (m == 'online' && d.mounted) ? "cpfRun${d.cap}" : "cpfRun${d.cap}${suffix}"
+        cpfDomainVisibleTaskGroups[runName.toString()] = '30. CPF 실행'
+    }
+    cpfDomainVisibleTaskGroups["cpfDeploy${d.cap}".toString()] = '60. CPF 배포'
+}
+
+// 예전 이름을 쓰던 Consumer 가 깨지지 않도록 유지하는 호환 별칭이다.
+// 화면에서는 98 한 곳에 모아 새 이름과 섞이지 않게 한다.
+def cpfLegacyTaskAliases = [
+        'cpfBuild':'cpfBuildAll',
+        'cpfTest':'cpfTestAll',
+        'cpfVerifyFullLocal':'cpfVerifyAllLocal',
+        'cpfPublishToIsolatedLocal':'cpfPublishAllToIsolatedLocal',
+        'publishCpfVerifiedLocalPlatformArtifacts':'cpfPublishAllVerifiedLocalPlatformArtifacts',
+        'cpfRunLocal':'cpfRunAllLocal',
+        'cpfRunBatch':'cpfRunAllBatch',
+        'cpfRunAdm':'cpfRunAdmin'
+]
+
+def cpfVisibleTaskGroups = [
+        'cpfHelp':'00. CPF 시작',
+        'cpfBuildAll':'10. CPF 빌드', 'cpfTestAll':'10. CPF 빌드',
+        'cpfVerifyFast':'20. CPF 검증', 'cpfVerifyTargeted':'20. CPF 검증', 'cpfVerifyAllLocal':'20. CPF 검증',
+        'cpfRunAllLocal':'30. CPF 실행', 'cpfRunAllBatch':'30. CPF 실행',
+        'cpfDomainDiscovery':'40. CPF 구성', 'cpfDatabaseDiscovery':'40. CPF 구성',
+        'cpfModules':'40. CPF 구성', 'cpfModulesAll':'40. CPF 구성',
+        'cpfResourcePolicy':'50. CPF 설정',
+        'cpfDeployAll':'60. CPF 배포',
+        'cpfPublishAllToIsolatedLocal':'60. CPF 배포',
+        'cpfPublishAllVerifiedLocalPlatformArtifacts':'60. CPF 배포'
+]
+cpfVisibleTaskGroups.putAll(cpfAppVisibleTaskGroups)
+cpfVisibleTaskGroups.putAll(cpfDomainVisibleTaskGroups)
+def cpfVisibleTaskNames = cpfVisibleTaskGroups.keySet()
+def cpfInternalTaskGroups = [
+        build:'90. CPF 내부 빌드',
+        verify:'91. CPF 내부 검증 Gate',
+        test:'92. CPF 내부 테스트',
+        run:'93. CPF 내부 실행',
+        deploy:'94. CPF 내부 배포',
+        ide:'95. CPF 내부 IDE',
+        diagnose:'96. CPF 내부 진단',
+        compat:'98. CPF 구명령 호환 유지',
+        raw:'99. CPF 원시 명령 직접 사용 안 함'
+]
+def cpfInternalTaskGroupFor = { String taskName ->
+    if (cpfLegacyTaskAliases.containsKey(taskName)) {
+        return cpfInternalTaskGroups.compat
+    }
+    def lower = taskName.toLowerCase(Locale.ROOT)
+    def ideTask = lower.startsWith('eclipse') || taskName ==~ /.*Ide(?:$|[A-Z0-9]).*/
+    if (ideTask) {
+        return cpfInternalTaskGroups.ide
+    }
+    if (lower in ['bootrun', 'boottestrun'] || lower.startsWith('run') || lower.endsWith('run') ||
+            (lower.startsWith('resolve') && lower.endsWith('mainclassname'))) {
+        return cpfInternalTaskGroups.run
+    }
+    if (lower.startsWith('compile') || lower.startsWith('process') || lower.endsWith('classes')) {
+        return cpfInternalTaskGroups.build
+    }
+    if (lower == 'generatecpfbusinessoperationmanifest' || lower.endsWith('gate') ||
+            lower.contains('verify') || lower.contains('validation') ||
+            lower.contains('validate') || lower.contains('check') ||
+            lower.contains('quality') || lower.contains('contract') || lower.contains('audit') ||
+            lower.contains('lint')) {
+        return cpfInternalTaskGroups.verify
+    }
+    if (lower == 'test' || lower == 'cpftest' || lower.endsWith('test') || lower.contains('testreport')) {
+        return cpfInternalTaskGroups.test
+    }
+    if (lower.contains('publish') || lower.contains('publication') || lower.contains('staging') ||
+            lower.contains('generatepom') || lower.contains('modulemetadata') ||
+            lower.startsWith('sign') || lower.contains('maven') || lower.contains('ivy')) {
+        return cpfInternalTaskGroups.deploy
+    }
+    if (lower in ['help', 'tasks', 'projects', 'properties', 'dependencies', 'components',
+                  'buildenvironment', 'outgoingvariants', 'resolvableconfigurations',
+                  'dependencyinsight', 'javatoolchains'] || lower.contains('discovery') ||
+            lower.contains('diagnostic') || lower.contains('dependencymanagement') || lower.endsWith('report')) {
+        return cpfInternalTaskGroups.diagnose
+    }
+    if (lower in ['build', 'assemble', 'clean', 'classes', 'testclasses', 'builddependents',
+                  'buildneeded', 'bootjar', 'bootwar', 'bootbuildimage'] ||
+            lower.startsWith('compile') || lower.startsWith('process') || lower.startsWith('generate') ||
+            lower.endsWith('jar') || lower.endsWith('war') || lower.contains('javadoc') ||
+            lower.contains('sources') || lower.contains('resource') || lower.contains('build') ||
+            lower.contains('install') || lower.startsWith('cyclonedx')) {
+        return cpfInternalTaskGroups.build
+    }
+    return cpfInternalTaskGroups.raw
+}
+def cpfInternalTaskPurpose = [
+        (cpfInternalTaskGroups.build):'[내부 빌드] 빌드 시스템이 산출물 생성 과정에서 자동으로 사용하는 명령입니다.',
+        (cpfInternalTaskGroups.verify):'[내부 검증 Gate] CPF 품질 계약이 자동으로 사용하는 검증 명령입니다.',
+        (cpfInternalTaskGroups.test):'[내부 테스트] CPF 테스트 진입점이 자동으로 사용하는 테스트 명령입니다.',
+        (cpfInternalTaskGroups.run):'[내부 실행] CPF 실행 진입점이 내부적으로 사용하는 런타임 명령입니다.',
+        (cpfInternalTaskGroups.deploy):'[내부 배포] CPF 배포 진입점이 산출물 생성과 게시 과정에서 사용하는 명령입니다.',
+        (cpfInternalTaskGroups.ide):'[내부 IDE] VS Code와 Java/Gradle 모델 동기화가 사용하는 명령입니다.',
+        (cpfInternalTaskGroups.diagnose):'[내부 진단] Gradle 구성과 의존성 상태를 조회하는 진단 명령입니다.',
+        (cpfInternalTaskGroups.compat):'[호환] 예전 이름을 유지하기 위한 별칭입니다. 새 이름의 00~60 명령을 사용합니다.',
+        (cpfInternalTaskGroups.raw):'[원시 명령] Gradle 또는 Plugin의 저수준 명령입니다. 직접 실행하지 말고 00~60 CPF 명령을 사용합니다.'
+]
+def cpfInternalTaskDescriptions = [
+        'aggregateQualityBuild':'[내부 검증 Gate] 전체 모듈 품질 검증에 필요한 통합 빌드를 수행합니다.',
+        'build':'[내부 빌드/호환] Gradle 표준 전체 Build입니다. 일반 개발은 cpfBuildAll을 사용합니다.',
+        'test':'[내부 테스트/호환] Gradle 표준 전체 Test입니다. 일반 개발은 cpfTestAll을 사용합니다.',
+        'check':'[내부 검증 Gate] Gradle 표준 검증 lifecycle입니다.',
+        'assemble':'[내부 빌드] Gradle 표준 산출물을 조립합니다.',
+        'clean':'[내부 빌드] 생성된 Gradle build 산출물을 정리합니다.',
+        'publish':'[내부 배포] 원시 Maven publication lifecycle입니다. 60번 CPF 배포 진입점을 사용합니다.',
+        'tasks':'[내부 진단] 현재 Gradle task 모델을 출력합니다.',
+        'help':'[내부 진단] Gradle 기본 도움말입니다. CPF 안내는 00번 cpfHelp를 사용합니다.',
+        'bootRun':'[내부 실행] 원시 Spring Boot 실행 명령입니다. 30번 CPF 실행 진입점을 사용합니다.',
+        'artifactTransforms':'[원시 명령] Gradle artifact transform 등록 상태를 조회합니다. 일반 사용자가 직접 실행하지 않습니다.',
+        'buildEnvironment':'[내부 진단] Buildscript 의존성과 Gradle 구성 환경을 조회합니다.',
+        'dependencies':'[내부 진단] 선택 Project의 의존성 트리를 조회합니다.',
+        'dependencyInsight':'[내부 진단] 특정 의존성 선택 원인을 추적합니다.',
+        'properties':'[내부 진단] 선택 Project의 Gradle 속성을 조회합니다.',
+        'projects':'[내부 진단] Gradle Project 구조를 조회합니다.'
+]
+gradle.projectsEvaluated {
+    allprojects { target ->
+        target.tasks.configureEach { task ->
+            def visibleRootTask = target == rootProject && cpfVisibleTaskNames.contains(task.name)
+            if (!visibleRootTask) {
+                task.group = cpfInternalTaskGroupFor(task.name)
+                def readable = cpfInternalTaskDescriptions[task.name]
+                if (readable != null) {
+                    task.description = readable
+                } else if (task.description == null || task.description.trim().isEmpty()) {
+                    task.description = cpfInternalTaskPurpose[task.group]
+                } else if (!task.description.startsWith('[내부') && !task.description.startsWith('[원시') &&
+                        !task.description.startsWith('[호환')) {
+                    task.description = "${cpfInternalTaskPurpose[task.group]} ${task.description}"
+                }
+            }
+        }
+    }
+}
+
+tasks.register('cpfTaskGroupContractGate') {
+    description = 'VS Code Gradle Tasks가 00~60 사용자 진입점과 90~99 용도별 내부 그룹만 노출하는지 검증합니다.'
+    doLast {
+        def failures = []
+        cpfVisibleTaskGroups.each { taskName, expectedGroup ->
+            def task = tasks.findByName(taskName)
+            if (task == null) failures << "missing=${taskName}"
+            else if (task.group != expectedGroup) failures << "group=${taskName}:${task.group}->${expectedGroup}"
+            if (taskName.toLowerCase().contains('full')) failures << "all-name-required=${taskName}"
+        }
+        allprojects.each { target ->
+            target.tasks.each { task ->
+                def expected = target == rootProject ? cpfVisibleTaskGroups[task.name] : null
+                if (expected == null) {
+                    def expectedInternal = cpfInternalTaskGroupFor(task.name)
+                    if (task.group != expectedInternal) {
+                        failures << "internal=${target.path}:${task.name}:${task.group}->${expectedInternal}"
+                    }
+                }
+            }
+        }
+        def actualInternalGroups = allprojects.collectMany { target ->
+            target.tasks.collect { task -> task.group }
+        }.findAll { group -> cpfInternalTaskGroups.values().contains(group) }.toSet()
+        def missingInternalGroups = cpfInternalTaskGroups.values().toSet() - actualInternalGroups
+        if (!missingInternalGroups.isEmpty()) failures << "missing-internal-groups=${missingInternalGroups.sort()}"
+        if (!failures.isEmpty()) {
+            throw new GradleException("CPF task group contract mismatch: ${failures.take(30)} total=${failures.size()}")
+        }
+        println "CPF_TASK_GROUP_CONTRACT=PASS visible=${cpfVisibleTaskGroups.size()} userGroups=7 internalGroups=${cpfInternalTaskGroups.values().join(',')}"
+    }
+}
+tasks.named('qualityGate') { dependsOn tasks.named('cpfTaskGroupContractGate') }
+
 tasks.register('publicationGate') {
-    group = 'verification'
     description = 'Canonical Starter Catalog parity와 공개 가능한 Maven publication의 POM 생성 가능성을 검증합니다.'
     dependsOn 'starterCatalogGate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'managedDependencyGate', 'corePomPurityGate', 'compositeModuleIdentityGate'
 }
 
 tasks.register('compositeModuleIdentityGate') {
-    group = 'verification'
     description = 'Composite 자동 치환용 project group/name 충돌을 차단하고 Maven 공개 좌표 보존을 검증합니다.'
     doLast {
         def actualCoordinates = (cpfStarterCatalog.modules ?: []).collect { module ->
@@ -796,23 +1019,20 @@ subprojects { subproject ->
     }
 }
 
-tasks.register('cpfPublishToIsolatedLocal') {
-    group = 'CPF Publication'
-    description = '모든 Maven publication을 build/cpf-local-artifact-repository에만 게시합니다.'
+tasks.register('cpfPublishAllToIsolatedLocal') {
+    group = '60. CPF 배포'
+    description = '[전체] CPF 전체 Maven publication을 로컬 격리 저장소(build/cpf-local-artifact-repository)에 게시합니다.'
 }
 
 tasks.register('cpfPublishPublicToArtifactStaging') {
-    group = 'CPF Publication'
     description = 'Canonical Catalog에서 공개로 분류된 Maven publication만 격리 staging repository에 게시합니다.'
 }
 
 tasks.register('cpfPublishAllToArtifactStaging') {
-    group = 'CPF Publication'
     description = 'Manifest promotion용 전체 CPF Maven publication을 격리 staging repository에 게시합니다.'
 }
 
 tasks.register('cpfProjectPublicRuntimeAliases', Exec) {
-    group = 'CPF Publication'
     description = '동일 Source owner의 Public Runtime alias를 Catalog 기준 Maven Repository artifact set으로 투영합니다.'
     onlyIf { providers.gradleProperty('cpfPublicBinaryRepository').isPresent() }
     doFirst {
@@ -827,9 +1047,9 @@ tasks.register('cpfProjectPublicRuntimeAliases', Exec) {
     }
 }
 
-tasks.register('publishCpfVerifiedLocalPlatformArtifacts') {
-    group = 'CPF Publication'
-    description = 'Public release staging 또는 검증된 Local Maven Set을 생성하는 Canonical publication entrypoint입니다.'
+tasks.register('cpfPublishAllVerifiedLocalPlatformArtifacts') {
+    group = '60. CPF 배포'
+    description = '[전체] 검증된 공개/Local 배포 산출물을 한 번에 생성합니다.'
     doLast {
         def publicReleaseMode = providers.gradleProperty('cpfPublicBinaryRepository').isPresent()
         def stagingRepository = providers.gradleProperty('cpfArtifactStagingRepository')
@@ -866,7 +1086,6 @@ tasks.register('publishCpfVerifiedLocalPlatformArtifacts') {
 }
 
 tasks.register('qa34IntegrationTest') {
-    group = 'verification'
     description = 'QA34 Batch integration/fencing/recovery test aggregate입니다.'
 }
 
@@ -894,10 +1113,10 @@ gradle.projectsEvaluated {
         p.tasks.matching { t -> t.name.startsWith('publish') && t.name.endsWith('ToCpfLocalRepository') }.toList()
     }
     // cpf-platform-bom은 별도 Included Build이므로 subprojects 집계에 절대 포함되지 않는다.
-    // publishCpfVerifiedLocalPlatformArtifacts가 Staging 쪽에서 gradle.includedBuild(...)로 명시 연결하는 것과
+    // cpfPublishAllVerifiedLocalPlatformArtifacts가 Staging 쪽에서 gradle.includedBuild(...)로 명시 연결하는 것과
     // 동일한 패턴으로 Local 쪽도 명시 연결해야 Standalone Generated Domain 빌드가 com.cpf:cpf-platform-bom을
     // 격리 Local Repository에서 정상적으로 해석할 수 있다.
-    tasks.named('cpfPublishToIsolatedLocal') {
+    tasks.named('cpfPublishAllToIsolatedLocal') {
         dependsOn isolatedPublicationTasks
         dependsOn gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToLocal')
     }
@@ -915,7 +1134,7 @@ gradle.projectsEvaluated {
     tasks.named('cpfProjectPublicRuntimeAliases') { dependsOn tasks.named('cpfPublishPublicToArtifactStaging') }
 
     def publicReleaseMode = providers.gradleProperty('cpfPublicBinaryRepository').isPresent()
-    tasks.named('publishCpfVerifiedLocalPlatformArtifacts') {
+    tasks.named('cpfPublishAllVerifiedLocalPlatformArtifacts') {
         dependsOn publicReleaseMode ? tasks.named('cpfProjectPublicRuntimeAliases') : tasks.named('cpfPublishAllToArtifactStaging')
         dependsOn gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToStaging')
         dependsOn publicReleaseMode
@@ -927,31 +1146,31 @@ gradle.projectsEvaluated {
     if (qa34 != null) tasks.named('qa34IntegrationTest') { dependsOn qa34 }
 
     def allJavaTests = subprojects.collectMany { p -> p.tasks.withType(Test).toList() }
-    tasks.named('cpfTest') { dependsOn allJavaTests }
+    tasks.named('cpfTestAll') { dependsOn allJavaTests }
 }
 
 
 // -----------------------------------------------------------------------------
 // Canonical developer build / test / verify entry points
 // -----------------------------------------------------------------------------
-tasks.register('cpfBuild') {
-    group = 'CPF Build'
-    description = '[권장] 전체 CPF Java 모듈 check/assemble + 정적 품질 Gate를 저메모리 정책으로 실행합니다.'
+tasks.register('cpfBuildAll') {
+    group = '10. CPF 빌드'
+    description = '[전체/권장] 전체 CPF Java 모듈 check/assemble + 정적 품질 Gate를 저메모리 정책으로 실행합니다.'
     dependsOn 'aggregateQualityBuild'
 }
 
-tasks.register('cpfTest') {
-    group = 'CPF Test'
-    description = '전체 CPF Java Test만 실행합니다. Build/Publication은 반복하지 않습니다.'
+tasks.register('cpfTestAll') {
+    group = '10. CPF 빌드'
+    description = '[전체] 전체 CPF Java Test만 실행합니다. Build/Publication은 반복하지 않습니다.'
 }
 
 // External developer direct Gradle Golden Path must be identical to the canonical CPF tasks.
-tasks.named('build') { dependsOn tasks.named('cpfBuild') }
-tasks.named('test') { dependsOn tasks.named('cpfTest') }
+tasks.named('build') { dependsOn tasks.named('cpfBuildAll') }
+tasks.named('test') { dependsOn tasks.named('cpfTestAll') }
 
 tasks.register('cpfDomainDiscovery') {
-    group = 'CPF Domain'
-    description = '현재 선택된 Generated/Optional Domain을 Developer Contract 기준으로 표시합니다. 0개는 정상입니다.'
+    group = '40. CPF 구성'
+    description = '[조회] 현재 선택된 Generated/Optional Domain을 Developer Contract 기준으로 표시합니다. 0개는 정상입니다.'
     doLast {
         def domains=(rootDir.listFiles() ?: [] as File[]).findAll { candidate ->
             candidate.isDirectory() && candidate.name.startsWith('cpf-') && new File(candidate,'gradle.properties').isFile() &&
@@ -963,21 +1182,21 @@ tasks.register('cpfDomainDiscovery') {
 }
 
 tasks.register('cpfDatabaseDiscovery', Exec) {
-    group = 'CPF Database'
-    description = 'Current Physical DB4/legacy-active=0 계약을 검증합니다.'
+    group = '40. CPF 구성'
+    description = '[조회] Current Physical DB4/legacy-active=0 계약을 확인해 표시합니다.'
     workingDir rootDir
     commandLine cpfPython, file('cpf-tools/verification/tools/verify-cpf-physical-db-consolidation.py').absolutePath, '--root', rootDir.absolutePath
 }
 
 tasks.register('cpfVerifyFast') {
-    group = 'CPF Verification'
-    description = '개발 중 빠르게 확인하는 Resource/Catalog/Dependency/NXT3 핵심 정적 Gate입니다.'
+    group = '20. CPF 검증'
+    description = '[전체/빠름] 개발 중 빠르게 확인하는 Resource/Catalog/Dependency/NXT3 핵심 정적 Gate입니다.'
     dependsOn 'qualityGate'
 }
 
 tasks.register('cpfVerifyTargeted', Exec) {
-    group = 'CPF Verification'
-    description = '[권장/변경영향] Capability 단위 Gate를 실행합니다. 예: -PcpfTargetCapabilities=cache,messaging'
+    group = '20. CPF 검증'
+    description = '[선택/변경영향] 지정한 Capability 단위 Gate만 실행합니다. 예: -PcpfTargetCapabilities=cache,messaging'
     workingDir rootDir
     def selected = providers.gradleProperty('cpfTargetCapabilities').orElse('core').get()
             .split(',').collect { it.trim() }.findAll { !it.isEmpty() }
@@ -986,9 +1205,9 @@ tasks.register('cpfVerifyTargeted', Exec) {
     commandLine args
 }
 
-tasks.register('cpfVerifyFullLocal', Exec) {
-    group = 'CPF Verification'
-    description = '[실환경] Java25/Frontend/DB/Runtime/Browser를 가능한 범위까지 한 번에 검증하고 결과 ZIP을 생성합니다.'
+tasks.register('cpfVerifyAllLocal', Exec) {
+    group = '20. CPF 검증'
+    description = '[전체/실환경] Java25/Frontend/DB/Runtime/Browser를 가능한 범위까지 한 번에 검증하고 결과 ZIP을 생성합니다.'
     workingDir rootDir
     commandLine 'pwsh', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             file('cpf-tools/verification/tools/run-cpf-local-full-validation.ps1').absolutePath,
@@ -1026,41 +1245,115 @@ allprojects { target ->
     }
 }
 def registerCpfRunAlias = { String taskName, String targetTask, String descriptionText ->
-    tasks.register(taskName) { group = 'CPF Runtime'; description = descriptionText; dependsOn targetTask }
+    tasks.register(taskName) { group = '30. CPF 실행'; description = descriptionText; dependsOn targetTask }
 }
-registerCpfRunAlias('cpfRunLocal', ':runtime:local:bootRun', '[권장] 통합 로컬 Runtime을 1 JVM/1 Port로 실행합니다.')
-registerCpfRunAlias('cpfRunAdm', ':apps:admin:bootRun', 'ADM만 단독 실행합니다.')
-if (rootProject.findProject(':apps:backoffice') != null) {
-    registerCpfRunAlias('cpfRunBackoffice', ':apps:backoffice:bootRun', 'Optional Backoffice(MBW) Domain만 단독 실행합니다.')
-} else {
-    tasks.register('cpfRunBackoffice') {
-        group = 'CPF Runtime'
-        description = 'Optional Backoffice(MBW) Domain이 현재 Source에 없음을 확인합니다.'
-        doLast { logger.lifecycle('cpf-backoffice is ABSENT (normal optional state).') }
+// 발견된 Domain 마다 동일한 4축 Task 를 등록한다. Domain build 는 독립 build 이므로 GradleBuild 로 호출한다.
+cpfDiscoveredDomains.each { d ->
+    def buildTargets = d.modules.collect { ":${it}:build" }
+    def testTargets = d.modules.collect { ":${it}:test" }
+    def deployTargets = d.modules.collect { ":${it}:bootJar" }
+    tasks.register("cpfBuild${d.cap}", GradleBuild) {
+        group = '10. CPF 빌드'
+        description = "[개별] ${d.label} Domain을 빌드합니다."
+        dir = d.dir
+        tasks = buildTargets
+    }
+    tasks.register("cpfVerify${d.cap}", GradleBuild) {
+        group = '20. CPF 검증'
+        description = "[개별] ${d.label} Domain 테스트/검증을 실행합니다."
+        dir = d.dir
+        tasks = testTargets
+    }
+    d.modules.each { m ->
+        def suffix = m.substring(0, 1).toUpperCase(Locale.ROOT) + m.substring(1)
+        def kind = (m == 'batch') ? 'Batch' : 'Online'
+        if (m == 'online' && d.mounted) {
+            tasks.register("cpfRun${d.cap}") {
+                group = '30. CPF 실행'
+                description = "[개별] ${d.label} Domain ${kind} 애플리케이션을 단독 실행합니다."
+                dependsOn "${d.mountedPath}:bootRun"
+            }
+            return
+        }
+        tasks.register("cpfRun${d.cap}${suffix}", GradleBuild) {
+            group = '30. CPF 실행'
+            description = "[개별] ${d.label} Domain ${kind} 애플리케이션을 단독 실행합니다."
+            dir = d.dir
+            tasks = [":${m}:bootRun"]
+        }
+    }
+    tasks.register("cpfDeploy${d.cap}", GradleBuild) {
+        group = '60. CPF 배포'
+        description = "[개별] ${d.label} Domain 실행 산출물(bootJar)을 생성합니다."
+        dir = d.dir
+        tasks = deployTargets
     }
 }
-registerCpfRunAlias('cpfRunGateway', ':runtime:gateway:bootRun', 'Gateway만 단독 실행합니다.')
-registerCpfRunAlias('cpfRunBatch', ':runtime:local-batch:bootRun', 'Batch를 사용하는 프로젝트의 로컬 Batch Runtime을 실행합니다.')
-registerCpfRunAlias('cpfRunEducation', ':apps:education:bootRun', 'CPF Education 예제 Runtime을 실행합니다.')
+
+// 전체 대상 진입점은 All 을 이름에 두고, 개별 App/Domain 은 discovery 가 4축을 투영한다.
+registerCpfRunAlias('cpfRunAllLocal', ':runtime:local:bootRun', '[전체/권장] 통합 로컬 Runtime을 1 JVM/1 Port로 실행합니다.')
+registerCpfRunAlias('cpfRunAllBatch', ':runtime:local-batch:bootRun', '[전체] 통합 로컬 Batch Runtime을 실행합니다.')
+
+// 발견된 App 마다 빌드/검증/실행/배포 4축을 Domain 과 동일한 형태로 등록한다.
+cpfDiscoveredApps.each { a ->
+    tasks.register("cpfBuild${a.cap}") {
+        group = '10. CPF 빌드'
+        description = "[개별] ${a.label} 애플리케이션을 빌드합니다."
+        dependsOn "${a.path}:build"
+    }
+    tasks.register("cpfVerify${a.cap}") {
+        group = '20. CPF 검증'
+        description = "[개별] ${a.label} 애플리케이션 테스트/검증을 실행합니다."
+        dependsOn "${a.path}:test"
+    }
+    tasks.register("cpfRun${a.cap}") {
+        group = '30. CPF 실행'
+        description = "[개별] ${a.label} 애플리케이션을 단독 실행합니다."
+        dependsOn "${a.path}:bootRun"
+    }
+    tasks.register("cpfDeploy${a.cap}") {
+        group = '60. CPF 배포'
+        description = "[개별] ${a.label} 실행 산출물(bootJar)을 생성합니다."
+        dependsOn "${a.path}:bootJar"
+    }
+}
+
+tasks.register('cpfDeployAll') {
+    group = '60. CPF 배포'
+    description = '[전체] 발견된 모든 App/Domain의 실행 산출물(bootJar)을 생성합니다.'
+    dependsOn cpfDiscoveredApps.collect { "cpfDeploy${it.cap}".toString() }
+    dependsOn cpfDiscoveredDomains.collect { "cpfDeploy${it.cap}".toString() }
+}
+
+// 예전 이름은 대상 명령이 실제로 존재할 때만 등록해 죽은 진입점이 남지 않게 한다.
+cpfLegacyTaskAliases.each { legacyName, canonicalName ->
+    if (!cpfVisibleTaskNames.contains(canonicalName)) return
+    tasks.register(legacyName) {
+        description = "[호환] ${canonicalName} 명령으로 대체되었습니다. 새 이름을 사용하세요."
+        dependsOn canonicalName
+    }
+}
 
 tasks.register('cpfHelp') {
-    group = 'CPF Configuration/Discovery'
-    description = '처음 사용하는 개발자를 위한 실행/검증/모듈/자원설정 안내를 표시합니다.'
+    group = '00. CPF 시작'
+    description = '[안내] 처음 사용하는 개발자를 위한 실행/검증/모듈/자원설정 안내를 표시합니다.'
     doLast {
         println ''
         println '================ CPF QUICK START ================='
-        println '[1. 전체 빌드] ./gradlew cpfBuild'
-        println '[2. 전체 테스트] ./gradlew cpfTest'
+        println '[1. 전체 빌드] ./gradlew cpfBuildAll'
+        println '[2. 전체 테스트] ./gradlew cpfTestAll'
         println '[3. 빠른 검증] ./gradlew cpfVerifyFast'
         println '[4. 변경영향 검증] ./gradlew cpfVerifyTargeted -PcpfTargetCapabilities=cache,messaging'
-        println '[5. 로컬 실행] ./gradlew cpfRunLocal      - 권장: 1 JVM / 1 Port'
-        println '[6. Batch 실행] ./gradlew cpfRunBatch      - Batch 사용 시에만'
-        println '[7. 모듈 찾기] ./gradlew cpfModules        - Public 선택 대상만'
+        println '[5. 전체 실행] ./gradlew cpfRunAllLocal   - 권장: 1 JVM / 1 Port'
+        println '[6. 전체 Batch] ./gradlew cpfRunAllBatch   - Batch 사용 시에만'
+        println '[7. 개별 실행] ./gradlew cpfRun<대상>       - 예: cpfRunAdmin / cpfRunGateway'
+        println '[8. 모듈 찾기] ./gradlew cpfModules        - Public 선택 대상만'
         println ''
         println '[개발 메뉴] pwsh ./cpf-tools/build/tools/cpf-dev.ps1   - 인자 없이 실행하면 번호 메뉴'
-        println '[전체 로컬 검증] ./gradlew cpfVerifyFullLocal  또는  pwsh ./cpf-tools/build/tools/cpf-dev.ps1 verify-full'
+        println '[전체 로컬 검증] ./gradlew cpfVerifyAllLocal  또는  pwsh ./cpf-tools/build/tools/cpf-dev.ps1 verify-full'
         println '[VS Code] Gradle Projects는 apps / runtime / framework / starters / internal 계층으로 정리되어 있습니다.'
-        println '[VS Code Tasks] Root Tasks의 CPF Build/Test/Domain/Database/Runtime/Verification/Publication/Configuration-Discovery 그룹을 사용합니다.'
+        println '[VS Code Tasks] 00 시작 / 10 빌드 / 20 검증 / 30 실행 / 40 구성 / 50 설정 / 60 배포만 사용하고, 90~96 내부·98 호환·99 원시는 직접 실행하지 않습니다.'
+        println '[이름 규칙] 전체 대상은 All(cpfBuildAll/cpfRunAllLocal/cpfDeployAll), 개별 대상은 대상 이름(cpfBuildAdmin/cpfDeployMember)을 씁니다.'
         println '[환경 선택] -PcpfResourceProfile=local|dev|test|stg|prod'
         println '[자원 설정] gradle/cpf-runtime/<profile>.properties (250/500/750/1000m)'
         println '[모듈 예외] 해당 모듈/cpf-resource.properties가 있을 때만 중앙값보다 우선'
@@ -1071,8 +1364,8 @@ tasks.register('cpfHelp') {
 }
 
 tasks.register('cpfModules') {
-    group = 'CPF Configuration/Discovery'
-    description = '개발자가 직접 선택할 Public Profile/Provider를 기능별로 표시합니다.'
+    group = '40. CPF 구성'
+    description = '[조회] 개발자가 직접 선택할 Public Profile/Provider를 기능별로 표시합니다.'
     doLast {
         println ''
         println '================ CPF PUBLIC MODULES ================'
@@ -1089,8 +1382,8 @@ tasks.register('cpfModules') {
 }
 
 tasks.register('cpfModulesAll') {
-    group = 'CPF Configuration/Discovery'
-    description = 'Public/Internal 전체 Starter를 역할과 함께 표시합니다.'
+    group = '40. CPF 구성'
+    description = '[조회/전체] Public/Internal 전체 Starter를 역할과 함께 표시합니다.'
     doLast {
         println ''
         println '================ CPF ALL STARTERS ================'

@@ -63,7 +63,7 @@ generation:
 
 def run_generated_javac(root: Path, gate_path: Path) -> tuple[subprocess.CompletedProcess[str], dict]:
     process = subprocess.run(
-        [sys.executable, str(gate_path), "--root", str(root)],
+        [sys.executable, "-B", str(gate_path), "--root", str(root)],
         cwd=root,
         capture_output=True,
         text=True,

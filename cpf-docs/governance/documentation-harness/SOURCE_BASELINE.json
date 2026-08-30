@@ -3,7 +3,7 @@
   "createdAtKst": "2026-08-29T21:00:00+09:00",
   "sourceZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_220256.zip",
   "sha256": "6AEC7A50D69F140B30968EAD21B7242E1D2A6252446DAC0D5A27CC4C4566D7DC",
-  "canonicalRequirements": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+  "canonicalRequirements": "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
   "starterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
   "publicProfiles": [
     "web-api",

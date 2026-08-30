@@ -96,7 +96,7 @@
 ```text
 빠른 확인       ./gradlew cpfVerifyFast
 변경영향 확인   ./gradlew cpfVerifyTargeted -PcpfTargetCapabilities=cache,messaging
-최종 로컬 검증  ./gradlew cpfVerifyFullLocal
+최종 로컬 검증  ./gradlew cpfVerifyAllLocal
 ```
 
 Public API는 `CPF_PUBLIC_FUNCTION_TOP_100.md`, 전체 개발 흐름은 `CPF_DEVELOPER_GOLDEN_PATH.md`에서 이어서 확인합니다.

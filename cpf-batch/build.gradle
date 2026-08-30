@@ -1,7 +1,6 @@
 plugins { id 'base' }
 group='com.cpf.batch'
 tasks.register('verifyStandaloneArtifacts') {
- group='verification'
  dependsOn ':runtime:batch:api:build', ':runtime:batch:runtime-support:build',
  ':runtime:batch:control-plane:bootJar', ':runtime:batch:scheduler:bootJar', ':runtime:batch:worker:bootJar',
  ':runtime:batch:center-cut:bootJar', ':runtime:batch:agent:bootJar', ':runtime:batch:testkit:build'

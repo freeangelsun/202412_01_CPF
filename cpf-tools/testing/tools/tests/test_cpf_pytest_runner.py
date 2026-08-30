@@ -19,6 +19,7 @@ def test_default_command_uses_testing_owned_config_and_tree():
     command = MODULE.build_command([], ROOT)
     assert command == [
         sys.executable,
+        "-B",
         "-m",
         "pytest",
         "-c",

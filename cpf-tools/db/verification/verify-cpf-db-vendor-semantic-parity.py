@@ -358,12 +358,12 @@ def verify(root:Path)->dict:
    renderer=root/'cpf-tools/db/render_vendor_pack.py'
    if not renderer.is_file(): findings.append('canonical renderer missing')
    else:
-    cp=subprocess.run([sys.executable,str(renderer),'--root',str(root),'--check'],text=True,capture_output=True)
+    cp=subprocess.run([sys.executable,'-B',str(renderer),'--root',str(root),'--check'],text=True,capture_output=True)
     if cp.returncode: findings.append('canonical generated-current drift: '+(cp.stdout+cp.stderr).strip())
    lifecycle=root/'cpf-tools/db/verify_migration_lifecycle.py'
    if not lifecycle.is_file(): findings.append('migration lifecycle verifier missing')
    else:
-    cp=subprocess.run([sys.executable,str(lifecycle),'--root',str(root),'--source-sha','a'*40],text=True,capture_output=True)
+    cp=subprocess.run([sys.executable,'-B',str(lifecycle),'--root',str(root),'--source-sha','a'*40],text=True,capture_output=True)
     if cp.returncode: findings.append('migration lifecycle contract failed: '+(cp.stdout+cp.stderr).strip())
    result={'status':'PASS' if not findings else 'FAIL','officialVendors':list(VENDORS),'canonicalTableCount':len(expected),'lifecycle':inventory,'findings':findings,'currentSnapshotAuthority':'CANONICAL_JSON_RENDERER'}
    if findings: raise GateError(json.dumps(result,ensure_ascii=False,indent=2))

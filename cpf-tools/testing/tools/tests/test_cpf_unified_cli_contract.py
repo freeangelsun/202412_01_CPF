@@ -17,6 +17,12 @@ def test_exactly_one_canonical_cli_owner_and_catalog():
     assert {x['command'] for x in data['publicCommands']} == {'bootstrap','domain-new','domain-sync','build','test','run','stop','reset','status','doctor','help','version'}
     assert {x['namespace'] for x in data['internalNamespaces']} == {'dev','verify','publish','release'}
     assert data['profiles']['PUBLIC']=={'publicCommands':True,'internalNamespaces':False,'sourceWorkspace':False}
+    commands={x['command']:x for x in data['publicCommands']}
+    assert commands['build']['canonicalGradleTask']=='cpfBuildAll'
+    assert commands['test']['canonicalGradleTask']=='cpfTestAll'
+    source=CLI_SRC.read_text(encoding='utf-8')
+    assert 'gradle(root, "cpfBuildAll", argv)' in source
+    assert 'gradle(root, "cpfTestAll", argv)' in source
 
 def test_official_wrappers_are_java_thin_launchers():
     wrappers=[ROOT/'cpf-tools/runtime/cli/cpf',ROOT/'cpf-tools/runtime/cli/cpf.cmd',ROOT/'cpf-tools/runtime/cli/cpf.ps1']

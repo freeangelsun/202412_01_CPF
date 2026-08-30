@@ -60,12 +60,31 @@ def rewrite_csv_source_identity(path: Path, identity: str) -> bool:
     return changed
 
 
-def update_identity_file(path: Path, source: dict) -> None:
+def update_identity_file(path: Path, source: dict, git_sha: str) -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
     data["finalReplayProductContentSha256"] = source["contentSha256"]
     data["finalReplayProductFileCount"] = source["fileCount"]
+    data["currentWorkingTreeProductContentSha1"] = source["contentSha1"]
+    data["currentWorkingTreeProductContentSha256"] = source["contentSha256"]
+    data["currentWorkingTreeProductFileCount"] = source["fileCount"]
+    data["currentWorkingTreeProductTotalBytes"] = source["totalBytes"]
+    data["currentWorkingTreeGitSha"] = git_sha
+    data["currentWorkingTreeStatus"] = "IN_PROGRESS"
     data["identityPolicy"] = source["identityPolicy"]
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def current_git_sha(root: Path) -> str:
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        check=False,
+    )
+    return completed.stdout.strip() if completed.returncode == 0 else "UNAVAILABLE"
 
 
 def update_text_current_identity(path: Path, identity: str) -> bool:
@@ -107,6 +126,13 @@ def update_execution_summary(path: Path, source: dict) -> bool:
     if changed:
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return changed
+
+
+def currentize_role_execution_summary(path: Path, source: dict, preserve_role_evidence: bool) -> bool:
+    """Currentize a role-owned summary only when the invoking role is authorized to do so."""
+    if preserve_role_evidence:
+        return False
+    return update_execution_summary(path, source)
 
 
 def update_merge_control_state(path: Path, identity: str) -> bool:
@@ -242,6 +268,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=str(ROOT))
     parser.add_argument("--skip-projections", action="store_true")
+    parser.add_argument(
+        "--preserve-role-evidence",
+        action="store_true",
+        help="Currentize shared authority/projections without rewriting DevGPT/QA-owned evidence.",
+    )
     args = parser.parse_args()
     root = Path(args.root).resolve()
     if root != ROOT.resolve():
@@ -249,12 +280,13 @@ def main() -> int:
 
     source = load_source_state().snapshot(ROOT, "source")
     identity = source["contentSha256"]
+    git_sha = current_git_sha(ROOT)
     changed: list[str] = []
     for path in sorted(C.glob("*.csv")):
         if rewrite_csv_source_identity(path, identity):
             changed.append(path.relative_to(ROOT).as_posix())
     for path in (H / "SOURCE_IDENTITY.json", C / "SOURCE_IDENTITY.json"):
-        update_identity_file(path, source)
+        update_identity_file(path, source, git_sha)
         changed.append(path.relative_to(ROOT).as_posix())
 
     merge_state = C / "CURRENT_MERGE_CONTROL_STATE.json"
@@ -276,7 +308,7 @@ def main() -> int:
             changed.append(projection.relative_to(ROOT).as_posix())
 
     execution_summary = H / "evidence/devgpt/current/executions/DEVGPT_CURRENT_EXECUTION_SUMMARY.json"
-    if update_execution_summary(execution_summary, source):
+    if currentize_role_execution_summary(execution_summary, source, args.preserve_role_evidence):
         changed.append(execution_summary.relative_to(ROOT).as_posix())
 
     for projection in render_status_projections(source):
@@ -284,7 +316,7 @@ def main() -> int:
 
     if not args.skip_projections:
         cp = subprocess.run(
-            [sys.executable, str(H / "validators/generate_detailed_review.py")],
+            [sys.executable, "-B", str(H / "validators/generate_detailed_review.py")],
             cwd=ROOT,
             text=True,
             encoding="utf-8",

@@ -41,7 +41,6 @@ def onlineRoot = file('src/main/java/com/cpf/education/online')
 def batchRoot = file('src/main/java/com/cpf/education/batch')
 
 tasks.register('verifyEducationCanonical35') {
-    group = 'verification'
     description = 'Canonical EDU 기능 package와 Catalog 20+15를 검증합니다.'
     doLast {
         def catalog=new groovy.json.JsonSlurper().parse(file('src/main/resources/education/cpf-education-canonical-35.json'))
@@ -65,8 +64,7 @@ tasks.register('verifyEducationCanonical35') {
     }
 }
 
-tasks.register('verifyEducationPublicGoldenPath') {
-    group='verification'; description='EDU Public API/Raw 우회를 검증합니다.'
+tasks.register('verifyEducationPublicGoldenPath') { description='EDU Public API/Raw 우회를 검증합니다.'
     doLast {
         def direct=configurations.implementation.dependencies.findAll{it instanceof org.gradle.api.artifacts.ProjectDependency}.collect{it.path}.toSet()
         def internal=direct.findAll{it.startsWith(':internal:') || it==':framework:core'}
@@ -77,8 +75,7 @@ tasks.register('verifyEducationPublicGoldenPath') {
     }
 }
 
-tasks.register('verifyEducationOperationIds') {
-    group='verification'; description='업무 Online Controller operationId/OpenAPI 동일성을 검증합니다.'
+tasks.register('verifyEducationOperationIds') { description='업무 Online Controller operationId/OpenAPI 동일성을 검증합니다.'
     doLast {
         def failures=[];def ids=[]
         fileTree(onlineRoot){include '**/*.java'}.files.sort().each{f->def text=f.getText('UTF-8');def cpf=(text =~ /@CpfOnlineTransaction\s*\(\s*operationId\s*=\s*"([^"]+)"/);def api=(text =~ /@Operation\s*\(\s*operationId\s*=\s*"([^"]+)"/);if(cpf.find()){if(!api.find())failures<<"missing OpenAPI operation: ${project.relativePath(f)}";else{ids<<cpf.group(1);if(cpf.group(1)!=api.group(1))failures<<"operationId mismatch: ${project.relativePath(f)}"}}}
@@ -87,8 +84,7 @@ tasks.register('verifyEducationOperationIds') {
     }
 }
 
-tasks.register('verifyEducationLegacyZero') {
-    group='verification'; description='구 EDU flat/numeric/legacy 구조 0건을 검증합니다.'
+tasks.register('verifyEducationLegacyZero') { description='구 EDU flat/numeric/legacy 구조 0건을 검증합니다.'
     doLast {
         def violations=[];fileTree('src'){include '**/*';exclude '**/build/**'}.files.findAll{it.isFile()}.each{f->def text=f.getText('UTF-8');if(text =~ /EDU-(?:DEV|BAT|ADM|BZA|GW|OPS)-[0-9]+/)violations<<"${project.relativePath(f)} legacy-id";if(f.name ==~ /(?:Online|Batch)\d+.*|.*(?:Example|Sample|Demo)\.java/)violations<<"${project.relativePath(f)} legacy-name"}
         if(!violations.empty) throw new GradleException("stale EDU reference remains:\n"+violations.take(200).join('\n'))

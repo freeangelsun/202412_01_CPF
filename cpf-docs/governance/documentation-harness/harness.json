@@ -66,7 +66,7 @@
   "sessionStartOrder": [
     "HARNESS_LOCK.json 검증",
     "최신 Source 파일명/SHA-256 확인",
-    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md 확인",
+    "cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md 확인",
     "현재 사용자 Steering 확인",
     "scope.json 확인",
     "대상 Profile 로드",

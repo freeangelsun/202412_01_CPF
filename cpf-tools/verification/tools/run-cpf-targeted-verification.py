@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run low-cost CPF verification by changed capability.
 
-This is the middle tier between cpfVerifyFast and cpfVerifyFullLocal. It does not weaken
+This is the middle tier between cpfVerifyFast and cpfVerifyAllLocal. It does not weaken
 FullLocal; it selects existing fail-closed gates for developer feedback and always includes
 cross-cutting catalog/dependency/adoption closure.
 """

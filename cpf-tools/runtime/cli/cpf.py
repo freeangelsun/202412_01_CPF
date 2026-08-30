@@ -643,6 +643,12 @@ def main()->int:
     raise DomainError('지원하지 않는 명령입니다.')
 
 if __name__=='__main__':
+    # 진단 메시지는 한글을 포함한다. Windows 에서 파이프/리다이렉트로 실행하면 Python 이
+    # locale 인코딩(cp949)으로 써서 로그와 Consumer 가 mojibake 를 받는다. 플랫폼과 무관하게
+    # UTF-8 로 고정해 같은 메시지가 어디서 읽어도 동일하게 보이도록 한다.
+    for _stream in (sys.stdout, sys.stderr):
+        try: _stream.reconfigure(encoding='utf-8', errors='replace')
+        except (AttributeError, ValueError): pass
     try: raise SystemExit(main())
     except (DomainError,CustomerLibraryError,OSError,ValueError) as exc:
         print(f'CPF_CLI=FAIL {exc}',file=sys.stderr); raise SystemExit(2)

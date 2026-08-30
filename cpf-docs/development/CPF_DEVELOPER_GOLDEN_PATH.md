@@ -99,7 +99,7 @@ Canonical Generator는 `create`, `setup --preview`, `sync`, `diff`, `regenerate`
 |---|---|---|
 | FAST | `./gradlew cpfVerifyFast` | 일상 개발 중 정적/계약 빠른 확인 |
 | TARGETED | `./gradlew cpfVerifyTargeted -PcpfTargetCapabilities=cache,messaging` | 변경한 Capability와 횡단 영향 확인 |
-| FULL LOCAL | `./gradlew cpfVerifyFullLocal` | Java25 + Live Infrastructure + Browser + 장애/복구 + Evidence 최종 확인 |
+| FULL LOCAL | `./gradlew cpfVerifyAllLocal` | Java25 + Live Infrastructure + Browser + 장애/복구 + Evidence 최종 확인 |
 
 `cpfVerifyTargeted`는 FullLocal 항목을 삭제하거나 약화하는 기능이 아닙니다. 개발 중 피드백 시간을 줄이고 최종 QA에서는 같은 FullLocal 강도를 유지합니다.
 

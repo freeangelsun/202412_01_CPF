@@ -43,8 +43,8 @@ def main()->int:
     stages.append(run('source-identity',[py,str(root/'cpf-tools/verification/tools/cpf-source-state.py'),'--root',str(root),'--scope','source'],root,env,300))
     stages.append(run('tooling-inventory',[py,str(root/'cpf-tools/runtime/cli/tools/generate-cpf-tooling-entrypoint-inventory.py'),'--root',str(root)],root,env,300))
     stages.append(run('canonical-verifiers',[py,str(root/'cpf-tools/verification/tools/run-cpf-canonical-verifiers.py'),'--root',str(root),'--child-timeout','120'],root,env,3600))
-    stages.append(run('gradle-build',[gradle,'-PcpfResourceProfile=local','--no-daemon','--no-parallel','--continue','cpfBuild'],root,env,3600))
-    stages.append(run('gradle-test',[gradle,'-PcpfResourceProfile=local','--no-daemon','--no-parallel','--continue','cpfTest'],root,env,3600))
+    stages.append(run('gradle-build',[gradle,'-PcpfResourceProfile=local','--no-daemon','--no-parallel','--continue','cpfBuildAll'],root,env,3600))
+    stages.append(run('gradle-test',[gradle,'-PcpfResourceProfile=local','--no-daemon','--no-parallel','--continue','cpfTestAll'],root,env,3600))
     if not args.skip_db3_runtime:
         stages.append(run('db3-runtime',[py,str(root/'cpf-tools/db/tests/run_db3_lifecycle.py'),'--root',str(root)],root,env,3600))
     if not args.skip_runtime:

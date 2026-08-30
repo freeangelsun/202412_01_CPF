@@ -11,7 +11,7 @@ for s in steps:
         procs=[]
         for group in ('BASE','AUTH_A','AUTH_B','STRENGTH'):
             env=os.environ.copy(); env['CPF_HARNESS_NEGATIVE_GROUP']=group
-            procs.append((group,subprocess.Popen([py,str(H/s)],cwd=ROOT,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)))
+            procs.append((group,subprocess.Popen([py,'-B',str(H/s)],cwd=ROOT,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)))
         partition_fail=[]
         for group,proc in procs:
             out,_=proc.communicate()
@@ -20,7 +20,7 @@ for s in steps:
             if proc.returncode: partition_fail.append(group)
         if partition_fail: fail.append(s+':'+','.join(partition_fail))
         continue
-    cp=subprocess.run([py,str(H/s)],cwd=ROOT)
+    cp=subprocess.run([py,'-B',str(H/s)],cwd=ROOT)
     print(f'[HARNESS] {s} rc={cp.returncode}')
     if cp.returncode: fail.append(s)
 print('DEVELOPMENT_HARNESS_FINAL_GATE='+('PASS' if not fail else 'FAIL')+' failed='+str(fail))

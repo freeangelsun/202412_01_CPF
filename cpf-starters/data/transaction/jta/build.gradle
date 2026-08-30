@@ -19,7 +19,6 @@ tasks.named('test') { useJUnitPlatform() }
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-data-transaction-jta' } } }
 
 tasks.register('runXaCrashHarness', JavaExec) {
-    group = 'verification'
     description = 'Runs the opt-in DB+DB prepare-kill/recovery harness against disposable XA resources.'
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.cpf.starter.data.transaction.jta.CpfXaCrashRecoveryHarness'

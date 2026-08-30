@@ -1,31 +1,33 @@
 from pathlib import Path
+import json
 import re
 
 ROOT = Path(__file__).resolve().parents[3]
 CONVENTION = ROOT / 'cpf-tools/build/cpf-root-conventions.gradle'
 PS1 = ROOT / 'cpf-tools/build/tools/cpf-dev.ps1'
 SH = ROOT / 'cpf-tools/build/tools/cpf-dev.sh'
+VSCODE_SETTINGS = ROOT / '.vscode/settings.json'
 
 
 def test_canonical_gradle_entrypoints_are_short_and_grouped():
     text = CONVENTION.read_text(encoding='utf-8')
     required = {
-        'cpfBuild': 'CPF Build',
-        'cpfTest': 'CPF Test',
-        'cpfVerifyFast': 'CPF Verification',
-        'cpfVerifyFullLocal': 'CPF Verification',
-        'cpfHelp': 'CPF Configuration/Discovery',
-        'cpfRunLocal': 'CPF Runtime',
-        'cpfRunBatch': 'CPF Runtime',
-        'cpfModules': 'CPF Configuration/Discovery',
-        'cpfResourcePolicy': 'CPF Configuration/Discovery',
+        'cpfBuildAll': '10. CPF 빌드',
+        'cpfTestAll': '10. CPF 빌드',
+        'cpfVerifyFast': '20. CPF 검증',
+        'cpfVerifyAllLocal': '20. CPF 검증',
+        'cpfHelp': '00. CPF 시작',
+        'cpfRunAllLocal': '30. CPF 실행',
+        'cpfRunAllBatch': '30. CPF 실행',
+        'cpfModules': '40. CPF 구성',
+        'cpfResourcePolicy': '50. CPF 설정',
     }
     for task, group in required.items():
         assert task in text, task
         assert group in text, group
-    assert 'tasks.named(\'cpfTest\') { dependsOn allJavaTests }' in text
+    assert 'tasks.named(\'cpfTestAll\') { dependsOn allJavaTests }' in text
     assert "tasks.register('cpfBuildInfo')" not in text
-    assert "tasks.register('cpfVerifyFullLocal', Exec)" in text
+    assert "tasks.register('cpfVerifyAllLocal', Exec)" in text
     assert "run-cpf-local-full-validation.ps1" in text
 
 
@@ -64,19 +66,32 @@ def test_no_versioned_developer_shell_names_are_introduced():
 
 def test_gradle_run_aliases_use_logical_project_tree():
     text = CONVENTION.read_text(encoding='utf-8')
+    # 통합 Runtime 만 고정 진입점이고 개별 실행은 발견된 App/Domain 으로 투영된다.
     expected = {
-        'cpfRunLocal': ':runtime:local:bootRun',
-        'cpfRunAdm': ':apps:admin:bootRun',
-        'cpfRunBackoffice': ':apps:backoffice:bootRun',
-        'cpfRunGateway': ':runtime:gateway:bootRun',
-        'cpfRunBatch': ':runtime:local-batch:bootRun',
-        'cpfRunEducation': ':apps:education:bootRun',
+        'cpfRunAllLocal': ':runtime:local:bootRun',
+        'cpfRunAllBatch': ':runtime:local-batch:bootRun',
     }
     for task, target in expected.items():
         assert f"registerCpfRunAlias('{task}', '{target}'" in text
+    # 개별 App 은 물리 디렉터리가 아니라 Gradle 논리 project path 로 실행해야 한다.
+    assert 'dependsOn "${a.path}:bootRun"' in text
+    assert 'dependsOn "${d.mountedPath}:bootRun"' in text
     assert 'Gradle Projects는 apps / runtime / framework / starters / internal 계층' in text
     for legacy in (
         ':cpf-local-runtime:bootRun', ':cpf-admin:bootRun', ':cpf-backoffice:bootRun',
         ':cpf-gateway:bootRun', ':cpf-local-batch-runtime:bootRun', ':cpf-education:bootRun',
     ):
         assert legacy not in text
+
+
+def test_vscode_gradle_import_uses_current_portable_project_cache():
+    settings = json.loads(VSCODE_SETTINGS.read_text(encoding='utf-8'))
+    arguments = settings.get('java.import.gradle.arguments', '')
+    expected = (
+        '--project-cache-dir '
+        'cpf-docs/governance/development-harness/evidence/platform/current/generated/gradle/project-cache'
+    )
+    assert arguments == expected
+    normalized = arguments.replace('\\', '/').lower()
+    assert 'cpf-docs/work/' not in normalized
+    assert not re.search(r'[a-z]:/', normalized), 'workspace-local absolute path must not be canonical'

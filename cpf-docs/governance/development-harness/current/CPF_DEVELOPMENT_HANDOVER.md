@@ -5,7 +5,7 @@
 - 단일 실행 정본: `cpf-docs/governance/development-harness/`
 - 입력 Source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260830_140354.zip`
 - 입력 ZIP SHA-256: `c9f7bd68edc9891638280453bd82ab8000efc5b052a556cc67030d76744fb395`
-- Current Product Source Identity: `1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839` / **8,450 files**
+- Current Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f` / **8,450 files**
 - Canonical Product Requirement: **218**
 - Tracking Work Item: **394**
 - Root Cause Execution WP: **16**
@@ -19,7 +19,7 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 ## 2. Session Merge Control
 
 - merge protocol: `1`
-- baseline Source Identity: `1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839`
+- baseline Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f`
 - last merged session: `20260830_devgpt_toolchain_release_finalization`
 - pending sessions: `NONE`
 - conflict sessions: `NONE`
@@ -30,17 +30,17 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 
 ## 3. 이번 DevGPT 개발·보완 Closure
 
-### WP-H00 / WP-H02
+### WP-H00 / WP-H02 (registry handover alias `WP-R03.15`)
 - Current Source Identity와 mutable Harness current/evidence projection의 순환을 차단했다.
 - Session Manifest/Merge/no-bulk/current prerequisite/Final Self Review를 Machine Validator 및 Negative Mutation으로 강제했다.
 - Common Rule `CR-22 Capability-first Toolchain Compatibility`를 추가했다. Host tool의 exact patch/minor 고정을 금지하고 실제 기능 호환을 우선한다. Java는 CPF target Java 25는 유지하되 Host JDK exact 25 고정 대신 실제 `--release 25`/Gradle capability로 판정한다.
 
-### WP-B02
+### WP-B02 (registry handover alias `WP-R01.21`)
 - VS Code 6개 Error의 Root Cause인 source-empty profile(`browser-bff`, `batch-service`, `web-api`) class output 누락을 discovery-driven으로 보완했다.
 - `cpfVerifyIdeClasspathReady`가 canonical class folder 존재를 fail-closed 확인한다.
 - Current Source static/contract regression은 PASS. **Windows Fresh VS Code/Buildship actual Error=0 Warning=0은 Current Source에서 필수 재실행**이다.
 
-### WP-CLI01 / WP-RL01 / WP-RL02
+### WP-CLI01 / WP-RL01 (registry handover alias `WP-R07.17`) / WP-RL02
 - CLI의 JAVA_HOME/PATH resolution 불일치와 child CLI Source Identity override를 보완했다.
 - Release/Open Git 14단계 콘솔을 한글 업무 단계명·진행상태·실패원인·다음조치 중심으로 정리하고 내부 Gradle task 원문은 상세 로그에 보존한다.
 - Host tool exact patch/minor version 차이로 불필요하게 중단하지 않고 capability를 먼저 검증한다.
@@ -59,7 +59,7 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 
 ## 4. Current Source 실제 검증 근거
 
-- Product Source Identity: `1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839` / 8,450 files
+- Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f` / 8,450 files
 - Affected regression: **62 PASS / 1 SKIP / 0 FAIL**
 - Generator affected regression: **24 PASS / 1 SKIP / 0 FAIL**
 - Verification suite: **126 PASS / 0 FAIL** (`47 + 35 + 12 + 32`)
@@ -101,7 +101,7 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 
 ## 7. 다음 세션 시작 순서
 
-1. Current Source Identity를 재계산해 `1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839`와 일치 여부 확인.
+1. Current Source Identity를 재계산해 `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f`와 일치 여부 확인.
 2. Session Merge Preflight 실행. 현재 기준 pending/conflict는 0이다.
 3. Overlay 적용 후 사용자 Windows에서 Fresh VS Code Problems 0/0부터 확인.
 4. Current Source 최대강도 Full Runtime을 실행해 실제 FAIL을 Root Cause WP에 병합.

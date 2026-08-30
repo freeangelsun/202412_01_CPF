@@ -29,14 +29,16 @@ EXPLICIT_LEAVES = {
     ":runtime:batch:agent": "cpf-batch/agent",
     ":runtime:batch:testkit": "cpf-batch/testkit",
 }
+# 통합 Runtime 만 고정 진입점이다. 개별 App/Domain 실행은 발견 결과로 투영되므로
+# 이름을 고정하지 않고 논리 project path 를 쓰는지만 계약으로 강제한다.
 RUN_ALIASES = {
-    "cpfRunLocal": ":runtime:local:bootRun",
-    "cpfRunAdm": ":apps:admin:bootRun",
-    "cpfRunBackoffice": ":apps:backoffice:bootRun",
-    "cpfRunGateway": ":runtime:gateway:bootRun",
-    "cpfRunBatch": ":runtime:local-batch:bootRun",
-    "cpfRunEducation": ":apps:education:bootRun",
+    "cpfRunAllLocal": ":runtime:local:bootRun",
+    "cpfRunAllBatch": ":runtime:local-batch:bootRun",
 }
+PROJECTED_RUN_TARGETS = (
+    'dependsOn "${a.path}:bootRun"',
+    'dependsOn "${d.mountedPath}:bootRun"',
+)
 
 def fail(msgs: list[str], msg: str) -> None:
     msgs.append(msg)
@@ -80,6 +82,9 @@ def main() -> int:
     for task,target in RUN_ALIASES.items():
         if f"registerCpfRunAlias('{task}', '{target}'" not in convention:
             fail(errors,f'run alias drift: {task} -> {target}')
+    for marker in PROJECTED_RUN_TARGETS:
+        if marker not in convention:
+            fail(errors,f'projected run target drift: {marker}')
     if 'Gradle Projects는 apps / runtime / framework / starters / internal 계층' not in convention:
         fail(errors,'cpfHelp does not describe canonical IDE hierarchy')
     # Only concrete Gradle project/task references are forbidden from using retired top-level paths.

@@ -15,8 +15,7 @@ dependencies {
 // opt-in Release 검증 Tag다. 전용 태스크(qa32IntegrationTest/qa34IntegrationTest)에서만
 // 실행하며, 일반 test 태스크는 환경 미제공 상태에서 항상 실패하지 않도록 제외한다.
 tasks.named('test') { useJUnitPlatform { excludeTags 'qa32-runtime', 'qa34-runtime' } }
-tasks.register('qa32IntegrationTest', Test) {
-    group='verification'; description='QA32 real Oracle/PostgreSQL/MariaDB environment contract tests.'
+tasks.register('qa32IntegrationTest', Test) { description='QA32 real Oracle/PostgreSQL/MariaDB environment contract tests.'
     useJUnitPlatform { includeTags 'qa32-runtime' }
     shouldRunAfter test
     systemProperties System.properties
@@ -25,7 +24,6 @@ tasks.register('qa32IntegrationTest', Test) {
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId='cpf-batch-testkit' } } }
 
 tasks.register('qa34IntegrationTest', Test) {
-    group = 'verification'
     description = 'QA34 real Oracle/PostgreSQL/MariaDB/multi-instance contract tests.'
     useJUnitPlatform {
         includeTags 'qa32-runtime', 'qa34-runtime'

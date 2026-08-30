@@ -27,7 +27,11 @@ def source_identity(root: Path) -> str:
 OFFICIAL = ("oracle", "postgresql", "mariadb")
 TEXT_EXT = {".java", ".kt", ".groovy", ".xml", ".sql", ".yaml", ".yml", ".properties", ".json", ".py", ".ps1", ".sh"}
 SKIP_PARTS = {".git", ".gradle", "node_modules", "dist", "out", "target", "bin"}
-SKIP_PREFIXES = ("cpf-docs/", "cpf-tools/verification/")
+# cpf-release/ 는 릴리즈 생성 산출물이며 canonical Source Identity(cpf-source-state.py 의
+# GENERATED_PARTS)에서도 제품 Source 로 계산하지 않는다. 그 내용의 정본은 cpf-tools/release/**
+# 템플릿이고 그쪽을 이미 검사하므로, 산출물까지 스캔하면 릴리즈를 생성했는지 여부에 따라
+# 같은 Source 가 PASS/FAIL 로 갈리는 비결정 Gate 가 된다.
+SKIP_PREFIXES = ("cpf-docs/", "cpf-tools/verification/", "cpf-release/")
 SQL_EXT = {".sql", ".xml"}
 UNSUPPORTED = re.compile(r"(?i)(?<![A-Za-z0-9_])(mysql|mssql|sqlserver|sql_server|h2)(?![A-Za-z0-9_])")
 RAW_BRANCH = re.compile(

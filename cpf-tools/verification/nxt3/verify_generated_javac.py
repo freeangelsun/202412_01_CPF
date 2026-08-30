@@ -4,6 +4,21 @@ from __future__ import annotations
 import argparse,json,shutil,subprocess,tempfile
 from pathlib import Path
 
+CANONICAL_STACK='gradle/cpf-stack.properties'
+
+def canonical_java_release(root: Path) -> int:
+    """Java release 는 gradle/cpf-stack.properties 가 정본이다.
+
+    여기에 숫자를 박아두면 Stack Java 를 올릴 때 이 Gate 만 옛 release 로 남아
+    --enable-preview 조합이 깨진다(preview 는 현재 release 에서만 허용된다).
+    """
+    stack = root / CANONICAL_STACK
+    for raw in stack.read_text(encoding='utf-8-sig').splitlines():
+        line = raw.strip()
+        if line.startswith('javaVersion') and '=' in line:
+            return int(line.split('=', 1)[1].strip())
+    raise ValueError(f'canonical javaVersion missing: {CANONICAL_STACK}')
+
 ACTUAL_PRODUCT_SOURCE_DIRS=(
     'cpf-core/src/main/java/com/cpf/core/api/base',
     'cpf-core/src/main/java/com/cpf/core/api/result',
@@ -75,6 +90,7 @@ def main()->int:
         (candidate if candidate.is_absolute() else root/candidate).resolve()
         for candidate in (ns.domain_root or [Path('cpf-member'),Path('cpf-external')])
     ]
+    java_release=canonical_java_release(root)
     javac=shutil.which('javac'); checks=[]
     if not javac:
         result={'gate':'NXT3_GENERATED_JAVAC','status':'UNVERIFIED','reason':'javac unavailable'}
@@ -96,9 +112,9 @@ def main()->int:
                 if not dsrc:
                     checks.append({'domain':domain,'status':'FAIL','rc':2,'stderr':f'Generated Java Source가 없습니다: {domain_root}','sourceCount':0})
                     continue
-                cp=subprocess.run([javac,'--enable-preview','--release','21','-encoding','UTF-8','-d',str(classes),*sources,*dsrc],text=True,capture_output=True)
+                cp=subprocess.run([javac,'--enable-preview','--release',str(java_release),'-encoding','UTF-8','-d',str(classes),*sources,*dsrc],text=True,capture_output=True,encoding='utf-8',errors='replace')
                 checks.append({'domain':domain,'status':'PASS' if cp.returncode==0 else 'FAIL','rc':cp.returncode,'stderr':cp.stderr[-12000:],'sourceCount':len(dsrc)})
-            failed=[x for x in checks if x['status']=='FAIL']; result={'gate':'NXT3_GENERATED_JAVAC','status':'PASS' if not failed else 'FAIL','javaRelease':21,'checks':checks,'failedCount':len(failed)}
+            failed=[x for x in checks if x['status']=='FAIL']; result={'gate':'NXT3_GENERATED_JAVAC','status':'PASS' if not failed else 'FAIL','javaRelease':java_release,'checks':checks,'failedCount':len(failed)}
     if ns.evidence:
         ev=ns.evidence if ns.evidence.is_absolute() else root/ns.evidence; ev.parent.mkdir(parents=True,exist_ok=True); ev.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(result,ensure_ascii=False,indent=2)); return 1 if result.get('status')=='FAIL' else 0

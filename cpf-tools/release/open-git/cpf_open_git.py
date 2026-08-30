@@ -291,7 +291,7 @@ def clean_release_root(root: Path) -> Path:
 
 def canonical_source_state(root: Path) -> dict[str, Any]:
     script = root / "cpf-tools/verification/tools/cpf-source-state.py"
-    output = run([sys.executable, str(script), "--root", str(root), "--scope", "source"], root, capture=True)
+    output = run([sys.executable, "-B", str(script), "--root", str(root), "--scope", "source"], root, capture=True)
     try:
         return json.loads(output.splitlines()[-1])
     except Exception as exc:
@@ -917,9 +917,13 @@ def verify_cross_platform_cli(open_git: Path, expected_source_identity: str | No
     missing = [path for path in required if not (open_git / path).is_file()]
     if missing:
         raise OpenGitReleaseError(f"CPF cross-platform CLI missing: {missing}")
+    # CLI 유출 검사는 bin/ 영역으로 한정한다. Stage 10 은 Generated Domain / Backoffice / EDU 를
+    # 의도적으로 projection 하며 verify_open_git_tree 가 cpf-education 을 required 로 요구한다.
+    # private framework root 유출은 verify_open_git_tree 의 forbidden_roots 가 별도로 담당한다.
+    cli_root = open_git / "bin"
     forbidden_sources = [
         path.relative_to(open_git).as_posix()
-        for path in open_git.rglob("*.java")
+        for path in (cli_root.rglob("*.java") if cli_root.is_dir() else [])
         if "framework-source" not in path.relative_to(open_git).parts
     ]
     if forbidden_sources:
@@ -966,7 +970,7 @@ def _prepare_workspace(root: Path, staging: Path, source_identity: str, env: dic
     prepare = root / LEGACY_PUBLIC_REL / "prepare-cpf-public-workspace.py"
     policy = root / SURFACE_POLICY_REL
     run([
-        sys.executable, str(prepare), "--root", str(root), "--staging", str(staging),
+        sys.executable, "-B", str(prepare), "--root", str(root), "--staging", str(staging),
         "--policy", str(policy), "--source-identity", source_identity
     ], root, env=env)
     ready = load_json(staging / ".cpf-public/READY.json")
@@ -1024,7 +1028,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
 
     release_stage(7, "원본 Binary Repository 검증", "Publication closure")
     old_verifier = root / LEGACY_PUBLIC_REL / "verify-cpf-public-binary-repository.py"
-    run([sys.executable, str(old_verifier), "--root", str(root), "--repository", str(raw_repo), "--version", version], root)
+    run([sys.executable, "-B", str(old_verifier), "--root", str(root), "--repository", str(raw_repo), "--version", version], root)
 
     release_stage(8, "공개 Artifact 필터 적용", f"profile={profile} / Binary만 유지")
     sanitize_result = sanitize_binary_repository(root, raw_repo, final_repo, profile)

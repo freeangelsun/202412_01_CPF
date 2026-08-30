@@ -49,8 +49,17 @@ class CanonicalGeneratorVerifierTest(unittest.TestCase):
         detail = gate.verify_unsupported_sample_preflight(self.root, engine)
         self.assertIn("persistence=mybatis", detail)
 
-    def test_nxt3_java21_substitute_enables_unnamed_variable_preview(self) -> None:
-        self.assertIn("'--enable-preview','--release','21'", self.generated_javac)
+    def test_generated_javac_uses_canonical_stack_java_release(self) -> None:
+        """Java release 는 gradle/cpf-stack.properties 가 정본이다.
+
+        Gate 에 숫자를 박아두면 Stack Java 를 올릴 때 이 Gate 만 옛 release 로 남아
+        `invalid source release N with --enable-preview` 로 항상 실패한다(preview 는
+        현재 release 에서만 허용된다). 실제로 release 21 고정이 그 상태였다.
+        """
+        self.assertIn("canonical_java_release", self.generated_javac)
+        self.assertIn("gradle/cpf-stack.properties", self.generated_javac)
+        self.assertIn("'--enable-preview','--release',str(java_release)", self.generated_javac)
+        self.assertNotIn("'--release','21'", self.generated_javac)
 
     def test_nxt3_stubs_cover_current_canonical_engine_api(self) -> None:
         for token in (

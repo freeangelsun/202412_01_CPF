@@ -27,18 +27,18 @@
     {
       "command": "build",
       "contract": "cpf build",
-      "internalEngine": "Gradle cpfBuild",
-      "publicEngine": "Gradle cpfBuild",
+      "internalEngine": "Gradle cpfBuildAll",
+      "publicEngine": "Gradle cpfBuildAll",
       "directGradleEquivalent": "./gradlew build",
-      "canonicalGradleTask": "cpfBuild"
+      "canonicalGradleTask": "cpfBuildAll"
     },
     {
       "command": "test",
       "contract": "cpf test",
-      "internalEngine": "Gradle cpfTest",
-      "publicEngine": "Gradle cpfTest",
+      "internalEngine": "Gradle cpfTestAll",
+      "publicEngine": "Gradle cpfTestAll",
       "directGradleEquivalent": "./gradlew test",
-      "canonicalGradleTask": "cpfTest"
+      "canonicalGradleTask": "cpfTestAll"
     },
     {
       "command": "run",
@@ -148,7 +148,7 @@
     },
     {
       "owner": "Gradle root",
-      "engine": "cpfBuild/cpfTest/cpfVerifyTargeted/cpfModules/cpfResourcePolicy",
+      "engine": "cpfBuildAll/cpfTestAll/cpfVerifyTargeted/cpfModules/cpfResourcePolicy",
       "consumer": "cpf build/test + cpf dev"
     },
     {

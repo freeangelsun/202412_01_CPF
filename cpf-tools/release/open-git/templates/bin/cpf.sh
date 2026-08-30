@@ -39,11 +39,11 @@ case "$cmd" in
     ;;
   build)
     echo "[1/1] CPF build" | tee -a "$LOG"
-    (cd "$ROOT" && ./gradlew cpfBuild "$@") 2>&1 | tee -a "$LOG" || rc=$?
+    (cd "$ROOT" && ./gradlew cpfBuildAll "$@") 2>&1 | tee -a "$LOG" || rc=$?
     ;;
   test)
     echo "[1/1] CPF test" | tee -a "$LOG"
-    (cd "$ROOT" && ./gradlew cpfTest "$@") 2>&1 | tee -a "$LOG" || rc=$?
+    (cd "$ROOT" && ./gradlew cpfTestAll "$@") 2>&1 | tee -a "$LOG" || rc=$?
     ;;
   verify)
     echo "[1/1] CPF verify" | tee -a "$LOG"

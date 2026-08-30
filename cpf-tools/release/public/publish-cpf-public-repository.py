@@ -48,13 +48,13 @@ def read_platform_version(root:Path)->str:
 
 def private_gates(root:Path,python:str)->None:
     gates=[
-      [python,'cpf-tools/release/tools/verify-cpf-publication-starter-closure.py','--root','.','--require-physical'],
-      [python,'cpf-tools/verification/tools/verify-cpf-frontend-consumer-closure.py','--root','.'],
-      [python,'cpf-tools/verification/tools/verify-cpf-optional-surface-contract.py','--root','.'],
-      [python,'cpf-tools/verification/verify_common_product_service_dx.py','--root','.'],
-      [python,'cpf-tools/verification/tools/verify-cpf-education-active-surface.py','--root','.'],
-      [python,'cpf-tools/verification/tools/verify-cpf-edu-executable-coverage.py','--root','.'],
-      [python,'cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py','--root','.'],
+      [python,'-B','cpf-tools/release/tools/verify-cpf-publication-starter-closure.py','--root','.','--require-physical'],
+      [python,'-B','cpf-tools/verification/tools/verify-cpf-frontend-consumer-closure.py','--root','.'],
+      [python,'-B','cpf-tools/verification/tools/verify-cpf-optional-surface-contract.py','--root','.'],
+      [python,'-B','cpf-tools/verification/verify_common_product_service_dx.py','--root','.'],
+      [python,'-B','cpf-tools/verification/tools/verify-cpf-education-active-surface.py','--root','.'],
+      [python,'-B','cpf-tools/verification/tools/verify-cpf-edu-executable-coverage.py','--root','.'],
+      [python,'-B','cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py','--root','.'],
     ]
     for gate in gates: run(gate,root)
 
@@ -116,8 +116,8 @@ def private_build_and_publication(root:Path,binary_repo:Path,version:str)->None:
     if not wrapper.is_file(): raise PublishError('Gradle wrapper missing')
     if os.name!='nt': wrapper.chmod(wrapper.stat().st_mode|0o111)
     binary_repo.mkdir(parents=True,exist_ok=False)
-    run([str(wrapper),'clean','cpfBuild','qualityGate','cpfTest','publicationGate',
-         'publishCpfVerifiedLocalPlatformArtifacts','--continue','--no-daemon',
+    run([str(wrapper),'clean','cpfBuildAll','qualityGate','cpfTestAll','publicationGate',
+         'cpfPublishAllVerifiedLocalPlatformArtifacts','--continue','--no-daemon',
          f'-PcpfArtifactMode=LOCAL_DEV',f'-PcpfPublicBinaryRepository={binary_repo}',
          f'-PcpfArtifactStagingRepository={binary_repo}',
          f'-PcpfPlatformVersion={version}'],root)

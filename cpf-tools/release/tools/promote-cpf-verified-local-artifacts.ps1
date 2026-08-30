@@ -3,7 +3,7 @@
 검증된 CPF staging Maven Set을 Shared Local Repository로 Manifest Barrier 방식 승격합니다.
 .DESCRIPTION
 staging 검증 → publisher lock → 기존 Version backup → Manifest-backed Version directory 교체 → PROMOTED manifest 공개 → 재검증 순서로 동작합니다.
-실패하면 기존 Version/Manifest를 복원합니다. 일반 사용자는 직접 호출하지 않고 Gradle publishCpfVerifiedLocalPlatformArtifacts를 사용합니다.
+실패하면 기존 Version/Manifest를 복원합니다. 일반 사용자는 직접 호출하지 않고 Gradle cpfPublishAllVerifiedLocalPlatformArtifacts를 사용합니다.
 .PARAMETER Root
 CPF Repository Root.
 .PARAMETER StagingRepository

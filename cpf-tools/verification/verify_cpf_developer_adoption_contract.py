@@ -145,7 +145,7 @@ def main() -> int:
     root_conventions = (root / "cpf-tools/build/cpf-root-conventions.gradle").read_text(encoding="utf-8")
     developer_shell = (root / "cpf-tools/build/tools/cpf-dev.ps1").read_text(encoding="utf-8-sig")
     developer_shell_sh = (root / "cpf-tools/build/tools/cpf-dev.sh").read_text(encoding="utf-8")
-    for token in ("cpfVerifyFast", "cpfVerifyTargeted", "cpfVerifyFullLocal"):
+    for token in ("cpfVerifyFast", "cpfVerifyTargeted", "cpfVerifyAllLocal"):
         if token not in root_conventions:
             errors.append(f"root verification tier missing: {token}")
     errors.extend(validate_developer_shell_text(developer_shell, developer_shell_sh))

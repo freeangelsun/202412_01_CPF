@@ -20,7 +20,7 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertIn("verify-cpf-runtime-evidence-provenance.py", self.text)
         self.assertIn("'--evidence-dir',$evidenceDir", self.text)
         self.assertNotIn("--expected-requirements','208','--expected-findings','63", self.text)
-        self.assertIn("cpfPublishToIsolatedLocal", self.text)
+        self.assertIn("cpfPublishAllToIsolatedLocal", self.text)
         self.assertNotIn("publishToMavenLocal", self.text)
         self.assertIn("BaselineSourceZipSha256", self.text)
         self.assertIn("if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){throw", self.text)

@@ -919,8 +919,8 @@ subprojects {{
             def manifestRoot = layout.buildDirectory.dir('generated/cpf-operation-manifest')
             def manifestFile = manifestRoot.map {{ it.file('META-INF/cpf/business-operation-manifest.json') }}
             tasks.register('generateCpfBusinessOperationManifest') {{
-                group = 'CPF 20 | 검증'
-                description = '업무 Domain Online Operation을 Build 시점에 전수검사하고 Side Effect 없는 Canonical Manifest를 생성합니다.'
+                group = '91. CPF 내부 검증 Gate'
+                description = '[내부 검증 Gate] 업무 Domain Online Operation을 Build 시점에 전수검사하고 Side Effect 없는 Canonical Manifest를 생성합니다.'
                 inputs.files(sourceSets.main.java).withPathSensitivity(PathSensitivity.RELATIVE)
                 outputs.file(manifestFile)
                 doLast {{

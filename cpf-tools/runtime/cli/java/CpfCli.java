@@ -59,8 +59,8 @@ public final class CpfCli {
                 case "status" -> internalEnabled() ? internalRuntime(root, "status", argv) : status(root);
                 case "domain-new" -> requireJava25Then(() -> domainNew(root, argv));
                 case "domain-sync" -> requireJava25Then(() -> generator(root, concat(List.of("domain", "sync"), argv)));
-                case "build" -> requireJava25Then(() -> gradle(root, "cpfBuild", argv));
-                case "test" -> requireJava25Then(() -> gradle(root, "cpfTest", argv));
+                case "build" -> requireJava25Then(() -> gradle(root, "cpfBuildAll", argv));
+                case "test" -> requireJava25Then(() -> gradle(root, "cpfTestAll", argv));
                 case "dev" -> requireJava25Then(() -> internalDev(root, argv));
                 case "verify" -> requireJava25Then(() -> internalVerify(root, argv));
                 case "publish" -> requireJava25Then(() -> internalPublish(root, argv));

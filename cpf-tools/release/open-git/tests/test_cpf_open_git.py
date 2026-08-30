@@ -428,7 +428,7 @@ def test_open_git_release_build_progress_and_failure_guidance_are_visible():
 
 def test_canonical_publication_entrypoint_and_catalog_owned_documentation_variants_exist():
     convention = (ROOT / "cpf-tools/build/cpf-root-conventions.gradle").read_text(encoding="utf-8")
-    assert "tasks.register('publishCpfVerifiedLocalPlatformArtifacts')" in convention
+    assert "tasks.register('cpfPublishAllVerifiedLocalPlatformArtifacts')" in convention
     assert "tasks.register('cpfPublishPublicToArtifactStaging')" in convention
     assert "cpfPublicPublicationOwners.contains" in convention
     assert "java.withSourcesJar()" in convention

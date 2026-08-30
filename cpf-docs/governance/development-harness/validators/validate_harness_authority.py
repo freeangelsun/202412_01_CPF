@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import csv, json, hashlib, re, sys, unicodedata, subprocess
+import csv, json, hashlib, os, re, sys, unicodedata, subprocess
 ROOT=Path(__file__).resolve().parents[4]
 H=ROOT/'cpf-docs/governance/development-harness'
 C=H/'current'
@@ -24,7 +24,10 @@ source_state=ROOT/'cpf-tools/verification/tools/cpf-source-state.py'
 if not source_state.is_file():
     err('SOURCE_STATE_TOOL_MISSING')
 else:
-    cp=subprocess.run([sys.executable,str(source_state),'--root',str(ROOT),'--scope','source'],cwd=ROOT,text=True,capture_output=True)
+    # The authority gate must not manufacture the repository garbage that it rejects below.
+    # Apply both interpreter- and environment-level protection so descendants inherit it too.
+    child_env=os.environ.copy(); child_env['PYTHONDONTWRITEBYTECODE']='1'
+    cp=subprocess.run([sys.executable,'-B',str(source_state),'--root',str(ROOT),'--scope','source'],cwd=ROOT,env=child_env,text=True,capture_output=True)
     if cp.returncode!=0:
         err('CURRENT_SOURCE_IDENTITY_CALCULATION_FAILED rc='+str(cp.returncode))
     else:
@@ -205,6 +208,15 @@ for scan_root in package_roots:
     for p in scan_root.rglob('*'):
         if any(part in {'.pytest_cache','__pycache__'} for part in p.parts) or p.suffix.lower() in {'.pyc','.pyo','.class'}:
             err('HARNESS_GARBAGE '+p.relative_to(ROOT).as_posix())
+
+# 7-b) GARBAGE-0637 canonical policy: regeneratable Python bytecode/cache must not ship anywhere in
+# product source. The package scan above only covers Harness payload, so enforce the repository scope
+# too. Protected canonical paths (.editorconfig/.gitattributes/.gitignore/.github) are never matched.
+_py_cache_skip={'.git','node_modules'}
+for _pattern in ('**/*.pyc','**/*.pyo','**/__pycache__','**/.pytest_cache'):
+    for _p in ROOT.glob(_pattern):
+        if _py_cache_skip.intersection(_p.parts): continue
+        err('REPOSITORY_PYTHON_CACHE '+_p.relative_to(ROOT).as_posix())
 
 # 8) Root-cause execution mapping, Handover aliases, deprecated active-reference reentry, transitive migration.
 tracking=[r for r in work if r.get('item_role','TRACKING')=='TRACKING']

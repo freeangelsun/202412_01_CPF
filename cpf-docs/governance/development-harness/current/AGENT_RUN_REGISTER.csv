@@ -1,2 +1,2 @@
 ﻿run_id,role,actor,status,source_identity,instruction,result_evidence,note
-CURRENT-CODEX-RUN,INDEPENDENT_REVIEWER,Codex,IN_PROGRESS,1a39531bcd1f0b1c82bbc6f330ab7b8256fc9132f62676ed1c8887ae42040839,current/CODEX_CLAUDE_REVIEW_REQUEST.md,,사용자 전달 기준 현재 Codex 작업 중. 완료 결과 수입 전 PASS로 간주하지 않음.
+CURRENT-CODEX-RUN,INDEPENDENT_REVIEWER,Codex,IN_PROGRESS,d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f,current/CODEX_CLAUDE_REVIEW_REQUEST.md,,사용자 전달 기준 현재 Codex 작업 중. 완료 결과 수입 전 PASS로 간주하지 않음.

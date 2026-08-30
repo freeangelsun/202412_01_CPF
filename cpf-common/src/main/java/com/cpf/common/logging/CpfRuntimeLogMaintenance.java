@@ -154,6 +154,7 @@ public final class CpfRuntimeLogMaintenance {
         }
     }
 
+    /** Result of one bounded maintenance pass, including lock skips and per-file failures. */
     public record MaintenanceResult(
             int scannedFiles,
             int compressedFiles,

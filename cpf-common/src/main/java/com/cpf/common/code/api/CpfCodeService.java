@@ -14,10 +14,4 @@ public interface CpfCodeService {
                 new java.util.NoSuchElementException("CPF Common code not found: group=" + group + ", value=" + value));
     }
 
-    /**
-     * @deprecated 업무 Source의 Golden Path가 아닙니다. 운영 Cache 갱신은
-     * {@link com.cpf.common.message.api.CpfCommonCatalogManagementService#refreshCaches(String, String)}를 사용합니다.
-     */
-    @Deprecated(forRemoval = false)
-    void refresh();
 }

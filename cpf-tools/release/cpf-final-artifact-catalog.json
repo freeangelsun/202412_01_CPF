@@ -374,6 +374,7 @@
       "artifactId": "cpf-gradle-plugin",
       "ownerPath": "cpf-tools/build/gradle-plugin",
       "kind": "gradle-plugin",
+      "gradlePluginId": "com.cpf.platform-conventions",
       "producer": "gradle:publish",
       "outputPattern": "cpf-tools/build/gradle-plugin/build/publications/**",
       "requiredAttestations": [

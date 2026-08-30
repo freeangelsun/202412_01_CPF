@@ -11,7 +11,7 @@
     "DUPLICATE",
     "DEAD"
   ],
-  "entrypointCount": 832,
+  "entrypointCount": 838,
   "duplicateCount": 0,
   "deadCount": 0,
   "entries": [
@@ -1801,6 +1801,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/release/public/tests/test_project_cpf_public_runtime_aliases.py",
+      "path": "cpf-tools/release/public/tests/test_project_cpf_public_runtime_aliases.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/release/public/tests/test_publish_cpf_public_repository.py",
       "path": "cpf-tools/release/public/tests/test_publish_cpf_public_repository.py",
       "kind": "PYTHON",
@@ -1817,6 +1824,13 @@
     {
       "id": "FILE:cpf-tools/release/public/tests/test_verify_cpf_public_binary_repository.py",
       "path": "cpf-tools/release/public/tests/test_verify_cpf_public_binary_repository.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/tests/test_verify_cpf_public_javadoc_quality.py",
+      "path": "cpf-tools/release/public/tests/test_verify_cpf_public_javadoc_quality.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -1867,6 +1881,13 @@
       "id": "FILE:cpf-tools/release/tools/cleanup-cpf-generated-garbage.ps1",
       "path": "cpf-tools/release/tools/cleanup-cpf-generated-garbage.ps1",
       "kind": "POWERSHELL",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/release/tools/project-cpf-public-runtime-aliases.py",
+      "path": "cpf-tools/release/tools/project-cpf-public-runtime-aliases.py",
+      "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
     },
@@ -4132,6 +4153,20 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_nxt3_config_contract_scan_scope.py",
+      "path": "cpf-tools/verification/tests/test_nxt3_config_contract_scan_scope.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_nxt3_layout_gate_current_ledger.py",
+      "path": "cpf-tools/verification/tests/test_nxt3_layout_gate_current_ledger.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_nxt3_local_build_isolation.py",
       "path": "cpf-tools/verification/tests/test_nxt3_local_build_isolation.py",
       "kind": "PYTHON",
@@ -4141,6 +4176,13 @@
     {
       "id": "FILE:cpf-tools/verification/tests/test_physical_db_consolidation_contract.py",
       "path": "cpf-tools/verification/tests/test_physical_db_consolidation_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_public_maven_projection_contract.py",
+      "path": "cpf-tools/verification/tests/test_public_maven_projection_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""

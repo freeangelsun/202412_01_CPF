@@ -25,7 +25,7 @@ class GeneratorSetupSyncContractTest(unittest.TestCase):
         self.assertEqual(0,cp.returncode,cp.stderr)
     def tearDown(self): self.td.cleanup()
     def exec_setup(self,*args):
-        return subprocess.run(self.base+list(args),cwd=ROOT,capture_output=True,text=True)
+        return subprocess.run(self.base+list(args),cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace')
     def digest(self): return hashlib.sha256(self.contract.read_bytes()).hexdigest()
 
     def test_sync_omission_preserves_existing_contract(self):
@@ -82,7 +82,7 @@ class GeneratorSetupSyncContractTest(unittest.TestCase):
             base=[sys.executable,str(CLI),'--root',str(workspace),'domain']
             created=subprocess.run(
                 base+['create','--name','cleanup','--system-code','CLN','--business-feature','work'],
-                cwd=ROOT,capture_output=True,text=True,env=process_env,
+                cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env,
             )
             self.assertEqual(0,created.returncode,created.stderr)
             output=workspace/'cpf-cleanup'
@@ -90,21 +90,21 @@ class GeneratorSetupSyncContractTest(unittest.TestCase):
             legacy[0].write_text('transient legacy input\n',encoding='utf-8',newline='\n')
             legacy[1].write_text('{}\n',encoding='utf-8',newline='\n')
 
-            default=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,env=process_env)
+            default=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
             self.assertEqual(0,default.returncode,default.stderr)
             default_result=json.loads(default.stdout)
             self.assertEqual('VERIFICATION_PENDING_DELETE',default_result['status'])
             self.assertEqual(['cpf-domain.yaml','cpf-generator.lock.json'],default_result['results'][0]['deleteCandidates'])
             self.assertTrue(all(path.is_file() for path in legacy))
 
-            approved=subprocess.run(base+['sync','--approve-generated-delete'],cwd=ROOT,capture_output=True,text=True,env=process_env)
+            approved=subprocess.run(base+['sync','--approve-generated-delete'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
             self.assertEqual(0,approved.returncode,approved.stderr)
             approved_result=json.loads(approved.stdout)
             self.assertEqual('PASS',approved_result['status'])
             self.assertTrue(approved_result['approvedGeneratedDelete'])
             self.assertTrue(all(not path.exists() for path in legacy))
 
-            repeated=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,env=process_env)
+            repeated=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
             self.assertEqual(0,repeated.returncode,repeated.stderr)
             self.assertEqual('PASS',json.loads(repeated.stdout)['status'])
 

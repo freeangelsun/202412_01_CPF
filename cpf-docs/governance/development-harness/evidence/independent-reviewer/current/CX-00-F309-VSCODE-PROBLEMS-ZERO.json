@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-309",
+  "status": "CLOSED",
+  "observedAt": "2026-08-30T02:26:47.6172449+09:00",
+  "currentSource": {
+    "branch": "master",
+    "gitHead": "b20f3ddf8dcc0e26725e8907245c292530c59167",
+    "originMaster": "b20f3ddf8dcc0e26725e8907245c292530c59167",
+    "contentSha1": "01697c53420526083d706c99244552275342aa20",
+    "contentSha256": "3387b196ff3fb67ecf2926bebfeb253d5c7a76e09cb8c0e0b84f55ab4b90b5cc",
+    "fileCount": 8449,
+    "totalBytes": 46098974
+  },
+  "rootCause": "Source-empty Gradle projects placed compileJava output below Gradle User Home. The Windows Gradle Build Server translated that external path to /Users/... and JDT rejected it because an Eclipse project output must remain inside its project. Reload alone also retained two stale build-path diagnostics.",
+  "sourceFix": {
+    "outputContract": "Each source-empty Java project uses its own .cpf-ide/main directory.",
+    "outsideProjectGuard": true,
+    "sourceStateExcludesCpfIde": true,
+    "gitIgnoreExcludesCpfIde": true,
+    "generatedRootReleaseArchiveExcludedFromSourceIdentity": "cpf-release.zip"
+  },
+  "environment": {
+    "os": "Windows_NT x64 10.0.26200",
+    "vscode": "1.135.0",
+    "redhatJava": "1.55.0",
+    "jdtLs": "1.59.0-SNAPSHOT",
+    "gradleExtension": "3.18.0",
+    "gradle": "9.1.0",
+    "gradleImportJava": "25.0.3",
+    "jdtMaxHeap": "8G"
+  },
+  "freshWorkspace": {
+    "createdAt": "2026-08-30T02:24:14+09:00",
+    "projects": 88,
+    "buildTargets": 176,
+    "workspaceInitializedMs": 85855,
+    "initializationFailureCount": 0,
+    "externalClasspathFailureCount": 0,
+    "jdtLogObservedSha256": "8235b32be96bad660415213a7a0b6a8e5211fad582a20d35a4b16d5dedcf00c5"
+  },
+  "verification": {
+    "focusedPytest": "12 passed",
+    "gradleIdeModel": "PASS; sourceEmptyJavaProjects=7; scope=project-local:.cpf-ide/main",
+    "cpfVerifyFastWarningAll": "PASS; 25 tasks; BUILD SUCCESSFUL in 1m 7s",
+    "problemsDiagnostics": 0,
+    "problemsErrors": 0,
+    "problemsWarnings": 0,
+    "problemsJson": "C:/Users/fly10/Downloads/CPF_VSCODE_PROBLEMS_20260830_022647.json",
+    "problemsScreenshot": "cpf-docs/governance/development-harness/evidence/independent-reviewer/current/CX-00-F309-VSCODE-PROBLEMS-ZERO.sanitized.png",
+    "problemsScreenshotSha256": "544f6ec8d38606cf7c3f6deebef79f11a42f9e3e3af8b918c11fbf1e3d2bf966"
+  },
+  "suppressionOrExclusionUsed": false,
+  "gitWritePerformedByCodex": false,
+  "nextRecheckPolicy": "Do not reload. After later source edits, wait for live automatic synchronization and inspect the current Problems panel; use a clean workspace only if an actual stale-state diagnosis recurs."
+}

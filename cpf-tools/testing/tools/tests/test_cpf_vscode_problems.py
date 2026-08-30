@@ -16,6 +16,24 @@ def test_error_and_warning_fail():
 
 def test_20260827_vscode_diagnostic_regressions_are_not_reintroduced():
     forbidden = {
+        'cpf-common/src/main/java/com/cpf/common/code/service/JdbcCpfCodeService.java': [
+            '@SuppressWarnings("deprecation")',
+            'void refresh()',
+        ],
+        'cpf-common/src/main/java/com/cpf/common/parameter/service/JdbcCpfParameterService.java': [
+            '@SuppressWarnings("deprecation")',
+            'void refresh()',
+        ],
+        'cpf-common/src/test/java/com/cpf/common/parameter/CpfParameterServiceTypedValueTest.java': [
+            '@SuppressWarnings("deprecation")',
+            'void refresh()',
+        ],
+        'cpf-common/src/main/java/com/cpf/common/code/api/CpfCodeService.java': [
+            'void refresh()',
+        ],
+        'cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java': [
+            'void refresh()',
+        ],
         'cpf-admin/src/main/java/com/cpf/admin/opr/capability/AdmCapabilityManagementController.java': [
             'Comparator.comparing(InstanceView::systemId)',
             'Comparator.comparing(IssueView::systemId)',

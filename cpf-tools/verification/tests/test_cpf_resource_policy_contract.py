@@ -51,6 +51,14 @@ def test_gradle_convention_applies_central_policy_to_all_tests_and_boot_runs():
     assert "tasks.named('bootRun')" not in text
     assert "tasks.register('cpfResourcePolicy')" in text
     assert "tasks.register('cpfModules')" in text
+    assert "jvmArgs '-Xshare:off'" in text
+
+
+def test_adm_frontend_physically_splits_oversized_chunks_without_relaxing_warning_limit():
+    text = (ROOT / 'cpf-admin/frontend/vite.config.ts').read_text(encoding='utf-8')
+    assert 'codeSplitting:' in text
+    assert 'maxSize: 400_000' in text
+    assert 'chunkSizeWarningLimit' not in text
 
 def test_generated_runtime_capability_is_the_only_archive_input_and_other_duplicates_fail():
     text = (ROOT / 'cpf-tools/build/cpf-root-conventions.gradle').read_text(encoding='utf-8')

@@ -30,3 +30,12 @@ Interface·DTO·Marker·Table·메뉴·Route·Mock·문서·정적 PASS만 존�
 Requirement·Scenario·Execution Sequence 메인 CSV는 삭제하지 않고 분할 인덱스로 유지한다.
 실제 데이터는 각 8,000,000 bytes 미만 Part에 저장한다.
 모든 Part를 `part_sequence` 순서로 결합해야 하며, 일부 Part만으로 작업 범위나 완료 상태를 판정하지 않는다.
+
+## 단일 Work Item Registry와 세부항목 규칙
+
+개발 작업대상은 `CURRENT_WORK_ITEM_REGISTRY.csv` 하나에서만 관리한다. 역할별/기능별/세션별 별도 작업목록을 정본으로 만들지 않는다.
+
+각 Work Item은 상위 기능 제목이 아니라 실제 수정·검증 가능한 단위여야 한다. 하나의 행이 서로 다른 Root Cause, 독립 Consumer, 독립 Runtime 완료조건을 동시에 가지면 Child Work Item으로 분해한다. 반대로 같은 Root Cause의 파일 여러 개를 단순 건수 증가 목적으로 쪼개지 않는다.
+
+세부항목에는 최소 원 Requirement, Root Cause, Owner, Source, Consumer/호출경로, Config, DB, Generator, API/OpenAPI, Frontend, 오류/복구, Test, Runtime, 영향/회귀, Evidence, Source Identity, 상태, 완료/미완료 사유, 재실행 조건이 추적 가능해야 한다. 현재 CSV 열에 직접 없는 상세 실행값은 sessionKey별 Evidence Block을 통해 연결하되, Work Item ID 없이 고립된 세션 메모로 두지 않는다.
+

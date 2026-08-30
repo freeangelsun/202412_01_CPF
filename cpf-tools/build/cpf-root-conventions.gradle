@@ -12,6 +12,7 @@ def stack = new Properties()
 file('gradle/cpf-stack.properties').withInputStream { stack.load(it) }
 def platform = new Properties()
 file('gradle/cpf-platform.properties').withInputStream { platform.load(it) }
+def cpfBuildRoot = project
 
 def stackInt = { String key -> Integer.parseInt(stack.getProperty(key)) }
 def stackText = { String key -> stack.getProperty(key) }
@@ -73,6 +74,25 @@ gradle.afterProject { target, state ->
 def cpfFinalArtifactCatalogFile = file('cpf-tools/release/cpf-final-artifact-catalog.json')
 def cpfFinalArtifactCatalog = new JsonSlurper().parse(cpfFinalArtifactCatalogFile)
 def cpfPublicationRows = (cpfFinalArtifactCatalog.artifacts ?: []) as List
+def cpfPublicJavaPublicationPolicyFile = file('cpf-tools/release/public/cpf-public-java-publication-policy.json')
+def cpfPublicJavaPublicationPolicy = new JsonSlurper().parse(cpfPublicJavaPublicationPolicyFile)
+def cpfPublicJavaSourcePolicy = cpfPublicJavaPublicationPolicy.sourceArtifactPolicy as Map
+def cpfPublicJavaExcludedPathSegments = (cpfPublicJavaSourcePolicy.excludedPathSegments ?: [])
+        .collect { it.toString().toLowerCase(Locale.ROOT) }.toSet()
+def cpfPublicJavaForbiddenContentPatterns = (cpfPublicJavaSourcePolicy.forbiddenContentPatterns ?: [])
+        .collect { java.util.regex.Pattern.compile(it.toString(), java.util.regex.Pattern.CASE_INSENSITIVE) }
+def cpfPublicJavaProjectionTargets = (cpfPublicJavaSourcePolicy.projectionTargets ?: []).collect { it.toString() }.toSet()
+if (cpfPublicJavaExcludedPathSegments.isEmpty() || cpfPublicJavaForbiddenContentPatterns.isEmpty() ||
+        cpfPublicJavaProjectionTargets != ['sourcesJar', 'javadoc'] as Set) {
+    throw new GradleException("CPF Public Java source projection policy is incomplete: ${cpfPublicJavaPublicationPolicyFile}")
+}
+def cpfIsProjectedPublicJavaSource = { File source, String relativePath ->
+    def segments = relativePath.replace('\\', '/').split('/').findAll { it }
+            .collect { it.toLowerCase(Locale.ROOT) }
+    if (segments.any { cpfPublicJavaExcludedPathSegments.contains(it) }) return false
+    def text = source.getText('UTF-8')
+    return !cpfPublicJavaForbiddenContentPatterns.any { pattern -> pattern.matcher(text).find() }
+}
 def cpfDocumentationByOwner = cpfPublicationRows.groupBy { row ->
     row.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
 }.collectEntries { owner, rows ->
@@ -92,8 +112,10 @@ def cpfPublicPublicationOwners = cpfPublicationRows.findAll { row ->
 // Public Release의 Maven 좌표는 Private/Composite project identity와 분리합니다.
 // 일반 개발/내부 Publication에서는 기존 native 좌표를 그대로 유지하고,
 // -PcpfPublicBinaryRepository가 명시된 Fresh Open Git Release에서만 Final Artifact Catalog의
-// publicGroupId/artifactId로 publication을 투영합니다. 동일 Source owner가 Public Starter와
-// Runtime alias를 함께 제공하는 경우에도 Catalog row별 publication을 독립 생성합니다.
+// publicGroupId/artifactId로 publication을 투영합니다. 동일 Source owner의 Runtime alias는
+// 서로 다른 좌표의 MavenPublication을 만들지 않고, primary publish 완료 후 Repository
+// projection task가 Catalog row별 Maven artifact set으로 생성합니다. Gradle project dependency는
+// 한 project에 서로 다른 좌표의 publication이 둘 이상이면 Consumer POM 좌표를 결정할 수 없습니다.
 def cpfPublicRowsByProject = cpfPublicationRows.findAll { row ->
     cpfPublicPublicationClasses.contains(row.publicationClass?.toString()) &&
             !(row.publicGroupId?.toString() ?: '').trim().isEmpty() &&
@@ -207,80 +229,54 @@ ext.cpfDbSchedulerVersion = stackText('dbSchedulerVersion')
 
 version = ext.cpfPlatformVersion
 
-// VS Code Buildship/JDT resolves source-empty Java projects as project dependencies too.
-// Gradle's default compileJava output lives below each project build/ tree, so a clean
-// removes that directory even though NO-SOURCE projects have no compiler invocation that
-// would recreate it. Keep only those empty outputs in Gradle User Home. Never add fake Java API/classes.
-def cpfIdeRootIdentity = java.security.MessageDigest.getInstance('SHA-256')
-        .digest(rootDir.canonicalPath.getBytes('UTF-8')).encodeHex().toString().substring(0, 16)
-def cpfIdeClasspathRoot = new File(gradle.gradleUserHomeDir, "cpf-ide-classpath/${cpfIdeRootIdentity}")
-def sourceEmptyJavaProjects = []
-
-subprojects {
-    plugins.withId('java') {
-        project.afterEvaluate {
-            if (sourceSets.main.java.files.empty) {
-                def stableRelativePath = project.path.substring(1).replace(':', '/')
-                def stableOutputDir = new File(cpfIdeClasspathRoot, "${stableRelativePath}/main")
-                if (!stableOutputDir.mkdirs() && !stableOutputDir.isDirectory()) {
-                    throw new GradleException("Cannot materialize CPF IDE classpath output: ${stableOutputDir}")
-                }
-                compileJava.destinationDirectory.set(stableOutputDir)
-                project.ext.cpfIdeClasspathMaterializedOnConfiguration = stableOutputDir.absolutePath
-                sourceEmptyJavaProjects << project.path
-            }
-        }
-    }
-}
+// VS Code Build Server/JDT resolves every in-build Java project dependency twice: once as an
+// Eclipse project reference and once as an absolute class-folder library entry, because Gradle
+// compile-avoidance hands a java-library consumer the compile output directory instead of a jar.
+// JDT requires that class folder to exist, so a clean must be followed by a real compile.
+// Never add fake Java API/classes, never materialize an empty output directory to hide the
+// diagnostic, and never introduce an IDE-only directory that would survive as garbage.
 
 tasks.register('cpfPrepareIdeClasspath') {
     group = 'verification'
-    description = 'Fresh/clean 이후에도 source-empty Java project의 Buildship/JDT classpath output을 안정적으로 준비합니다.'
+    description = 'clean 이후 Buildship/JDT가 요구하는 Java compile output을 실제 compile로 복구합니다.'
+    dependsOn {
+        subprojects.findAll { it.plugins.hasPlugin('java') }
+                .findAll { !it.sourceSets.main.java.files.empty }
+                .collect { it.tasks.named('compileJava') }
+    }
     doLast {
         def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
-        def expected = javaProjects.findAll { it.sourceSets.main.java.files.empty }
+        def compiled = javaProjects.findAll { !it.sourceSets.main.java.files.empty }
         def missing = []
-        expected.each { target ->
-            if (!target.ext.has('cpfIdeClasspathMaterializedOnConfiguration')) {
-                missing << "${target.path}:configuration-marker-missing"
-                return
-            }
-            def stable = file(target.ext.cpfIdeClasspathMaterializedOnConfiguration.toString())
-            if (!stable.mkdirs() && !stable.isDirectory()) missing << "${target.path}:${stable}"
-            println "CPF_IDE_CLASSPATH_PROJECT=${target.path} stable=${stable}"
+        compiled.each { target ->
+            def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
+            if (!output.isDirectory()) missing << "${target.path}:compile-output-missing=${output}"
         }
         if (!missing.isEmpty()) {
             throw new GradleException("CPF IDE classpath preparation failed:\n - ${missing.join('\\n - ')}")
         }
-        println "CPF_IDE_CLASSPATH_READY projects=${expected.size()} root=${cpfIdeClasspathRoot}"
+        println "CPF_IDE_CLASSPATH_READY compiled=${compiled.size()} scope=gradle-canonical-compile-output"
     }
 }
 
 tasks.register('cpfVerifyIdeClasspathModel') {
     group = 'verification'
-    description = 'source-empty Java project만 stable IDE output을 사용하고 Source project dependency를 변경하지 않았는지 검증합니다.'
+    description = '모든 Java project가 Gradle canonical compile output을 그대로 사용하고 IDE 전용 임시 output을 만들지 않는지 검증합니다.'
     doLast {
         def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
-        def sourceEmpty = javaProjects.findAll { it.sourceSets.main.java.files.empty }
         def failures = []
-        sourceEmpty.each { target ->
-            if (!target.ext.has('cpfIdeClasspathMaterializedOnConfiguration')) {
-                failures << "${target.path}:stable-output-not-configured"
-                return
-            }
-            def stable = file(target.ext.cpfIdeClasspathMaterializedOnConfiguration.toString()).canonicalFile
+        javaProjects.each { target ->
             def actual = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile.canonicalFile
-            if (actual != stable) failures << "${target.path}:expected=${stable}:actual=${actual}"
-            if (!stable.isDirectory()) failures << "${target.path}:stable-output-missing=${stable}"
+            def canonical = target.layout.buildDirectory.dir('classes/java/main').get().asFile.canonicalFile
+            if (actual != canonical) failures << "${target.path}:non-canonical-compile-output=${actual}"
+            if (new File(target.projectDir, '.cpf-ide').exists()) {
+                failures << "${target.path}:ide-only-output-directory-present"
+            }
         }
-        def sourcefulOverridden = javaProjects.findAll {
-            !it.sourceSets.main.java.files.empty && it.ext.has('cpfIdeClasspathMaterializedOnConfiguration')
-        }.collect { it.path }
-        if (!sourcefulOverridden.isEmpty()) failures << "sourceful-project-overridden=${sourcefulOverridden.sort()}"
         if (!failures.isEmpty()) {
             throw new GradleException("CPF IDE classpath model failed:\n - ${failures.join('\\n - ')}")
         }
-        println "CPF_IDE_CLASSPATH_MODEL=PASS sourceEmptyJavaProjects=${sourceEmpty.size()} stable=${cpfIdeClasspathRoot}"
+        println "CPF_IDE_CLASSPATH_MODEL=PASS javaProjects=${javaProjects.size()} scope=gradle-canonical-compile-output"
     }
 }
 
@@ -334,6 +330,42 @@ subprojects {
         if (cpfDocumentation?.publishJavadoc == true) {
             java.withJavadocJar()
         }
+        if (providers.gradleProperty('cpfPublicBinaryRepository').isPresent() &&
+                cpfDocumentation?.publishSources == true && cpfDocumentation?.publishJavadoc == true) {
+            // Public sources and Javadoc are two views of one Canonical source projection.  A source
+            // under an internal package, or a nominally public implementation that imports a private
+            // CPF type, is not an externally supported compile-time source and must be absent from both.
+            def cpfDocumentationProjectDir = projectDir.canonicalFile
+            def cpfProjectionPolicyFingerprint = groovy.json.JsonOutput.toJson(cpfPublicJavaSourcePolicy)
+            tasks.named('sourcesJar', Jar) {
+                inputs.file(cpfPublicJavaPublicationPolicyFile)
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                inputs.property('cpfPublicJavaSourceProjection', cpfProjectionPolicyFingerprint)
+                // Gradle otherwise preserves empty directory entries after the projected Java
+                // sources have been excluded, which still leaks internal package topology.
+                includeEmptyDirs = false
+                exclude { element ->
+                    element.file.name.endsWith('.java') &&
+                            !cpfIsProjectedPublicJavaSource(element.file, element.path)
+                }
+            }
+            tasks.named('javadoc', Javadoc) {
+                inputs.file(cpfPublicJavaPublicationPolicyFile)
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                inputs.property('cpfPublicJavaSourceProjection', cpfProjectionPolicyFingerprint)
+                source = sourceSets.main.allJava.filter { File source ->
+                    def relative = cpfDocumentationProjectDir.toPath()
+                            .relativize(source.canonicalFile.toPath()).toString()
+                    cpfIsProjectedPublicJavaSource(source, relative)
+                }
+                options.encoding = cpfPublicJavaPublicationPolicy.javadocPolicy.encoding.toString()
+                options.addStringOption(
+                        "Xdoclint:${cpfPublicJavaPublicationPolicy.javadocPolicy.doclint}", '-quiet')
+                if (cpfPublicJavaPublicationPolicy.javadocPolicy.warningsAsErrors == true) {
+                    options.addBooleanOption('Werror', true)
+                }
+            }
+        }
         // cpf-core를 제외한 Root Build Java Module은 동일한 기술 Stack BOM을 사용합니다.
         // cpf-core는 JDK-only public contract이므로 POM에 dependencyManagement를 노출하지 않습니다.
         // 개별 Module이 Boot application plugin을 적용하는지와 무관하게 versionless
@@ -363,7 +395,10 @@ subprojects {
                     throw new GradleException("Cannot create CPF JVM heap-dump Evidence directory: ${cpfJvmHeapDumpDir}")
                 }
             }
-            jvmArgs '-XX:+HeapDumpOnOutOfMemoryError',
+            // Mockito/Byte Buddy appends instrumentation to the bootstrap class path.  CDS cannot
+            // be used in that test-JVM shape and otherwise emits one misleading warning per task.
+            jvmArgs '-Xshare:off',
+                    '-XX:+HeapDumpOnOutOfMemoryError',
                     "-XX:ErrorFile=${new File(cpfJvmCrashDir, 'test-hs_err_pid%p.log').absolutePath}",
                     "-XX:HeapDumpPath=${cpfJvmHeapDumpDir.absolutePath}"
             def xms = cpfResourceValue(project, 'test.xms')
@@ -611,27 +646,12 @@ gradle.projectsEvaluated {
                 nativeToPublic[nativeKey] = primary
             }
 
-            // The existing publication is the primary Public coordinate. Additional catalog rows for the
-            // same Source owner become explicit alias publications from the same freshly-built component.
+            // The existing publication is the only Gradle publication for this Source project. Additional
+            // catalog rows are projected after publication so project-dependency POM generation remains
+            // unambiguous for every Consumer.
             publications.each { publication ->
                 publication.groupId = primary.publicGroupId.toString()
                 publication.artifactId = primary.artifactId.toString()
-            }
-            orderedRows.drop(1).eachWithIndex { row, index ->
-                def aliasName = "cpfPublicAlias${index + 1}${row.artifactId.toString().replaceAll('[^A-Za-z0-9]', '_')}"
-                if (target.publishing.publications.findByName(aliasName) == null) {
-                    target.publishing.publications.create(aliasName, MavenPublication) { alias ->
-                        alias.from(target.components.java)
-                        alias.groupId = row.publicGroupId.toString()
-                        alias.artifactId = row.artifactId.toString()
-                        alias.version = target.version.toString()
-                        if (row.publicationClass?.toString() != 'PUBLIC_COMPILE_TIME_JAVA') {
-                            alias.artifacts.removeAll { artifact ->
-                                artifact.classifier in ['sources', 'javadoc']
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -674,7 +694,7 @@ tasks.register('compositeModuleIdentityGate') {
     description = 'Composite 자동 치환용 project group/name 충돌을 차단하고 Maven 공개 좌표 보존을 검증합니다.'
     doLast {
         def actualCoordinates = (cpfStarterCatalog.modules ?: []).collect { module ->
-            def target = project(module.projectPath.toString())
+            def target = cpfBuildRoot.project(module.projectPath.toString())
             [module: module, target: target, coordinate: "${target.group}:${target.name}".toString()]
         }
         def duplicates = actualCoordinates.groupBy { it.coordinate }
@@ -755,6 +775,22 @@ tasks.register('cpfPublishPublicToArtifactStaging') {
 tasks.register('cpfPublishAllToArtifactStaging') {
     group = 'CPF Publication'
     description = 'Manifest promotion용 전체 CPF Maven publication을 격리 staging repository에 게시합니다.'
+}
+
+tasks.register('cpfProjectPublicRuntimeAliases', Exec) {
+    group = 'CPF Publication'
+    description = '동일 Source owner의 Public Runtime alias를 Catalog 기준 Maven Repository artifact set으로 투영합니다.'
+    onlyIf { providers.gradleProperty('cpfPublicBinaryRepository').isPresent() }
+    doFirst {
+        def stagingRepository = providers.gradleProperty('cpfArtifactStagingRepository')
+                .map { file(it).canonicalFile }
+                .get()
+        commandLine cpfPython,
+                file('cpf-tools/release/tools/project-cpf-public-runtime-aliases.py').absolutePath,
+                '--root', rootDir.absolutePath,
+                '--repository', stagingRepository.absolutePath,
+                '--version', rootProject.version.toString()
+    }
 }
 
 tasks.register('publishCpfVerifiedLocalPlatformArtifacts') {
@@ -842,10 +878,11 @@ gradle.projectsEvaluated {
     }
     tasks.named('cpfPublishAllToArtifactStaging') { dependsOn allStagingPublicationTasks }
     tasks.named('cpfPublishPublicToArtifactStaging') { dependsOn publicStagingPublicationTasks }
+    tasks.named('cpfProjectPublicRuntimeAliases') { dependsOn tasks.named('cpfPublishPublicToArtifactStaging') }
 
     def publicReleaseMode = providers.gradleProperty('cpfPublicBinaryRepository').isPresent()
     tasks.named('publishCpfVerifiedLocalPlatformArtifacts') {
-        dependsOn publicReleaseMode ? tasks.named('cpfPublishPublicToArtifactStaging') : tasks.named('cpfPublishAllToArtifactStaging')
+        dependsOn publicReleaseMode ? tasks.named('cpfProjectPublicRuntimeAliases') : tasks.named('cpfPublishAllToArtifactStaging')
         dependsOn gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToStaging')
         dependsOn publicReleaseMode
                 ? gradle.includedBuild('cpf-platform-bom').task(':public-bom:publishAllPublicationsToCpfStagingRepository')

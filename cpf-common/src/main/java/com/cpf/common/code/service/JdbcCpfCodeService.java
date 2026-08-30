@@ -45,8 +45,6 @@ public final class JdbcCpfCodeService implements CpfCodeService {
         return values(group).stream().filter(row -> row.value() != null && row.value().trim().toUpperCase(Locale.ROOT).equals(expected)).findFirst();
     }
 
-    @Override public void refresh() { requireCache().clear(); }
-
     private Cache requireCache() {
         Cache cache = cacheManager.getCache(CACHE);
         if (cache == null) throw new IllegalStateException("CPF Common code cache is not configured");

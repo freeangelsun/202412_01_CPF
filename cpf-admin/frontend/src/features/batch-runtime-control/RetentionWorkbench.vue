@@ -78,8 +78,8 @@ async function doPreview() {
     const retentionDays = Number(value(selectedPolicy.value,'retentionDays','retention_days'))
     const cutoff = new Date(Date.now() - Math.max(1, retentionDays) * 86400000).toISOString()
     const body: RetentionPreviewRequest = {
-      target: value(selectedPolicy.value,'target','target_name'),
-      action: value(selectedPolicy.value,'action','action_name'), cutoff,
+      target: String(value(selectedPolicy.value,'target','target_name')),
+      action: String(value(selectedPolicy.value,'action','action_name')), cutoff,
       legalHold: String(value(selectedPolicy.value,'legalHold','legal_hold_yn')).toUpperCase() === 'Y' || value(selectedPolicy.value,'legalHold') === true,
       reason: reason.value.trim(), limit: policyEditor.value.chunkSize,
     }

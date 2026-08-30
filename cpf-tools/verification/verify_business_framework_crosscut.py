@@ -13,7 +13,8 @@ _parser.add_argument("--root", default=str(Path(__file__).resolve().parents[2]))
 _parser.add_argument("--evidence")
 _args = _parser.parse_args()
 ROOT = Path(_args.root).resolve()
-EVIDENCE = Path(_args.evidence).resolve() if _args.evidence else ROOT / "cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl"
+# Canonical governance registry는 이 gate의 산출물이 아니므로 기본 출력 대상이 될 수 없다.
+EVIDENCE = Path(_args.evidence).resolve() if _args.evidence else None
 
 
 def source_identity(root: Path) -> str:
@@ -190,8 +191,9 @@ for axis in sorted({x["axis"] for x in checks}):
 overall = "PASS" if all(v == "PASS" for v in axis_status.values()) else "PARTIAL"
 base_sha = source_identity(ROOT)
 result = {"schemaVersion":"1.0", "baselineSha":base_sha, "overall":overall, "axisStatus":axis_status, "checks":checks, "runtimeVerification":"NOT_EXECUTED_IN_JAVA25_ENVIRONMENT"}
-EVIDENCE.parent.mkdir(parents=True, exist_ok=True)
-EVIDENCE.write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8", newline="\n")
+if EVIDENCE is not None:
+    EVIDENCE.parent.mkdir(parents=True, exist_ok=True)
+    EVIDENCE.write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8", newline="\n")
 print("CPF_BUSINESS_FRAMEWORK_CROSSCUT=" + overall)
 for axis, status in axis_status.items(): print(f"{axis}={status}")
 failed = [x for x in checks if x["status"] == "FAIL"]

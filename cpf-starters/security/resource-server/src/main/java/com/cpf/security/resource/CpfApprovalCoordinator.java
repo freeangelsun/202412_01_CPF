@@ -4,7 +4,7 @@ import com.cpf.security.api.annotation.CpfApprovalRequired;
 import com.cpf.security.api.approval.*;
 import com.cpf.security.api.audit.*;
 import java.lang.reflect.*;import java.time.Clock;import java.util.*;
-/** @CpfApprovalRequired 입력 해석과 Owner verifier 호출을 fail-closed로 수행합니다. */
+/** Resolves {@link CpfApprovalRequired} inputs and invokes the owner verifier with fail-closed semantics. */
 public final class CpfApprovalCoordinator {
  private final CpfSecurityAnnotationProperties properties; private final CpfApprovalVerifier verifier; private final CpfAuthorizationAuditSink audit; private final Clock clock;
  public CpfApprovalCoordinator(CpfSecurityAnnotationProperties p,CpfApprovalVerifier v,CpfAuthorizationAuditSink a,Clock c){properties=p;verifier=v;audit=Objects.requireNonNull(a);clock=Objects.requireNonNull(c);}

@@ -302,6 +302,56 @@ def test_final_binary_verifier_rejects_unclassified_files_and_poms(tmp_path: Pat
         assert "unclassified POM coordinate" in message
 
 
+def test_final_binary_verifier_accepts_only_catalog_derived_gradle_plugin_marker(tmp_path: Path, monkeypatch):
+    version = "1.2.3"
+    plugin_row = {
+        "artifactId": "cpf-gradle-plugin",
+        "ownerPath": "cpf-tools/build/gradle-plugin",
+        "kind": "gradle-plugin",
+        "gradlePluginId": "com.cpf.platform-conventions",
+        "publicationClass": "PUBLIC_TOOLING",
+        "publicGroupId": "com.cpf.gradle",
+    }
+    monkeypatch.setattr(MODULE, "artifact_rows", lambda _root: [plugin_row])
+    monkeypatch.setattr(
+        MODULE,
+        "load_json",
+        lambda _path: {"requiredBinaryArtifactIdsWhenPublished": ["cpf-gradle-plugin"]},
+    )
+    repo = tmp_path / "repo"
+    implementation = repo / "com/cpf/gradle/cpf-gradle-plugin" / version
+    implementation.mkdir(parents=True)
+    (implementation / f"cpf-gradle-plugin-{version}.jar").write_bytes(b"plugin")
+    (implementation / f"cpf-gradle-plugin-{version}.pom").write_text(
+        "<project><modelVersion>4.0.0</modelVersion><groupId>com.cpf.gradle</groupId>"
+        f"<artifactId>cpf-gradle-plugin</artifactId><version>{version}</version></project>",
+        encoding="utf-8",
+    )
+    marker = repo / "com/cpf/platform-conventions/com.cpf.platform-conventions.gradle.plugin" / version
+    marker.mkdir(parents=True)
+    marker_pom = marker / f"com.cpf.platform-conventions.gradle.plugin-{version}.pom"
+
+    def write_marker(dependency_version: str) -> None:
+        marker_pom.write_text(
+            "<project><modelVersion>4.0.0</modelVersion>"
+            "<groupId>com.cpf.platform-conventions</groupId>"
+            "<artifactId>com.cpf.platform-conventions.gradle.plugin</artifactId>"
+            f"<version>{version}</version><packaging>pom</packaging><dependencies><dependency>"
+            "<groupId>com.cpf.gradle</groupId><artifactId>cpf-gradle-plugin</artifactId>"
+            f"<version>{dependency_version}</version></dependency></dependencies></project>",
+            encoding="utf-8",
+        )
+
+    write_marker(version)
+    result = MODULE.verify_binary_repository(ROOT, repo, version)
+    assert result["gradlePluginMarkerCount"] == 1
+    assert result["binaryJarCount"] == 1
+
+    write_marker("9.9.9")
+    with pytest.raises(MODULE.OpenGitReleaseError, match="Gradle plugin marker dependency mismatch"):
+        MODULE.verify_binary_repository(ROOT, repo, version)
+
+
 def test_pom_dependency_management_is_included_in_final_repository_closure(tmp_path: Path):
     pom = tmp_path / "bom.pom"
     pom.write_text(

@@ -56,6 +56,13 @@ def test_public_base_starter_composes_mandatory_common_runtime_entry():
     assert "api project(':starters:common')" in build
     assert "api project(':cpf-common')" not in build
 
+def test_local_runtime_declares_adm_annotation_compile_classpath():
+    build=(ROOT/'cpf-tools/runtime/cpf-local-runtime/build.gradle').read_text(encoding='utf-8')
+    modules=(ROOT/'cpf-tools/runtime/cpf-local-runtime/src/main/java/com/cpf/local/runtime/CpfLocalRuntimeModules.java').read_text(encoding='utf-8')
+    assert 'import com.cpf.admin.AdmApplication;' in modules
+    assert 'springdoc-openapi-starter-common:${rootProject.ext.cpfSpringdocVersion}' in build
+    assert 'compileOnly "org.springdoc:springdoc-openapi-starter-common:' in build
+
 def test_generated_domain_composite_uses_the_actual_generated_group():
     settings=(ROOT/'settings.gradle').read_text(encoding='utf-8')
     assert "def packageName = properties.getProperty('cpf.domain.packageName')" in settings

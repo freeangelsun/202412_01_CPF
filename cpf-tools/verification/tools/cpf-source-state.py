@@ -16,11 +16,12 @@ import os
 from pathlib import Path
 
 GENERATED_PARTS = {
-    "cpf-release",
+    "cpf-release", ".cpf-ide",
     ".git", ".gradle", ".idea", ".pytest_cache", "__pycache__", "node_modules",
     "dist", ".vite", "playwright-report", "test-results", "target", "out", "coverage",
 }
 GENERATED_FILES = {".coverage"}
+GENERATED_ROOT_FILES = {"cpf-release.zip"}
 GENERATED_FILE_PATTERNS = (
     "*.class",
     "hs_err_pid*.log",
@@ -49,6 +50,8 @@ def _is_generated(rel: str) -> bool:
     if not parts:
         return True
     if any(part in GENERATED_PARTS for part in parts):
+        return True
+    if rel in GENERATED_ROOT_FILES:
         return True
     if any(rel.startswith(prefix) for prefix in GENERATED_ROOT_PREFIXES):
         return True

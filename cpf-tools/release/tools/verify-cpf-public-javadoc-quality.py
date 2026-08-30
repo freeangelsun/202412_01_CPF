@@ -22,12 +22,20 @@ TYPE_RE = re.compile(
     r"(?m)^(?P<indent>[ \t]*)public\s+(?:final\s+|sealed\s+|non-sealed\s+|abstract\s+)?"
     r"(?:class|interface|record|enum|@interface)\s+(?P<name>[A-Za-z_$][A-Za-z0-9_$]*)\b"
 )
-DOC_RE = re.compile(r"/\*\*(?P<body>.*?)\*/\s*(?:@[\w.]+(?:\([^\n]*\))?\s*)*$", re.S)
 GENERIC_ONLY_RE = re.compile(r"^(?:CPF\s+)?(?:public\s+)?(?:api|class|interface|record|enum)\.?$", re.I)
 
 
-def _owners(root: Path) -> list[tuple[str, Path]]:
+def _policy(root: Path) -> tuple[dict, set[str], tuple[re.Pattern[str], ...]]:
     policy = json.loads((root / "cpf-tools/release/public/cpf-public-java-publication-policy.json").read_text(encoding="utf-8-sig"))
+    source_policy = policy.get("sourceArtifactPolicy") or {}
+    excluded = {str(value).lower() for value in source_policy.get("excludedPathSegments") or []}
+    forbidden = tuple(re.compile(str(value), re.I) for value in source_policy.get("forbiddenContentPatterns") or [])
+    if not excluded or not forbidden or set(source_policy.get("projectionTargets") or []) != {"sourcesJar", "javadoc"}:
+        raise GateError("CPF Public Java source projection policy is incomplete")
+    return policy, excluded, forbidden
+
+
+def _owners(root: Path, policy: dict) -> list[tuple[str, Path]]:
     catalog = json.loads((root / str(policy.get("artifactCatalog") or "cpf-tools/release/cpf-final-artifact-catalog.json")).read_text(encoding="utf-8-sig"))
     compile_class = str(policy.get("compileTimePublicationClass") or "PUBLIC_COMPILE_TIME_JAVA")
     rows: list[tuple[str, Path]] = []
@@ -46,8 +54,18 @@ def _owners(root: Path) -> list[tuple[str, Path]]:
 
 def _doc_for(text: str, declaration_start: int) -> str | None:
     prefix = text[:declaration_start]
-    match = DOC_RE.search(prefix)
-    return match.group("body") if match else None
+    end = prefix.rfind("*/")
+    if end < 0:
+        return None
+    begin = prefix.rfind("/**", 0, end + 2)
+    if begin < 0:
+        return None
+    between = prefix[end + 2 :].strip()
+    # Multi-line Spring/Java annotations are declaration modifiers.  They may sit between
+    # the type Javadoc and declaration, but executable statements/declarations may not.
+    if between and (not between.startswith("@") or ";" in between):
+        return None
+    return prefix[begin + 3 : end]
 
 
 def _clean_doc(body: str) -> str:
@@ -62,11 +80,12 @@ def _clean_doc(body: str) -> str:
 
 
 def verify(root: Path) -> dict:
+    policy, excluded_segments, forbidden_patterns = _policy(root)
     findings: list[str] = []
     artifact_count = 0
     public_type_count = 0
     documented_count = 0
-    for artifact, owner in _owners(root):
+    for artifact, owner in _owners(root, policy):
         artifact_count += 1
         source_root = owner / "src/main/java"
         if not source_root.is_dir():
@@ -74,9 +93,11 @@ def verify(root: Path) -> dict:
             continue
         for source in sorted(source_root.rglob("*.java")):
             rel = source.relative_to(source_root).as_posix()
-            if "/internal/" in f"/{rel}":
-                continue
             text = source.read_text(encoding="utf-8", errors="replace")
+            if excluded_segments.intersection(part.lower() for part in Path(rel).parts):
+                continue
+            if any(pattern.search(text) for pattern in forbidden_patterns):
+                continue
             for match in TYPE_RE.finditer(text):
                 public_type_count += 1
                 body = _doc_for(text, match.start())

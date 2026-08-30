@@ -7,7 +7,7 @@ CLI=ROOT/'cpf-tools/runtime/cli/cpf.py'
 
 
 def run(*args:str):
-    return subprocess.run([sys.executable,str(CLI),'--root',str(ROOT),*args],cwd=ROOT,text=True,capture_output=True)
+    return subprocess.run([sys.executable,str(CLI),'--root',str(ROOT),*args],cwd=ROOT,text=True,encoding='utf-8',errors='replace',capture_output=True)
 
 
 def test_setup_materializes_multiple_business_features_and_preserves_them_on_sync():

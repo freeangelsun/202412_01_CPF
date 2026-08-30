@@ -19,6 +19,16 @@
     "excludePatterns": [
       "**/internal/**"
     ],
+    "excludedPathSegments": [
+      "internal"
+    ],
+    "forbiddenContentPatterns": [
+      "com\\.cpf(?:\\.[A-Za-z0-9_]+)*\\.internal(?:\\.|\\b)"
+    ],
+    "projectionTargets": [
+      "sourcesJar",
+      "javadoc"
+    ],
     "privateImplementationLeakage": "release-blocker"
   },
   "signatureLeakagePolicy": "Public Javadoc/API signature must not expose com.cpf.*.internal types."

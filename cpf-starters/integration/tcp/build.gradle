@@ -7,6 +7,7 @@ dependencies {
  implementation project(':internal:integration:resilience')
  implementation 'org.springframework.boot:spring-boot-autoconfigure'
  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+ compileOnly 'com.fasterxml.jackson.core:jackson-annotations'
  annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
  testImplementation 'org.junit.jupiter:junit-jupiter'
  testImplementation 'org.assertj:assertj-core'

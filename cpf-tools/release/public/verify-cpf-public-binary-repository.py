@@ -107,6 +107,52 @@ def _maven_artifact_exists(repository: Path, group: str, artifact: str, version:
     return any(p.suffix in {".pom", ".jar", ".zip", ".module"} for p in base.iterdir() if p.is_file())
 
 
+def _published_artifact_path(
+    repository: Path,
+    group: str,
+    artifact: str,
+    version: str,
+    extension: str,
+    classifier: str = "",
+) -> Path:
+    """Resolve a release or timestamped Maven Snapshot artifact from metadata."""
+    base = repository / Path(group.replace(".", "/")) / artifact / version
+    classifier_suffix = f"-{classifier}" if classifier else ""
+    if not version.endswith("-SNAPSHOT"):
+        return base / f"{artifact}-{version}{classifier_suffix}.{extension}"
+
+    metadata_path = base / "maven-metadata.xml"
+    try:
+        metadata = ET.parse(metadata_path).getroot()
+    except (OSError, ET.ParseError) as exc:
+        raise VerificationError(f"invalid Maven snapshot metadata {group}:{artifact}:{version} path={metadata_path}: {exc}") from exc
+    actual = (_child_text(metadata, "groupId"), _child_text(metadata, "artifactId"), _child_text(metadata, "version"))
+    expected = (group, artifact, version)
+    if actual != expected:
+        raise VerificationError(f"Maven snapshot metadata coordinate mismatch expected={expected} actual={actual} path={metadata_path}")
+
+    matches: list[str] = []
+    ns = _ns(metadata.tag)
+    for item in metadata.findall(f"{ns}versioning/{ns}snapshotVersions/{ns}snapshotVersion"):
+        if _child_text(item, "extension") != extension:
+            continue
+        if _child_text(item, "classifier") != classifier:
+            continue
+        value = _child_text(item, "value")
+        if value:
+            matches.append(value)
+    if len(matches) != 1:
+        raise VerificationError(
+            f"Maven snapshot metadata must map exactly one artifact {group}:{artifact}:{version} "
+            f"extension={extension} classifier={classifier or '<none>'} matches={matches}"
+        )
+    resolved = matches[0]
+    snapshot_base = version[: -len("-SNAPSHOT")]
+    if not resolved.startswith(snapshot_base + "-") or "/" in resolved or "\\" in resolved or resolved in {".", ".."}:
+        raise VerificationError(f"invalid Maven snapshot value coordinate={group}:{artifact}:{version} value={resolved!r}")
+    return base / f"{artifact}-{resolved}{classifier_suffix}.{extension}"
+
+
 def _load_public_classification(root: Path) -> tuple[dict[str, dict], dict[str, str], dict[str, dict]]:
     policy_path = root / "cpf-tools/release/public/cpf-public-java-publication-policy.json"
     policy = json.loads(policy_path.read_text(encoding="utf-8-sig"))
@@ -146,6 +192,49 @@ def _load_public_classification(root: Path) -> tuple[dict[str, dict], dict[str, 
         raise VerificationError(f"compile-time/publication-exception overlap={overlap}")
     return compile_time, groups, exceptions
 
+
+def _load_gradle_plugin_markers(root: Path) -> dict[tuple[str, str], tuple[str, str]]:
+    catalog = json.loads((root / "cpf-tools/release/cpf-final-artifact-catalog.json").read_text(encoding="utf-8-sig"))
+    markers: dict[tuple[str, str], tuple[str, str]] = {}
+    for row in catalog.get("artifacts") or []:
+        plugin_id = str(row.get("gradlePluginId") or "").strip()
+        if not plugin_id:
+            continue
+        implementation = (str(row.get("publicGroupId") or "").strip(), str(row.get("artifactId") or "").strip())
+        if not all(implementation):
+            raise VerificationError(f"Gradle plugin implementation coordinate missing pluginId={plugin_id}")
+        marker = (plugin_id, f"{plugin_id}.gradle.plugin")
+        if marker in markers:
+            raise VerificationError(f"duplicate Gradle plugin marker coordinate={marker}")
+        markers[marker] = implementation
+    if not markers:
+        raise VerificationError("canonical artifact catalog has no Gradle plugin marker")
+    return markers
+
+
+def _gradle_plugin_marker_findings(
+    group: str,
+    artifact: str,
+    pom_version: str,
+    dependencies: list[tuple[str, str, str]],
+    version: str,
+    markers: dict[tuple[str, str], tuple[str, str]],
+) -> list[str]:
+    implementation = markers.get((group, artifact))
+    if implementation is None:
+        return []
+    findings: list[str] = []
+    expected_dependency = (*implementation, version)
+    if pom_version != version:
+        findings.append(
+            f"Gradle plugin marker version mismatch expected={version} actual={pom_version} coordinate={group}:{artifact}"
+        )
+    if dependencies != [expected_dependency]:
+        findings.append(
+            f"Gradle plugin marker dependency mismatch expected={[expected_dependency]} actual={dependencies} coordinate={group}:{artifact}"
+        )
+    return findings
+
 def _scan_zip_leakage(path: Path, *, javadoc: bool) -> list[str]:
     findings: list[str] = []
     with zipfile.ZipFile(path) as zf:
@@ -174,12 +263,11 @@ def _verify_java_publication_set(repository: Path, version: str, compile_time: d
     javadoc_count = 0
     for artifact in sorted(compile_time):
         group = groups[artifact]
-        base = repository / Path(group.replace(".", "/")) / artifact / version
         expected = {
-            "pom": base / f"{artifact}-{version}.pom",
-            "main": base / f"{artifact}-{version}.jar",
-            "sources": base / f"{artifact}-{version}-sources.jar",
-            "javadoc": base / f"{artifact}-{version}-javadoc.jar",
+            "pom": _published_artifact_path(repository, group, artifact, version, "pom"),
+            "main": _published_artifact_path(repository, group, artifact, version, "jar"),
+            "sources": _published_artifact_path(repository, group, artifact, version, "jar", "sources"),
+            "javadoc": _published_artifact_path(repository, group, artifact, version, "jar", "javadoc"),
         }
         for kind, path in expected.items():
             if not path.is_file():
@@ -238,6 +326,7 @@ def verify(root: Path, repository: Path, version: str) -> dict:
     if not repository.is_dir():
         raise VerificationError(f"public binary repository missing: {repository}")
     compile_time, groups, documentation_exceptions = _load_public_classification(root)
+    gradle_plugin_markers = _load_gradle_plugin_markers(root)
 
     starter_catalog = json.loads((root / "cpf-tools/generator/contracts/cpf-starter-catalog.json").read_text(encoding="utf-8-sig"))
     public_starters = {
@@ -246,6 +335,8 @@ def verify(root: Path, repository: Path, version: str) -> dict:
         if m.get("visibility") == "public" and m.get("publicationRequired") is True
     }
     expected = set(public_starters) | {(g, a) for a, g in PUBLIC_CONTRACT_GROUPS.items()} | {("com.cpf", "cpf-platform-bom")} | {("com.cpf.runtime", a) for a in RUNTIME_ALIASES}
+    expected.update(gradle_plugin_markers)
+    expected.update(gradle_plugin_markers.values())
 
     poms = sorted(repository.rglob("*.pom"))
     if not poms:
@@ -270,6 +361,11 @@ def verify(root: Path, repository: Path, version: str) -> dict:
             leakage_findings.append(f"forbidden/stale CPF artifact published {group}:{artifact}:{pom_version}")
         if group == "com.cpf.runtime" and artifact not in RUNTIME_ALIASES:
             leakage_findings.append(f"unclassified CPF runtime alias {group}:{artifact}:{pom_version}")
+        dependency_findings.extend(
+            _gradle_plugin_marker_findings(
+                group, artifact, pom_version, deps, version, gradle_plugin_markers
+            )
+        )
         for dg, da, dv in deps:
             if dg == "com.cpf.internal" or dg.startswith("com.cpf.internal."):
                 dependency_findings.append(f"internal dependency {group}:{artifact} -> {dg}:{da}:{dv}")
@@ -294,8 +390,7 @@ def verify(root: Path, repository: Path, version: str) -> dict:
         if not base.is_dir():
             continue
         for classifier in ("sources", "javadoc"):
-            candidate = base / f"{artifact}-{version}-{classifier}.jar"
-            if candidate.exists():
+            for candidate in base.glob(f"{artifact}-*-{classifier}.jar"):
                 forbidden_runtime_docs.append(candidate.relative_to(repository).as_posix())
 
     if missing or leakage_findings or dependency_findings or java_findings or generator_findings or forbidden_runtime_docs:
@@ -324,6 +419,7 @@ def verify(root: Path, repository: Path, version: str) -> dict:
         "internalCoordinateLeak": 0,
         "unresolvedCpfDependency": 0,
         "generatorDistributionCount": len(REQUIRED_GENERATOR_CLASSIFIERS),
+        "gradlePluginMarkerCount": len(gradle_plugin_markers),
     }
 
 

@@ -42,5 +42,6 @@ public final class CpfAttachmentUploadPolicy {
         for (String value : source) if (value != null && !value.isBlank()) result.add(value.trim().toLowerCase(Locale.ROOT));
         return Set.copyOf(result);
     }
+    /** Client-supplied filename, media type, and declared byte count validated before attachment upload. */
     public record UploadMetadata(String filename, String contentType, long size) { }
 }

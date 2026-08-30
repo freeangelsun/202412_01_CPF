@@ -52,6 +52,18 @@ $log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; ./gradle
 
 세션 인수인계에는 최신 통합 테스트 한 줄, 로그 위치, 정상 기대 결과, 실패 시 전달할 로그 파일명을 포함한다.
 
+### 5.1 실행 명령과 prerequisite 판정
+
+사용자에게 Test/Runtime/Build/Release 명령을 만들기 전에 **Current Source가 요구하는 prerequisite를 다시 확인**한다.
+
+- Java/Node/npm/Python/PowerShell/Docker/DB/Browser 등의 required version/range는 과거 대화나 이전 세션의 숫자를 재사용하지 않는다.
+- 사용자 PC의 actual version에 맞춰 Framework requirement나 verifier expected를 바꾸지 않는다.
+- Current Source의 canonical bootstrap/verifier/toolchain/package metadata/lock/runtime script를 우선 조회하고 `required / actual / source`를 기록한다.
+- mismatch이면 어떤 prerequisite gate에서 막혔는지 먼저 판정한다. 아직 진입하지 못한 DB3/Batch/Frontend 등 후속 Runtime을 FAIL/PASS로 추정하지 않는다.
+- 환경 교정은 canonical bootstrap이 소유하는 경우 그 방식을 우선한다. 전역 설치·다운그레이드처럼 사용자 환경을 바꾸는 조치는 자동 기본값으로 만들지 않고 영향과 복구를 명시한다.
+- 환경 교정 후에는 prerequisite gate 다음 단계만 부분 실행해 완료 처리하지 말고 원래의 최대강도 canonical command를 다시 실행한다.
+- 명령 자체가 stale version을 고정해 사용자가 반복 수정해야 하는 구조를 만들지 않는다. Source가 이미 요구값을 제공하는 경우 그 값을 검증하는 canonical entrypoint를 사용한다.
+
 ## 6. Git / 삭제 안전
 
 사용자 승인 없이 commit/push/branch/tag/reset/restore/stash/clean/history 변경을 하지 않는다. 삭제는 Root-relative Delete Manifest로 관리하고 보호경로와 제품 Source를 broad delete하지 않는다.
@@ -59,3 +71,18 @@ $log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; ./gradle
 ## 7. 완료
 
 완료 판정은 Final Target의 공통 완료축을 따른다. 미실행 Runtime은 `미검증`이며 PASS가 아니다. 최종 패키지에는 변경/검증/Gap/Delete/Manifest/Hash와 다음 검수 요청을 포함한다.
+
+## 8. 세션 시작 Preflight와 자동 Merge
+
+모든 역할은 새 개발 전에 `CPF_WORK_ITEM_SESSION_MERGE_AND_REPORT_STANDARD.md`를 적용한다.
+
+- 고유 sessionKey를 발급한다.
+- `CPF_DEVELOPMENT_HARNESS.md`의 Current Merge Control State를 읽는다.
+- `evidence/*/current/sessions/*/SESSION_MANIFEST.json` 전체를 검색한다.
+- 미Merge/PARTIAL/CONFLICT 세션이 있으면 신규 개발보다 먼저 Work Item별 Report/Evidence를 검증·Merge한다.
+- 같은 Work Item에 병렬 결과가 있으면 마지막 파일 우선으로 덮어쓰지 않는다.
+- Merge 상태를 currentize한 뒤 Mandatory Pending/Conflict=0일 때만 신규 Work Item을 시작한다.
+- 사용자가 매 세션마다 Merge를 별도로 지시해야 하는 구조로 운영하지 않는다.
+
+세션 결과는 역할별 Evidence 경로에 남기며 `CURRENT_WORK_ITEM_REGISTRY.csv` 외 별도 작업대상 목록을 만들지 않는다.
+

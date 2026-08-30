@@ -52,8 +52,6 @@ public final class JdbcCpfParameterService implements CpfParameterService {
     @Override public String requiredValue(String key) {
         return find(key).map(value -> value.value()).orElseThrow(() -> new NoSuchElementException("CPF Common parameter not found"));
     }
-    @Override public void refresh() { requireCache().clear(); }
-
     private String decode(String key, String stored) {
         CpfParameterValueDecoder selected = decoder.getIfUnique();
         if (selected == null) throw new IllegalStateException("Encrypted CPF Common parameter requires a single decoder Provider");

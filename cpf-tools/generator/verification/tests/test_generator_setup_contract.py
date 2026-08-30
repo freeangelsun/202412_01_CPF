@@ -24,7 +24,7 @@ class GeneratorSetupContractTest(unittest.TestCase):
         if persistence!='none':
             cmd += ['--vendor','postgresql','--database-name','businessdb','--schema-name','ldg','--migration-user','cpf_ldg_migration','--runtime-user','cpf_ldg_runtime']
         cmd += list(extra)
-        cp=subprocess.run(cmd,cwd=ROOT,capture_output=True,text=True)
+        cp=subprocess.run(cmd,cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace')
         return td,cp,contract,profile,output
 
     def test_setup_generates_definition_profile_and_project_without_domain_db_vendor_tree(self):

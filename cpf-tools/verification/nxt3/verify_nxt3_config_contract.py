@@ -5,7 +5,9 @@ import argparse,csv,json,re,subprocess,tempfile,shutil
 from pathlib import Path
 
 TEXT_EXT={'.java','.kt','.groovy','.gradle','.kts','.yml','.yaml','.properties','.json','.xml','.ts','.vue','.ps1','.py','.sh'}
-SKIP={'.git','build','.gradle','node_modules','dist','target','__pycache__'}
+# Python release/test environments are managed toolchain inputs, not CPF-owned Source or
+# Evidence payloads.  The cross-platform directory name is stable for both venv and virtualenv.
+SKIP={'.git','build','.gradle','node_modules','site-packages','pytest-basetemp','dist','target','__pycache__'}
 OP_PATTERNS={
  'url': re.compile(r'https?://(?!localhost\b|127\.0\.0\.1\b)[^\s"\']+',re.I),
  'host': re.compile(r'\b(?:host|hostname)\s*[:=]\s*["\'](?!(?:localhost|127\.0\.0\.1)\b)[A-Za-z0-9][A-Za-z0-9.-]+["\']',re.I),
@@ -17,6 +19,14 @@ OP_PATTERNS={
 EXEMPT_PREFIX=('cpf-docs/','cpf-tools/verification/','cpf-tools/contracts/','cpf-tools/testing/','cpf-reference/','cpf-education/')
 SPEC_URI_HOSTS=('json-schema.org','mybatis.org','w3.org','spring.io','springframework.org','gradle.org','maven.apache.org','schemas.microsoft.com','apache.org','xml.org','in-toto.io','slsa.dev','opentelemetry.io')
 SECRET_ASSIGN=re.compile(r'(?im)^\s*(?:[A-Za-z_][\w<>?, .\[\]-]*\s+)?(?:password|secret|token|api[-_]?key)\s*[:=]\s*["\']([^"\']+)["\']')
+
+def is_owned_text_path(path: Path) -> bool:
+ return (path.suffix.lower() in TEXT_EXT
+         and not any(part in SKIP for part in path.parts)
+         and path.name not in {'package-lock.json','npm-shrinkwrap.json'})
+
+def is_owned_text_file(path: Path) -> bool:
+ return path.is_file() and is_owned_text_path(path)
 
 def main():
  p=argparse.ArgumentParser(); p.add_argument('--root',default='.'); p.add_argument('--json-out'); a=p.parse_args(); root=Path(a.root).resolve(); fail=[]; checks={}
@@ -165,7 +175,7 @@ def main():
  # Operational literal and raw secret scan in active product source/config.
  literals=[]; secrets=[]
  for f in root.rglob('*'):
-  if not f.is_file() or f.suffix.lower() not in TEXT_EXT or any(x in f.parts for x in SKIP) or f.name in {'package-lock.json','npm-shrinkwrap.json'}: continue
+  if not is_owned_text_file(f): continue
   rel=f.relative_to(root).as_posix()
   s=f.read_text(encoding='utf-8',errors='ignore')
   is_test = ('/src/test/' in '/'+rel or '/tests/' in '/'+rel or '/test/' in '/'+rel or '/e2e/' in '/'+rel or rel.endswith(('.test.ts','.spec.ts','.test.js','.spec.js')) or rel.startswith('cpf-tools/verification/') or rel.startswith('cpf-tools/testing/') or rel.endswith('playwright.config.ts'))

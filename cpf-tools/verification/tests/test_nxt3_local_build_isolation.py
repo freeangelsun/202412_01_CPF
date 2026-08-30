@@ -9,8 +9,7 @@ ROOT = Path(__file__).resolve().parents[3]
 QUERY = ROOT / 'cpf-tools/verification/nxt3/verify_nxt3_query_db3.py'
 RUNNER = ROOT / 'cpf-tools/verification/nxt3/run_nxt3_final_all.py'
 POLICY = ROOT / 'cpf-tools/db/contracts/query-db3-policy.json'
-ANNOTATION = ROOT / 'cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl'
-REDIS = ROOT / 'cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl'
+CANONICAL_REGISTRY = ROOT / 'cpf-docs/governance/development-harness/current/LEGACY_EVIDENCE_SEMANTIC_REGISTRY.jsonl'
 
 
 def _sha_or_missing(path: Path) -> str | None:
@@ -47,7 +46,7 @@ def test_nxt3_runner_redirects_child_evidence_and_children_respect_external_outp
     assert "verify_redis_valkey_provider_currentization.py" in runner and "child_evidence/'REDIS_VALKEY_PROVIDER.json'" in runner
     assert "verify_annotation_runtime_consumer.py" in runner and "child_evidence/'ANNOTATION_RUNTIME_CONSUMER.json'" in runner
 
-    before = {ANNOTATION: _sha_or_missing(ANNOTATION), REDIS: _sha_or_missing(REDIS)}
+    before = _sha_or_missing(CANONICAL_REGISTRY)
     annotation_out = tmp_path / 'annotation.json'
     redis_out = tmp_path / 'redis.json'
     commands = [
@@ -58,5 +57,11 @@ def test_nxt3_runner_redirects_child_evidence_and_children_respect_external_outp
         cp = subprocess.run(cmd, text=True, capture_output=True)
         assert cp.returncode == 0, cp.stdout + cp.stderr
     assert annotation_out.is_file() and redis_out.is_file()
-    after = {ANNOTATION: _sha_or_missing(ANNOTATION), REDIS: _sha_or_missing(REDIS)}
-    assert after == before
+    assert _sha_or_missing(CANONICAL_REGISTRY) == before
+
+    # Root Cause 회귀 방어: --evidence 를 주지 않은 단독 실행도 canonical governance registry를
+    # 절대 덮어써서는 안 된다. 과거 이 기본값 때문에 legacy evidence 정본이 파괴된 적이 있다.
+    for cmd in commands:
+        cp = subprocess.run(cmd[:-2], text=True, capture_output=True)
+        assert cp.returncode == 0, cp.stdout + cp.stderr
+    assert _sha_or_missing(CANONICAL_REGISTRY) == before

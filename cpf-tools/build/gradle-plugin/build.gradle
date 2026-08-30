@@ -12,7 +12,11 @@ description = 'CPF canonical Java build convention plugin'
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(25) }
-    withSourcesJar()
+    // The Final Artifact Catalog classifies this included build as PUBLIC_TOOLING, not a
+    // supported compile-time Java API. Keep sources for internal/local publication only.
+    if (!providers.gradleProperty('cpfPublicBinaryRepository').isPresent()) {
+        withSourcesJar()
+    }
 }
 
 gradlePlugin {

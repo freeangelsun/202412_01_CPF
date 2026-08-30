@@ -257,6 +257,7 @@ public final class CpfTypedHttpClient {
                 entry -> List.copyOf(entry.getValue())));
     }
 
+    /** Immutable HTTP outcome retaining status, normalized headers, body, and idempotent replay state. */
     public record Result(int status, Map<String, List<String>> headers, byte[] body, boolean replayed) {
         public Result {
             headers = Map.copyOf(headers);

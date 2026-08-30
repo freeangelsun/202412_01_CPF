@@ -7,6 +7,7 @@ dependencies {
 implementation project(':framework:base-runtime')
 api 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 implementation 'org.springframework.boot:spring-boot-starter-actuator'
+compileOnly 'com.fasterxml.jackson.core:jackson-annotations'
 implementation 'org.springframework.boot:spring-boot-starter-aspectj'
 annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 testImplementation 'org.springframework.boot:spring-boot-starter-test'

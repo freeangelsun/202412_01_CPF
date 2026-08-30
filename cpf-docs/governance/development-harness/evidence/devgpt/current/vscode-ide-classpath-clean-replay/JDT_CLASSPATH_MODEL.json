@@ -1,0 +1,626 @@
+{
+  "schemaVersion": 2,
+  "workspaceProjects": 88,
+  "totalClassFolderLibraries": 540,
+  "totalMissingClassFolders": 0,
+  "projectsWithStaleIdeOnlyOutputReference": 7,
+  "note": "staleIdeOnlyOutputReference is JDT workspace metadata written before the fix; it disappears after Clean Java Language Server Workspace.",
+  "projects": [
+    {
+      "project": "202412_01_CPF",
+      "projectReferences": 0,
+      "classFolderLibraries": 0,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "agent",
+      "projectReferences": 12,
+      "classFolderLibraries": 11,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "ai",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "api",
+      "projectReferences": 6,
+      "classFolderLibraries": 6,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "archive",
+      "projectReferences": 4,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "attachment",
+      "projectReferences": 6,
+      "classFolderLibraries": 6,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "audit-jdbc",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "base",
+      "projectReferences": 4,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "base-runtime",
+      "projectReferences": 1,
+      "classFolderLibraries": 1,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "batch-service",
+      "projectReferences": 13,
+      "classFolderLibraries": 12,
+      "staleIdeOnlyOutputReferences": 2,
+      "missingClassFolders": []
+    },
+    {
+      "project": "browser-bff",
+      "projectReferences": 7,
+      "classFolderLibraries": 7,
+      "staleIdeOnlyOutputReferences": 2,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cache-valkey",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "caffeine",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "center-cut",
+      "projectReferences": 17,
+      "classFolderLibraries": 15,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "center-cut-runtime",
+      "projectReferences": 16,
+      "classFolderLibraries": 13,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "channel-registry-jdbc",
+      "projectReferences": 7,
+      "classFolderLibraries": 7,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "common",
+      "projectReferences": 7,
+      "classFolderLibraries": 7,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "control-plane",
+      "projectReferences": 19,
+      "classFolderLibraries": 17,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "core-only-consumer",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 2,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-admin",
+      "projectReferences": 28,
+      "classFolderLibraries": 27,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-admin-runtime",
+      "projectReferences": 18,
+      "classFolderLibraries": 18,
+      "staleIdeOnlyOutputReferences": 2,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-backoffice-web",
+      "projectReferences": 0,
+      "classFolderLibraries": 0,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-batch-runtime",
+      "projectReferences": 11,
+      "classFolderLibraries": 11,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-common",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-core",
+      "projectReferences": 0,
+      "classFolderLibraries": 0,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-education",
+      "projectReferences": 21,
+      "classFolderLibraries": 19,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-gateway",
+      "projectReferences": 15,
+      "classFolderLibraries": 15,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-local-batch-runtime",
+      "projectReferences": 14,
+      "classFolderLibraries": 8,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-local-runtime",
+      "projectReferences": 7,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "cpf-testkit",
+      "projectReferences": 7,
+      "classFolderLibraries": 7,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "data",
+      "projectReferences": 1,
+      "classFolderLibraries": 1,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "dispatch",
+      "projectReferences": 9,
+      "classFolderLibraries": 9,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "email",
+      "projectReferences": 3,
+      "classFolderLibraries": 1,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "event-service",
+      "projectReferences": 7,
+      "classFolderLibraries": 7,
+      "staleIdeOnlyOutputReferences": 2,
+      "missingClassFolders": []
+    },
+    {
+      "project": "file",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "fixed-length",
+      "projectReferences": 6,
+      "classFolderLibraries": 6,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "gradle-plugin",
+      "projectReferences": 0,
+      "classFolderLibraries": 0,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "graphql",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "health",
+      "projectReferences": 4,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "http",
+      "projectReferences": 10,
+      "classFolderLibraries": 10,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "ibm-mq",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "integration",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "iso8583",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "jms",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "jpa",
+      "projectReferences": 4,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "jta",
+      "projectReferences": 8,
+      "classFolderLibraries": 8,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "kafka",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "lock-valkey",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "messaging",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "mybatis",
+      "projectReferences": 8,
+      "classFolderLibraries": 8,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "notification",
+      "projectReferences": 1,
+      "classFolderLibraries": 1,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "observability",
+      "projectReferences": 5,
+      "classFolderLibraries": 5,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "oidc",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "online",
+      "projectReferences": 17,
+      "classFolderLibraries": 17,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "openfeature",
+      "projectReferences": 9,
+      "classFolderLibraries": 9,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "otlp",
+      "projectReferences": 5,
+      "classFolderLibraries": 5,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "persistence",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "persistence-jdbc",
+      "projectReferences": 8,
+      "classFolderLibraries": 8,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "platform-operations",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "poi",
+      "projectReferences": 6,
+      "classFolderLibraries": 6,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "rabbitmq",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "realtime",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "redis",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "reliability-jdbc",
+      "projectReferences": 8,
+      "classFolderLibraries": 8,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "resilience",
+      "projectReferences": 8,
+      "classFolderLibraries": 8,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "resource-server",
+      "projectReferences": 4,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "runtime-control",
+      "projectReferences": 5,
+      "classFolderLibraries": 5,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "runtime-health-jdbc",
+      "projectReferences": 4,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "runtime-support",
+      "projectReferences": 12,
+      "classFolderLibraries": 12,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "s3",
+      "projectReferences": 4,
+      "classFolderLibraries": 4,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "scheduler",
+      "projectReferences": 19,
+      "classFolderLibraries": 16,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "schema",
+      "projectReferences": 0,
+      "classFolderLibraries": 0,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "secret",
+      "projectReferences": 6,
+      "classFolderLibraries": 6,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "secure-api",
+      "projectReferences": 9,
+      "classFolderLibraries": 9,
+      "staleIdeOnlyOutputReferences": 2,
+      "missingClassFolders": []
+    },
+    {
+      "project": "security",
+      "projectReferences": 2,
+      "classFolderLibraries": 2,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "service-identity",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "session-jdbc",
+      "projectReferences": 5,
+      "classFolderLibraries": 5,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "session-valkey",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "sftp",
+      "projectReferences": 11,
+      "classFolderLibraries": 11,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "sms",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "soap",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "spring-data-redis",
+      "projectReferences": 5,
+      "classFolderLibraries": 5,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "tcp",
+      "projectReferences": 5,
+      "classFolderLibraries": 5,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "testkit",
+      "projectReferences": 10,
+      "classFolderLibraries": 8,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "web",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "web-api",
+      "projectReferences": 6,
+      "classFolderLibraries": 6,
+      "staleIdeOnlyOutputReferences": 2,
+      "missingClassFolders": []
+    },
+    {
+      "project": "webhook",
+      "projectReferences": 3,
+      "classFolderLibraries": 3,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    },
+    {
+      "project": "worker",
+      "projectReferences": 24,
+      "classFolderLibraries": 20,
+      "staleIdeOnlyOutputReferences": 0,
+      "missingClassFolders": []
+    }
+  ]
+}

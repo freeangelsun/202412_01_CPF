@@ -8,6 +8,12 @@
   "finalReplayProductContentSha256": "2935d73aacade2af79f2d5dac994c8f5bb7e74350d98a2780dd765bad2a0d5d4",
   "finalReplayProductFileCount": 8449,
   "gitSha": "UNAVAILABLE_IN_SUPPLIED_ZIP",
+  "currentWorkingTreeProductContentSha1": "e41f875d3031fb964092778cc08fd145e4efc93b",
+  "currentWorkingTreeProductContentSha256": "2d17ca4a3a9b5642bb9680b14f01facdefd1ef40561438f3bf75e0d6fdd24ea7",
+  "currentWorkingTreeProductFileCount": 8454,
+  "currentWorkingTreeProductTotalBytes": 46158489,
+  "currentWorkingTreeGitSha": "b20f3ddf8dcc0e26725e8907245c292530c59167",
+  "currentWorkingTreeStatus": "IN_PROGRESS",
   "identityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
   "mutableGovernanceExcludedFromSource": [
     "cpf-docs/work/**",

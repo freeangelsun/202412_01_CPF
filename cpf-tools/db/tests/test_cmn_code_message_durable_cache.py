@@ -13,6 +13,7 @@ MANAGEMENT = PRODUCT / "message/service/CmnCommonCatalogManagementService.java"
 PUBLISHER = RUNTIME / "runtime/cache/CpfCommonCacheRefreshPublisher.java"
 REPOSITORY = RUNTIME / "runtime/cache/CpfCommonCacheRefreshEventRepository.java"
 LISTENER = RUNTIME / "runtime/cache/CpfCommonCacheRefreshListener.java"
+REFRESHER = RUNTIME / "runtime/cache/SpringCpfCommonCacheRefresher.java"
 
 
 class CmnCodeMessageDurableCacheContractTest(unittest.TestCase):
@@ -22,7 +23,12 @@ class CmnCodeMessageDurableCacheContractTest(unittest.TestCase):
         self.assertIn("jdbc.query(", source)
         self.assertIn('throw new IllegalStateException("CPF Common code cache is not configured")', source)
         self.assertIn("cache.put(", source)
-        self.assertIn("refresh() { requireCache().clear(); }", source)
+        # codeCache 무효화는 중앙 CpfCommonCacheRefresher가 소유한다. Service가 자체 refresh()를
+        # 갖던 과거 구조는 호출자가 없어 VS Code unused 진단을 유발했으므로 재도입을 금지한다.
+        self.assertNotIn("void refresh()", source)
+        refresher = REFRESHER.read_text(encoding="utf-8")
+        self.assertIn('"codeCache"', refresher)
+        self.assertIn("cache.clear();", refresher)
 
     def test_error_catalog_preserves_existing_hits_on_db_failure_and_uses_version_fence(self):
         source = CATALOG.read_text(encoding="utf-8")

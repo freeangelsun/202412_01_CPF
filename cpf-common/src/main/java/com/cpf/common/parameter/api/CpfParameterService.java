@@ -29,13 +29,6 @@ public interface CpfParameterService {
                 new java.util.NoSuchElementException("CPF Common parameter not found: " + key));
     }
 
-    /**
-     * @deprecated 업무 Source의 Golden Path가 아닙니다. 운영 Cache 갱신은
-     * {@link com.cpf.common.message.api.CpfCommonCatalogManagementService#refreshCaches(String, String)}를 사용합니다.
-     */
-    @Deprecated(forRemoval = false)
-    void refresh();
-
     @SuppressWarnings("unchecked")
     private static <T> T convert(String key, String raw, Class<T> type) {
         if (type == null) throw new IllegalArgumentException("parameter target type is required");

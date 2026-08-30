@@ -9,6 +9,7 @@ import java.util.Objects;
 public record CpfResilienceOutcome<T>(
         Status status, T value, String reasonCode, int attempts,
         long policyRevision, Instant completedAt) {
+    /** Terminal execution state that preserves UNKNOWN_RESULT for status query and reconciliation. */
     public enum Status { SUCCESS, FAILED, TIMEOUT, REJECTED, UNKNOWN_RESULT }
 
     public CpfResilienceOutcome {

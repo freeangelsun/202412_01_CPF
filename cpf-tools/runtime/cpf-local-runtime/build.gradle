@@ -16,6 +16,11 @@ dependencies {
     }
     implementation project(':runtime:gateway')
 
+    // CpfLocalRuntimeModules directly references AdmApplication.  Its retained OpenAPI
+    // annotations must therefore be readable by javac even though ADM keeps the Springdoc
+    // implementation behind its own implementation boundary.
+    compileOnly "org.springdoc:springdoc-openapi-starter-common:${rootProject.ext.cpfSpringdocVersion}"
+
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'

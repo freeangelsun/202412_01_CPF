@@ -42,6 +42,7 @@
     "cpf-core",
     "cpf-common",
     "cpf-platform-bom",
+    "cpf-gradle-plugin",
     "cpf-generator-cli",
     "cpf-batch-runtime"
   ],

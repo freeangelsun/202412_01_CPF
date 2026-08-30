@@ -5,15 +5,22 @@ CONVENTION = ROOT / "cpf-tools/build/cpf-root-conventions.gradle"
 FULL = ROOT / "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1"
 
 
-def test_source_empty_java_projects_materialize_canonical_output_during_configuration():
+def test_every_java_project_keeps_canonical_gradle_compile_output():
     text = CONVENTION.read_text(encoding="utf-8")
-    assert "project.afterEvaluate {" in text
-    assert "sourceSets.main.java.files.empty" in text
-    assert "cpfIdeClasspathMaterializedOnConfiguration" in text
-    assert "compileJava.destinationDirectory.set(stableOutputDir)" in text
-    assert "gradle.gradleUserHomeDir" in text
-    assert "cpf-ide-classpath/" in text
+    assert "non-canonical-compile-output" in text
+    assert "classes/java/main" in text
+    assert "compileJava.destinationDirectory.set(" not in text
     assert "Never add fake Java API/classes" in text
+
+
+def test_no_ide_only_output_directory_is_introduced():
+    text = CONVENTION.read_text(encoding="utf-8")
+    assert "ide-only-output-directory-present" in text
+    assert ".cpf-ide/main" not in text
+    assert "cpfIdeClasspathRoot" not in text
+    assert "cpf-ide-classpath/" not in text
+    assert "cpfIdeClasspathMaterializedOnConfiguration" not in text
+    assert "never materialize an empty output directory" in text
 
 
 def test_ide_model_gate_runs_before_explicit_repair_and_after_build():
@@ -28,16 +35,14 @@ def test_ide_model_gate_runs_before_explicit_repair_and_after_build():
     assert "cpfPrepareIdeClasspath" in text
 
 
-def test_ide_classpath_fix_is_discovery_driven_and_does_not_override_dependencies():
+def test_ide_classpath_repair_is_discovery_driven_and_does_not_override_dependencies():
     text = CONVENTION.read_text(encoding="utf-8")
-    start = text.index("// VS Code Buildship/JDT resolves")
+    start = text.index("// VS Code Build Server/JDT resolves")
     end = text.index("allprojects {", start)
     block = text[start:end]
     assert "subprojects.findAll { it.plugins.hasPlugin('java') }" in block
-    assert "sourceSets.main.java.files.empty" in text
+    assert "sourceSets.main.java.files.empty" in block
+    assert "tasks.named('compileJava')" in block
     assert "project(" not in block
     assert "dependencies {" not in block
-    assert "sourceEmptyJavaProjects" in block
-    assert "stable=${stable}" in text
     assert "fake Java API/classes" in block
-    assert "gradle user home" in text.lower()

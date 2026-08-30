@@ -23,7 +23,6 @@ class CpfParameterServiceTypedValueTest {
                     new CpfParameter(1L, key, "STRING", value, key, false, true));
         }
         @Override public String requiredValue(String key) { return find(key).orElseThrow().value(); }
-        @Override public void refresh() { }
     };
 
     @Test void convertsSupportedTypesWithoutBusinessCasting() {

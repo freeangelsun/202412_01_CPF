@@ -322,6 +322,17 @@ def artifact_catalog_contract_findings(root: Path) -> list[str]:
     by_id = {str(row.get("artifactId") or ""): row for row in artifact_rows(root)}
     findings: list[str] = []
     public_classes = {"PUBLIC_COMPILE_TIME_JAVA", "PUBLIC_RUNTIME", "PUBLIC_BOM", "PUBLIC_TOOLING", "PUBLIC_STARTER"}
+    plugin_id_pattern = re.compile(r"^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)+$")
+    for row in artifact_rows(root):
+        kind = str(row.get("kind") or "").strip()
+        plugin_id = str(row.get("gradlePluginId") or "").strip()
+        artifact_id = str(row.get("artifactId") or "").strip()
+        if kind == "gradle-plugin" and not plugin_id:
+            findings.append(f"Gradle plugin catalog row has no gradlePluginId: {artifact_id}")
+        elif plugin_id and kind != "gradle-plugin":
+            findings.append(f"gradlePluginId is declared by a non-plugin catalog row: {artifact_id}")
+        elif plugin_id and not plugin_id_pattern.fullmatch(plugin_id):
+            findings.append(f"invalid Gradle plugin id in artifact catalog: {artifact_id} pluginId={plugin_id}")
     for contract in policy.get("requiredBinaryContracts", []):
         artifact_id = str(contract.get("artifactId") or "").strip()
         row = by_id.get(artifact_id)
@@ -352,6 +363,33 @@ def verify_artifact_catalog_contract(root: Path) -> dict[str, Any]:
     return {"status": "PASS", "requiredBinaryContracts": len(load_json(root / ARTIFACT_POLICY_REL).get("requiredBinaryContracts", []))}
 
 
+def _derived_gradle_plugin_marker_rows(root: Path) -> dict[tuple[str, str], dict[str, Any]]:
+    result: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in artifact_rows(root):
+        plugin_id = str(row.get("gradlePluginId") or "").strip()
+        if not plugin_id:
+            continue
+        implementation_group = str(row.get("publicGroupId") or "").strip()
+        implementation_artifact = str(row.get("artifactId") or "").strip()
+        if not implementation_group or not implementation_artifact:
+            raise OpenGitReleaseError(
+                f"Gradle plugin marker implementation coordinate is incomplete: pluginId={plugin_id}"
+            )
+        marker_coordinate = (plugin_id, f"{plugin_id}.gradle.plugin")
+        marker_row = dict(row)
+        marker_row.update({
+            "artifactId": marker_coordinate[1],
+            "publicGroupId": marker_coordinate[0],
+            "derivedPublication": "GRADLE_PLUGIN_MARKER",
+            "implementationGroupId": implementation_group,
+            "implementationArtifactId": implementation_artifact,
+        })
+        if marker_coordinate in result:
+            raise OpenGitReleaseError(f"duplicate derived Gradle plugin marker coordinate: {marker_coordinate}")
+        result[marker_coordinate] = marker_row
+    return result
+
+
 def _artifact_coordinate_map(root: Path) -> dict[tuple[str, str], dict[str, Any]]:
     result: dict[tuple[str, str], dict[str, Any]] = {}
     for row in artifact_rows(root):
@@ -359,6 +397,10 @@ def _artifact_coordinate_map(root: Path) -> dict[tuple[str, str], dict[str, Any]
         artifact = str(row.get("artifactId") or "").strip()
         if group and artifact:
             result[(group, artifact)] = row
+    for coordinate, row in _derived_gradle_plugin_marker_rows(root).items():
+        if coordinate in result:
+            raise OpenGitReleaseError(f"derived Gradle plugin marker collides with catalog coordinate: {coordinate}")
+        result[coordinate] = row
     return result
 
 
@@ -486,6 +528,8 @@ def verify_binary_repository(root: Path, repo: Path, version: str, profile: str 
         else:
             if row is None:
                 findings.append(f"unclassified binary artifact: {path.relative_to(repo)}")
+            elif row.get("derivedPublication") == "GRADLE_PLUGIN_MARKER":
+                findings.append(f"forbidden binary artifact for POM-only Gradle plugin marker: {path.relative_to(repo)}")
             else:
                 binary_count += 1
 
@@ -493,11 +537,26 @@ def verify_binary_repository(root: Path, repo: Path, version: str, profile: str 
     if not poms:
         findings.append("binary repository contains no POM")
     for pom in poms:
-        group, artifact, _, deps = _pom_coordinate(pom)
+        group, artifact, pom_version, deps = _pom_coordinate(pom)
+        row = coords.get((group, artifact))
         if not group or not artifact:
             findings.append(f"invalid POM coordinate: {pom.relative_to(repo)}")
-        elif (group, artifact) not in coords:
+        elif row is None:
             findings.append(f"unclassified POM coordinate {group}:{artifact}: {pom.relative_to(repo)}")
+        elif row.get("derivedPublication") == "GRADLE_PLUGIN_MARKER":
+            expected_dependency = (
+                str(row["implementationGroupId"]),
+                str(row["implementationArtifactId"]),
+                version,
+            )
+            if pom_version != version:
+                findings.append(
+                    f"Gradle plugin marker version mismatch expected={version} actual={pom_version}: {pom.relative_to(repo)}"
+                )
+            if deps != [expected_dependency]:
+                findings.append(
+                    f"Gradle plugin marker dependency mismatch expected={[expected_dependency]} actual={deps}: {pom.relative_to(repo)}"
+                )
         text = pom.read_text(encoding="utf-8", errors="replace")
         if re.search(r"(?i)mavenLocal|private[-_. ]?repo|localhost", text):
             findings.append(f"forbidden private/local repository content: {pom.relative_to(repo)}")
@@ -516,6 +575,12 @@ def verify_binary_repository(root: Path, repo: Path, version: str, profile: str 
         if not base.is_dir():
             findings.append(f"required published binary artifact missing: {group}:{artifact_id}:{version}")
 
+    marker_rows = _derived_gradle_plugin_marker_rows(root)
+    for (group, artifact), _ in marker_rows.items():
+        base = repo / Path(group.replace(".", "/")) / artifact / version
+        if not base.is_dir():
+            findings.append(f"required Gradle plugin marker missing: {group}:{artifact}:{version}")
+
     if findings:
         raise OpenGitReleaseError("Open Git binary policy failed:\n" + "\n".join(findings[:200]))
     return {
@@ -524,6 +589,7 @@ def verify_binary_repository(root: Path, repo: Path, version: str, profile: str 
         "sourceJarCount": source_count,
         "javadocJarCount": javadoc_count,
         "pomCount": len(poms),
+        "gradlePluginMarkerCount": len(marker_rows),
     }
 
 

@@ -49,6 +49,17 @@ def test_generated_build_outputs_are_excluded_but_cpf_tools_build_is_product_sou
     assert "cpf-tools/build/cpf-root-conventions.gradle" in paths
 
 
+def test_root_open_git_release_archive_is_not_product_source(tmp_path: Path):
+    product = tmp_path / "cpf-core" / "Core.java"
+    product.parent.mkdir(parents=True)
+    product.write_text("class Core {}", encoding="utf-8")
+    (tmp_path / "cpf-release.zip").write_bytes(b"generated release archive")
+    result = module.snapshot(tmp_path, "source")
+    paths = {row["path"] for row in result["files"]}
+    assert "cpf-core/Core.java" in paths
+    assert "cpf-release.zip" not in paths
+
+
 def test_ide_and_module_bin_outputs_are_excluded(tmp_path: Path):
     product = tmp_path / "cpf-core" / "src"
     product.mkdir(parents=True)
@@ -59,10 +70,14 @@ def test_ide_and_module_bin_outputs_are_excluded(tmp_path: Path):
     vscode = tmp_path / ".vscode"
     vscode.mkdir()
     (vscode / "settings.json").write_text("{}", encoding="utf-8")
+    ide_output = tmp_path / "cpf-core" / ".cpf-ide" / "main" / "com" / "cpf"
+    ide_output.mkdir(parents=True)
+    (ide_output / "Core.class").write_bytes(b"generated")
     result = module.snapshot(tmp_path, "source")
     paths = {row["path"] for row in result["files"]}
     assert "cpf-core/src/Core.java" in paths
     assert "cpf-core/bin/Core.class" not in paths
+    assert "cpf-core/.cpf-ide/main/com/cpf/Core.class" not in paths
     assert ".vscode/settings.json" not in paths
 
 

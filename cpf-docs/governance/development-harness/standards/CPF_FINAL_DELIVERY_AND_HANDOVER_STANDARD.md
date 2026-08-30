@@ -19,6 +19,8 @@
 ## 2. 명령 형식
 사용자에게 전달하는 Apply/Delete/Verify/Runtime/Git 명령은 **각각 독립적인 한 줄 명령**이어야 한다. 여러 단계 수동 복사나 여러 줄 실행 순서를 필수 전제로 하지 않는다. Windows PowerShell과 Linux shell은 동일 의미를 가져야 한다.
 
+Runtime/Verify/Release 명령의 prerequisite version/range는 과거 대화에서 하드코딩해 재사용하지 않는다. Current Source의 canonical verifier/bootstrap/toolchain/package metadata에서 required 값을 다시 확인하고, 명령 또는 사전검증에서 `required/actual`을 명확히 표시한다. 사용자 PC actual 값에 맞춰 Product Contract를 낮추는 명령을 제공하지 않는다.
+
 ## 3. 삭제와 빈 폴더
 삭제는 `DELETE_MANIFEST.csv` exact file allowlist만 사용한다. 삭제 후에는 삭제된 파일의 부모 경로를 아래에서 위로 검사해 **비어 있는 디렉터리만** 제거한다. Repository Root, 보호 경로, Current Development Harness, Documentation Harness, Guides/Deliverables 보호경로는 삭제하지 않는다. wildcard/broad recursive delete, `git clean`, `reset --hard`, `restore .`를 사용하지 않는다. 결과에는 `EMPTY_DIRS_DELETED=<n>`을 남긴다.
 
@@ -27,3 +29,24 @@
 
 ## 5. 최종 Handover
 다음 세션은 별도 개발 기본지침을 요구하지 않고 Harness 하나에서 시작할 수 있어야 한다. Handover는 Source Identity, Current Work Item 전체 상태, 역할별 상태, Product Gap, 마지막 Gate, Runtime 미검증, 재실행 명령, Delete 상태, Codex/Claude 요청, 다음 정확한 시작점을 포함한다. 리뷰 요청 시 전체 Work Item을 1:1 상세 출력할 수 있어야 한다.
+
+## 6. Session/Merge Handover 필수 규격
+
+모든 세션 Handover는 `CPF_WORK_ITEM_SESSION_MERGE_AND_REPORT_STANDARD.md`를 따르며 최소 다음을 포함한다.
+
+- 현재 sessionKey / 역할 / Source Identity
+- Current Merge Control State 전체
+- 이번 세션에서 Merge한 sessionKey
+- 발견했지만 아직 Merge되지 않은 sessionKey
+- MERGE_CONFLICT sessionKey와 정확한 이유
+- 이번 세션에서 실제 작업한 Work Item ID와 각 상태
+- Work Item별 Evidence 경로
+- mandatory 미실행/실패/환경 Blocker와 재실행 조건
+- 다음 세션이 **가장 먼저 실행할 Merge Preflight**와 그 뒤의 정확한 Work Item
+
+Handover는 `여기까지 완료`, `나머지 다음 세션` 같은 요약만으로 대체하지 않는다. 다음 작업자가 Harness와 Handover만 읽고 미Merge 항목을 자동 발견·통합할 수 있어야 한다.
+
+## 7. Final Self Review
+
+최종 전달 직전에는 Current Registry의 모든 Mandatory Work Item을 한 건씩 리뷰한다. 각 항목의 Requirement, Root Cause, Source, Consumer, Test, Runtime, Regression, Evidence SHA, Source Identity, 역할별 상태, 완료/미완료 사유를 확인한다. 개별 근거가 없는 일괄 완료/일괄 SKIP/집계 PASS는 최종 전달 근거가 아니다.
+

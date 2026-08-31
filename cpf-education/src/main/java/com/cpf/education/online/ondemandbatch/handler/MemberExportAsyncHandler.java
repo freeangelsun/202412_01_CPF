@@ -1,5 +1,7 @@
 package com.cpf.education.online.ondemandbatch.handler;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.batch.api.CpfBatchExecutionRequest;
 import com.cpf.batch.api.CpfBatchExecutionResult;
 import com.cpf.batch.api.CpfBatchOperations;
@@ -13,7 +15,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 /** Async Operation이 실제 On-Demand Batch 접수를 수행하는 Handler입니다. */
 @CpfService
-public final class MemberExportAsyncHandler implements CpfAsyncHandler<MemberExportCommand, MemberExportResult> {
+public final class MemberExportAsyncHandler extends EducationBaseService implements CpfAsyncHandler<MemberExportCommand, MemberExportResult> {
     private final CpfBatchOperations batches;
 
     public MemberExportAsyncHandler(CpfBatchOperations batches) {

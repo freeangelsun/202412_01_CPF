@@ -4,7 +4,7 @@
 
 - Input Working Tree ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260829_224746.zip`
 - Input ZIP SHA-256: `b1daa68a3508cd5dddec90cae25f8aeaaca636bae5703b83a322974c7f5938dc`
-- Current Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f` / 8,448 files
+- Current Product Source Identity: `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74` / 8,448 files
 
 ## DevGPT Fresh 실행 결과
 

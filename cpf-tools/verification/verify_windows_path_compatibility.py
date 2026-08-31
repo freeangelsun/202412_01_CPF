@@ -24,7 +24,13 @@ VERSIONED_DIR_EXEMPT_PREFIXES = ("cpf-docs/deliverables/",)
 # (redirected Gradle project cache/local artifact repository, JVM crash/heap-dump capture,
 # retired IDE cache snapshots). It is never product source and is recreated on every run, so it
 # follows the same ephemeral-output policy as an ordinary module build/** directory below.
-EPHEMERAL_PREFIXES = ("cpf-docs/governance/development-harness/evidence/platform/current/generated/",)
+EPHEMERAL_PREFIXES = (
+    "cpf-docs/governance/development-harness/evidence/platform/current/generated/",
+    # cpf-release/** 는 릴리즈 생성 산출물이며 canonical Source Identity(cpf-source-state.py 의
+    # GENERATED_PARTS)도 제품 Source 로 계산하지 않는다. 사용자가 clone 하는 대상이 아니고
+    # 릴리즈를 한 번 만들었는지에 따라 같은 Source 가 PASS/FAIL 로 갈리면 안 된다.
+    "cpf-release/",
+)
 
 
 def is_managed_source(path: Path, root: Path) -> bool:

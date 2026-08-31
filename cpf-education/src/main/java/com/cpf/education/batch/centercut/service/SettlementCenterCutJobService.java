@@ -1,5 +1,7 @@
 package com.cpf.education.batch.centercut.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.api.CenterCutExecutionRequest;
@@ -11,7 +13,7 @@ import java.util.Map;
 
 /** 배치-05 Center-Cut: 실행계획→Worker 실행→상태조회까지 Public API로 연결하고 partial/unknown을 보존합니다. */
 @CpfService
-public class SettlementCenterCutJobService {
+public class SettlementCenterCutJobService extends EducationBaseService {
     private final CpfCenterCutOperations centerCut;
 
     public SettlementCenterCutJobService(CpfCenterCutOperations centerCut) {

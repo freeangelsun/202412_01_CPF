@@ -1,5 +1,7 @@
 package com.cpf.education.batch.chunk.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
@@ -9,7 +11,7 @@ import java.util.Map;
 
 /** 배치-02 DB Chunk: commit interval, checkpoint, retryable failure와 restart 지점을 함께 표현합니다. */
 @CpfService
-public class CustomerMigrationChunkJobService {
+public class CustomerMigrationChunkJobService extends EducationBaseService {
     public BatchStepResult run(BatchStepCommand command) {
         int chunkSize = intParam(command, "chunkSize", 100);
         long offset = longParam(command, "checkpointOffset", 0);

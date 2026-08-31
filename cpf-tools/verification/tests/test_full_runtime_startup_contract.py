@@ -56,3 +56,63 @@ def test_local_runtime_ready_timeout_is_policy_owned_not_hardcoded():
     text = _text(LOCAL_RUNTIME)
     assert "CPF_LOCAL_RUNTIME_READY_TIMEOUT_SECONDS" in text
     assert "runtime.startup.readyTimeoutSeconds" in text
+
+
+# --- 다중 DataSource / 다중 Runtime Process 기동 계약 -------------------------------
+
+BATCH_SMOKE = ROOT / "cpf-tools/runtime/tools/smoke-bat-two-worker-runtime.ps1"
+LOCAL_RUNTIME_YML = ROOT / "cpf-tools/runtime/cpf-local-runtime/src/main/resources/application.yml"
+LOCAL_RUNTIME_PRIMARY = (
+    ROOT / "cpf-tools/runtime/cpf-local-runtime/src/main/java/com/cpf/local/runtime"
+         / "CpfLocalRuntimePlatformDataSourcePrimary.java"
+)
+SESSION_SECURITY = (
+    ROOT / "cpf-starters/security/session/jdbc/src/main/java/com/cpf/security/session/jdbc"
+         / "CpfServerSessionSecurityAutoConfiguration.java"
+)
+
+
+def test_batch_roles_get_a_unique_instance_id_as_a_jvm_system_property():
+    """CpfInstanceIdentity는 System property/env만 읽는다.
+
+    Spring 애플리케이션 인자(--cpf.runtime.instance-id)로만 넘기면 값이 무시되고 모든 role이
+    hostname을 instanceId로 쓰게 되어, 두 번째 Runtime process부터 fence로 기동에 실패한다.
+    """
+    text = _text(BATCH_SMOKE)
+    assert '"-Dcpf.runtime.instance-id=$instance"' in text
+    assert '$instance="bat-$name-$runId"' in text
+
+
+def test_batch_roles_receive_canonical_vendor_pack_root():
+    """CpfVendorSqlCatalogProvider는 cpf.db.resource-root가 있어야 등록된다."""
+    text = _text(BATCH_SMOKE)
+    assert '"--cpf.db.resource-root=$script:DbResourceRootResolved"' in text
+    sep = chr(92)
+    assert sep.join(["cpf-tools", "db", "vendor", ""]) in text
+    assert "pack.json" in text
+
+
+def test_one_was_declares_its_own_system_code():
+    """systemCode는 명시 선언이 정본이며 profile/application 이름으로 대체하지 않는다."""
+    text = LOCAL_RUNTIME_YML.read_text(encoding="utf-8")
+    assert "system-code: ${CPF_SYSTEM_CODE:LOCAL}" in text
+
+
+def test_one_was_marks_platform_datasource_as_the_default_choice():
+    """1-WAS는 DataSource가 여러 개라, 단일 DataSource를 받는 Starter 자동구성이 기동을 깨뜨린다.
+
+    프레임워크 운영 데이터의 정본은 CPF Platform 스키마이므로 통합 실행 단위가 그 역할을
+    기본값으로 밝힌다. Bean을 새로 만들지 않고 기존 정의에 primary만 표시한다.
+    """
+    text = _text(LOCAL_RUNTIME_PRIMARY)
+    assert "BeanFactoryPostProcessor" in text
+    assert 'CPF_PLATFORM_DATA_SOURCE = "cpfPlatformDataSource"' in text
+    assert "setPrimary(true)" in text
+    assert "getBeanNamesForType(DataSource.class, false, false).length <= 1" in text
+
+
+def test_session_security_resolves_platform_datasource_explicitly():
+    text = _text(SESSION_SECURITY)
+    assert "resolveSessionDataSource(" in text
+    assert 'CPF_PLATFORM_DATA_SOURCE = "cpfPlatformDataSource"' in text
+    assert "getIfUnique()" in text

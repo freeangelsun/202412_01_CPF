@@ -13,6 +13,89 @@
     "currentSourceFile": "10_cpf_schema.sql",
     "historicalMigrationImmutable": true
   },
+  "upstreamProvenance": {
+    "contract": "CPF_UPSTREAM_ARTIFACT_PROVENANCE",
+    "schemaVersion": 1,
+    "policy": {
+      "upstreamArtifactImmutable": true,
+      "verifyWhenArtifactAvailable": true,
+      "versionMustMatchStack": true
+    },
+    "artifacts": [
+      {
+        "id": "spring-batch-core",
+        "group": "org.springframework.batch",
+        "artifact": "spring-batch-core",
+        "version": "6.0.4",
+        "versionSource": {
+          "file": "gradle/cpf-stack.properties",
+          "property": "springBatchVersion"
+        },
+        "purpose": "Spring Batch 6 declares the canonical BATCH_*_SEQ sequence definitions that CPF projects into the BAT_SB_* namespace. Upstream drift must invalidate the projection.",
+        "resolution": {
+          "kind": "gradle-module-cache",
+          "cacheRoot": "caches/modules-2/files-2.1/{group}/{artifact}/{version}",
+          "fileName": "{artifact}-{version}.jar"
+        },
+        "declaresSequences": [
+          "BATCH_JOB_EXECUTION_SEQ",
+          "BATCH_JOB_INSTANCE_SEQ",
+          "BATCH_STEP_EXECUTION_SEQ"
+        ],
+        "resources": [
+          {
+            "vendor": "mariadb",
+            "path": "org/springframework/batch/core/schema-mariadb.sql",
+            "sha256": "a92e1355e9ebc962fad7d68da4628e6450a19c7a254da57e3512d1f75625bd09"
+          },
+          {
+            "vendor": "postgresql",
+            "path": "org/springframework/batch/core/schema-postgresql.sql",
+            "sha256": "f2ac75cae966e4eb1cd97ee6b11f130495b7109153754a7983befb87614d6e38"
+          },
+          {
+            "vendor": "oracle",
+            "path": "org/springframework/batch/core/schema-oracle.sql",
+            "sha256": "770c2d0c8b379df0f9b72ae2f90f91fea3425cf0defe6b559711916b9610b947"
+          }
+        ]
+      }
+    ]
+  },
+  "historicalMigration": {
+    "contract": "CPF_PLATFORM_NON_TABLE_HISTORICAL_MIGRATION",
+    "schemaVersion": 1,
+    "policy": {
+      "byteImmutable": true,
+      "regeneratedByRenderer": false,
+      "verifiedByChecksumAndTreeAppendOnly": true
+    },
+    "released": [
+      {
+        "version": 73,
+        "description": "spring_batch_6_sequence_contract",
+        "logicalDatabase": "batDB",
+        "note": "Released while the Spring Batch sequences still lived in batDB/35_bat_schema.sql. The current canonical projection is cpfDB/10_cpf_schema.sql with the BAT_SB_* namespace. This entry is provenance only; the renderer never rewrites it.",
+        "artifacts": {
+          "mariadb": {
+            "migration": "cpf-tools/db/vendor/mariadb/migration/flyway/V73__spring_batch_6_sequence_contract.sql",
+            "rollback": "cpf-tools/db/vendor/mariadb/rollback/R73__spring_batch_6_sequence_contract.sql",
+            "canonicalMigration": "cpf-tools/db/vendor/mariadb/source/migration/flyway/V73__spring_batch_6_sequence_contract.sql",
+            "canonicalRollback": "cpf-tools/db/vendor/mariadb/source/migration/rollback/R73__spring_batch_6_sequence_contract.sql"
+          },
+          "postgresql": {
+            "migration": "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/V73__spring_batch_6_sequence_contract.sql",
+            "rollback": "cpf-tools/db/vendor/postgresql/rollback/batDB/R73__spring_batch_6_sequence_contract.sql"
+          },
+          "oracle": {
+            "migration": "cpf-tools/db/vendor/oracle/migration/flyway/batDB/V73__spring_batch_6_sequence_contract.sql",
+            "rollback": "cpf-tools/db/vendor/oracle/rollback/batDB/R73__spring_batch_6_sequence_contract.sql"
+          }
+        },
+        "retiredSourceFile": "35_bat_schema.sql"
+      }
+    ]
+  },
   "objects": [
     {
       "kind": "sequence",

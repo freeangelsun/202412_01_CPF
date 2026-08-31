@@ -57,8 +57,16 @@ public class CpfCommonJdbcAutoConfiguration {
 
     @Bean(name = {DATA_SOURCE_BEAN, CpfCommonPersistenceNames.PLATFORM_DATA_SOURCE_BEAN})
     DataSource cpfCommonDataSource(CpfDataSourceRegistry dataSources, Environment environment) {
+        DataSource dataSource;
         try {
-            DataSource dataSource = dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB);
+            dataSource = dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB);
+        } catch (RuntimeException resolution) {
+            // Role 해석 실패는 접속 정보가 아니라 설정 결함이다. 어떤 설정이 빠졌는지 알 수 없으면
+            // 기동 실패 원인을 추적할 수 없으므로, secret을 담지 않는 이 원인은 그대로 보존한다.
+            throw new IllegalStateException(
+                    "CPF Common requires the CPF_PLATFORM_DB role to resolve a DataSource", resolution);
+        }
+        try {
             int timeout = Math.max(1, environment.getProperty("cpf.common.datasource.validation-timeout-seconds", Integer.class, 3));
             try (Connection connection = dataSource.getConnection()) {
                 if (!connection.isValid(timeout)) {

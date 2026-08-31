@@ -131,7 +131,11 @@ class ImmutableMigrationGenerationTest(unittest.TestCase):
         non_table = (ROOT / "cpf-tools/verification/tools/sync-platform-non-table-objects.ps1").read_text(
             encoding="utf-8-sig"
         )
-        self.assertEqual(6, non_table.count("-ImmutableVersioned"))
+        # v2 계약(historicalMigration.policy.regeneratedByRenderer=false)에서 renderer 는
+        # released V73/R73 을 아예 생성하지 않는다. 재생성 후 불변 충돌을 잡는 가드보다
+        # 생성 자체를 하지 않는 쪽이 강한 계약이다.
+        self.assertEqual(0, non_table.count("-ImmutableVersioned"))
+        self.assertNotIn("$Contract.migration", non_table)
 
 
 if __name__ == "__main__":

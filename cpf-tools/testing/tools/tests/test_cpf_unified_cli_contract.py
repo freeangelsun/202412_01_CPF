@@ -61,7 +61,13 @@ def test_internal_cli_cross_platform_version_status_and_java25_fail_closed():
     env={**os.environ,'CPF_WORKSPACE':str(ROOT)}
     java_home=env.get('JAVA_HOME','').strip()
     java_bin=(Path(java_home)/'bin'/('java.exe' if sys.platform=='win32' else 'java')) if java_home else Path('java')
-    actual=subprocess.check_output([str(java_bin),'-version'],stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace').splitlines()[0]
+    raw=subprocess.check_output([str(java_bin),'-version'],stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace')
+    # JVM launcher는 JAVA_TOOL_OPTIONS/_JAVA_OPTIONS/JDK_JAVA_OPTIONS가 설정되어 있으면
+    # "Picked up <VAR>: <값>"을 stderr 첫 줄에 낸다. FullLocal 검증기가 자식 JVM UTF-8 강제를
+    # 위해 그 변수를 설정하므로, 첫 줄을 그대로 version 문자열로 보면 판정이 뒤집힌다.
+    version_lines=[line for line in raw.splitlines()
+                   if not re.match(r'^\s*Picked up (JAVA_TOOL_OPTIONS|_JAVA_OPTIONS|JDK_JAVA_OPTIONS):', line)]
+    actual=version_lines[0] if version_lines else ''
     java25=bool(re.search(r'version\s+"25(?:\.|")', actual))
     for command in ('version','status'):
         cp=subprocess.run(_cli_command(command),cwd=ROOT,env=env,text=True,encoding='utf-8',errors='replace',capture_output=True)

@@ -272,6 +272,12 @@ SELECT 'cpfDB.response_code_http_status' AS check_name,
                  AND NOT EXISTS (SELECT 1 FROM CMN_RESPONSE_CODE WHERE http_status NOT BETWEEN 100 AND 599)
        THEN 1 ELSE 0 END AS passed;
 
+-- CPF_LOGICAL_DATABASE=cpfDB
+SELECT 'cpfDB.table_count' AS check_name,
+       CASE WHEN COUNT(*) = 201 THEN 1 ELSE 0 END AS passed
+FROM information_schema.tables
+WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
+
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,
        CASE WHEN COUNT(*) = 30 THEN 1 ELSE 0 END AS passed
@@ -303,4 +309,5 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
                AND UPPER(sequence_name) IN ('BATCH_JOB_EXECUTION_SEQ', 'BATCH_JOB_INSTANCE_SEQ', 'BATCH_JOB_SEQ', 'BATCH_STEP_EXECUTION_SEQ')) = 0
        THEN 1 ELSE 0 END AS passed;
 -- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
+
 -- ===== END 00_verify.sql =====

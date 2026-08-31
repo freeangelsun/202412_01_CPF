@@ -18,6 +18,7 @@ def test_canonical_gradle_entrypoints_are_short_and_grouped():
         'cpfVerifyAllLocal': '20. CPF 검증',
         'cpfHelp': '00. CPF 시작',
         'cpfRunAllLocal': '30. CPF 실행',
+        'cpfRunDevLocal': '30. CPF 실행',
         'cpfRunAllBatch': '30. CPF 실행',
         'cpfModules': '40. CPF 구성',
         'cpfResourcePolicy': '50. CPF 설정',
@@ -66,13 +67,11 @@ def test_no_versioned_developer_shell_names_are_introduced():
 
 def test_gradle_run_aliases_use_logical_project_tree():
     text = CONVENTION.read_text(encoding='utf-8')
-    # 통합 Runtime 만 고정 진입점이고 개별 실행은 발견된 App/Domain 으로 투영된다.
-    expected = {
-        'cpfRunAllLocal': ':runtime:local:bootRun',
-        'cpfRunAllBatch': ':runtime:local-batch:bootRun',
-    }
-    for task, target in expected.items():
-        assert f"registerCpfRunAlias('{task}', '{target}'" in text
+    # Batch 통합 Runtime 만 alias 이고, Local Runtime 은 canonical launcher 를 재사용한다.
+    assert "registerCpfRunAlias('cpfRunAllBatch', ':runtime:local-batch:bootRun'" in text
+    assert "cpf-tools/runtime/tools/cpf_local_runtime.py" in text
+    for task in ('cpfRunAllLocal', 'cpfRunDevLocal', 'cpfRunOnlineLocal'):
+        assert f"task: '{task}'" in text, f"Local Runtime 진입점 누락: {task}"
     # 개별 App 은 물리 디렉터리가 아니라 Gradle 논리 project path 로 실행해야 한다.
     assert 'dependsOn "${a.path}:bootRun"' in text
     assert 'dependsOn "${d.mountedPath}:bootRun"' in text

@@ -1,4 +1,4 @@
-
+﻿
 
 # PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -61,7 +61,7 @@ function Get-CpfRuntimePlatformModuleMap {
             portEnv = "ADM_SERVER_PORT"
             healthPath = "/adm/api/health/readiness"
             jarDir = "cpf-admin/build/libs"
-            jarPattern = "cpf-admin-*.jar"
+            jarPattern = "admin-*.war"
             openApi = $true
             generatedDomain = $false
         },
@@ -100,7 +100,7 @@ function Get-CpfRuntimePlatformModuleMap {
             portEnv = "EDU_SERVER_PORT"
             healthPath = "/v3/api-docs"
             jarDir = "cpf-education/build/libs"
-            jarPattern = "cpf-education-*.jar"
+            jarPattern = "education-*.jar"
             openApi = $true
             generatedDomain = $false
         },
@@ -113,7 +113,7 @@ function Get-CpfRuntimePlatformModuleMap {
             portEnv = "GWY_SERVER_PORT"
             healthPath = "/actuator/health"
             jarDir = "cpf-gateway/build/libs"
-            jarPattern = "cpf-gateway-*.jar"
+            jarPattern = "gateway-*.jar"
             openApi = $true
             generatedDomain = $false
         }

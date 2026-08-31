@@ -132,6 +132,20 @@
       "allocatedVersion": 140,
       "observedRepositoryMaxVersionAtAllocation": 139,
       "lifecycleScenarioId": "CPF-DB3-BAT-NO-REMOTE-KAFKA-001"
+    },
+    {
+      "id": "CEC-RUNTIME-SERVICE-IDENTITY",
+      "owner": "cpf-batch/center-cut",
+      "description": "Register the canonical CEC(Center-Cut Runner) Runtime Service identity in the central OPS service registry. RuntimeIdentityFactory fixes CANONICAL_CENTER_CUT_SERVICE_ID='CEC' and CpfRuntimeControlPlaneRepository.ensureServiceAndEndpoint fails closed unless the service and endpoint rows exist, so Center-Cut could not register on a fresh or upgraded database. Seed covers fresh install; V141 covers upgrade.",
+      "source": "cpf-tools/db/canonical/seed-model.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "allocatedVersion": 141,
+      "observedRepositoryMaxVersionAtAllocation": 140,
+      "lifecycleScenarioId": "CPF-DB3-CEC-RUNTIME-SERVICE-IDENTITY-001"
     }
   ]
 }

@@ -1,5 +1,7 @@
 package com.cpf.education.batch.restart.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
@@ -9,7 +11,7 @@ import java.util.Map;
 
 /** 배치-07 Retry·Skip·Restart: retryable/skip/checkpoint를 구분하고 restart 시 중복 처리를 방지합니다. */
 @CpfService
-public class BillingRestartJobService {
+public class BillingRestartJobService extends EducationBaseService {
     public BatchStepResult run(BatchStepCommand command) {
         boolean retryable = boolParam(command, "retryable");
         boolean skippable = boolParam(command, "skippable");

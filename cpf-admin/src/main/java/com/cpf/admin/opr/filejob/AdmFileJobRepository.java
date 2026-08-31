@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.filejob;
 
+import com.cpf.admin.common.base.AdmBaseRepository;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,7 +14,7 @@ import java.util.*;
 
 /** 3개 공식 DB에서 같은 SQL 계약으로 동작하는 File Job Repository입니다. */
 @CpfRepository
-public class AdmFileJobRepository {
+public class AdmFileJobRepository extends AdmBaseRepository {
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper;
     private final AdmFilePayloadProtector payloadProtector;

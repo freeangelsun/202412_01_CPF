@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.auth.repository;
 
+import com.cpf.backoffice.online.base.BackofficeBaseRepository;
+
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.beans.factory.ObjectProvider;
@@ -30,7 +32,7 @@ import java.util.Set;
  * datasource가 비활성화된 환경에서는 임시 메모리 대체 저장소를 만들지 않고 명확히 실패시킵니다.</p>
  */
 @CpfRepository
-public class BackofficeAuthRepository {
+public class BackofficeAuthRepository extends BackofficeBaseRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
     private final CpfVendorSqlCatalog sql;
     private final String environmentCode;
@@ -116,11 +118,6 @@ public class BackofficeAuthRepository {
     private BootstrapResult requireSameLogin(BootstrapResult result,String loginId){
         if(!result.loginId().equals(loginId)) throw new IllegalStateException("operationId가 다른 MBW loginId에 이미 사용되었습니다. operationId="+result.operationId());
         return result;
-    }
-
-    private static String requireText(String value,String field){
-        if(value==null||value.isBlank()) throw new IllegalArgumentException(field+"는 필수입니다.");
-        return value.trim();
     }
 
     public record BootstrapResult(long adminUserId,String loginId,String operationId,boolean created) {}

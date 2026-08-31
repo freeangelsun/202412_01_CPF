@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.filejob;
 
+import com.cpf.admin.common.base.AdmBaseService;
+
 import com.cpf.file.tabular.api.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /** 비동기 Upload/Download, Dry-run, 행별 결과, Retry, Cancel, Rollback, Retention을 처리합니다. */
 @CpfService
-public class AdmFileJobService {
+public class AdmFileJobService extends AdmBaseService {
     private static final Set<String> APPLY_UNKNOWN_STATES=Set.of("DISPATCHING","UNKNOWN_RESULT");
     private static final Set<String> ROLLBACK_UNKNOWN_STATES=Set.of("ROLLBACK_DISPATCHING","ROLLBACK_UNKNOWN_RESULT");
     private final AdmFileJobRepository repository;
@@ -438,7 +440,6 @@ public class AdmFileJobService {
         }catch(Exception e){throw new IllegalStateException(e);}
     }
     private byte[] hex(String value){try{return java.util.HexFormat.of().parseHex(value);}catch(Exception e){throw new IllegalArgumentException("SHA-256 형식이 올바르지 않습니다.",e);}}
-    private void requireText(String value,String name){if(value==null||value.isBlank())throw new IllegalArgumentException(name+"는 필수입니다.");}
     private boolean blank(String value){return value==null||value.isBlank();}
     private enum CompensationOutcome { COMPLETED, PARTIAL_FAILED, UNKNOWN }
     public enum UnknownResolution {SIDE_EFFECT_NOT_APPLIED,SIDE_EFFECT_APPLIED,SIDE_EFFECT_COMPENSATED}

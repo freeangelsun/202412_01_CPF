@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.approval.service;
 
+import com.cpf.backoffice.online.base.BackofficeBaseService;
+
 import com.cpf.backoffice.online.management.service.BackofficeManagementService;
 import com.cpf.core.api.error.CpfValidationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,7 +11,7 @@ import java.util.*;
 
 /** 승인 commit 이후 실제 Backoffice Owner 업무를 실행하고 UNKNOWN은 비파괴 조회로만 대사합니다. */
 @CpfService
-public class BackofficeApprovalExecutionRunner {
+public class BackofficeApprovalExecutionRunner extends BackofficeBaseService {
     private final BackofficeApprovalExecutionStateService state;
     private final BackofficeManagementService management;
     private final ObjectMapper mapper;

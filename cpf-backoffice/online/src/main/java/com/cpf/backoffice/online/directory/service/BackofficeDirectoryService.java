@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.directory.service;
 
+import com.cpf.backoffice.online.base.BackofficeBaseService;
+
 import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.backoffice.online.auth.repository.BackofficeAuthRepository;
 import com.cpf.backoffice.online.directory.repository.BackofficeDirectoryRepository;
@@ -13,7 +15,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 /** MBW 조직/직급/직책/Assignment/User Role 관리. */
 @CpfService
-public class BackofficeDirectoryService {
+public class BackofficeDirectoryService extends BackofficeBaseService {
   private static final Set<String> ASSIGNMENT_TYPES =
       Set.of("PRIMARY", "CONCURRENT", "SECONDMENT", "ACTING");
   private static final Set<String> RESPONSIBILITY_TYPES =

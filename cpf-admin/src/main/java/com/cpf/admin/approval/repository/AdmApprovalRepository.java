@@ -1,5 +1,7 @@
 package com.cpf.admin.approval.repository;
 
+import com.cpf.admin.common.base.AdmBaseRepository;
+
 import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.approval.api.AdmApprovalTargetType;
 import com.cpf.admin.approval.spi.AdmApprovalDirectoryEntry;
@@ -20,7 +22,7 @@ import java.util.*;
 
 /** ADM 위험조치 승인 정본 Repository 및 기본 DB Directory Adapter. */
 @CpfRepository
-public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
+public class AdmApprovalRepository extends AdmBaseRepository implements AdmApprovalDirectoryPort {
     private final JdbcTemplate jdbc;
 
     public AdmApprovalRepository(@Qualifier("admJdbcTemplate") JdbcTemplate jdbc) {

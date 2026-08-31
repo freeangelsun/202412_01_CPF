@@ -153,6 +153,33 @@
         "reapply-is-idempotent",
         "general-batch-worker-scheduler-centercut-remain-kafka-free"
       ]
+    },
+    {
+      "id": "CPF-DB3-CEC-RUNTIME-SERVICE-IDENTITY-001",
+      "steps": [
+        "fresh-install-current-schema",
+        "assert-cec-service-and-endpoint-present",
+        "install-pre-v141-fixture-without-cec",
+        "assert-center-cut-registration-fails-closed",
+        "v141-upgrade",
+        "assert-cec-service-and-endpoint-present",
+        "r141-recovery",
+        "assert-cec-service-and-endpoint-absent",
+        "v141-reapply",
+        "assert-cec-service-and-endpoint-present",
+        "run-center-cut-runtime-registration",
+        "cleanup"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true,
+      "invariants": [
+        "historical-migrations-remain-immutable",
+        "fresh-install-and-upgrade-converge-on-the-same-registry-rows",
+        "upgrade-adds-only-the-cec-service-endpoint-and-routing-rows",
+        "rollback-removes-only-cec-rows",
+        "reapply-is-idempotent",
+        "center-cut-runtime-registration-succeeds-only-with-pre-registered-identity"
+      ]
     }
   ]
 }

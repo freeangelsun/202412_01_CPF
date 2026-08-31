@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.auth.repository;
 
+import com.cpf.backoffice.online.base.BackofficeBaseRepository;
+
 import com.cpf.data.persistence.api.CpfRepository;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
@@ -14,7 +16,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /** 최초 특권 계정 Bootstrap용 1회 승인 Token 원장입니다. */
 @CpfRepository
-public final class BackofficeBootstrapApprovalRepository {
+public final class BackofficeBootstrapApprovalRepository extends BackofficeBaseRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcProvider;
     private final CpfVendorSqlCatalog sql;
 

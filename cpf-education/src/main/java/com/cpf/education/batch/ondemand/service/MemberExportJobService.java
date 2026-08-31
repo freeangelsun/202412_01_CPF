@@ -1,5 +1,7 @@
 package com.cpf.education.batch.ondemand.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.api.CpfBatchExecutionRequest;
@@ -11,7 +13,7 @@ import java.util.Map;
 
 /** 배치-15 On-Demand: idempotency key와 lockRequired로 중복 launch를 BAT Owner Runtime에 위임합니다. */
 @CpfService
-public class MemberExportJobService {
+public class MemberExportJobService extends EducationBaseService {
     private final CpfBatchOperations batches;
 
     public MemberExportJobService(CpfBatchOperations batches) {

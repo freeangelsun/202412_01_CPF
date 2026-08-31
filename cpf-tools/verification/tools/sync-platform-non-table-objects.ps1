@@ -231,196 +231,7 @@ FROM dual;
 "@
 }
 
-function Get-MariaCaptureSql([string] $Name, [string] $IdColumn) {
-    return @"
-SET @cpf_object_kind = (
-    SELECT UPPER(table_type)
-      FROM information_schema.tables
-     WHERE table_schema = DATABASE() AND UPPER(table_name) = UPPER('$Name')
-     LIMIT 1
-);
-SET @cpf_observed_next = 0;
-SET @cpf_capture_sql = CASE
-    WHEN @cpf_object_kind = 'SEQUENCE'
-        THEN 'SELECT NEXT VALUE FOR $Name INTO @cpf_observed_next'
-    WHEN @cpf_object_kind = 'BASE TABLE'
-        THEN 'SELECT COALESCE(MAX($IdColumn), 0) + 1 INTO @cpf_observed_next FROM $Name'
-    ELSE 'SELECT 0 INTO @cpf_observed_next'
-END;
-PREPARE cpf_sequence_stmt FROM @cpf_capture_sql;
-EXECUTE cpf_sequence_stmt;
-DEALLOCATE PREPARE cpf_sequence_stmt;
-SET @cpf_sequence_start = GREATEST(
-    @cpf_sequence_start,
-    @cpf_observed_next
-);
-"@
-}
-
-function Get-MariaDropSql([string] $Name) {
-    return @"
-SET @cpf_object_kind = (
-    SELECT UPPER(table_type)
-      FROM information_schema.tables
-     WHERE table_schema = DATABASE() AND UPPER(table_name) = UPPER('$Name')
-     LIMIT 1
-);
-SET @cpf_drop_sql = CASE
-    WHEN @cpf_object_kind = 'SEQUENCE' THEN 'DROP SEQUENCE $Name'
-    WHEN @cpf_object_kind = 'BASE TABLE' THEN 'DROP TABLE $Name'
-    ELSE 'SELECT 1'
-END;
-PREPARE cpf_sequence_stmt FROM @cpf_drop_sql;
-EXECUTE cpf_sequence_stmt;
-DEALLOCATE PREPARE cpf_sequence_stmt;
-"@
-}
-
-function Get-MariaCreateSql([string] $Name) {
-    $definition = $Contract.vendorDefinition.mariadb
-    return @"
-SET @cpf_create_sql = CONCAT(
-    'CREATE SEQUENCE $Name START WITH ',
-    CAST(@cpf_sequence_start AS CHAR),
-    ' MINVALUE $($definition.minValue) MAXVALUE $($definition.maxValue) INCREMENT BY $($definition.incrementBy) $($definition.cache) $($definition.cycle) ENGINE=$($definition.engine)'
-);
-PREPARE cpf_sequence_stmt FROM @cpf_create_sql;
-EXECUTE cpf_sequence_stmt;
-DEALLOCATE PREPARE cpf_sequence_stmt;
-"@
-}
-
-function Get-MariaMigration([object[]] $Objects) {
-    $body = [Collections.Generic.List[string]]::new()
-    $body.Add("-- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.")
-    $body.Add("-- Spring Batch runtime must be stopped while sequence objects are replaced.")
-    $body.Add("-- Existing sequence next values and persisted Spring Batch IDs are preserved as an exact monotonic lower bound.")
-    $body.Add("USE $([string] $Contract.migration.logicalDatabase);")
-    $body.Add("")
-    foreach ($object in $Objects) {
-        $name = [string] $object.name
-        $idTable = [string] $object.idTable
-        $idColumn = [string] $object.idColumn
-        $start = [int64] $Contract.vendorDefinition.mariadb.startWith
-        $body.Add("SET @cpf_sequence_start = GREATEST(")
-        $body.Add("    $start,")
-        $body.Add("    (SELECT COALESCE(MAX($idColumn), 0) + 1 FROM $idTable)")
-        $body.Add(");")
-        $body.Add((Get-MariaCaptureSql $name "ID").Trim())
-        foreach ($legacy in @($object.legacyNames)) {
-            $body.Add((Get-MariaCaptureSql ([string] $legacy) "ID").Trim())
-        }
-        $body.Add((Get-MariaDropSql $name).Trim())
-        foreach ($legacy in @($object.legacyNames)) {
-            $body.Add((Get-MariaDropSql ([string] $legacy)).Trim())
-        }
-        $body.Add((Get-MariaCreateSql $name).Trim())
-        $body.Add("")
-    }
-    return ($body -join "`n").TrimEnd() + "`n"
-}
-
-function Get-MariaRollback([object] $JobInstanceObject) {
-    $legacyName = [string] @($JobInstanceObject.legacyNames)[0]
-    $idTable = [string] $JobInstanceObject.idTable
-    $idColumn = [string] $JobInstanceObject.idColumn
-    $name = [string] $JobInstanceObject.name
-    $start = [int64] $Contract.vendorDefinition.mariadb.startWith
-    return @"
--- Generated exact compatibility rollback for V$($Contract.migration.version).
--- Spring Batch runtime must be stopped while sequence objects are replaced.
-USE $([string] $Contract.migration.logicalDatabase);
-
-SET @cpf_sequence_start = GREATEST(
-    $start,
-    (SELECT COALESCE(MAX($idColumn), 0) + 1 FROM $idTable)
-);
-$(Get-MariaCaptureSql $name "ID")
-$(Get-MariaCaptureSql $legacyName "ID")
-$(Get-MariaDropSql $name)
-$(Get-MariaDropSql $legacyName)
-$(Get-MariaCreateSql $legacyName)
-"@
-}
-
-function Get-PostgresqlMigration([object[]] $Objects) {
-    $definition = $Contract.vendorDefinition.postgresql
-    $body = [Collections.Generic.List[string]]::new()
-    $body.Add("-- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.")
-    foreach ($object in $Objects) {
-        $name = [string] $object.name
-        $table = [string] $object.idTable
-        $column = [string] $object.idColumn
-        $body.Add(
-            "CREATE SEQUENCE IF NOT EXISTS $name START WITH $($definition.startWith) " +
-            "MINVALUE $($definition.minValue) MAXVALUE $($definition.maxValue) " +
-            "INCREMENT BY $($definition.incrementBy) $($definition.cycle);"
-        )
-        $body.Add("SELECT setval(")
-        $body.Add("    '$name',")
-        $body.Add("    GREATEST(")
-        $body.Add("        (SELECT COALESCE(MAX($column), 0) + 1 FROM $table),")
-        $body.Add("        (SELECT CASE WHEN is_called THEN last_value + 1 ELSE last_value END FROM $name)")
-        $body.Add("    ),")
-        $body.Add("    false")
-        $body.Add(");")
-        $body.Add("")
-    }
-    return ($body -join "`n").TrimEnd() + "`n"
-}
-
-function Get-OracleMigration([object[]] $Objects) {
-    $definition = $Contract.vendorDefinition.oracle
-    $body = [Collections.Generic.List[string]]::new()
-    $body.Add("-- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.")
-    foreach ($object in $Objects) {
-        $name = [string] $object.name
-        $table = [string] $object.idTable
-        $column = [string] $object.idColumn
-        $body.Add("DECLARE")
-        $body.Add("    cpf_sequence_count NUMBER;")
-        $body.Add("    cpf_sequence_start NUMBER;")
-        $body.Add("BEGIN")
-        $body.Add("    SELECT COUNT(*) INTO cpf_sequence_count")
-        $body.Add("      FROM user_sequences WHERE sequence_name = '$name';")
-        $body.Add("    IF cpf_sequence_count = 0 THEN")
-        $body.Add(
-            "        SELECT GREATEST(NVL(MAX($column), -1) + 1, $($definition.startWith)) " +
-            "INTO cpf_sequence_start FROM $table;"
-        )
-        $body.Add("        EXECUTE IMMEDIATE")
-        $body.Add("            'CREATE SEQUENCE $name START WITH ' || cpf_sequence_start ||")
-        $body.Add(
-            "            ' MINVALUE $($definition.minValue) MAXVALUE $($definition.maxValue) " +
-            "INCREMENT BY $($definition.incrementBy) $($definition.order) $($definition.cycle)';"
-        )
-        $body.Add("    END IF;")
-        $body.Add("END;")
-        $body.Add("/")
-        $body.Add("")
-    }
-    return ($body -join "`n").TrimEnd() + "`n"
-}
-
-function Get-DropRollback([string] $Vendor, [object[]] $Objects) {
-    $body = [Collections.Generic.List[string]]::new()
-    $body.Add("-- Generated rollback for V$($Contract.migration.version) Spring Batch 6.0.4 sequences.")
-    foreach ($object in $Objects) {
-        $name = [string] $object.name
-        if ($Vendor -ceq "postgresql") {
-            $body.Add("DROP SEQUENCE IF EXISTS $name;")
-        } else {
-            $body.Add(
-                "BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE $name'; " +
-                "EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;"
-            )
-            $body.Add("/")
-        }
-    }
-    return ($body -join "`n").TrimEnd() + "`n"
-}
-
-if ([int] $Contract.schemaVersion -ne 1 -or
+if ([int] $Contract.schemaVersion -ne 2 -or
         [string] $Contract.contract -cne "CPF_PLATFORM_NON_TABLE_OBJECTS") {
     throw "Invalid CPF Platform non-table object contract header."
 }
@@ -441,9 +252,7 @@ if ($Objects.Count -ne 3 -or @($Objects.name | Sort-Object -CaseSensitive -Uniqu
 foreach ($object in $Objects) {
     if ([string] $object.kind -cne "sequence" -or
             [string] $object.logicalDatabase -cne $CurrentLogicalDatabase -or
-            [string] $object.sourceFile -cne $CurrentSourceFile -or
-            [string] $object.legacyLogicalDatabase -cne [string] $Contract.migration.logicalDatabase -or
-            [string] $object.legacySourceFile -cne "35_bat_schema.sql") {
+            [string] $object.sourceFile -cne $CurrentSourceFile) {
         throw "Invalid Spring Batch sequence ownership: $($object.name)"
     }
     Assert-Identifier ([string] $object.name) "sequence name"
@@ -504,39 +313,10 @@ foreach ($vendor in $OfficialVendors) {
     Set-GeneratedArtifact $verifyPath $verifyExpected
 }
 
-$version = [int] $Contract.migration.version
-$description = [string] $Contract.migration.description
-$jobInstanceObject = @($Objects | Where-Object { $_.name -ceq "BATCH_JOB_INSTANCE_SEQ" })[0]
-Set-GeneratedArtifact `
-    (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/migration/flyway/V${version}__${description}.sql") `
-    (Get-MariaMigration $Objects) `
-    -ImmutableVersioned
-Set-GeneratedArtifact `
-    (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/migration/rollback/R${version}__${description}.sql") `
-    (Get-MariaRollback $jobInstanceObject) `
-    -ImmutableVersioned
-Set-GeneratedArtifact `
-    (Join-Path $Root "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/V${version}__${description}.sql") `
-    (Get-PostgresqlMigration $Objects) `
-    -ImmutableVersioned
-Set-GeneratedArtifact `
-    (Join-Path $Root "cpf-tools/db/vendor/postgresql/rollback/batDB/R${version}__${description}.sql") `
-    (Get-DropRollback "postgresql" $Objects) `
-    -ImmutableVersioned
-Set-GeneratedArtifact `
-    (Join-Path $Root "cpf-tools/db/vendor/oracle/migration/flyway/batDB/V${version}__${description}.sql") `
-    (Get-OracleMigration $Objects) `
-    -ImmutableVersioned
-Set-GeneratedArtifact `
-    (Join-Path $Root "cpf-tools/db/vendor/oracle/rollback/batDB/R${version}__${description}.sql") `
-    (Get-DropRollback "oracle" $Objects) `
-    -ImmutableVersioned
-
 [pscustomobject]@{
     status = "PASS"
     mode = if ($Check) { "CHECK" } else { "SYNC" }
     contract = [string] $Contract.contract
-    springBatchVersion = [string] $Contract.upstreamReference.version
     objects = $Objects.Count
     vendors = $OfficialVendors.Count
     written = $Written

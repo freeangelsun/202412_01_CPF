@@ -23,7 +23,7 @@ VSCODE_SETTINGS = ROOT / ".vscode/settings.json"
 
 # 번호 정렬형 canonical 사용자 그룹. 자주 쓰는 작업이 앞, 운영/배포가 뒤에 온다.
 CANONICAL_GROUPS = {
-    "00. CPF 시작", "10. CPF 빌드", "20. CPF 검증", "30. CPF 실행",
+    "00. CPF 시작", "10. CPF 빌드", "15. CPF 테스트", "20. CPF 검증", "30. CPF 실행",
     "40. CPF 구성", "50. CPF 설정", "60. CPF 배포",
 }
 INTERNAL_GROUPS = {
@@ -41,15 +41,15 @@ INTERNAL_TASKS = {
     "publicationGate", "qa34IntegrationTest", "qualityGate",
     "cpfPublishAllToArtifactStaging", "cpfPublishPublicToArtifactStaging",
     "cpfProjectPublicRuntimeAliases", "generateCpfRuntimeCapabilityMetadata",
+    # publication orchestration 은 배포 진입점이 아니라 내부 구현이다.
+    "cpfPublishAllToIsolatedLocal", "cpfPublishAllVerifiedLocalPlatformArtifacts",
 }
 # 배포 그룹에 고정 등록되는 전체 진입점. 개별 배포는 App/Domain 발견 결과로 투영된다.
-DEPLOY_ENTRYPOINTS = {
-    "cpfPublishAllVerifiedLocalPlatformArtifacts", "cpfPublishAllToIsolatedLocal", "cpfDeployAll",
-}
+DEPLOY_ENTRYPOINTS = {"cpfDeployAll"}
 DIRECT_ROOT_ENTRYPOINT_GROUPS = {
     "cpfHelp": "00. CPF 시작",
     "cpfBuildAll": "10. CPF 빌드",
-    "cpfTestAll": "10. CPF 빌드",
+    "cpfTestAll": "15. CPF 테스트",
     "cpfVerifyFast": "20. CPF 검증",
     "cpfVerifyTargeted": "20. CPF 검증",
     "cpfVerifyAllLocal": "20. CPF 검증",
@@ -58,19 +58,22 @@ DIRECT_ROOT_ENTRYPOINT_GROUPS = {
     "cpfModules": "40. CPF 구성",
     "cpfModulesAll": "40. CPF 구성",
     "cpfResourcePolicy": "50. CPF 설정",
-    "cpfPublishAllVerifiedLocalPlatformArtifacts": "60. CPF 배포",
-    "cpfPublishAllToIsolatedLocal": "60. CPF 배포",
     "cpfDeployAll": "60. CPF 배포",
+    "cpfTargets": "40. CPF 구성",
 }
 # 전체 대상 명령은 이름에 All 을 두어 개별 대상과 한눈에 구분한다.
 ALL_SCOPED_ENTRYPOINTS = {
     "cpfBuildAll", "cpfTestAll", "cpfVerifyAllLocal", "cpfModulesAll", "cpfDeployAll",
-    "cpfRunAllLocal", "cpfRunAllBatch",
-    "cpfPublishAllToIsolatedLocal", "cpfPublishAllVerifiedLocalPlatformArtifacts",
+    "cpfRunAllBatch",
+}
+# Canonical Target Catalog 가 Build/Test/Run 에 함께 투영하는 논리 Target 진입점.
+TARGET_SCOPED_ENTRYPOINTS = {
+    "cpfBuildDev", "cpfBuildOnline", "cpfTestDev", "cpfTestOnline",
+    "cpfRunDevLocal", "cpfRunOnlineLocal",
 }
 PUBLIC_TEMPLATE_ENTRYPOINT_GROUPS = {
     "cpfBuildAll": "10. CPF 빌드",
-    "cpfTestAll": "10. CPF 빌드",
+    "cpfTestAll": "15. CPF 테스트",
     "cpfVerifyAll": "20. CPF 검증",
     "cpfRuntimeDiscovery": "30. CPF 실행",
     "cpfDomainDiscovery": "40. CPF 구성",
@@ -82,18 +85,25 @@ GROUP_PATTERN = re.compile(r"group\s*=\s*'([^']*)'")
 
 
 def _task_group_map(text: str) -> dict[str, str]:
-    """convention 에서 task -> group 매핑을 추출한다."""
+    """convention 에서 task -> group 매핑을 추출한다.
+
+    group 선언은 등록 블록 안에서만 유효하다. 블록 밖까지 찾으면 group 을 선언하지 않는
+    내부 task 가 뒤따르는 task 의 group 을 물려받아 잘못된 판정이 난다.
+    """
     mapping: dict[str, str] = {}
-    current: str | None = None
-    for line in text.split("\n"):
+    lines = text.split("\n")
+    for index, line in enumerate(lines):
         m = re.search(r"tasks\.register\(\s*'([^']+)'", line)
-        if m:
-            current = m.group(1)
-        if current:
-            g = GROUP_PATTERN.search(line)
+        if not m:
+            continue
+        # 등록 블록은 보통 몇 줄 안에서 group 을 선언한다. 다음 등록 전까지만 본다.
+        for candidate in lines[index:index + 8]:
+            if candidate is not line and re.search(r"tasks\.register\(\s*'", candidate):
+                break
+            g = GROUP_PATTERN.search(candidate)
             if g:
-                mapping[current] = g.group(1)
-                current = None
+                mapping[m.group(1)] = g.group(1)
+                break
     return mapping
 
 
@@ -170,9 +180,10 @@ def test_root_user_entrypoint_groups_are_exact_and_stable():
         task: mapping.get(task) for task in DIRECT_ROOT_ENTRYPOINT_GROUPS
     } == DIRECT_ROOT_ENTRYPOINT_GROUPS
     assert "tasks.register(taskName) { group = '30. CPF 실행'" in text
-    # 통합 Runtime 만 고정 진입점이고, 개별 실행은 App/Domain 발견 결과로 투영된다.
-    for task in ("cpfRunAllLocal", "cpfRunAllBatch"):
-        assert f"registerCpfRunAlias('{task}'," in text, f"통합 실행 진입점 누락: {task}"
+    # Batch 통합 Runtime 만 별도 진입점이고, ALL/DEV/ONLINE 은 Target Catalog 가 투영한다.
+    assert "registerCpfRunAlias('cpfRunAllBatch'," in text, "통합 Batch 실행 진입점 누락"
+    for task in sorted(TARGET_SCOPED_ENTRYPOINTS):
+        assert f"'{task}'" in text or task.replace("cpfBuild", "").replace("cpfTest", "") in text
 
 
 def test_public_and_open_git_templates_keep_the_same_group_projection():
@@ -185,7 +196,7 @@ def test_public_and_open_git_templates_keep_the_same_group_projection():
 
 def test_cpf_help_names_only_the_canonical_numbered_groups():
     text = CONVENTION.read_text(encoding="utf-8")
-    expected = "00 시작 / 10 빌드 / 20 검증 / 30 실행 / 40 구성 / 50 설정 / 60 배포"
+    expected = "00 시작 / 10 빌드 / 15 테스트 / 20 검증 / 30 실행 / 40 구성 / 50 설정 / 60 배포"
     assert expected in text
     assert "CPF Build/Test/Domain/Database/Runtime/Verification/Publication/Configuration-Discovery" not in text
 
@@ -194,13 +205,17 @@ def test_all_scoped_user_commands_say_all_and_legacy_names_are_internal_aliases(
     text = CONVENTION.read_text(encoding="utf-8")
     for task in sorted(ALL_SCOPED_ENTRYPOINTS):
         registered = (f"tasks.register('{task}'" in text
-                      or f"registerCpfRunAlias('{task}'," in text)
+                      or f"registerCpfRunAlias('{task}'," in text
+                      or f"task: '{task}'" in text)
         assert registered, f"전체 대상 진입점 누락: {task}"
     # 예전 이름은 한 곳(98)에 모으고, 새 이름을 가리키는 별칭 계약으로만 유지한다.
     assert "def cpfLegacyTaskAliases = [" in text
     assert "return cpfInternalTaskGroups.compat" in text
     for legacy, canonical in _legacy_aliases().items():
-        assert canonical in ALL_SCOPED_ENTRYPOINTS or canonical.startswith("cpfRun"), legacy
+        # 호환 별칭은 전체 대상 진입점이나 개별 실행, 또는 내부로 옮긴 publication 을 가리킨다.
+        assert (canonical in ALL_SCOPED_ENTRYPOINTS
+                or canonical.startswith("cpfRun")
+                or canonical.startswith("cpfPublishAll")), legacy
         assert f"tasks.register('{legacy}'" not in text, f"호환 별칭이 개별 등록으로 흩어짐: {legacy}"
 
 
@@ -358,7 +373,7 @@ def test_user_entrypoint_descriptions_declare_scope():
     """사용자 명령 설명은 전체/개별/조회 중 무엇인지 먼저 밝혀야 가독성이 유지된다."""
     text = CONVENTION.read_text(encoding="utf-8")
     mapping = _task_group_map(text)
-    allowed = ("[전체", "[개별", "[조회", "[안내", "[선택")
+    allowed = ("[전체", "[개발", "[온라인", "[배치", "[개별", "[조회", "[안내", "[선택")
     missing = []
     for task, group in mapping.items():
         if group not in CANONICAL_GROUPS:
@@ -379,5 +394,68 @@ def test_legacy_alias_targets_exist_as_user_entrypoints():
     for legacy, canonical in _legacy_aliases().items():
         ok = (f"tasks.register('{canonical}'" in text
               or f"registerCpfRunAlias('{canonical}'," in text
+              or f"task: '{canonical}'" in text
               or canonical in dynamic)
         assert ok, f"호환 별칭 대상이 존재하지 않음: {legacy} -> {canonical}"
+    # 내부로 옮긴 publication 도 예전 이름으로는 계속 호출할 수 있어야 한다.
+    assert "cpfInternalPublicationTasks" in text
+
+
+def test_build_test_run_share_one_target_resolver():
+    """ALL/DEV/ONLINE 정의가 축마다 갈라지면 같은 이름이 다른 대상을 뜻하게 된다."""
+    text = CONVENTION.read_text(encoding="utf-8")
+    assert "def cpfTargetCatalog = [" in text
+    assert "def cpfResolveTarget = { String targetName ->" in text
+    for target in ("ALL:", "DEV:", "ONLINE:"):
+        assert target in text
+    # Build/Test 는 Resolver 결과를, Run 은 같은 Catalog 의 runtimeMode 를 소비한다.
+    assert text.count("cpfResolveTarget(") >= 2
+    assert "cpfTargetCatalog[entry.target]" in text
+    # Runtime 은 Local Runtime 이 이미 소유한 mode 계약을 재사용한다.
+    for mode in ("runtimeMode: 'full'", "runtimeMode: 'standard'", "runtimeMode: 'minimal'"):
+        assert mode in text
+
+
+def test_target_membership_is_actually_different():
+    """DEV 가 ALL 과 같은 대상이면 별도 진입점을 만들 이유가 없다."""
+    text = CONVENTION.read_text(encoding="utf-8")
+    assert "excludedRoles: [] as Set" in text
+    assert "excludedRoles: ['gateway'] as Set" in text
+    assert "excludedRoles: ['gateway', 'admin', 'backoffice-web'] as Set" in text
+    # Batch capability 가 없는 Domain 에 Batch Task 를 만들지 않는다.
+    assert "cpfBatchDomainModules.isEmpty()" in text
+
+
+def test_resolved_target_is_shown_to_the_user():
+    text = CONVENTION.read_text(encoding="utf-8")
+    assert "tasks.register('cpfTargets')" in text
+    assert "CPF TARGET =" in text
+
+
+def test_backoffice_domain_and_web_are_independent_components():
+    """Backoffice Domain 과 Web Frontend 는 서로 다른 Lifecycle 을 가진다.
+
+    Domain 은 cpf.domain.contractVersion 계약으로, Web 은 최상위 Spring Boot App 구조 규칙으로
+    각각 발견된다. 한쪽이 사라져도 다른 쪽 발견 경로는 영향을 받지 않아야 한다.
+    """
+    text = CONVENTION.read_text(encoding="utf-8")
+    # 두 발견 경로가 분리되어 있어야 한 쪽 삭제가 다른 쪽을 끌고 가지 않는다.
+    assert "cpfDiscoveredDomains" in text and "cpfDiscoveredApps" in text
+    assert "cpf.domain.contractVersion" in text
+    assert "dir.parentFile != rootDir" in text
+    # Domain 소유 module(cpf-<domain>/online)은 App 발견에서 구조상 제외된다.
+    assert "cpf-tools/runtime/** 통합 Runtime 과" in text or "상위 디렉터리가 rootDir 인 것만 App" in text
+    # Optional Backoffice 가 없어도 진입점은 남아 정상 부재를 알린다.
+    assert "cpfBackofficeMounted" in text
+    assert "ABSENT (normal optional state)" in text
+
+
+def test_optional_component_absence_keeps_other_components():
+    """Optional Component 부재가 다른 Component 투영을 막으면 안 된다."""
+    text = CONVENTION.read_text(encoding="utf-8")
+    # App/Domain 투영은 각각 자기 발견 결과만 순회한다.
+    assert "cpfDiscoveredApps.each { a ->" in text
+    assert "cpfDiscoveredDomains.each { d ->" in text
+    # 전체 배포는 발견된 것만 모은다(고정 목록이 아니다).
+    assert 'dependsOn cpfDiscoveredApps.collect { "cpfDeploy${it.cap}".toString() }' in text
+    assert 'dependsOn cpfDiscoveredDomains.collect { "cpfDeploy${it.cap}".toString() }' in text

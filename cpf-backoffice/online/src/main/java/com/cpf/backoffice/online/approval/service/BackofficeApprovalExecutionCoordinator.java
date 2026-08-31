@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.approval.service;
 
+import com.cpf.backoffice.online.base.BackofficeBaseService;
+
 import com.cpf.backoffice.online.approval.repository.BackofficeApprovalPolicyRepository;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -9,7 +11,7 @@ import java.util.*;
 
 /** 승인 Transaction에는 실행 PENDING만 기록하고 실제 mutation은 commit 이후 수행합니다. */
 @CpfService
-public class BackofficeApprovalExecutionCoordinator {
+public class BackofficeApprovalExecutionCoordinator extends BackofficeBaseService {
     private final BackofficeApprovalPolicyRepository repository;
     private final BackofficeApprovalExecutionRunner runner;
 

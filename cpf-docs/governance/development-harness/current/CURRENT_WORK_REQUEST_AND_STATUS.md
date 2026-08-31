@@ -2,7 +2,7 @@
 
 이 파일은 Authority가 아니라 `CURRENT_WORK_ITEM_REGISTRY.csv`와 `CURRENT_DEVELOPMENT_STATUS.csv`에서 생성되는 읽기용 Projection이다.
 
-- Current Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f` / 8,474 product-source files
+- Current Product Source Identity: `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74` / 8,477 product-source files
 - Canonical Product Requirements: **218**
 - Canonical Trace: **218 / 218**
 - Detailed Bridge: **46**

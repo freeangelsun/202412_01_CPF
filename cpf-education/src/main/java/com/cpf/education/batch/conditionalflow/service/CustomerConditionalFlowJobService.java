@@ -1,5 +1,7 @@
 package com.cpf.education.batch.conditionalflow.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
@@ -9,7 +11,7 @@ import java.util.Map;
 
 /** 배치-10 Multi-Step·조건 Flow: Step A 완료 후 조건분기하고 Step B 실패 시 재진입 기준을 checkpoint에 남깁니다. */
 @CpfService
-public class CustomerConditionalFlowJobService {
+public class CustomerConditionalFlowJobService extends EducationBaseService {
     public BatchStepResult stepA(BatchStepCommand command) {
         boolean valid = Boolean.parseBoolean(String.valueOf(command.jobParameters().getOrDefault("valid", true)));
         if (!valid) {

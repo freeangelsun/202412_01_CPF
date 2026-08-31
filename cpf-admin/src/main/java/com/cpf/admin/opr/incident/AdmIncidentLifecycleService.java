@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.incident;
 
+import com.cpf.admin.common.base.AdmBaseService;
+
 import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.core.api.error.CpfValidationException;
@@ -34,7 +36,7 @@ import static com.cpf.admin.opr.incident.AdmIncidentContracts.*;
  * ADM audit에 함께 기록합니다.</p>
  */
 @CpfService
-public class AdmIncidentLifecycleService {
+public class AdmIncidentLifecycleService extends AdmBaseService {
     private final JdbcTemplate jdbc;
     private final AdmAuditLogService audit;
     private final Clock clock;

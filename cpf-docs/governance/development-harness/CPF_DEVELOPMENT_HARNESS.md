@@ -150,3 +150,53 @@ Developer/Claude/Codex는 자신의 실제 개발·검수 사실을 Merge할 수
 
 Evidence 없는 CLOSED/PASS, 여러 Work Item의 일괄 완료, 일괄 SKIP, 과거 Source PASS 자동 승계, mandatory NOT_EXECUTED/UNKNOWN/VERIFICATION_PENDING/BLOCKED_EXTERNAL, 미Merge Session, MERGE_CONFLICT가 하나라도 있으면 Final Gate는 PASS가 아니다.
 
+
+## 23. Gradle Developer UX / Dynamic Component Lifecycle (Mandatory)
+
+일반 개발자는 내부 Gradle 구조를 몰라도 전체/개발/개별 작업을 바로 실행할 수 있어야 한다.
+아래는 `cpf-tools/build/cpf-root-conventions.gradle` 이 단일 Owner 로 지키는 계약이며,
+회귀는 `cpf-tools/verification/tests/test_cpf_gradle_task_group_readability.py` 와
+`cpf-tools/verification/tests/test_cpf_developer_shell_contract.py` 가 fail-closed 로 막는다.
+
+### 23.1 사용자 Task 그룹
+
+- canonical 사용자 그룹은 `00. CPF 시작` / `10. CPF 빌드` / `15. CPF 테스트` / `20. CPF 검증` /
+  `30. CPF 실행` / `40. CPF 구성` / `50. CPF 설정` / `60. CPF 배포` 뿐이다.
+- 내부 orchestration/Gate/원시 명령은 `90~96`, 예전 이름 호환은 `98`, Gradle/Plugin 원시 명령은 `99`.
+- 내부 Task 를 삭제하지 말고 사용자 그룹에서 분리한다. Task ID rename/remove 는 Consumer 계약 위반이다.
+- 사용자 Task description 은 `[전체] [개발] [온라인] [배치] [개별] [선택] [조회] [안내]` 중 하나로 시작한다.
+
+### 23.2 Canonical Target Catalog
+
+- `ALL` / `DEV` / `ONLINE` 은 `cpfTargetCatalog` 한 곳에서만 정의한다.
+- Build/Test/Run 은 같은 `cpfResolveTarget` 결과(또는 같은 Catalog 의 `runtimeMode`)를 소비한다.
+  축마다 Component 목록을 따로 들고 있으면 같은 이름이 다른 대상을 뜻하게 된다.
+- Runtime 은 Local Runtime 이 이미 소유한 모듈 구성(`application-local-<mode>.yml`)을 재사용한다.
+  `ALL=full`, `DEV=standard`, `ONLINE=minimal`.
+- `DEV` 는 `ALL` 과 실제 대상이 달라야 한다(현재 계약: Gateway 제외).
+- `cpfTargets` 로 각 Target 의 실제 포함/제외 Component 를 사용자 의미로 확인할 수 있어야 한다.
+
+### 23.3 Generated Domain 자동 Lifecycle
+
+- Domain 이름을 Gradle Source 에 하드코딩하지 않는다. `cpf.domain.contractVersion=1` 계약과
+  `settings.gradle` / 실제 module 디렉터리로만 발견한다.
+- 생성하면 Build/Test/Run/개별 Task/ALL/DEV 에 자동 포함되고, 삭제하면 자동으로 빠져야 한다.
+  사람이 Gradle Source 를 고쳐야 하면 계약 위반이다.
+- Capability 기준으로만 투영한다. `batch` 를 선언하지 않은 Domain 에 Batch Task 를 만들지 않는다.
+- Domain 0개도 정상 상태다.
+
+### 23.4 App / Backoffice Component Lifecycle
+
+- 개별 App 은 구조 규칙(최상위 `cpf-*` + Spring Boot 실행 계약)으로 발견한다.
+  `cpf-tools/runtime/**` 통합 Runtime 과 Domain 소유 module 은 구조상 제외되어 축이 중복되지 않는다.
+- Backoffice 는 Generated Domain 이 아니라 Optional Component 다. Source 에 존재하는 동안
+  DEV/ALL 기본 구성이며, 삭제하면 자동으로 빠진다.
+- Backoffice Domain 과 Backoffice Web 은 독립 Component 다. 한쪽 삭제가 다른 쪽 Source 를
+  자동으로 지우면 안 된다.
+- Optional Component 가 부재해도 root 진입점은 "정상 부재"를 알려야 한다(absence-safe).
+
+### 23.5 배포 UX
+
+- `60. CPF 배포` 에는 `[전체]` 진입점과 `[개별]` 대상만 노출한다.
+- staging/isolated local publication/verified platform 조립 등 publication orchestration 은
+  `94. CPF 내부 배포` 로 분리하고, 예전 이름은 `98` 호환 별칭으로 계속 지원한다.

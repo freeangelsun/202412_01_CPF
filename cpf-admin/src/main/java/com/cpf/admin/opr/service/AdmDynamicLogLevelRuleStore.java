@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.common.base.AdmBaseRepository;
+
 import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
@@ -18,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @CpfRepository
-public class AdmDynamicLogLevelRuleStore {
+public class AdmDynamicLogLevelRuleStore extends AdmBaseRepository {
     private static final Logger log = LoggerFactory.getLogger(AdmDynamicLogLevelRuleStore.class);
 
     private final JdbcTemplate admJdbcTemplate;

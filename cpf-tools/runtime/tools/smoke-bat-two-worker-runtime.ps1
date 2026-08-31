@@ -1,9 +1,11 @@
-param(
+﻿param(
     [Parameter(Mandatory=$true)][string]$Root,
     [Parameter(Mandatory=$true)][string]$ResultDir,
     [ValidateSet('Host','Docker')][string]$ClientAdapter='Docker',
     [string]$MariaDbContainer='cpf-mariadb',
     [string]$DatabaseName='cpfDB',
+    [string]$DbVendor='mariadb',
+    [string]$DbResourceRoot=$env:CPF_DB_RESOURCE_ROOT,
     [string]$DbUser='cpf_app',
     [string]$DbPassword=$env:CPF_CORE_DB_RUNTIME_PASSWORD,
     [string]$DbRootPassword=$env:CPF_DB_ROOT_PASSWORD,
@@ -47,6 +49,12 @@ $root=(Resolve-Path -LiteralPath $Root).Path
 if ([string]::IsNullOrWhiteSpace($DbPassword)) { $DbPassword = $env:CPF_DB_APP_PASSWORD }
 if ([string]::IsNullOrWhiteSpace($DbPassword)) { throw 'CPF DB runtime password is required via CPF_CORE_DB_RUNTIME_PASSWORD or CPF_DB_APP_PASSWORD.' }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+if ([string]::IsNullOrWhiteSpace($DbResourceRoot)) { $DbResourceRoot = Join-Path $Root ("cpf-tools\db\vendor\" + $DbVendor) }
+$DbResourceRoot = [IO.Path]::GetFullPath($DbResourceRoot)
+if (-not (Test-Path -LiteralPath (Join-Path $DbResourceRoot 'pack.json') -PathType Leaf)) {
+    throw "중앙 DB Vendor Pack을 찾을 수 없습니다. vendor=$DbVendor root=$DbResourceRoot"
+}
+$script:DbResourceRootResolved = $DbResourceRoot
 $started=Get-Date
 $runId=Get-Date -Format 'yyyyMMddHHmmssfff'
 $processes=@()
@@ -100,13 +108,15 @@ function Start-Role([string]$name,[string]$jar,[int]$port,[hashtable]$extra){
     $log=Join-Path $ResultDir "$name.log"
     $err=Join-Path $ResultDir "$name.err.log"
     $instance="bat-$name-$runId"
-    $args=@('-jar',$jar,"--server.port=$port",'--spring.batch.job.enabled=false',
+    # instanceId는 JVM 시스템 속성으로만 읽히므로(-D), Spring 인자만으로는 적용되지 않는다.
+    $args=@("-Dcpf.runtime.instance-id=$instance",'-jar',$jar,"--server.port=$port",'--spring.batch.job.enabled=false',
       '--cpf.data.persistence.jdbc.role-datasources.cpf-platform-db.enabled=true',
       "--cpf.data.persistence.jdbc.role-datasources.cpf-platform-db.url=jdbc:mariadb://127.0.0.1:3306/$DatabaseName",
       "--cpf.data.persistence.jdbc.role-datasources.cpf-platform-db.username=$DbUser",
       "--cpf.data.persistence.jdbc.role-datasources.cpf-platform-db.password=$DbPassword",
       '--cpf.data.persistence.jdbc.role-datasources.cpf-platform-db.driver-class-name=org.mariadb.jdbc.Driver',
-      "--cpf.runtime.instance-id=$instance","--cpf.was-id=$instance",'--cpf.db.vendor=mariadb',
+      "--cpf.runtime.instance-id=$instance","--cpf.was-id=$instance","--cpf.db.vendor=$DbVendor",
+      "--cpf.db.resource-root=$script:DbResourceRootResolved",
       "--cpf.batch.control.base-url=http://127.0.0.1:$ControlPlanePort")
     foreach($k in $extra.Keys){$args += "--$k=$($extra[$k])"}
     $p=Start-Process -FilePath $script:Java -ArgumentList $args -PassThru -RedirectStandardOutput $log -RedirectStandardError $err

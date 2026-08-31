@@ -1,5 +1,7 @@
 package com.cpf.admin.approval.security;
 
+import com.cpf.admin.common.base.AdmBaseRepository;
+
 import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -13,7 +15,7 @@ import java.util.HexFormat;
 
 /** JDBC-backed cluster-safe single-use ledger for approval execution capability nonces. */
 @CpfRepository
-public final class AdmApprovalCapabilityNonceRepository {
+public final class AdmApprovalCapabilityNonceRepository extends AdmBaseRepository {
     private final JdbcTemplate jdbc;
 
     public AdmApprovalCapabilityNonceRepository(@Qualifier("admJdbcTemplate") JdbcTemplate jdbc) {

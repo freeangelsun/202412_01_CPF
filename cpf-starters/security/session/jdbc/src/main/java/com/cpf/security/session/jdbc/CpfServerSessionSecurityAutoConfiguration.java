@@ -2,6 +2,8 @@ package com.cpf.security.session.jdbc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.sql.DataSource;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -34,6 +36,9 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @ConditionalOnProperty(name = "cpf.security.session.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(CpfServerSessionProperties.class)
 public class CpfServerSessionSecurityAutoConfiguration {
+    /** CPF 논리 Platform DB role의 canonical Bean 이름입니다. */
+    static final String CPF_PLATFORM_DATA_SOURCE = "cpfPlatformDataSource";
+
     @Bean
     @ConditionalOnMissingBean(ObjectMapper.class)
     ObjectMapper cpfBffCredentialObjectMapper() {
@@ -55,13 +60,14 @@ public class CpfServerSessionSecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(CpfBffCredentialVault.class)
     CpfBffCredentialVault cpfBffCredentialVault(
-            DataSource dataSource,
+            ListableBeanFactory beanFactory,
+            ObjectProvider<DataSource> dataSources,
             Environment environment,
             CpfServerSessionProperties properties) {
         boolean product = isProductProfile(environment);
         byte[] key = CpfSessionReadinessVerifier.decodeKey(properties.credentialKeyBase64(), product);
         return new JdbcCpfBffCredentialVault(
-                new JdbcTemplate(dataSource), key, properties.credentialKeyId());
+                new JdbcTemplate(resolveSessionDataSource(beanFactory, dataSources)), key, properties.credentialKeyId());
     }
 
     @Bean
@@ -183,10 +189,36 @@ public class CpfServerSessionSecurityAutoConfiguration {
     @Bean
     @ConditionalOnProperty(name = "cpf.security.session.fail-closed", matchIfMissing = true)
     CpfSessionReadinessVerifier cpfSessionReadinessVerifier(
-            DataSource dataSource,
+            ListableBeanFactory beanFactory,
+            ObjectProvider<DataSource> dataSources,
             Environment environment,
             CpfServerSessionProperties properties) {
-        return new CpfSessionReadinessVerifier(dataSource, environment, properties);
+        return new CpfSessionReadinessVerifier(resolveSessionDataSource(beanFactory, dataSources), environment, properties);
+    }
+
+    /**
+     * 세션/BFF 자격증명은 CPF Platform 스키마(SEC_BFF_CREDENTIAL_VAULT)가 소유합니다.
+     *
+     * <p>One-WAS 통합 실행처럼 ADM/Backoffice/Common/Platform/Customer DataSource가 함께 있는
+     * 구성에서 무한정 {@code DataSource} 주입은 후보가 여러 개라 기동 자체를 실패시킵니다.
+     * 그래서 논리 role 관례 Bean 이름을 우선 사용하고, DataSource가 하나뿐인 단일 앱 구성에서는
+     * 그 하나를 사용합니다. 어느 쪽도 정할 수 없으면 조용히 임의 선택하지 않고 fail-closed 합니다.</p>
+     */
+    static DataSource resolveSessionDataSource(
+            ListableBeanFactory beanFactory, ObjectProvider<DataSource> dataSources) {
+        if (beanFactory.containsBean(CPF_PLATFORM_DATA_SOURCE)
+                && beanFactory.isTypeMatch(CPF_PLATFORM_DATA_SOURCE, DataSource.class)) {
+            return beanFactory.getBean(CPF_PLATFORM_DATA_SOURCE, DataSource.class);
+        }
+        DataSource unique = dataSources.getIfUnique();
+        if (unique != null) {
+            return unique;
+        }
+        throw new IllegalStateException(
+                "CPF session/BFF credential storage requires the CPF Platform DataSource. "
+                        + "Enable the '" + CPF_PLATFORM_DATA_SOURCE + "' role bean "
+                        + "(cpf.data.persistence.jdbc.role-datasources.cpf-platform-db.enabled=true) "
+                        + "when more than one DataSource is present.");
     }
 
     static boolean isProductProfile(Environment environment) {

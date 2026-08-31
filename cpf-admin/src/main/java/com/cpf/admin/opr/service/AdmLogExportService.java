@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.common.base.AdmBaseService;
+
 import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.dto.AdmLogExportRequest;
 import com.cpf.admin.opr.dto.AdmLogExportResponse;
@@ -29,7 +31,7 @@ import com.cpf.foundation.annotation.CpfService;
  * Artifact 본문과 소유자·만료시각은 한 행에 원자 저장되며 브라우저 임의 Blob 생성 경로를 허용하지 않습니다.
  */
 @CpfService
-public class AdmLogExportService {
+public class AdmLogExportService extends AdmBaseService {
     private static final Duration TTL = Duration.ofMinutes(15);
     private static final long MAX_ARTIFACT_BYTES = 5L * 1024L * 1024L;
     private static final Set<String> SECRET_KEYS = Set.of(

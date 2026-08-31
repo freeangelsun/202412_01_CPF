@@ -7,6 +7,7 @@ import com.cpf.backoffice.online.auth.repository.BackofficeAuthRepository.LoginH
 import com.cpf.backoffice.online.auth.repository.BackofficeAuthRepository.LoginOperationState;
 import com.cpf.backoffice.online.auth.repository.BackofficeAuthRepository.RefreshTokenWrite;
 import org.springframework.http.HttpStatus;
+import com.cpf.backoffice.online.base.BackofficeBaseService;
 import com.cpf.foundation.annotation.CpfService;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,7 +19,7 @@ import java.time.Instant;
  * 하나의 Transaction으로 commit하여 부분 성공을 남기지 않습니다.
  */
 @CpfService
-public class BackofficeLoginTransactionService {
+public class BackofficeLoginTransactionService extends BackofficeBaseService {
     private static final String LOGIN_DOMAIN = "MBW";
     private final BackofficeAuthRepository repository;
 

@@ -1,5 +1,7 @@
 package com.cpf.education.batch.scheduler.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
@@ -11,7 +13,7 @@ import java.util.Map;
 
 /** 배치-06 Scheduler·영업일: 영업일, misfire, 예정/실제 실행시간을 Batch Runtime Context로 처리합니다. */
 @CpfService
-public class BusinessDateSchedulerJobService {
+public class BusinessDateSchedulerJobService extends EducationBaseService {
     private final CpfCalendarService calendar;
 
     public BusinessDateSchedulerJobService(CpfCalendarService calendar) {

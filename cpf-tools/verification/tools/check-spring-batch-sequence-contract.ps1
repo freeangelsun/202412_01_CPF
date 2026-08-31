@@ -19,8 +19,13 @@ $ExpectedExact = @(
     "BATCH_STEP_EXECUTION_SEQ"
 )
 $LegacyName = "BATCH_JOB_SEQ"
-$Version = [int] $Contract.migration.version
-$Description = [string] $Contract.migration.description
+$Provenance = $Contract.upstreamProvenance
+$BatchArtifact = @($Provenance.artifacts | Where-Object { [string] $_.id -ceq "spring-batch-core" })[0]
+$HistoricalReleased = @($Contract.historicalMigration.released |
+    Where-Object { [string] $_.description -ceq "spring_batch_6_sequence_contract" })[0]
+$Version = [int] $HistoricalReleased.version
+$Description = [string] $HistoricalReleased.description
+$HistoricalArtifacts = $HistoricalReleased.artifacts
 $JarVerified = $false
 $Failures = [Collections.Generic.List[string]]::new()
 
@@ -72,9 +77,23 @@ function Compare-ExactSet([string[]] $Actual, [string[]] $Expected) {
         (($Expected | Sort-Object -CaseSensitive -Unique) -join "`n")
 }
 
-if ([int] $Contract.schemaVersion -ne 1 -or
+if ([int] $Contract.schemaVersion -ne 2 -or
         [string] $Contract.contract -cne "CPF_PLATFORM_NON_TABLE_OBJECTS") {
     Add-Failure "Invalid Platform non-table object canonical header."
+}
+if ([string] $Provenance.contract -cne "CPF_UPSTREAM_ARTIFACT_PROVENANCE" -or
+        [int] $Provenance.schemaVersion -ne 1) {
+    Add-Failure "Invalid upstream artifact provenance contract header."
+}
+if ([string] $Contract.historicalMigration.contract -cne "CPF_PLATFORM_NON_TABLE_HISTORICAL_MIGRATION" -or
+        [int] $Contract.historicalMigration.schemaVersion -ne 1) {
+    Add-Failure "Invalid historical migration provenance contract header."
+}
+if ($null -eq $BatchArtifact) {
+    Add-Failure "Upstream provenance does not declare the spring-batch-core artifact."
+}
+if ($null -eq $HistoricalReleased) {
+    Add-Failure "Historical migration provenance does not declare the Spring Batch sequence release."
 }
 if (-not (Compare-ExactSet @($Contract.canonicalPolicy.officialVendors) $OfficialVendors)) {
     Add-Failure "Official sequence vendors must be exactly mariadb,postgresql,oracle."
@@ -93,6 +112,33 @@ if (-not (Compare-ExactSet $ExpectedCurrentNames $ExpectedCurrentExact) -or
     Add-Failure "Current Spring Batch sequence names do not match the canonical BAT_SB table mapping."
 }
 $RetiredCurrentNames = @($ExpectedNames + $LegacyName | Sort-Object -CaseSensitive -Unique)
+$ProvenanceVendors = @($BatchArtifact.resources | ForEach-Object { [string] $_.vendor })
+if (-not (Compare-ExactSet $ProvenanceVendors $OfficialVendors) -or
+        $ProvenanceVendors.Count -ne $OfficialVendors.Count) {
+    Add-Failure "Upstream provenance vendors must be exactly the official vendors: actual=$($ProvenanceVendors -join ',')"
+}
+if (-not (Compare-ExactSet @($BatchArtifact.declaresSequences) $ExpectedExact)) {
+    Add-Failure "Upstream provenance declaresSequences drifted from the canonical Spring Batch names."
+}
+$VersionSource = $BatchArtifact.versionSource
+$StackPath = Join-Path $Root ([string] $VersionSource.file)
+if (-not (Test-Path -LiteralPath $StackPath -PathType Leaf)) {
+    Add-Failure "Upstream provenance version source is missing: $([string] $VersionSource.file)"
+} else {
+    $stackProperty = [string] $VersionSource.property
+    $stackLine = @(
+        [IO.File]::ReadAllLines($StackPath, [Text.Encoding]::UTF8) |
+            Where-Object { $_ -match "^\s*$([regex]::Escape($stackProperty))\s*=" }
+    )
+    if ($stackLine.Count -ne 1) {
+        Add-Failure "Upstream provenance version property is not uniquely declared: $stackProperty"
+    } else {
+        $stackVersion = ($stackLine[0] -split "=", 2)[1].Trim()
+        if ($stackVersion -cne [string] $BatchArtifact.version) {
+            Add-Failure "Upstream provenance version does not match the canonical stack: contract=$([string] $BatchArtifact.version) stack=$stackVersion"
+        }
+    }
+}
 if ($Version -ne 73 -or $Description -cne "spring_batch_6_sequence_contract") {
     Add-Failure "Spring Batch sequence migration must use the canonical new V73 contract."
 }
@@ -105,7 +151,7 @@ if ($LASTEXITCODE -ne 0) {
 
 foreach ($vendor in $OfficialVendors) {
     $source = Read-Text "cpf-tools/db/vendor/$vendor/source/$($Contract.canonicalPolicy.currentSourceFile)"
-    $retiredSource = Read-Text "cpf-tools/db/vendor/$vendor/source/35_bat_schema.sql"
+    $retiredSource = Read-Text "cpf-tools/db/vendor/$vendor/source/$([string] $HistoricalReleased.retiredSourceFile)"
     $install = Read-Text "cpf-tools/db/vendor/$vendor/install/00_empty_install.sql"
     $verify = Read-Text "cpf-tools/db/vendor/$vendor/verify/00_verify.sql"
     foreach ($pair in @(@("source", $source), @("install", $install))) {
@@ -174,10 +220,10 @@ foreach ($vendor in $OfficialVendors) {
     }
 }
 
-$mariaSourceMigration = "cpf-tools/db/vendor/mariadb/source/migration/flyway/V${Version}__${Description}.sql"
-$mariaRuntimeMigration = "cpf-tools/db/vendor/mariadb/migration/flyway/V${Version}__${Description}.sql"
-$mariaSourceRollback = "cpf-tools/db/vendor/mariadb/source/migration/rollback/R${Version}__${Description}.sql"
-$mariaRuntimeRollback = "cpf-tools/db/vendor/mariadb/rollback/R${Version}__${Description}.sql"
+$mariaSourceMigration = [string] $HistoricalArtifacts.mariadb.canonicalMigration
+$mariaRuntimeMigration = [string] $HistoricalArtifacts.mariadb.migration
+$mariaSourceRollback = [string] $HistoricalArtifacts.mariadb.canonicalRollback
+$mariaRuntimeRollback = [string] $HistoricalArtifacts.mariadb.rollback
 $mariaMigration = Read-Text $mariaSourceMigration
 $mariaRuntime = Read-Text $mariaRuntimeMigration
 $mariaRollback = Read-Text $mariaSourceRollback
@@ -213,8 +259,8 @@ if ([regex]::Matches($mariaRollback, $exactNextPattern).Count -ne 2 -or
     Add-Failure "MariaDB R73 must preserve the exact observed next value without an extra increment."
 }
 
-$pgMigration = Read-Text "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/V${Version}__${Description}.sql"
-$pgRollback = Read-Text "cpf-tools/db/vendor/postgresql/rollback/batDB/R${Version}__${Description}.sql"
+$pgMigration = Read-Text ([string] $HistoricalArtifacts.postgresql.migration)
+$pgRollback = Read-Text ([string] $HistoricalArtifacts.postgresql.rollback)
 if ($pgMigration -notmatch "(?i)\bsetval\s*\(" -or
         $pgMigration -notmatch "(?i)\bCREATE\s+SEQUENCE\s+IF\s+NOT\s+EXISTS\b" -or
         $pgMigration -match "(?i)\b(?:ENGINE|NOCACHE|NEXT\s+VALUE\s+FOR)\b") {
@@ -224,8 +270,8 @@ if ($pgRollback -notmatch "(?i)\bDROP\s+SEQUENCE\s+IF\s+EXISTS\b") {
     Add-Failure "PostgreSQL R73 sequence rollback is incomplete."
 }
 
-$oracleMigration = Read-Text "cpf-tools/db/vendor/oracle/migration/flyway/batDB/V${Version}__${Description}.sql"
-$oracleRollback = Read-Text "cpf-tools/db/vendor/oracle/rollback/batDB/R${Version}__${Description}.sql"
+$oracleMigration = Read-Text ([string] $HistoricalArtifacts.oracle.migration)
+$oracleRollback = Read-Text ([string] $HistoricalArtifacts.oracle.rollback)
 if ($oracleMigration -notmatch "(?i)\buser_sequences\b" -or
         $oracleMigration -notmatch "(?i)\bEXECUTE\s+IMMEDIATE\b" -or
         $oracleMigration -notmatch "(?i)\bORDER\s+NOCYCLE\b" -or
@@ -241,10 +287,21 @@ $gradleCache = if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) {
 } else {
     $env:GRADLE_USER_HOME
 }
-$batchVersion = [string] $Contract.upstreamReference.version
-$jarRoot = Join-Path $gradleCache "caches/modules-2/files-2.1/org.springframework.batch/spring-batch-core/$batchVersion"
+$batchVersion = [string] $BatchArtifact.version
+$resolution = $BatchArtifact.resolution
+if ([string] $resolution.kind -cne "gradle-module-cache") {
+    Add-Failure "Unsupported upstream artifact resolution kind: $([string] $resolution.kind)"
+}
+$cacheRelative = ([string] $resolution.cacheRoot).
+    Replace("{group}", [string] $BatchArtifact.group).
+    Replace("{artifact}", [string] $BatchArtifact.artifact).
+    Replace("{version}", $batchVersion)
+$jarFileName = ([string] $resolution.fileName).
+    Replace("{artifact}", [string] $BatchArtifact.artifact).
+    Replace("{version}", $batchVersion)
+$jarRoot = Join-Path $gradleCache $cacheRelative
 $jar = if (Test-Path -LiteralPath $jarRoot -PathType Container) {
-    Get-ChildItem -LiteralPath $jarRoot -Recurse -File -Filter "spring-batch-core-$batchVersion.jar" |
+    Get-ChildItem -LiteralPath $jarRoot -Recurse -File -Filter $jarFileName |
         Select-Object -First 1
 } else {
     $null
@@ -260,7 +317,12 @@ if ($null -eq $jar) {
         $sha = [Security.Cryptography.SHA256]::Create()
         try {
             foreach ($vendor in $OfficialVendors) {
-                $resourceContract = $Contract.upstreamReference.resources.$vendor
+                $resourceContract = @($BatchArtifact.resources |
+                    Where-Object { [string] $_.vendor -ceq $vendor })[0]
+                if ($null -eq $resourceContract) {
+                    Add-Failure "Upstream provenance resource missing for vendor: $vendor"
+                    continue
+                }
                 $resourcePath = [string] $resourceContract.path
                 $entry = @($zip.Entries | Where-Object { $_.FullName -ceq $resourcePath })[0]
                 if ($null -eq $entry) {
@@ -282,8 +344,12 @@ if ($null -eq $jar) {
                 } finally {
                     $reader.Dispose()
                 }
-                if (-not (Compare-ExactSet (Get-SequenceNames $officialSql) $ExpectedNames)) {
+                $officialNames = @(Get-SequenceNames $officialSql)
+                if (-not (Compare-ExactSet $officialNames $ExpectedNames)) {
                     Add-Failure "Official Spring Batch schema sequence names drifted: vendor=$vendor"
+                }
+                if (-not (Compare-ExactSet $officialNames @($BatchArtifact.declaresSequences))) {
+                    Add-Failure "Upstream provenance declaresSequences does not match the official artifact: vendor=$vendor"
                 }
             }
         } finally {
@@ -305,6 +371,9 @@ if ($Failures.Count -gt 0) {
     contract = [string] $Contract.contract
     springBatchVersion = $batchVersion
     officialJarVerified = $JarVerified
+    upstreamProvenanceContract = [string] $Provenance.contract
+    upstreamArtifact = "$([string] $BatchArtifact.group):$([string] $BatchArtifact.artifact):$batchVersion"
+
     sequences = $ExpectedNames
     currentSequences = $ExpectedCurrentNames
     vendors = $OfficialVendors

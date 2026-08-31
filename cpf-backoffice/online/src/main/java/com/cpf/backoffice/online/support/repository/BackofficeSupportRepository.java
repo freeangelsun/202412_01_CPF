@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.support.repository;
 
+import com.cpf.backoffice.online.base.BackofficeBaseRepository;
+
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import java.util.List;
@@ -17,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 /** MBW 알림·첨부·저장 검색·다운로드 감사·권한 분석 데이터를 관리합니다. */
 @CpfRepository
-public class BackofficeSupportRepository {
+public class BackofficeSupportRepository extends BackofficeBaseRepository {
   private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
   private final CpfVendorSqlCatalog sql;
 

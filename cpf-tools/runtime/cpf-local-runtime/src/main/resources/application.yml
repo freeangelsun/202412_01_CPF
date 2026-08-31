@@ -10,6 +10,10 @@ server:
   port: ${CPF_LOCAL_RUNTIME_PORT:8080}
 cpf:
   environment: local
+  # Canonical systemCode는 명시 선언이 정본이며 profile/application 이름으로 대체하지 않습니다
+  # (CpfRuntimeSystemCode 계약). 통합 로컬 Runtime은 여러 App을 한 JVM에 올리는 개발/검증용
+  # 실행 단위이므로 자신의 코드를 LOCAL로 선언하고, 환경변수로 덮어쓸 수 있게 둡니다.
+  system-code: ${CPF_SYSTEM_CODE:LOCAL}
   local:
     runtime:
       enabled: false

@@ -5859,19 +5859,22 @@ INSERT INTO OPS_SERVICE (service_id, service_name, service_type, owner_module_co
 VALUES ('MBW', '업무 백오피스 서비스', 'INTERNAL', 'MBW', 'CPF 업무 운영 백오피스 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('EDU', '온라인 교육 서비스', 'INTERNAL', 'EDU', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
+    ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CEC', '센터컷 실행 서비스', 'INTERNAL', 'CEC', 'CPF 센터컷 Runner 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE service_name=VALUES(service_name), service_type=VALUES(service_type), owner_module_code=VALUES(owner_module_code), description=VALUES(description), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO OPS_SERVICE_ENDPOINT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by)
 VALUES ('MBW_API', 'MBW', 'MBW API Endpoint', 'HTTP', 'http://cpf-backoffice', '/api/v1/backoffice', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('EDU_API', 'EDU', 'EDU API Endpoint', 'HTTP', 'http://cpf-education', '/education', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://cpf-batch', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://cpf-admin', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
+    ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://cpf-admin', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CEC_API', 'CEC', 'CEC API Endpoint', 'HTTP', 'http://cpf-batch-center-cut', '/cec', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE service_id=VALUES(service_id), endpoint_name=VALUES(endpoint_name), endpoint_type=VALUES(endpoint_type), base_url=VALUES(base_url), context_path=VALUES(context_path), default_timeout_ms=VALUES(default_timeout_ms), default_retry_count=VALUES(default_retry_count), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by)
 VALUES ('MBW', 'MBW_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('EDU', 'EDU_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
-    ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
+    ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('CEC', 'CEC_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE routing_mode=VALUES(routing_mode), load_balance_type=VALUES(load_balance_type), failover_enabled_yn=VALUES(failover_enabled_yn), health_check_required_yn=VALUES(health_check_required_yn), active_yn=VALUES(active_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/56_backoffice_product_seed.sql
@@ -6824,6 +6827,53 @@ SELECT 'cpfDB.adm_operator_status_constraint' AS check_name,
        IF(COUNT(*) = 1, 1, 0) AS passed
 FROM information_schema.table_constraints
 WHERE table_schema=DATABASE() AND UPPER(table_name)='ADM_OPERATOR' AND constraint_name='ck_adm_operator_status';
+
+-- CPF_LOGICAL_DATABASE=cpfDB
+SELECT 'cpfDB.table_count' AS check_name,
+       IF(COUNT(*) = 201, 1, 0) AS passed
+FROM information_schema.tables
+WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';
+
+SELECT 'cpfDB.table_engine_collation' AS check_name,
+       IF(COUNT(*) = 0, 1, 0) AS passed
+FROM information_schema.tables
+WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
+  AND (UPPER(COALESCE(engine, '')) <> 'INNODB'
+       OR LOWER(COALESCE(table_collation, '')) <> 'utf8mb4_unicode_ci');
+
+SELECT 'cpfDB.runtime_transaction_id_contract' AS check_name,
+       IF(COUNT(*) = 28 AND COALESCE(SUM(CASE
+           WHEN UPPER(table_name) = 'ADM_APPROVAL_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_APPROVAL_REQUEST' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_AUDIT_DELIVERY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_AUDIT_LOG' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_DYNAMIC_LOG_LEVEL_RULE' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_INCIDENT_LIFECYCLE' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 100 THEN 1
+           WHEN UPPER(table_name) = 'ADM_INCIDENT_SIGNAL' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 100 THEN 1
+           WHEN UPPER(table_name) = 'BAT_CENTER_CUT_EXECUTION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_CENTER_CUT_ITEM' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_CENTER_CUT_RESULT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_EXECUTION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_JOB_DEFINITION_AUDIT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_ON_DEMAND_REQUEST' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_RUNTIME_COMMAND' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_BROKER_DLQ' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_BROKER_OUTBOX' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_FILE_TRANSFER_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_SAGA_EXECUTION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_LINEAGE' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_LINEAGE_ARCHIVE' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_LOG' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_SEGMENT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_UNKNOWN_RESULT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'GW_TRANSACTION' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 100 THEN 1
+           WHEN UPPER(table_name) = 'OPS_ASYNC_OPERATION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'OPS_SERVICE_CALL_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'OPS_TRANSACTION_SUBJECT' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 128 THEN 1
+           WHEN UPPER(table_name) = 'SEC_TOKEN_AUDIT_LOG' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           ELSE 0 END), 0) = 28, 1, 0) AS passed
+FROM information_schema.columns
+WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';
 
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,

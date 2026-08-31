@@ -3,15 +3,6 @@ spring:
     timeout-per-shutdown-phase: ${GWY_SHUTDOWN_TIMEOUT:30s}
   application:
     name: cpf-gateway
-  datasource:
-    cpf:
-      mode: ${GWY_DATASOURCE_MODE:${CPF_DB_MODE:url}}
-      url: ${GWY_DATASOURCE_URL:${CPF_DB_URL:}}
-      database-name: ${GWY_DB_NAME:${CPF_DB_NAME:cpfDB}}
-      username: ${GWY_DATASOURCE_USERNAME:cpf_app}
-      password: ${GWY_DATASOURCE_PASSWORD:__REPLACE_BY_ENV__}
-      jndi-name: ${GWY_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfGatewayDataSource}
-      driver-class-name: ${GWY_DB_DRIVER:${CPF_DB_DRIVER:}}
   config:
     import:
       - optional:classpath:application-cpf.yml
@@ -34,6 +25,21 @@ server:
 cpf:
   # Runtime 거래 식별용 System Code입니다. CPF Platform DB의 Schema/Table Prefix는 이 값과 무관하게 Canonical 고정입니다.
   system-code: ${CPF_SYSTEM_CODE:GWY}
+  data:
+    persistence:
+      jdbc:
+        role-datasources:
+          # Gateway는 자체 업무 DB를 소유하지 않는 infra application이지만, Registry/Nonce/Ledger와
+          # CPF Common(code/message)이 CPF Platform DB를 읽는다. 논리 role로만 해석하며
+          # 물리 접속은 환경이 주입한다. jndi-name이 비면 url 방식으로 해석된다.
+          cpf-platform-db:
+            enabled: true
+            jndi-name: ${GWY_DATASOURCE_JNDI_NAME:}
+            url: ${GWY_DATASOURCE_URL:${CPF_PLATFORM_DB_URL:${CPF_DB_URL:}}}
+            username: ${GWY_DATASOURCE_USERNAME:${CPF_PLATFORM_DB_USERNAME:cpf_app}}
+            password: ${GWY_DATASOURCE_PASSWORD:${CPF_PLATFORM_DB_PASSWORD:}}
+            driver-class-name: ${GWY_DB_DRIVER:${CPF_PLATFORM_DB_DRIVER:${CPF_DB_DRIVER:}}}
+            pool-name: ${GWY_DATASOURCE_POOL_NAME:cpf-gateway-platform}
   framework:
     module-id: ${GWY_MODULE_ID:GWY}
     was-id: ${GWY_WAS_ID:gwLC001}

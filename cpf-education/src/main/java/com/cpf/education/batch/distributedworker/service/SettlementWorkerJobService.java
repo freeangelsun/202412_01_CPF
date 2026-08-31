@@ -1,5 +1,7 @@
 package com.cpf.education.batch.distributedworker.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
@@ -9,7 +11,7 @@ import java.util.Map;
 
 /** 배치-08 분산 Worker·재할당: fencing token으로 stale worker의 중복 effect를 차단합니다. */
 @CpfService
-public class SettlementWorkerJobService {
+public class SettlementWorkerJobService extends EducationBaseService {
     public BatchStepResult run(BatchStepCommand command) {
         long expectedFencing = ((Number) command.jobParameters().getOrDefault("expectedFencingToken", 1)).longValue();
         String workerId = String.valueOf(command.jobParameters().getOrDefault("workerId", "worker-unknown"));

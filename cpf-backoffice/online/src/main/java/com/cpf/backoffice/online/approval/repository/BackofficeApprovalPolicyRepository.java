@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.approval.repository;
 
+import com.cpf.backoffice.online.base.BackofficeBaseRepository;
+
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.backoffice.online.approval.api.BackofficeApprovalTargetType;
@@ -24,7 +26,7 @@ import java.util.*;
  * 진행 중 결재 분모가 바뀌지 않습니다.</p>
  */
 @CpfRepository
-public class BackofficeApprovalPolicyRepository implements BackofficeApprovalDirectoryPort {
+public class BackofficeApprovalPolicyRepository extends BackofficeBaseRepository implements BackofficeApprovalDirectoryPort {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
     private final CpfVendorSqlCatalog sql;
 

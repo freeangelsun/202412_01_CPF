@@ -59,10 +59,13 @@ public class CpfLocalRuntimeModules {
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnProperty(prefix = "cpf.local.modules", name = "backoffice", havingValue = "true")
     @ComponentScan(
-            basePackages = "com.cpf.backoffice.online",
+            basePackages = {"com.cpf.backoffice.online", "com.cpf.security.common"},
             excludeFilters = @ComponentScan.Filter(
                     type = FilterType.ASSIGNABLE_TYPE,
                     classes = BackofficeOnlineApplication.class))
     static class BackofficeModule {
+        // Backoffice 인증은 CPF 공통 토큰/암호 서비스(CmnJwtService 등)를 사용한다. 그 서비스들은
+        // auto-configuration 이 아니라 @Service 스캔으로만 등록되므로, 1-WAS 조립에서도 같은
+        // 패키지를 함께 스캔해야 Backoffice 가 기동한다.
     }
 }

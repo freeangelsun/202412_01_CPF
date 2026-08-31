@@ -23,7 +23,7 @@ tasks.register('cpfBuild') {
 }
 
 tasks.register('cpfTestAll') {
-    group = '10. CPF 빌드'
+    group = '15. CPF 테스트'
     description = '[전체] 현재 선택된 Domain/Backoffice/EDU의 Canonical Test graph를 실행합니다.'
     dependsOn includedNames.collect { gradle.includedBuild(it).task(':test') }
 }

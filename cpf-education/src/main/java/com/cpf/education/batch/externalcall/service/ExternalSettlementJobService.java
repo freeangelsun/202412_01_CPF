@@ -1,5 +1,7 @@
 package com.cpf.education.batch.externalcall.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
 import com.cpf.batch.spi.BatchStepHandler.BatchStepResult;
 import com.cpf.batch.spi.BatchStepHandler.Status;
@@ -13,7 +15,7 @@ import java.util.Map;
 
 /** 배치-14 외부 호출 + UNKNOWN: 기술실패와 결과불명을 분리하고 UNKNOWN만 Reconcile 경로로 보냅니다. */
 @CpfService
-public class ExternalSettlementJobService {
+public class ExternalSettlementJobService extends EducationBaseService {
     private final ExternalSettlementClient client;
     private final ExternalSettlementStateService stateService;
 

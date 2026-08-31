@@ -36,10 +36,13 @@ def test_private_gates_use_each_verifiers_public_root_contract(monkeypatch, tmp_
         command for command,_cwd in commands
         if any(str(argument).endswith('verify_common_product_service_dx.py') for argument in command)
     ]
+    # -B는 자식 프로세스로 전파되지 않으므로 Gate를 실행할 때 명시적으로 넘겨야
+    # __pycache__가 저장소에 남지 않는다(Harness REPOSITORY_PYTHON_CACHE는 fail-closed).
     assert common==[[
-        'python-test','cpf-tools/verification/verify_common_product_service_dx.py','--root','.'
+        'python-test','-B','cpf-tools/verification/verify_common_product_service_dx.py','--root','.'
     ]]
     assert all(cwd==tmp_path for _command,cwd in commands)
+    assert all(command[1]=='-B' for command,_cwd in commands)
     assert len(commands)==7
 
 def _write_bom(path: Path, version: str, artifact: str = 'cpf-platform-bom'):

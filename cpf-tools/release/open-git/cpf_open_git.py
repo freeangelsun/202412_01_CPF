@@ -183,7 +183,21 @@ def _should_echo_gradle_line(line: str) -> bool:
     return any(token.lower() in stripped.lower() for token in important)
 
 
+def _utf8_child_env(env: dict[str, str] | None) -> dict[str, str]:
+    """자식 프로세스가 UTF-8로 출력하도록 강제한다.
+
+    CPF 도구의 진단 메시지는 한글이다. Windows에서 자식 Python이 locale 인코딩(cp949)으로
+    쓰면 이 도구는 errors="replace"로 U+FFFD를 받게 되고, 그 결과가 로그/콘솔로 다시 나갈 때
+    Release 전체가 UnicodeEncodeError로 끝난다.
+    """
+    child = dict(os.environ if env is None else env)
+    child.setdefault("PYTHONIOENCODING", "utf-8")
+    child.setdefault("PYTHONUTF8", "1")
+    return child
+
+
 def run(cmd: list[str], cwd: Path, *, capture: bool = False, env: dict[str, str] | None = None) -> str:
+    env = _utf8_child_env(env)
     secrets = _command_secrets(cmd)
     display_cmd = [_redact_sensitive_text(str(arg), secrets) for arg in cmd]
     command_line = "[CPF][OPEN-GIT][RUN] " + " ".join(display_cmd)
@@ -1338,4 +1352,12 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # 진행/실패 메시지는 한글이고, 자식 출력은 errors="replace"로 U+FFFD를 포함할 수 있다.
+    # Windows 기본 콘솔 인코딩(cp949)으로는 그 문자를 쓸 수 없어 Release가 마지막에
+    # UnicodeEncodeError로 죽는다. 플랫폼과 무관하게 UTF-8로 고정한다.
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     raise SystemExit(main())

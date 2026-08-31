@@ -159,13 +159,32 @@ if __name__ == "__main__":
     unittest.main()
 
 
-def test_batch_runtime_preserves_application_credential_owner():
+def test_batch_runtime_uses_verifier_owned_database_credentials():
+    """Batch/Gateway Runtime도 One-WAS와 같은 검증기 소유 run-scoped DB를 쓴다.
+
+    고정 개발 계정(cpf_app)을 전제하면 canonical 계약(cpfv_<runId>_*)에 그 계정이 없어
+    MariaDB가 정상 기동해도 Access denied로 항상 실패한다. 그리고 application runtime
+    자격증명에 admin(root) 비밀번호를 재사용하면 권한 경계가 무너진다.
+    """
     text = SCRIPT.read_text(encoding="utf-8")
-    assert "CPF_CORE_DB_RUNTIME_PASSWORD" in text and "CPF_DB_APP_PASSWORD" in text
-    assert "$runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_CORE_DB_RUNTIME_PASSWORD','Process')" in text
-    assert "$runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_DB_APP_PASSWORD','Process')" in text
-    assert "$batchRuntimeEnv=@{CPF_DB_APP_PASSWORD=$runtimeDbPassword;CPF_CORE_DB_RUNTIME_PASSWORD=$runtimeDbPassword}" in text
-    assert "if(-not [string]::IsNullOrWhiteSpace($rootPassword)){$batchRuntimeEnv.CPF_DB_ROOT_PASSWORD=$rootPassword}" in text
-    assert "if(-not [string]::IsNullOrWhiteSpace($adminPassword)){$batchRuntimeEnv.CPF_ADMIN_PASSWORD=$adminPassword}" in text
+    # run-scoped 검증기 소유 DB를 canonical 준비 도구로 만든다.
+    assert "prepare-cpf-local-runtime-db.ps1" in text
+    assert "'BATCH_RUNTIME_DB_PREP'" in text
+    assert "$batchRunId=([guid]::NewGuid().ToString('N').Substring(0,12)).ToLowerInvariant()" in text
+    assert '"cpf_verify_${batchRunId}_runtime"' in text
+    assert '"cpfv_${batchRunId}_pr"' in text
+    # application 자격증명은 admin 비밀번호와 분리된 전용 secret이어야 한다.
+    assert "CPF_DB_APP_PASSWORD=$batchDbSecret" in text
+    assert "CPF_CORE_DB_RUNTIME_PASSWORD=$batchDbSecret" in text
+    # profile secret은 CPF_LOCAL_RUNTIME_DB_* env로 해석되므로 자식 프로세스에 전달해야 한다.
+    assert "CPF_LOCAL_RUNTIME_DB_PASSWORD=$batchDbSecret" in text
+    assert "CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD=$batchMigrationSecret" in text
     assert "CPF_DB_APP_PASSWORD=$adminPassword" not in text
     assert "CPF_CORE_DB_RUNTIME_PASSWORD=$adminPassword" not in text
+    assert "CPF_DB_APP_PASSWORD=$rootPassword" not in text
+    # 준비가 실패하면 조용히 통과시키지 않고 실행 자체를 막는다.
+    assert "$batchDbReady=($summary[$summary.Count-1].status -eq 'PASS')" in text
+    assert "if(-not $batchDbReady){" in text
+    # 실행 후에는 검증기 소유 DB를 반드시 정리한다.
+    assert "'BATCH_RUNTIME_DB_CLEANUP'" in text
+    assert "cleanup-cpf-local-runtime-db.ps1" in text

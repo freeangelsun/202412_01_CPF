@@ -32,9 +32,12 @@ EXPLICIT_LEAVES = {
 # 통합 Runtime 만 고정 진입점이다. 개별 App/Domain 실행은 발견 결과로 투영되므로
 # 이름을 고정하지 않고 논리 project path 를 쓰는지만 계약으로 강제한다.
 RUN_ALIASES = {
-    "cpfRunAllLocal": ":runtime:local:bootRun",
     "cpfRunAllBatch": ":runtime:local-batch:bootRun",
 }
+# ALL/DEV/ONLINE Local Runtime 은 canonical Launcher(cpf_local_runtime.py)를 재사용하므로
+# bootRun alias 가 아니다. Launcher 경로와 Target Catalog 참조만 계약으로 고정한다.
+LOCAL_RUNTIME_LAUNCHER = "cpf-tools/runtime/tools/cpf_local_runtime.py"
+LOCAL_RUNTIME_TASKS = ("cpfRunAllLocal", "cpfRunDevLocal", "cpfRunOnlineLocal")
 PROJECTED_RUN_TARGETS = (
     'dependsOn "${a.path}:bootRun"',
     'dependsOn "${d.mountedPath}:bootRun"',
@@ -85,6 +88,11 @@ def main() -> int:
     for marker in PROJECTED_RUN_TARGETS:
         if marker not in convention:
             fail(errors,f'projected run target drift: {marker}')
+    if LOCAL_RUNTIME_LAUNCHER not in convention:
+        fail(errors,'local runtime launcher drift: '+LOCAL_RUNTIME_LAUNCHER)
+    for task in LOCAL_RUNTIME_TASKS:
+        if f"task: '{task}'" not in convention:
+            fail(errors,f'local runtime entrypoint drift: {task}')
     if 'Gradle Projects는 apps / runtime / framework / starters / internal 계층' not in convention:
         fail(errors,'cpfHelp does not describe canonical IDE hierarchy')
     # Only concrete Gradle project/task references are forbidden from using retired top-level paths.

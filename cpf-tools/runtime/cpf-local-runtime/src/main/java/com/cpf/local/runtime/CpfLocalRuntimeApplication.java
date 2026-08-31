@@ -17,7 +17,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @EnableScheduling
-@Import({CpfLocalRuntimeModules.class, CpfLocalDomainModuleRegistrar.class})
+@Import({CpfLocalRuntimeModules.class, CpfLocalDomainModuleRegistrar.class,
+        CpfLocalRuntimePlatformDataSourcePrimary.class})
 public class CpfLocalRuntimeApplication {
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(CpfLocalRuntimeApplication.class);

@@ -1,6 +1,6 @@
 # CPF Current Development Status — Generated Projection
 
-- Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f`
+- Source Identity: `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74`
 - Canonical: **218**, Trace: **218**, Bridge: **46**
 - Work: **410** (Tracking 394 / Execution 16), Role: **1230**, Test: **829**, Control: **33**
 - development_status: `{'완료': 203, '미완료': 207}`

@@ -107,6 +107,13 @@ def start(root:Path,profile:str,mode:str,skip_build:bool)->int:
     # 기동 완료를 기다리는 상한. 저사양/저메모리 로컬에서도 Spring Boot 기동이 끝나도록 잡되,
     # 값 자체는 환경별 자원정책이 소유하고 여기서는 fallback 만 둔다.
     ready_timeout=float(os.environ.get('CPF_LOCAL_RUNTIME_READY_TIMEOUT_SECONDS') or policy.get('runtime.startup.readyTimeoutSeconds','300'))
+    # Vendor SQL Catalog 는 cpf.db.resource-root 가 있어야 등록된다. 경로 정본은
+    # cpf-tools/db/vendor/<vendor> 이며 pack.json 으로 fail-closed 확인한다.
+    db_vendor=os.environ.get('CPF_DB_VENDOR','mariadb').strip() or 'mariadb'
+    configured_pack=os.environ.get('CPF_DB_RESOURCE_ROOT','').strip()
+    db_resource_root=Path(configured_pack).resolve() if configured_pack else (root/'cpf-tools/db/vendor'/db_vendor)
+    if not (db_resource_root/'pack.json').is_file():
+        return fail(f'central DB vendor pack not found: vendor={db_vendor} root={db_resource_root}',4)
     if policy.get('runtime.memory.enforceCeiling','true').lower()=='true':
         for name,value in [('Xms',xms),('Xmx',xmx)]:
             n=mb(value)
@@ -123,7 +130,7 @@ def start(root:Path,profile:str,mode:str,skip_build:bool)->int:
     if not jars: return fail('cpf-local-runtime bootJar not found',3)
     logs=root/'build/cpf-local-runtime/logs'; logs.mkdir(parents=True,exist_ok=True); pf.parent.mkdir(parents=True,exist_ok=True)
     out=(logs/'LOCAL_WEB.out.log').open('ab',buffering=0); err=(logs/'LOCAL_WEB.err.log').open('ab',buffering=0)
-    cmd=[java,f'-Xms{xms}',f'-Xmx{xmx}',f'-XX:MaxMetaspaceSize={policy.get("runtime.jvm.maxMetaspace","256m")}',f'-XX:MaxDirectMemorySize={policy.get("runtime.jvm.maxDirectMemory","128m")}',f'-XX:ReservedCodeCacheSize={policy.get("runtime.jvm.reservedCodeCache","128m")}',f'-Xss{policy.get("runtime.jvm.threadStack","1m")}','-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-jar',str(jars[-1]),f'--spring.profiles.active=local,local-{mode}',f'--server.address={host}',f'--server.port={port}','--cpf.environment=local','--cpf.local.runtime.enabled=true','--cpf.local.modules.domains.enabled=true','--cpf.local.modules.domains.auto-discover=true']
+    cmd=[java,f'-Xms{xms}',f'-Xmx{xmx}',f'-XX:MaxMetaspaceSize={policy.get("runtime.jvm.maxMetaspace","256m")}',f'-XX:MaxDirectMemorySize={policy.get("runtime.jvm.maxDirectMemory","128m")}',f'-XX:ReservedCodeCacheSize={policy.get("runtime.jvm.reservedCodeCache","128m")}',f'-Xss{policy.get("runtime.jvm.threadStack","1m")}','-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-jar',str(jars[-1]),f'--spring.profiles.active=local,local-{mode}',f'--server.address={host}',f'--server.port={port}',f'--cpf.db.vendor={db_vendor}',f'--cpf.db.resource-root={db_resource_root}','--cpf.environment=local','--cpf.local.runtime.enabled=true','--cpf.local.modules.domains.enabled=true','--cpf.local.modules.domains.auto-discover=true']
     creation=0
     if os.name=='nt': creation=getattr(subprocess,'CREATE_NEW_PROCESS_GROUP',0)|getattr(subprocess,'DETACHED_PROCESS',0)
     p=subprocess.Popen(cmd,cwd=root,env=env,stdin=subprocess.DEVNULL,stdout=out,stderr=err,start_new_session=(os.name!='nt'),creationflags=creation)

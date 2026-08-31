@@ -637,75 +637,15 @@ foreach($v in $vendors){
  foreach($db in $productionLogicalDatabases){if(-not $fileByDb.ContainsKey($db)){throw "Production logical database has no vendor source file mapping: $db"};$ts=@(Get-CanonicalTableOrder @($schema.tables|Where-Object{$_.logicalDatabase -eq $db -and [bool]$_.productionDefault}) $db);if($ts.Count -eq 0){continue};$s="-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json`n-- vendor=$v`n-- DO NOT EDIT generated DDL directly.`n`n-- CPF_LOGICAL_DATABASE=$db`n";if($v -eq 'mariadb'){$s+="USE $db;`n"};foreach($t in $ts){$s+=(Render-Table $v $t)+"`n"};$bucket[$fileByDb[$db]]+=$s}
  foreach($sourceFile in $sourceSchemaFiles){if($bucket[$sourceFile].Count -gt 0){W (Join-Path $Root "cpf-tools/db/vendor/$v/source/$sourceFile") ($bucket[$sourceFile] -join "`n")}}
 }
-# Seed model is canonical too. Rendering is delegated to the dedicated function below so generated SQL never copies another vendor pack.
-function Convert-Expr([string]$v,[string]$x){
- $r=$x
- foreach($db in $logicalDatabases){$r=[regex]::Replace($r,'(?i)(?<![A-Za-z0-9_])'+[regex]::Escape($db)+'\.','')}
- if($v -eq 'postgresql'){
-  $r=[regex]::Replace($r,'(?i)CURRENT_TIMESTAMP\(\d+\)','CURRENT_TIMESTAMP')
-  $r=[regex]::Replace($r,'(?i)\bNOW\(\d*\)','CURRENT_TIMESTAMP')
-  $r=[regex]::Replace($r,'(?i)\bIFNULL\s*\(','COALESCE(')
-  $r=[regex]::Replace($r,'(?i)\bDATE_SUB\(([^,]+),\s*INTERVAL\s+(\d+)\s+(MINUTE|HOUR|DAY)\)',{param($m)'('+$m.Groups[1].Value+' - INTERVAL '''+$m.Groups[2].Value+' '+$m.Groups[3].Value.ToLowerInvariant()+''')'})
-  $r=[regex]::Replace($r,'(?i)\bDATE_ADD\(([^,]+),\s*INTERVAL\s+(\d+)\s+(MINUTE|HOUR|DAY)\)',{param($m)'('+$m.Groups[1].Value+' + INTERVAL '''+$m.Groups[2].Value+' '+$m.Groups[3].Value.ToLowerInvariant()+''')'})
-  $r=[regex]::Replace($r,'(?i)\bCONCAT\(([^,()]+),\s*([^()]+)\)','($1 || $2)')
-  $r=[regex]::Replace($r,'(?i)\bAS\s+DATETIME\s*\)','AS TIMESTAMP)')
- }
- if($v -eq 'oracle'){
-  $r=[regex]::Replace($r,'(?i)CURRENT_TIMESTAMP\(\d+\)','SYSTIMESTAMP')
-  $r=[regex]::Replace($r,'(?i)\bNOW\(\d*\)','SYSTIMESTAMP')
-  $r=[regex]::Replace($r,'(?i)\bIFNULL\s*\(','COALESCE(')
-  $r=[regex]::Replace($r,'(?i)\bDATE_SUB\(([^,]+),\s*INTERVAL\s+(\d+)\s+(MINUTE|HOUR|DAY)\)',{param($m)'('+$m.Groups[1].Value+' - INTERVAL '''+$m.Groups[2].Value+''' '+$m.Groups[3].Value.ToUpperInvariant()+')'})
-  $r=[regex]::Replace($r,'(?i)\bDATE_ADD\(([^,]+),\s*INTERVAL\s+(\d+)\s+(MINUTE|HOUR|DAY)\)',{param($m)'('+$m.Groups[1].Value+' + INTERVAL '''+$m.Groups[2].Value+''' '+$m.Groups[3].Value.ToUpperInvariant()+')'})
-  $r=[regex]::Replace($r,'(?i)\bCONCAT\(([^,()]+),\s*([^()]+)\)','($1 || $2)')
-  $r=[regex]::Replace($r,'(?i)\bAS\s+DATETIME\s*\)','AS TIMESTAMP)')
-  $r=[regex]::Replace($r,'(?i)\bDATE\(([^()]+)\)','TRUNC($1)')
-  $r=[regex]::Replace($r,'(?im)\bLIMIT\s+(\d+)\s*(?=\)|$)','FETCH FIRST $1 ROWS ONLY')
- }
- return $r
+# Vendor seed source 의 단일 writer 는 canonical renderer 다. 이 생성기는 schema/provision/
+# verify 만 소유하고, seed 는 자체 규칙으로 다시 만들지 않는다. 과거에는 두 도구가 같은 파일을
+# 다른 규칙으로 덮어써서 실행 순서에 따라 결과가 달라졌다.
+$seedSync = Join-Path $Root "cpf-tools/db/tools/sync-canonical-seed-bundles.py"
+$python = if ($env:CPF_PYTHON) { $env:CPF_PYTHON } else { "python" }
+& $python -B $seedSync --root $Root
+if ($LASTEXITCODE -ne 0) {
+    throw "Canonical seed source synchronization failed. exitCode=$LASTEXITCODE"
 }
-function Split-Top([string]$s,[char]$sep=','){$a=@();$start=0;$depth=0;$q=[char]0;for($i=0;$i -lt $s.Length;$i++){$c=$s[$i];if($q -ne [char]0){if($c -eq $q){if($i+1 -lt $s.Length -and $s[$i+1] -eq $q){$i++}else{$q=[char]0}};continue};if($c -eq "'" -or $c -eq '"'){$q=$c;continue};if($c -eq '('){$depth++}elseif($c -eq ')'){$depth--}elseif($c -eq $sep -and $depth -eq 0){$a+=$s.Substring($start,$i-$start).Trim();$start=$i+1}};$a+=$s.Substring($start).Trim();return,$a}
-function Rows([string]$s){$r=@();$start=-1;$depth=0;$q=[char]0;for($i=0;$i -lt $s.Length;$i++){$c=$s[$i];if($q -ne [char]0){if($c -eq $q){if($i+1 -lt $s.Length -and $s[$i+1] -eq $q){$i++}else{$q=[char]0}};continue};if($c -eq "'" -or $c -eq '"'){$q=$c;continue};if($c -eq '('){if($depth -eq 0){$start=$i+1};$depth++}elseif($c -eq ')'){$depth--;if($depth -eq 0 -and $start -ge 0){$r+=$s.Substring($start,$i-$start);$start=-1}}};return,$r}
-function Alias-Select([string]$v,[string]$src,[object[]]$cols){$x=Convert-Expr $v $src;$m=[regex]::Match($x,'(?is)^\s*SELECT\s+(.*?)\s+FROM\s+(.*)$');if(-not $m.Success){return $x};$parts=Split-Top $m.Groups[1].Value;if($parts.Count -ne $cols.Count){return $x};$sel=@();for($i=0;$i -lt $parts.Count;$i++){$sel+=$parts[$i]+' '+$cols[$i]};return 'SELECT '+($sel-join ', ')+' FROM '+$m.Groups[2].Value}
-function Render-Insert([string]$v,$st){$cols=@($st.columns);$table=$st.tableName;$src=Convert-Expr $v ([string]$st.source);$keys=@($st.conflictColumns);$ups=@($st.updates)
- $sourceColumns=@{};foreach($column in $cols){$sourceColumns[[string]$column]=$true}
- $conflictColumns=@{};foreach($column in $keys){$conflictColumns[[string]$column]=$true}
- foreach($u in $ups){foreach($match in [regex]::Matches([string]$u.expression,'(?i)VALUES\(([A-Za-z0-9_]+)\)')){if(-not $sourceColumns.ContainsKey($match.Groups[1].Value)){throw "$table update references VALUES($($match.Groups[1].Value)) but the source column is absent"}}}
- foreach($u in $ups){if($conflictColumns.ContainsKey([string]$u.column)){throw "$table update column $($u.column) is also a conflict column"}}
- if($v -eq 'mariadb'){$base='INSERT INTO '+$table+' ('+($cols-join ', ')+') '+($(if($st.sourceKind -eq 'values'){'VALUES '+$src}else{$src}));if($keys.Count -gt 0 -and $ups.Count -gt 0){$set=@();foreach($u in $ups){$set+=$u.column+' = '+(Convert-Expr $v ([string]$u.expression))};$base+=' ON DUPLICATE KEY UPDATE '+($set-join ', ')};return $base+';'}
- if($v -eq 'postgresql'){$base='INSERT INTO '+$table+' ('+($cols-join ', ')+') '+($(if($st.sourceKind -eq 'values'){'VALUES '+$src}else{$src}));if($keys.Count -gt 0){$base+=' ON CONFLICT ('+($keys-join ', ')+') ';if($ups.Count -eq 0){$base+='DO NOTHING'}else{$set=@();foreach($u in $ups){$e=[regex]::Replace((Convert-Expr $v $u.expression),'(?i)VALUES\(([A-Za-z0-9_]+)\)','EXCLUDED.$1');$set+=$u.column+' = '+$e};$base+='DO UPDATE SET '+($set-join ', ')}};return $base+';'}
- if($keys.Count -eq 0){if($st.sourceKind -eq 'select'){return 'INSERT INTO '+$table+' ('+($cols-join ', ')+') '+(Convert-Expr $v $src)+';'};$rs=Rows $src;$b='INSERT ALL'+"`n";foreach($row in $rs){$b+='  INTO '+$table+' ('+($cols-join ', ')+') VALUES ('+(Convert-Expr $v $row)+")`n"};return $b+'SELECT 1 FROM dual;'}
- $on=($keys|ForEach-Object{"tgt.$_ = src.$_"}) -join ' AND '
- $updateClause=''
- if($ups.Count -gt 0){
-  $set=@()
-  foreach($u in $ups){
-   $e=[regex]::Replace((Convert-Expr $v $u.expression),'(?i)VALUES\(([A-Za-z0-9_]+)\)','src.$1')
-   $set+='tgt.'+$u.column+' = '+$e
-  }
-  $updateClause='WHEN MATCHED THEN UPDATE SET '+($set-join ', ')+"`n"
- }
- if($st.sourceKind -eq 'values'){
-  # A single Oracle MERGE with UNION ALL does not guarantee parent-before-child
-  # processing for self-referencing rows. Preserve Canonical value order with
-  # one idempotent MERGE per row.
-  $merges=@()
-  foreach($row in (Rows $src)){
-   $vals=Split-Top $row
-   $pairs=@()
-   for($i=0;$i-lt$cols.Count;$i++){$pairs+=(Convert-Expr $v $vals[$i])+' '+$cols[$i]}
-   $using='SELECT '+($pairs-join ', ')+' FROM dual'
-   $b="MERGE INTO $table tgt USING (`n$using`n) src ON ($on)`n"+$updateClause
-   $b+='WHEN NOT MATCHED THEN INSERT ('+($cols-join ', ')+') VALUES ('+(($cols|ForEach-Object{"src.$_"}) -join ', ')+');'
-   $merges+=$b
-  }
-  return ($merges-join"`n")
- }
- $using=Alias-Select $v $src $cols
- $b="MERGE INTO $table tgt USING (`n$using`n) src ON ($on)`n"+$updateClause
- $b+='WHEN NOT MATCHED THEN INSERT ('+($cols-join ', ')+') VALUES ('+(($cols|ForEach-Object{"src.$_"}) -join ', ')+');'
- return $b
-}
-foreach($v in $vendors){$files=@{};foreach($f in $seed.canonicalPolicy.sourceFiles){$files[$f]="-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json`n-- vendor=$v; source=$f`n-- DO NOT EDIT generated seed directly.`n"};$current=@{};foreach($st in $seed.statements){$f=$st.sourceFile;if(-not $files.ContainsKey($f)){continue};$db=$st.logicalDatabase;if(-not $current.ContainsKey($f) -or $current[$f] -ne $db){$files[$f]+="`n-- CPF_LOGICAL_DATABASE=$db`n";$current[$f]=$db};switch($st.statementKind){'use'{}'insert'{$files[$f]+=(Render-Insert $v $st)+"`n"}'update'{$files[$f]+=(Convert-Expr $v $st.sql)+";`n"}'delete'{$files[$f]+=(Convert-Expr $v $st.sql)+";`n"}'set'{$expr=Convert-Expr $v $st.expression;if($v -eq 'mariadb'){$files[$f]+="SET @$($st.variable) = $expr;`n"}elseif($v -eq 'postgresql'){if($expr.Trim().StartsWith('(')){$files[$f]+="SELECT $expr AS $($st.variable) \\gset`n"}else{$files[$f]+="\\set $($st.variable) $expr`n"}}else{if($expr.Trim().StartsWith('(')){$files[$f]+="COLUMN $($st.variable) NEW_VALUE $($st.variable) NOPRINT`nSELECT $expr AS $($st.variable) FROM dual;`n"}else{$files[$f]+="DEFINE $($st.variable) = $expr`n"}}}}};foreach($f in $files.Keys){$txt=$files[$f];if($v -eq 'postgresql'){$txt=[regex]::Replace($txt,'@([A-Za-z_][A-Za-z0-9_]*)',':$1')}elseif($v -eq 'oracle'){$txt=[regex]::Replace($txt,'@([A-Za-z_][A-Za-z0-9_]*)','&&$1')};W (Join-Path $Root "cpf-tools/db/vendor/$v/source/$f") $txt}}
 
 # Table rendering does not own sequences and other non-table objects. Restore
 # those artifacts from their dedicated canonical contract after PostgreSQL and

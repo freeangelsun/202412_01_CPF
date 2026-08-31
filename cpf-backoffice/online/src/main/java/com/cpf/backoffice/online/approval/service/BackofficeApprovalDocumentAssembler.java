@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.approval.service;
 
+import com.cpf.backoffice.online.base.BackofficeBaseService;
+
 import com.cpf.core.api.error.CpfValidationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.foundation.annotation.CpfService;
@@ -17,7 +19,7 @@ import java.util.regex.Pattern;
  * 민감 필드를 field-level masking하여 업무별 판단 Section과 Before/After를 제공합니다.</p>
  */
 @CpfService
-public final class BackofficeApprovalDocumentAssembler {
+public final class BackofficeApprovalDocumentAssembler extends BackofficeBaseService {
     private static final Pattern SENSITIVE = Pattern.compile(
             "(?i).*(password|passwd|pwd|secret|token|credential|api.?key|private.?key|resident|ssn|mobile|phone|email).*");
     private final ObjectMapper mapper;

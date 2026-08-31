@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.directory.repository;
 
+import com.cpf.backoffice.online.base.BackofficeBaseRepository;
+
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.foundation.api.page.CpfPage;
 import com.cpf.foundation.api.page.CpfPageRequest;
@@ -14,7 +16,7 @@ import com.cpf.data.persistence.api.CpfRepository;
 
 /** MBW 조직/인사/Role 이력 정본 Repository. */
 @CpfRepository
-public class BackofficeDirectoryRepository {
+public class BackofficeDirectoryRepository extends BackofficeBaseRepository {
   private final ObjectProvider<NamedParameterJdbcTemplate> provider;
   private final CpfVendorSqlCatalog sql;
 

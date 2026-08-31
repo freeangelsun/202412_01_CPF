@@ -1,5 +1,7 @@
 package com.cpf.education.batch.partition.service;
 
+import com.cpf.education.online.common.base.EducationBaseService;
+
 import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
@@ -9,7 +11,7 @@ import java.util.Map;
 
 /** 배치-04 대용량 Partition·Parallel: partition별 watermark/checkpoint와 부분 실패 재실행을 표현합니다. */
 @CpfService
-public class MemberPartitionJobService {
+public class MemberPartitionJobService extends EducationBaseService {
     public BatchStepResult run(BatchStepCommand command) {
         int partition = intParam(command, "partition", 0);
         int partitionCount = intParam(command, "partitionCount", 4);

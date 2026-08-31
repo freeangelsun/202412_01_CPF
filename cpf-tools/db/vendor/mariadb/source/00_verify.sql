@@ -348,6 +348,53 @@ SELECT 'cpfDB.adm_operator_status_constraint' AS check_name,
 FROM information_schema.table_constraints
 WHERE table_schema=DATABASE() AND UPPER(table_name)='ADM_OPERATOR' AND constraint_name='ck_adm_operator_status';
 
+-- CPF_LOGICAL_DATABASE=cpfDB
+SELECT 'cpfDB.table_count' AS check_name,
+       IF(COUNT(*) = 201, 1, 0) AS passed
+FROM information_schema.tables
+WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';
+
+SELECT 'cpfDB.table_engine_collation' AS check_name,
+       IF(COUNT(*) = 0, 1, 0) AS passed
+FROM information_schema.tables
+WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
+  AND (UPPER(COALESCE(engine, '')) <> 'INNODB'
+       OR LOWER(COALESCE(table_collation, '')) <> 'utf8mb4_unicode_ci');
+
+SELECT 'cpfDB.runtime_transaction_id_contract' AS check_name,
+       IF(COUNT(*) = 28 AND COALESCE(SUM(CASE
+           WHEN UPPER(table_name) = 'ADM_APPROVAL_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_APPROVAL_REQUEST' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_AUDIT_DELIVERY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_AUDIT_LOG' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_DYNAMIC_LOG_LEVEL_RULE' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'ADM_INCIDENT_LIFECYCLE' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 100 THEN 1
+           WHEN UPPER(table_name) = 'ADM_INCIDENT_SIGNAL' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 100 THEN 1
+           WHEN UPPER(table_name) = 'BAT_CENTER_CUT_EXECUTION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_CENTER_CUT_ITEM' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_CENTER_CUT_RESULT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_EXECUTION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_JOB_DEFINITION_AUDIT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_ON_DEMAND_REQUEST' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'BAT_RUNTIME_COMMAND' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_BROKER_DLQ' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_BROKER_OUTBOX' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_FILE_TRANSFER_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_SAGA_EXECUTION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_LINEAGE' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_LINEAGE_ARCHIVE' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_LOG' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_TRANSACTION_SEGMENT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'CPF_UNKNOWN_RESULT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'GW_TRANSACTION' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 100 THEN 1
+           WHEN UPPER(table_name) = 'OPS_ASYNC_OPERATION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'OPS_SERVICE_CALL_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'OPS_TRANSACTION_SUBJECT' AND LOWER(data_type) = 'varchar' AND character_maximum_length = 128 THEN 1
+           WHEN UPPER(table_name) = 'SEC_TOKEN_AUDIT_LOG' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           ELSE 0 END), 0) = 28, 1, 0) AS passed
+FROM information_schema.columns
+WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';
+
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,
        IF(COUNT(*) = 30, 1, 0) AS passed

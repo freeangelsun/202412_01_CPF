@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.common.base.AdmBaseService;
+
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryStatusResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
@@ -38,7 +40,7 @@ import java.util.regex.Pattern;
  * RETRY·DLQ·UNKNOWN_RESULT로 구분합니다. 외부 Provider 호출은 DB transaction 밖에서 수행합니다.</p>
  */
 @CpfService
-public class AdmNotificationOutboxService {
+public class AdmNotificationOutboxService extends AdmBaseService {
     private static final String SENSITIVE_PATTERN =
             "(?i).*(password|passwd|secret|private[ _-]?key|authorization:|bearer\\s+|access[_-]?token|refresh[_-]?token).*";
     private static final Pattern SENSITIVE_VALUE_PATTERN = Pattern.compile(

@@ -58,8 +58,12 @@ class OfficialVendorSourceTypeContractTest(unittest.TestCase):
         generator = (DB / "generator/generate-official-db-vendor-source.ps1").read_text(
             encoding="utf-8-sig"
         )
-        self.assertIn("foreach($db in $logicalDatabases)", generator)
+        # logicalDatabases 순회는 seed 표현식의 DB prefix 제거용이었고 renderer 가 이어받았다.
+        # 생성기에 남는 계약은 schema 파일 출력 순서다.
         self.assertIn("foreach($sourceFile in $sourceSchemaFiles)", generator)
+        self.assertIn(
+            "cpfDB|cmnDB|admDB|batDB|bzaDB|refDB",
+            (DB / "render_vendor_pack.py").read_text(encoding="utf-8-sig"))
         self.assertNotIn("foreach($db in $fileByDb.Keys)", generator)
 
     def test_oracle_current_fresh_schema_orders_default_before_not_null(self):
@@ -159,7 +163,9 @@ class OfficialVendorSourceTypeContractTest(unittest.TestCase):
             encoding="utf-8-sig"
         )
         renderer = (DB / "render_vendor_pack.py").read_text(encoding="utf-8-sig")
-        self.assertIn('return ($merges-join"`n")', generator)
+        # Vendor seed SQL 의 단일 소유자는 renderer 다. 생성기가 자체 MERGE 렌더링을 되살리면
+        # 같은 파일을 두 규칙으로 쓰던 경쟁 write 가 재발한다.
+        self.assertNotIn('return ($merges-join"`n")', generator)
         self.assertIn("return '\\n'.join(statements)", renderer)
 
     def test_seed_updates_only_reference_columns_supplied_by_the_statement(self):
@@ -191,11 +197,11 @@ class OfficialVendorSourceTypeContractTest(unittest.TestCase):
         )
         renderer = (DB / "render_vendor_pack.py").read_text(encoding="utf-8-sig")
         diagnostic = "update references VALUES("
-        self.assertIn(diagnostic, generator)
         self.assertIn(diagnostic, renderer)
+        self.assertNotIn(diagnostic, generator)
         conflict_diagnostic = "is also a conflict column"
-        self.assertIn(conflict_diagnostic, generator)
         self.assertIn(conflict_diagnostic, renderer)
+        self.assertNotIn(conflict_diagnostic, generator)
 
     def test_oracle_lifecycle_sql_respects_sqlplus_physical_line_limit(self):
         oversized: list[str] = []

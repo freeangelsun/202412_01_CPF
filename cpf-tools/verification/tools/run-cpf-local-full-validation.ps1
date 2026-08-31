@@ -929,16 +929,59 @@ if($IncludeRuntimeClosure){
                 $workerJar=Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'cpf-batch\worker\build\libs') -File -Filter '*.jar' -ErrorAction SilentlyContinue | Where-Object {$_.Name -notmatch 'plain'} | Select-Object -First 1
                 $adminPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
                 $rootPassword=[Environment]::GetEnvironmentVariable('CPF_DB_ROOT_PASSWORD','Process')
-                $runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_CORE_DB_RUNTIME_PASSWORD','Process')
-                if([string]::IsNullOrWhiteSpace($runtimeDbPassword)){$runtimeDbPassword=[Environment]::GetEnvironmentVariable('CPF_DB_APP_PASSWORD','Process')}
                 if(-not $workerJar){Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'Batch worker bootJar unavailable after Gradle build'}
-                elseif([string]::IsNullOrWhiteSpace($runtimeDbPassword)){Add-CpfTextResult 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'FAIL' 'CPF_CORE_DB_RUNTIME_PASSWORD/CPF_DB_APP_PASSWORD missing from Docker secret env' 'Batch two-worker runtime requires canonical application Runtime DB credentials'}
+                elseif([string]::IsNullOrWhiteSpace($adminPassword)){Add-CpfTextResult 'BATCH_RUNTIME_DB_PREP' 'FAIL' 'CPF_ADMIN_PASSWORD missing from Docker secret env' 'Verifier-owned batch runtime database requires the admin secret'}
                 else{
-                    $batchRuntimeEnv=@{CPF_DB_APP_PASSWORD=$runtimeDbPassword;CPF_CORE_DB_RUNTIME_PASSWORD=$runtimeDbPassword}
+                    # Batch/Gateway Runtime도 One-WAS와 같은 검증기 소유 run-scoped DB를 사용한다.
+                    # 고정 개발 계정(cpf_app)은 canonical 계약(cpfv_<runId>_*)에 존재하지 않아
+                    # MariaDB가 정상 기동해도 Access denied로 항상 실패한다.
+                    $batchRunId=([guid]::NewGuid().ToString('N').Substring(0,12)).ToLowerInvariant()
+                    $batchDbSecret="CpfBat!$([guid]::NewGuid().ToString('N').Substring(0,20))9a"
+                    $batchMigrationSecret="CpfBatMig!$([guid]::NewGuid().ToString('N').Substring(0,20))8b"
+                    $batchDbEvidence=Join-Path $evidenceDir 'batch-runtime-db'
+                    $batchPrepEnv=@{
+                        CPF_ADMIN_PASSWORD=$adminPassword
+                        CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD=$batchMigrationSecret
+                        CPF_LOCAL_RUNTIME_DB_PASSWORD=$batchDbSecret
+                    }
+                    Invoke-CpfStage 'BATCH_RUNTIME_DB_PREP' $pwsh @('-NoProfile','-File','.\cpf-tools\db\verification\prepare-cpf-local-runtime-db.ps1','-Root',$RepoRoot,'-VerifierRunId',$batchRunId,'-EvidenceRoot',$batchDbEvidence) $RepoRoot $batchPrepEnv
+                    $batchDbReady=($summary[$summary.Count-1].status -eq 'PASS')
+                    $batchDbProfilePath=Join-Path $batchDbEvidence 'profile.json'
+                    $batchDbLoopbackProfilePath=$null
+                    # profile의 host는 Docker 네트워크 내부 이름이라 호스트 JVM이 해석하지 못한다.
+                    # 1-WAS가 127.0.0.1 URL을 직접 구성하는 것과 같은 접근 경로를 profile로 제공한다.
+                    if($batchDbReady -and (Test-Path -LiteralPath $batchDbProfilePath -PathType Leaf)){
+                        $batchHostProfile=Get-Content -LiteralPath $batchDbProfilePath -Raw -Encoding UTF8|ConvertFrom-Json -Depth 100
+                        foreach($moduleProperty in @($batchHostProfile.modules.PSObject.Properties)){
+                            $moduleProperty.Value.host='127.0.0.1'
+                        }
+                        $batchDbLoopbackProfilePath=Join-Path $batchDbEvidence 'profile-loopback.json'
+                        $batchHostProfile|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $batchDbLoopbackProfilePath -Encoding UTF8
+                    }
+                    # profile secret은 CPF_LOCAL_RUNTIME_DB_* env로 해석되므로 자식 프로세스에 함께 전달한다.
+                    $batchRuntimeEnv=@{
+                        CPF_DB_APP_PASSWORD=$batchDbSecret
+                        CPF_CORE_DB_RUNTIME_PASSWORD=$batchDbSecret
+                        CPF_LOCAL_RUNTIME_DB_PASSWORD=$batchDbSecret
+                        CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD=$batchMigrationSecret
+                    }
                     if(-not [string]::IsNullOrWhiteSpace($rootPassword)){$batchRuntimeEnv.CPF_DB_ROOT_PASSWORD=$rootPassword}
-                    if(-not [string]::IsNullOrWhiteSpace($adminPassword)){$batchRuntimeEnv.CPF_ADMIN_PASSWORD=$adminPassword}
-                    Invoke-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-bat-two-worker-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'batch-two-worker'),'-ClientAdapter','Docker','-MariaDbContainer','cpf-mariadb') $RepoRoot $batchRuntimeEnv
-                    Invoke-CpfStage 'GATEWAY_BATCH_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-gateway-bat-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'gateway-batch-runtime'),'-DbVendor','mariadb')
+                    $batchRuntimeEnv.CPF_ADMIN_PASSWORD=$adminPassword
+                    if(-not $batchDbReady){
+                        Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' 'verifier-owned batch runtime database preparation failed'
+                        Skip-CpfStage 'GATEWAY_BATCH_RUNTIME' 'verifier-owned batch runtime database preparation failed'
+                    }else{
+                        try{
+                            Invoke-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-bat-two-worker-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'batch-two-worker'),'-ClientAdapter','Docker','-MariaDbContainer','cpf-mariadb','-DatabaseName',"cpf_verify_${batchRunId}_runtime",'-DbUser',"cpfv_${batchRunId}_pr") $RepoRoot $batchRuntimeEnv
+                            $gatewayArgs=@('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-gateway-bat-runtime.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'gateway-batch-runtime'),'-DbVendor','mariadb')
+                            if($batchDbLoopbackProfilePath -and (Test-Path -LiteralPath $batchDbLoopbackProfilePath -PathType Leaf)){$gatewayArgs+=@('-DatabaseProfilePath',$batchDbLoopbackProfilePath)}
+                            Invoke-CpfStage 'GATEWAY_BATCH_RUNTIME' $pwsh $gatewayArgs $RepoRoot $batchRuntimeEnv
+                        }finally{
+                            if(Test-Path -LiteralPath $batchDbProfilePath -PathType Leaf){
+                                Invoke-CpfStage 'BATCH_RUNTIME_DB_CLEANUP' $pwsh @('-NoProfile','-File','.\cpf-tools\db\verification\cleanup-cpf-local-runtime-db.ps1','-ProfilePath',$batchDbProfilePath,'-VerifierRunId',$batchRunId) $RepoRoot $batchPrepEnv
+                            }
+                        }
+                    }
                 }
             }
         }finally{

@@ -748,8 +748,47 @@ def cpfDiscoveredApps = rootProject.subprojects.findResults { p ->
     def raw = dir.name.startsWith('cpf-') ? dir.name.substring(4) : dir.name
     def cap = raw.split('-').findAll { !it.isEmpty() }
             .collect { it.substring(0, 1).toUpperCase(Locale.ROOT) + it.substring(1) }.join('')
-    [path: p.path, cap: cap, label: cap]
+    // 논리 Component role. Local Runtime 의 모듈 스위치 계약과 같은 이름을 쓴다.
+    def role = p.path.startsWith(':runtime:') ? p.path.substring(':runtime:'.length())
+            : (p.path.startsWith(':apps:') ? p.path.substring(':apps:'.length()) : p.path.tokenize(':').last())
+    [path: p.path, cap: cap, label: cap, role: role]
 }.sort { it.cap }
+
+// ---- CPF Canonical Target Catalog -------------------------------------------------
+// Build/Test/Run 이 같은 정의를 소비한다. runtimeMode 는 Local Runtime 이 이미 소유한
+// 모듈 구성(application-local-<mode>.yml)을 그대로 재사용하므로 두 계약이 갈라지지 않는다.
+def cpfTargetCatalog = [
+        ALL: [
+                label: '전체', prefix: '[전체]', runtimeMode: 'full',
+                excludedRoles: [] as Set, includeDomains: true, includeBatch: true,
+                summary: 'Gateway/ADM/Backoffice/Generated Domain/Batch까지 포함한 전체 통합 대상'
+        ],
+        DEV: [
+                label: '개발', prefix: '[개발]', runtimeMode: 'standard',
+                excludedRoles: ['gateway'] as Set, includeDomains: true, includeBatch: false,
+                summary: '일상 업무 개발에 필요한 ADM/Backoffice/Generated Domain Online 대상'
+        ],
+        ONLINE: [
+                label: '온라인', prefix: '[온라인]', runtimeMode: 'minimal',
+                excludedRoles: ['gateway', 'admin', 'backoffice-web'] as Set,
+                includeDomains: true, includeBatch: false,
+                summary: '업무 Online 개발만 남긴 최소 대상'
+        ]
+]
+
+/** 논리 Target 이름으로 실제 App/Domain Component 를 해석한다. */
+def cpfResolveTarget = { String targetName ->
+    def spec = cpfTargetCatalog[targetName]
+    if (spec == null) {
+        throw new GradleException("지원하지 않는 CPF Target 입니다: ${targetName} (가능: ${cpfTargetCatalog.keySet().join(', ')})")
+    }
+    def apps = cpfDiscoveredApps.findAll { !spec.excludedRoles.contains(it.role) }
+    def domains = spec.includeDomains ? cpfDiscoveredDomains : []
+    def domainModules = domains.collectMany { d ->
+        d.modules.findAll { m -> spec.includeBatch || m != 'batch' }.collect { m -> [domain: d, module: m] }
+    }
+    [name: targetName, spec: spec, apps: apps, domains: domains, domainModules: domainModules]
+}
 
 // 발견된 App 마다 빌드/검증/실행/배포 4축을 동일하게 투영한다.
 def cpfAppVisibleTaskGroups = [:]
@@ -788,19 +827,115 @@ def cpfLegacyTaskAliases = [
 
 def cpfVisibleTaskGroups = [
         'cpfHelp':'00. CPF 시작',
-        'cpfBuildAll':'10. CPF 빌드', 'cpfTestAll':'10. CPF 빌드',
+        'cpfBuildAll':'10. CPF 빌드', 'cpfBuildDev':'10. CPF 빌드',
+        'cpfBuildOnline':'10. CPF 빌드', 'cpfBuildBatch':'10. CPF 빌드',
+        'cpfTestAll':'15. CPF 테스트', 'cpfTestDev':'15. CPF 테스트',
+        'cpfTestOnline':'15. CPF 테스트', 'cpfTestBatch':'15. CPF 테스트',
+        'cpfRunDevLocal':'30. CPF 실행', 'cpfRunOnlineLocal':'30. CPF 실행',
+        'cpfTargets':'40. CPF 구성',
         'cpfVerifyFast':'20. CPF 검증', 'cpfVerifyTargeted':'20. CPF 검증', 'cpfVerifyAllLocal':'20. CPF 검증',
         'cpfRunAllLocal':'30. CPF 실행', 'cpfRunAllBatch':'30. CPF 실행',
         'cpfDomainDiscovery':'40. CPF 구성', 'cpfDatabaseDiscovery':'40. CPF 구성',
         'cpfModules':'40. CPF 구성', 'cpfModulesAll':'40. CPF 구성',
         'cpfResourcePolicy':'50. CPF 설정',
-        'cpfDeployAll':'60. CPF 배포',
-        'cpfPublishAllToIsolatedLocal':'60. CPF 배포',
-        'cpfPublishAllVerifiedLocalPlatformArtifacts':'60. CPF 배포'
+        'cpfDeployAll':'60. CPF 배포'
 ]
+// publication orchestration 은 배포 진입점이 아니라 내부 구현이다. Task 는 유지하되
+// 사용자 그룹에서 분리하고, 예전 이름으로 부르던 Consumer 는 호환 별칭으로 계속 지원한다.
+def cpfInternalPublicationTasks = ['cpfPublishAllToIsolatedLocal', 'cpfPublishAllVerifiedLocalPlatformArtifacts'] as Set
 cpfVisibleTaskGroups.putAll(cpfAppVisibleTaskGroups)
 cpfVisibleTaskGroups.putAll(cpfDomainVisibleTaskGroups)
+// Optional Backoffice(MBW)는 Source에서 제거된 상태도 정상이다. 그때 discovery는 Domain을
+// 찾지 못해 실행 진입점을 만들지 않으므로, 사용자에게 "정상 부재"를 알리는 진입점을 유지한다.
+def cpfBackofficeMounted = rootProject.findProject(':apps:backoffice') != null
+if (!cpfBackofficeMounted) {
+    cpfVisibleTaskGroups.putIfAbsent('cpfRunBackoffice', '30. CPF 실행')
+}
 def cpfVisibleTaskNames = cpfVisibleTaskGroups.keySet()
+// Domain module 단위 Build/Test 는 내부 orchestration 이다(사용자 그룹에 노출하지 않는다).
+cpfDiscoveredDomains.each { d ->
+    d.modules.each { m ->
+        def suffix = m.substring(0, 1).toUpperCase(Locale.ROOT) + m.substring(1)
+        tasks.register("cpfInternalBuild${d.cap}${suffix}", GradleBuild) {
+            dir = d.dir
+            tasks = [":${m}:build"]
+        }
+        tasks.register("cpfInternalTest${d.cap}${suffix}", GradleBuild) {
+            dir = d.dir
+            tasks = [":${m}:test"]
+        }
+    }
+}
+
+// Canonical Target 별 Build/Test 진입점. 세 축이 같은 Resolver 결과를 쓴다.
+['ALL', 'DEV', 'ONLINE'].each { targetName ->
+    def resolved = cpfResolveTarget(targetName)
+    def spec = resolved.spec
+    def suffixName = targetName == 'ALL' ? 'All' : (targetName == 'DEV' ? 'Dev' : 'Online')
+    def appBuilds = resolved.apps.collect { "cpfBuild${it.cap}".toString() }
+    def appTests = resolved.apps.collect { "cpfVerify${it.cap}".toString() }
+    def domainBuilds = resolved.domainModules.collect {
+        def s = it.module.substring(0, 1).toUpperCase(Locale.ROOT) + it.module.substring(1)
+        "cpfInternalBuild${it.domain.cap}${s}".toString()
+    }
+    def domainTests = resolved.domainModules.collect {
+        def s = it.module.substring(0, 1).toUpperCase(Locale.ROOT) + it.module.substring(1)
+        "cpfInternalTest${it.domain.cap}${s}".toString()
+    }
+    if (targetName == 'ALL') {
+        // ALL 은 canonical cpfBuildAll/cpfTestAll 이 이미 소유한다. 중복 진입점을 만들지 않는다.
+        return
+    }
+    tasks.register("cpfBuild${suffixName}") {
+        group = '10. CPF 빌드'
+        description = "${spec.prefix} ${spec.summary}을 빌드합니다."
+        dependsOn appBuilds
+        dependsOn domainBuilds
+    }
+    tasks.register("cpfTest${suffixName}") {
+        group = '15. CPF 테스트'
+        description = "${spec.prefix} ${spec.summary}의 테스트를 실행합니다."
+        dependsOn appTests
+        dependsOn domainTests
+    }
+}
+
+// Batch 전용 축은 Batch capability 를 선언한 Domain 이 있을 때만 의미가 있다.
+def cpfBatchDomainModules = cpfDiscoveredDomains.collectMany { d ->
+    d.modules.findAll { it == 'batch' }.collect { [domain: d, module: it] }
+}
+if (!cpfBatchDomainModules.isEmpty()) {
+    tasks.register('cpfBuildBatch') {
+        group = '10. CPF 빌드'
+        description = '[배치] Batch capability를 선언한 Domain의 Batch 모듈만 빌드합니다.'
+        dependsOn cpfBatchDomainModules.collect { "cpfInternalBuild${it.domain.cap}Batch".toString() }
+    }
+    tasks.register('cpfTestBatch') {
+        group = '15. CPF 테스트'
+        description = '[배치] Batch capability를 선언한 Domain의 Batch 모듈만 테스트합니다.'
+        dependsOn cpfBatchDomainModules.collect { "cpfInternalTest${it.domain.cap}Batch".toString() }
+    }
+}
+
+// 실행 전에 무엇이 실제 대상인지 사용자 Component 의미로 보여준다.
+tasks.register('cpfTargets') {
+    group = '40. CPF 구성'
+    description = '[조회] 전체/개발/온라인 Target이 실제로 어떤 Component를 포함하는지 표시합니다.'
+    doLast {
+        cpfTargetCatalog.each { name, spec ->
+            def resolved = cpfResolveTarget(name)
+            println ''
+            println "[CPF TARGET = ${name}] ${spec.summary}"
+            println "  Runtime Mode : ${spec.runtimeMode}"
+            println "  포함 App     : ${resolved.apps.collect { it.label }.join(', ') ?: '없음'}"
+            println "  포함 Domain  : ${resolved.domainModules.collect { it.domain.label + '/' + it.module }.join(', ') ?: '없음'}"
+            def excluded = cpfDiscoveredApps.findAll { spec.excludedRoles.contains(it.role) }
+            println "  제외 Component: ${excluded.collect { it.label }.join(', ') ?: '없음'}"
+        }
+        println ''
+    }
+}
+
 def cpfInternalTaskGroups = [
         build:'90. CPF 내부 빌드',
         verify:'91. CPF 내부 검증 Gate',
@@ -1020,8 +1155,8 @@ subprojects { subproject ->
 }
 
 tasks.register('cpfPublishAllToIsolatedLocal') {
-    group = '60. CPF 배포'
-    description = '[전체] CPF 전체 Maven publication을 로컬 격리 저장소(build/cpf-local-artifact-repository)에 게시합니다.'
+    group = '94. CPF 내부 배포'
+    description = '[내부 배포] CPF 전체 Maven publication을 로컬 격리 저장소(build/cpf-local-artifact-repository)에 게시합니다.'
 }
 
 tasks.register('cpfPublishPublicToArtifactStaging') {
@@ -1048,8 +1183,8 @@ tasks.register('cpfProjectPublicRuntimeAliases', Exec) {
 }
 
 tasks.register('cpfPublishAllVerifiedLocalPlatformArtifacts') {
-    group = '60. CPF 배포'
-    description = '[전체] 검증된 공개/Local 배포 산출물을 한 번에 생성합니다.'
+    group = '94. CPF 내부 배포'
+    description = '[내부 배포] 검증된 공개/Local 배포 산출물을 한 번에 조립합니다.'
     doLast {
         def publicReleaseMode = providers.gradleProperty('cpfPublicBinaryRepository').isPresent()
         def stagingRepository = providers.gradleProperty('cpfArtifactStagingRepository')
@@ -1155,12 +1290,12 @@ gradle.projectsEvaluated {
 // -----------------------------------------------------------------------------
 tasks.register('cpfBuildAll') {
     group = '10. CPF 빌드'
-    description = '[전체/권장] 전체 CPF Java 모듈 check/assemble + 정적 품질 Gate를 저메모리 정책으로 실행합니다.'
+    description = '[전체] 전체 CPF Java 모듈 check/assemble + 정적 품질 Gate를 저메모리 정책으로 실행합니다.'
     dependsOn 'aggregateQualityBuild'
 }
 
 tasks.register('cpfTestAll') {
-    group = '10. CPF 빌드'
+    group = '15. CPF 테스트'
     description = '[전체] 전체 CPF Java Test만 실행합니다. Build/Publication은 반복하지 않습니다.'
 }
 
@@ -1190,7 +1325,7 @@ tasks.register('cpfDatabaseDiscovery', Exec) {
 
 tasks.register('cpfVerifyFast') {
     group = '20. CPF 검증'
-    description = '[전체/빠름] 개발 중 빠르게 확인하는 Resource/Catalog/Dependency/NXT3 핵심 정적 Gate입니다.'
+    description = '[전체] 개발 중 빠르게 확인하는 Resource/Catalog/Dependency/NXT3 핵심 정적 Gate입니다. 가장 빠른 검증입니다.'
     dependsOn 'qualityGate'
 }
 
@@ -1207,7 +1342,7 @@ tasks.register('cpfVerifyTargeted', Exec) {
 
 tasks.register('cpfVerifyAllLocal', Exec) {
     group = '20. CPF 검증'
-    description = '[전체/실환경] Java25/Frontend/DB/Runtime/Browser를 가능한 범위까지 한 번에 검증하고 결과 ZIP을 생성합니다.'
+    description = '[전체] Java25/Frontend/DB/Runtime/Browser를 실환경까지 한 번에 검증하고 결과 ZIP을 생성합니다.'
     workingDir rootDir
     commandLine 'pwsh', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             file('cpf-tools/verification/tools/run-cpf-local-full-validation.ps1').absolutePath,
@@ -1290,9 +1425,30 @@ cpfDiscoveredDomains.each { d ->
     }
 }
 
-// 전체 대상 진입점은 All 을 이름에 두고, 개별 App/Domain 은 discovery 가 4축을 투영한다.
-registerCpfRunAlias('cpfRunAllLocal', ':runtime:local:bootRun', '[전체/권장] 통합 로컬 Runtime을 1 JVM/1 Port로 실행합니다.')
-registerCpfRunAlias('cpfRunAllBatch', ':runtime:local-batch:bootRun', '[전체] 통합 로컬 Batch Runtime을 실행합니다.')
+// Optional Backoffice가 없을 때만 부재 안내 진입점을 등록한다(있으면 discovery가 이미 등록한다).
+if (!cpfBackofficeMounted && tasks.findByName('cpfRunBackoffice') == null) {
+    tasks.register('cpfRunBackoffice') {
+        group = '30. CPF 실행'
+        description = '[개별] Optional Backoffice(MBW) Domain이 현재 Source에 없음을 확인합니다.'
+        doLast { logger.lifecycle('cpf-backoffice is ABSENT (normal optional state).') }
+    }
+}
+
+// Local Runtime 진입점은 Target Catalog 의 runtimeMode 만 다르고 Lifecycle 계약은 같다.
+// 대상 집합을 Gradle 쪽에서 다시 정의하지 않고 canonical Launcher 에 mode 로 위임한다.
+[[target: 'ALL', task: 'cpfRunAllLocal'],
+ [target: 'DEV', task: 'cpfRunDevLocal'],
+ [target: 'ONLINE', task: 'cpfRunOnlineLocal']].each { entry ->
+    def spec = cpfTargetCatalog[entry.target]
+    tasks.register(entry.task, Exec) {
+        group = '30. CPF 실행'
+        description = "${spec.prefix} ${spec.summary}을 1 JVM/1 Port 로컬 Runtime으로 실행합니다."
+        workingDir rootDir
+        commandLine cpfPython, file('cpf-tools/runtime/tools/cpf_local_runtime.py').absolutePath,
+                'start', '--root', rootDir.absolutePath, '--profile', 'local', '--mode', spec.runtimeMode
+    }
+}
+registerCpfRunAlias('cpfRunAllBatch', ':runtime:local-batch:bootRun', '[배치] 통합 로컬 Batch Runtime을 실행합니다.')
 
 // 발견된 App 마다 빌드/검증/실행/배포 4축을 Domain 과 동일한 형태로 등록한다.
 cpfDiscoveredApps.each { a ->
@@ -1327,7 +1483,7 @@ tasks.register('cpfDeployAll') {
 
 // 예전 이름은 대상 명령이 실제로 존재할 때만 등록해 죽은 진입점이 남지 않게 한다.
 cpfLegacyTaskAliases.each { legacyName, canonicalName ->
-    if (!cpfVisibleTaskNames.contains(canonicalName)) return
+    if (!cpfVisibleTaskNames.contains(canonicalName) && !cpfInternalPublicationTasks.contains(canonicalName)) return
     tasks.register(legacyName) {
         description = "[호환] ${canonicalName} 명령으로 대체되었습니다. 새 이름을 사용하세요."
         dependsOn canonicalName
@@ -1340,19 +1496,21 @@ tasks.register('cpfHelp') {
     doLast {
         println ''
         println '================ CPF QUICK START ================='
-        println '[1. 전체 빌드] ./gradlew cpfBuildAll'
-        println '[2. 전체 테스트] ./gradlew cpfTestAll'
-        println '[3. 빠른 검증] ./gradlew cpfVerifyFast'
-        println '[4. 변경영향 검증] ./gradlew cpfVerifyTargeted -PcpfTargetCapabilities=cache,messaging'
-        println '[5. 전체 실행] ./gradlew cpfRunAllLocal   - 권장: 1 JVM / 1 Port'
-        println '[6. 전체 Batch] ./gradlew cpfRunAllBatch   - Batch 사용 시에만'
-        println '[7. 개별 실행] ./gradlew cpfRun<대상>       - 예: cpfRunAdmin / cpfRunGateway'
-        println '[8. 모듈 찾기] ./gradlew cpfModules        - Public 선택 대상만'
+        println '[평소 개발] ./gradlew cpfBuildDev / cpfTestDev / cpfRunDevLocal'
+        println '[전체 통합] ./gradlew cpfBuildAll / cpfTestAll / cpfRunAllLocal'
+        println '[업무 Online만] ./gradlew cpfBuildOnline / cpfTestOnline / cpfRunOnlineLocal'
+        println '[Batch] ./gradlew cpfBuildBatch / cpfTestBatch / cpfRunAllBatch'
+        println '[개별 대상] ./gradlew cpfRun<대상>          - 예: cpfRunAdmin / cpfRunMemberOnline'
+        println '[대상 확인] ./gradlew cpfTargets           - 전체/개발/온라인이 무엇을 포함하는지'
+        println '[빠른 검증] ./gradlew cpfVerifyFast'
+        println '[변경영향 검증] ./gradlew cpfVerifyTargeted -PcpfTargetCapabilities=cache,messaging'
+        println '[배포] ./gradlew cpfDeployAll 또는 cpfDeploy<대상>'
+        println '[모듈 찾기] ./gradlew cpfModules           - Public 선택 대상만'
         println ''
         println '[개발 메뉴] pwsh ./cpf-tools/build/tools/cpf-dev.ps1   - 인자 없이 실행하면 번호 메뉴'
         println '[전체 로컬 검증] ./gradlew cpfVerifyAllLocal  또는  pwsh ./cpf-tools/build/tools/cpf-dev.ps1 verify-full'
         println '[VS Code] Gradle Projects는 apps / runtime / framework / starters / internal 계층으로 정리되어 있습니다.'
-        println '[VS Code Tasks] 00 시작 / 10 빌드 / 20 검증 / 30 실행 / 40 구성 / 50 설정 / 60 배포만 사용하고, 90~96 내부·98 호환·99 원시는 직접 실행하지 않습니다.'
+        println '[VS Code Tasks] 00 시작 / 10 빌드 / 15 테스트 / 20 검증 / 30 실행 / 40 구성 / 50 설정 / 60 배포만 사용하고, 90~96 내부·98 호환·99 원시는 직접 실행하지 않습니다.'
         println '[이름 규칙] 전체 대상은 All(cpfBuildAll/cpfRunAllLocal/cpfDeployAll), 개별 대상은 대상 이름(cpfBuildAdmin/cpfDeployMember)을 씁니다.'
         println '[환경 선택] -PcpfResourceProfile=local|dev|test|stg|prod'
         println '[자원 설정] gradle/cpf-runtime/<profile>.properties (250/500/750/1000m)'
@@ -1383,7 +1541,7 @@ tasks.register('cpfModules') {
 
 tasks.register('cpfModulesAll') {
     group = '40. CPF 구성'
-    description = '[조회/전체] Public/Internal 전체 Starter를 역할과 함께 표시합니다.'
+    description = '[조회] Public/Internal 전체 Starter를 역할과 함께 표시합니다.'
     doLast {
         println ''
         println '================ CPF ALL STARTERS ================'

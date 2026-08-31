@@ -1,6 +1,6 @@
 # Codex Next Work Instruction — Current
 
-Current Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f`.
+Current Product Source Identity: `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74`.
 
 과거 Codex RERUN Evidence는 Current-only cleanup으로 제거됐다. 처음부터 Source 전수를 반복하지 말고, Current exact Source에서 `VERIFICATION_PENDING / IN_PROGRESS / NOT_EXECUTED` Physical WP를 순서대로 닫는다.
 

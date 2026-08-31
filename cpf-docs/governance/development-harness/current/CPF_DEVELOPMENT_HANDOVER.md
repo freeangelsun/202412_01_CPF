@@ -5,7 +5,7 @@
 - 단일 실행 정본: `cpf-docs/governance/development-harness/`
 - 입력 Source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260830_140354.zip`
 - 입력 ZIP SHA-256: `c9f7bd68edc9891638280453bd82ab8000efc5b052a556cc67030d76744fb395`
-- Current Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f` / **8,450 files**
+- Current Product Source Identity: `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74` / **8,450 files**
 - Canonical Product Requirement: **218**
 - Tracking Work Item: **394**
 - Root Cause Execution WP: **16**
@@ -19,7 +19,7 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 ## 2. Session Merge Control
 
 - merge protocol: `1`
-- baseline Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f`
+- baseline Source Identity: `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74`
 - last merged session: `20260830_devgpt_toolchain_release_finalization`
 - pending sessions: `NONE`
 - conflict sessions: `NONE`
@@ -59,7 +59,7 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 
 ## 4. Current Source 실제 검증 근거
 
-- Product Source Identity: `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f` / 8,450 files
+- Product Source Identity: `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74` / 8,450 files
 - Affected regression: **62 PASS / 1 SKIP / 0 FAIL**
 - Generator affected regression: **24 PASS / 1 SKIP / 0 FAIL**
 - Verification suite: **126 PASS / 0 FAIL** (`47 + 35 + 12 + 32`)
@@ -101,7 +101,7 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 
 ## 7. 다음 세션 시작 순서
 
-1. Current Source Identity를 재계산해 `d54e64e446d99e0601bf36205e492e3568bb56fd0d80bff5e54793249394f97f`와 일치 여부 확인.
+1. Current Source Identity를 재계산해 `bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74`와 일치 여부 확인.
 2. Session Merge Preflight 실행. 현재 기준 pending/conflict는 0이다.
 3. Overlay 적용 후 사용자 Windows에서 Fresh VS Code Problems 0/0부터 확인.
 4. Current Source 최대강도 Full Runtime을 실행해 실제 FAIL을 Root Cause WP에 병합.

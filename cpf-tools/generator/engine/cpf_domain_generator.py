@@ -2024,11 +2024,12 @@ def render_domain_dependency_consumer(d: DomainDefinition, runtime: str,
 
 import com.cpf.core.api.result.CpfResult;
 {chr(10).join('import '+x+';' for x in sorted(imports))}
+import {d.package_name}.base.{d.class_name}BaseService;
 import com.cpf.foundation.annotation.CpfService;
 
 /** Generated Domain dependency Client를 실제 업무 Bean 주입 경로에서 소비하는 Sample Service입니다. */
 @CpfService
-public class DomainDependencySampleService {{
+public class DomainDependencySampleService extends {d.class_name}BaseService {{
 {chr(10).join(fields)}
     public DomainDependencySampleService({', '.join(params)}) {{
 {chr(10).join(assigns)}

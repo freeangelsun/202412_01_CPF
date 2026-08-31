@@ -227,6 +227,20 @@
           "logicalDatabase": "mbwDB"
         }
       ]
+    },
+    "V141__center_cut_runtime_service_registry.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R141__center_cut_runtime_service_registry.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
     }
   }
 }

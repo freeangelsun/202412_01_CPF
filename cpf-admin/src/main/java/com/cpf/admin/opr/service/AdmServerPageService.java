@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.common.base.AdmBaseService;
+
 import com.cpf.admin.opr.dto.AdmPageResponse;
 import com.cpf.foundation.annotation.CpfService;
 
@@ -21,7 +23,7 @@ import java.util.Set;
  * 교체될 수 있습니다.</p>
  */
 @CpfService
-public class AdmServerPageService {
+public class AdmServerPageService extends AdmBaseService {
 
     public AdmPageResponse<Map<String, Object>> page(
             List<Map<String, Object>> source,

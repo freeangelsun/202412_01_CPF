@@ -1,5 +1,7 @@
 package com.cpf.backoffice.online.approval.service;
 
+import com.cpf.backoffice.online.base.BackofficeBaseService;
+
 import com.cpf.backoffice.online.approval.repository.BackofficeApprovalPolicyRepository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,7 +11,7 @@ import java.util.*;
 
 /** MBW Approval 실행 상태를 짧은 REQUIRES_NEW transaction으로 fencing 합니다. */
 @CpfService
-public class BackofficeApprovalExecutionStateService {
+public class BackofficeApprovalExecutionStateService extends BackofficeBaseService {
     private final BackofficeApprovalPolicyRepository repository;
 
     public BackofficeApprovalExecutionStateService(BackofficeApprovalPolicyRepository repository) {

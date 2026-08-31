@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.transaction.repository;
 
+import com.cpf.admin.common.base.AdmBaseRepository;
+
 import com.cpf.data.api.CpfDataRow;
 import com.cpf.data.persistence.api.CpfRepository;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
@@ -12,7 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Canonical Operation Catalog와 ADM-owned Operation Policy의 query owner입니다. */
 @CpfRepository
-public class AdmTransactionMetaRepository {
+public class AdmTransactionMetaRepository extends AdmBaseRepository {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 

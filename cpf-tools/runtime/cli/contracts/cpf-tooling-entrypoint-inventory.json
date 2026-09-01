@@ -11,7 +11,7 @@
     "DUPLICATE",
     "DEAD"
   ],
-  "entrypointCount": 904,
+  "entrypointCount": 905,
   "duplicateCount": 0,
   "deadCount": 0,
   "entries": [
@@ -4358,6 +4358,13 @@
     {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_local_validation_orchestrator.py",
       "path": "cpf-tools/verification/tests/test_cpf_local_validation_orchestrator.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_optional_provider_consumer_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_optional_provider_consumer_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""

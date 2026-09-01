@@ -60,6 +60,49 @@ function Get-CpfOptionalRuntimeProperty {
 # 아니므로, 가짜 Route/ACK 를 만들어 넣지 않고 신규 설치와 같은 모드로 기동한다.
 $env:CPF_GATEWAY_ALLOW_EMPTY_ROUTES = 'true'
 
+# Runtime Agent 는 기동 시 자신의 serviceId/endpointCode 가 중앙 Registry(OPS_SERVICE /
+# OPS_SERVICE_ENDPOINT)에 등록되어 있어야만 진행한다. 이 등록은 CPF 가 배포하는 seed 가 아니라
+# 운영자가 만드는 운영 데이터이므로, Verifier 가 자기 시나리오의 전제를 직접 만든다.
+# smoke-bat-two-worker-runtime.ps1 의 Generated Domain 사전 등록과 같은 방식이다.
+function Invoke-CpfGatewaySql([string] $Sql) {
+    $docker = (Get-Command docker -ErrorAction SilentlyContinue)
+    if (-not $docker) { throw 'Docker CLI is required to register the Gateway runtime prerequisite.' }
+    $arguments = @('exec', '-i', $script:GatewayDbContainer, 'mariadb',
+        "-u$script:GatewayDbUser", "-p$script:GatewayDbPassword", '-N', '-B', '-e', $Sql)
+    $out = & $docker.Source @arguments 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "Gateway prerequisite SQL failed: $($out -join ' ')" }
+    return (($out -join "`n").Trim())
+}
+
+# DB 이름과 계정은 실행마다 새로 만들어지므로 어떤 값도 하드코딩하지 않는다. 이 스테이지가
+# 이미 받는 Database Profile 에서 읽고, 비밀은 profile 이 가리키는 환경변수에서만 가져온다.
+$script:GatewayDbContainer = if ($env:CPF_MARIADB_CONTAINER) { $env:CPF_MARIADB_CONTAINER } else { 'cpf-mariadb' }
+# 이 스크립트는 Profile 을 파라미터로만 받는다. Runtime 기동 스크립트의 내부 변수에 의존하지
+# 않도록 canonical loader 로 직접 읽는다.
+. (Join-Path $Root 'cpf-tools/db/tools/database-profile-common.ps1')
+$gatewayProfilePath = $DatabaseProfilePath
+if ([string]::IsNullOrWhiteSpace($gatewayProfilePath)) {
+    $gatewayProfilePath = Join-Path $Root 'cpf-tools\db\config\database-install.default.json'
+} elseif (-not [System.IO.Path]::IsPathRooted($gatewayProfilePath)) {
+    $gatewayProfilePath = Join-Path $Root $gatewayProfilePath
+}
+$gatewayDatabaseProfile = Get-CpfDatabaseProfile -Path ([System.IO.Path]::GetFullPath($gatewayProfilePath))
+$gatewayCoreProfile = $gatewayDatabaseProfile.modules.core
+if (-not $gatewayCoreProfile) { throw 'Database Profile 에 core module 이 없어 Gateway 전제를 등록할 수 없습니다.' }
+$script:GatewayDbName = [string] $gatewayCoreProfile.databaseName
+$script:GatewayDbUser = [string] $gatewayCoreProfile.runtime.username
+$gatewayPasswordEnv = [string] $gatewayCoreProfile.runtime.password.env
+if ([string]::IsNullOrWhiteSpace($gatewayPasswordEnv)) { throw 'Database Profile 의 runtime password 환경변수 참조가 비어 있습니다.' }
+$script:GatewayDbPassword = [Environment]::GetEnvironmentVariable($gatewayPasswordEnv, 'Process')
+if ([string]::IsNullOrWhiteSpace($script:GatewayDbPassword)) { throw "Gateway 전제 등록에 필요한 비밀이 없습니다: $gatewayPasswordEnv" }
+
+$gatewayServiceId = 'GWY'
+$gatewayEndpointCode = 'GWY_API'
+Invoke-CpfGatewaySql "INSERT INTO $script:GatewayDbName.OPS_SERVICE(service_id,service_name,service_type,owner_module_code,description,use_yn,created_by,updated_by) VALUES('$gatewayServiceId','CPF Gateway','GATEWAY','GWY','Runtime qualification prerequisite seeded by the verifier','Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE use_yn=VALUES(use_yn),updated_by=VALUES(updated_by);"
+Invoke-CpfGatewaySql "INSERT INTO $script:GatewayDbName.OPS_SERVICE_ENDPOINT(endpoint_code,service_id,endpoint_name,endpoint_type,base_url,context_path,default_timeout_ms,default_retry_count,use_yn,created_by,updated_by) VALUES('$gatewayEndpointCode','$gatewayServiceId','CPF Gateway API','HTTP','http://127.0.0.1:8070','/',5000,0,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE base_url=VALUES(base_url),use_yn=VALUES(use_yn),updated_by=VALUES(updated_by);"
+$gatewayServiceRows = [int](Invoke-CpfGatewaySql "SELECT COUNT(*) FROM $script:GatewayDbName.OPS_SERVICE WHERE service_id='$gatewayServiceId' AND use_yn='Y';")
+if ($gatewayServiceRows -ne 1) { throw "Gateway service registry prerequisite was not registered: $gatewayServiceId" }
+
 try {
     $startArgs = @{
         Root = $Root

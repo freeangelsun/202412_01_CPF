@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RestController;
 import com.cpf.platform.operations.api.featureflag.CpfFeatureFlagContext;
 import com.cpf.platform.operations.api.featureflag.CpfFeatureFlagOperations;
@@ -18,6 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Commercial ADM feature flag query and two-person controlled command API. */
+// Feature Flag 은 opt-in Platform 기능이다. Provider AutoConfiguration 과 같은 속성 조건을
+// 붙여, 기능이 꺼진 Runtime 에서는 이 Consumer 도 함께 존재하지 않게 한다. 조건 없이
+// 필수 주입하면 기능을 쓰지 않는 Runtime 이 기동조차 못 한다.
+@ConditionalOnProperty(prefix = "cpf.platform-operations.feature-flag", name = "enabled", havingValue = "true")
 @RestController
 @RequestMapping("/adm/api/platform/feature-flags")
 @Tag(name = "ADM-FeatureFlag", description = "Feature Flag 평가·Override·Kill Switch 운영 API")

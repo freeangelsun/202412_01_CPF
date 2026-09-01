@@ -31,8 +31,8 @@ public class BatRetentionExecutionService {
         this(operations, repository, environment, Clock.systemUTC());
     }
     BatRetentionExecutionService(BatRetentionOperations operations, BatRetentionExecutionRepository repository,
-                                 Environment environment, Clock clock) {
-        this.operations=operations; this.repository=repository; this.environment=environment; this.clock=clock;
+                                 Environment environment, Clock cpfStarterClock) {
+        this.operations=operations; this.repository=repository; this.environment=environment; this.clock=cpfStarterClock;
         this.runtimeInstanceId=CpfInstanceIdentity.instanceId();
     }
 

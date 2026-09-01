@@ -1,5 +1,9 @@
 package com.cpf.education.online.file.service;
 import com.cpf.education.online.file.dto.*; import com.cpf.file.objectstorage.api.*; import com.cpf.foundation.annotation.CpfService; import java.io.*; import java.nio.charset.StandardCharsets; import java.util.*;
+// Object Storage 는 opt-in Platform 기능이다. Provider AutoConfiguration 과 같은 속성 조건을
+// 붙여, 기능이 꺼진 Runtime 에서는 이 Consumer 도 함께 존재하지 않게 한다. 조건 없이 필수
+// 주입하면 기능을 쓰지 않는 Runtime 이 기동조차 못 한다.
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "cpf.file.object-storage.s3", name = "enabled", havingValue = "true")
 @CpfService
 /** DocumentService는 CPF File/Object Storage Public API로 업로드·다운로드 책임을 분리하는 File Golden Path입니다. */
 public class DocumentService { private final CpfObjectStorageOperations storage; public DocumentService(CpfObjectStorageOperations storage){this.storage=storage;}

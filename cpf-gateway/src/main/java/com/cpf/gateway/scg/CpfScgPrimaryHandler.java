@@ -138,7 +138,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             CpfTransactionIdGenerator transactionIds,
             CpfExecutionIdGenerator executionIds,
             CpfHttpOutboundContextAdapter httpContextOutbound,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.snapshot = snapshot;
         this.targets = targets;
         this.authentication = authentication;
@@ -155,7 +155,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
         this.transactionIds = Objects.requireNonNull(transactionIds, "transactionIds");
         this.gatewayContexts = new CpfGatewayContextFactory(executionIds);
         this.httpContextOutbound = Objects.requireNonNull(httpContextOutbound, "httpContextOutbound");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.clock = Objects.requireNonNull(cpfStarterClock, "clock");
     }
 
     /** Source compatibility용 생성자이며 제품 Runtime은 Clock Bean까지 주입하는 생성자를 사용합니다. */

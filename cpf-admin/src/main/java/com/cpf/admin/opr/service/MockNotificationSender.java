@@ -3,7 +3,6 @@ package com.cpf.admin.opr.service;
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
 import com.cpf.admin.opr.dto.NotificationSendResult;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +16,9 @@ import java.util.Locale;
  * 이 구현의 성공은 실제 Email/SMS/Webhook 수신 성공이 아닙니다. 실제 Provider Bean이 등록되면
  * {@link ConditionalOnMissingBean}에 의해 자동 대체됩니다.</p>
  */
+// @ConditionalOnMissingBean 은 component scan 으로 등록되는 Bean 에서는 신뢰할 수 없다.
+// UnavailableNotificationSender 와는 속성 값으로 이미 상호배타이므로 이 조건은 불필요하다.
 @Component
-@ConditionalOnMissingBean(NotificationSender.class)
 @ConditionalOnProperty(prefix = "cpf.notification.simulator", name = "enabled", havingValue = "true")
 public class MockNotificationSender implements NotificationSender {
     private final String mode;

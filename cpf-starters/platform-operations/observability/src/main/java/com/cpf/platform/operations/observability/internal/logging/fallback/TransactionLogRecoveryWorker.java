@@ -79,8 +79,8 @@ public final class TransactionLogRecoveryWorker implements CpfLogRecoveryOperati
             TransactionLogService logService,
             CpfFileLogWriter fileLogWriter,
             Environment environment,
-            Clock clock) {
-        this(store, logService, fileLogWriter, environment, clock, null);
+            Clock cpfStarterClock) {
+        this(store, logService, fileLogWriter, environment, cpfStarterClock, null);
     }
 
     TransactionLogRecoveryWorker(
@@ -88,31 +88,31 @@ public final class TransactionLogRecoveryWorker implements CpfLogRecoveryOperati
             TransactionLogService logService,
             CpfFileLogWriter fileLogWriter,
             Environment environment,
-            Clock clock,
+            Clock cpfStarterClock,
             CpfStateOperations stateOperations) {
-        this(store, logService, environment, clock, fileEventSink(fileLogWriter), stateOperations);
+        this(store, logService, environment, cpfStarterClock, fileEventSink(fileLogWriter), stateOperations);
     }
 
     TransactionLogRecoveryWorker(
             TransactionLogFallbackStore store,
             TransactionLogService logService,
             Environment environment,
-            Clock clock,
+            Clock cpfStarterClock,
             RecoveryEventSink recoveryEventSink) {
-        this(store, logService, environment, clock, recoveryEventSink, null);
+        this(store, logService, environment, cpfStarterClock, recoveryEventSink, null);
     }
 
     TransactionLogRecoveryWorker(
             TransactionLogFallbackStore store,
             TransactionLogService logService,
             Environment environment,
-            Clock clock,
+            Clock cpfStarterClock,
             RecoveryEventSink recoveryEventSink,
             CpfStateOperations stateOperations) {
         this.store = store;
         this.logService = logService;
         this.recoveryEventSink = recoveryEventSink;
-        this.clock = clock;
+        this.clock = cpfStarterClock;
         this.stateOperations = stateOperations;
         this.scheduledRecoveryEnabled = environment.getProperty(
                 "cpf.logging.db-fallback.enabled", Boolean.class, true);

@@ -10,7 +10,7 @@
       "name": "root-generated-domain-prefix",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.06,
+      "seconds": 0.075,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -25,7 +25,7 @@
       "name": "generated-domain-minimal-ia",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.289,
+      "seconds": 0.285,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -40,7 +40,7 @@
       "name": "generator-public-boundary",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.067,
+      "seconds": 0.063,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -55,7 +55,7 @@
       "name": "generator-presets",
       "status": "PASS",
       "rc": 0,
-      "seconds": 4.362,
+      "seconds": 4.021,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -63,14 +63,14 @@
         "--root",
         "C:\\dev\\projects\\jck\\202412_01_CPF"
       ],
-      "stdout": "{\n  \"gate\": \"NXT3_GENERATOR_PRESETS\",\n  \"status\": \"PASS\",\n  \"failedCount\": 0,\n  \"checks\": [\n    {\n      \"preset\": \"minimal\",\n      \"name\": \"mini\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\mini.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\cpf-mini\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"mini\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-wi3rrmqs\\\\\\\\cpf-mini\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"mini\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-mini\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": false,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"NOT_APPLICABLE\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 14\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"standard-enterprise\",\n      \"name\": \"stdapi\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\stdapi.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\cpf-stdapi\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"stdapi\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-wi3rrmqs\\\\\\\\cpf-stdapi\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"stdapi\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-stdapi\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": true,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"EXTERNAL_CANONICAL_RENDERER\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 49\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"full-enterprise\",\n      \"name\": \"fullx\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\fullx.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\cpf-fullx\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"fullx\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-wi3rrmqs\\\\\\\\cpf-fullx\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"fullx\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-fullx\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": false,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"EXTERNAL_CANONICAL_RENDERER\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 40\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"custom\",\n      \"name\": \"customx\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\customx.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\cpf-customx\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"customx\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-wi3rrmqs\\\\\\\\cpf-customx\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"customx\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-customx\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": false,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"NOT_APPLICABLE\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 14\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"standard-enterprise-invalid\",\n      \"name\": \"fail-fast\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\bad.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\cpf-badstd\"\n        ],\n        \"rc\": 2,\n        \"stdout\": \"\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\nCPF_CLI=FAIL standard-enterprise는 mybatis/httpClient/resilience/sampleTransaction=true Golden Path를 유지해야 합니다.\\n\"\n      }\n    },\n    {\n      \"preset\": \"minimal-invalid\",\n      \"name\": \"true-minimal-fail-closed\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\bad-minimal.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-wi3rrmqs\\\\cpf-badmin\"\n        ],\n        \"rc\": 2,\n        \"stdout\": \"\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\nCPF_CLI=FAIL preset=minimal은 실제 최소 Surface만 허용합니다. 현재 선택={'persistence': 'mybatis', 'httpClient': True, 'resilience': True, 'cache': 'none', 'messaging': 'none', 'objectStorage': 'none', 'securityProfile': 'resource-server'}, sampleTransaction=True; 권장 조합=features 생략 또는 none/false + securityProfile=resource-server + generation.sampleTransaction=false; 수정 경로=$.features, $.generation.sampleTransaction\\n\"\n      }\n    }\n  ]\n}\n",
+      "stdout": "{\n  \"gate\": \"NXT3_GENERATOR_PRESETS\",\n  \"status\": \"PASS\",\n  \"failedCount\": 0,\n  \"checks\": [\n    {\n      \"preset\": \"minimal\",\n      \"name\": \"mini\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\mini.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\cpf-mini\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"mini\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-u_ujzl78\\\\\\\\cpf-mini\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"mini\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-mini\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": false,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"NOT_APPLICABLE\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 14\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"standard-enterprise\",\n      \"name\": \"stdapi\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\stdapi.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\cpf-stdapi\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"stdapi\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-u_ujzl78\\\\\\\\cpf-stdapi\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"stdapi\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-stdapi\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": true,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"EXTERNAL_CANONICAL_RENDERER\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 49\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"full-enterprise\",\n      \"name\": \"fullx\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\fullx.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\cpf-fullx\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"fullx\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-u_ujzl78\\\\\\\\cpf-fullx\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"fullx\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-fullx\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": false,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"EXTERNAL_CANONICAL_RENDERER\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 40\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"custom\",\n      \"name\": \"customx\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\customx.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\cpf-customx\"\n        ],\n        \"rc\": 0,\n        \"stdout\": \"{\\n  \\\"domain\\\": \\\"customx\\\",\\n  \\\"status\\\": \\\"GENERATED\\\",\\n  \\\"output\\\": \\\"C:\\\\\\\\dev\\\\\\\\projects\\\\\\\\jck\\\\\\\\202412_01_CPF\\\\\\\\cpf-docs\\\\\\\\governance\\\\\\\\development-harness\\\\\\\\evidence\\\\\\\\platform\\\\\\\\current\\\\\\\\generated\\\\\\\\domain-generator\\\\\\\\verification\\\\\\\\preset-matrix-u_ujzl78\\\\\\\\cpf-customx\\\",\\n  \\\"verify\\\": {\\n    \\\"domain\\\": \\\"customx\\\",\\n    \\\"status\\\": \\\"PASS\\\",\\n    \\\"physicalRoot\\\": \\\"cpf-customx\\\",\\n    \\\"ia\\\": {\\n      \\\"online\\\": true,\\n      \\\"batch\\\": false,\\n      \\\"batchCapabilitySelection\\\": \\\"DEVELOPER_GRADLE_CONTRACT\\\"\\n    },\\n    \\\"developerContract\\\": \\\"gradle.properties\\\",\\n    \\\"generatorMetadata\\\": \\\"ABSENT\\\",\\n    \\\"publicBoundary\\\": \\\"PASS\\\",\\n    \\\"db3Renderer\\\": \\\"NOT_APPLICABLE\\\",\\n    \\\"runtimeConsumers\\\": \\\"BUILD_GENERATED_DESCRIPTOR\\\",\\n    \\\"generatedFiles\\\": 14\\n  }\\n}\\n\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\n\",\n        \"assertionFailures\": []\n      }\n    },\n    {\n      \"preset\": \"standard-enterprise-invalid\",\n      \"name\": \"fail-fast\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\bad.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\cpf-badstd\"\n        ],\n        \"rc\": 2,\n        \"stdout\": \"\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\nCPF_CLI=FAIL standard-enterprise는 mybatis/httpClient/resilience/sampleTransaction=true Golden Path를 유지해야 합니다.\\n\"\n      }\n    },\n    {\n      \"preset\": \"minimal-invalid\",\n      \"name\": \"true-minimal-fail-closed\",\n      \"status\": \"PASS\",\n      \"detail\": {\n        \"cmd\": [\n          \"C:\\\\Users\\\\fly10\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\",\n          \"-B\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-tools\\\\runtime\\\\cli\\\\cpf.py\",\n          \"--root\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\",\n          \"domain\",\n          \"generate\",\n          \"--file\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\bad-minimal.yaml\",\n          \"--output\",\n          \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\governance\\\\development-harness\\\\evidence\\\\platform\\\\current\\\\generated\\\\domain-generator\\\\verification\\\\preset-matrix-u_ujzl78\\\\cpf-badmin\"\n        ],\n        \"rc\": 2,\n        \"stdout\": \"\",\n        \"stderr\": \"[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\\nCPF_CLI=FAIL preset=minimal은 실제 최소 Surface만 허용합니다. 현재 선택={'persistence': 'mybatis', 'httpClient': True, 'resilience': True, 'cache': 'none', 'messaging': 'none', 'objectStorage': 'none', 'securityProfile': 'resource-server'}, sampleTransaction=True; 권장 조합=features 생략 또는 none/false + securityProfile=resource-server + generation.sampleTransaction=false; 수정 경로=$.features, $.generation.sampleTransaction\\n\"\n      }\n    }\n  ]\n}\n",
       "stderr": ""
     },
     {
       "name": "starter-provider-catalog",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.072,
+      "seconds": 0.067,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -85,7 +85,7 @@
       "name": "redis-valkey-current",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.841,
+      "seconds": 0.628,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -100,7 +100,7 @@
       "name": "redis-valkey-provider",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.192,
+      "seconds": 0.139,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -108,7 +108,7 @@
         "--root",
         "C:\\dev\\projects\\jck\\202412_01_CPF",
         "--evidence",
-        "C:\\Users\\fly10\\AppData\\Local\\Temp\\cpf-nxt3-child-evidence-07i9h6kv\\REDIS_VALKEY_PROVIDER.json"
+        "C:\\Users\\fly10\\AppData\\Local\\Temp\\cpf-nxt3-child-evidence-_tnzr2cy\\REDIS_VALKEY_PROVIDER.json"
       ],
       "stdout": "{\"status\": \"PASS\", \"failedCount\": 0, \"checkCount\": 32}\n",
       "stderr": ""
@@ -117,7 +117,7 @@
       "name": "annotation-runtime-consumer",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.141,
+      "seconds": 0.118,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -125,7 +125,7 @@
         "--root",
         "C:\\dev\\projects\\jck\\202412_01_CPF",
         "--evidence",
-        "C:\\Users\\fly10\\AppData\\Local\\Temp\\cpf-nxt3-child-evidence-07i9h6kv\\ANNOTATION_RUNTIME_CONSUMER.json"
+        "C:\\Users\\fly10\\AppData\\Local\\Temp\\cpf-nxt3-child-evidence-_tnzr2cy\\ANNOTATION_RUNTIME_CONSUMER.json"
       ],
       "stdout": "{\"status\": \"PASS\", \"failedCount\": 0, \"checkCount\": 16}\n",
       "stderr": ""
@@ -134,7 +134,7 @@
       "name": "adm-backoffice-framework",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.15,
+      "seconds": 0.149,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -149,7 +149,7 @@
       "name": "adm-backoffice-frontend-gateway",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.104,
+      "seconds": 0.095,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -164,7 +164,7 @@
       "name": "common-management-propagation",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.076,
+      "seconds": 0.063,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -179,7 +179,7 @@
       "name": "config-contract",
       "status": "PASS",
       "rc": 0,
-      "seconds": 6.679,
+      "seconds": 5.027,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -194,7 +194,7 @@
       "name": "query-db3-self-test",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.123,
+      "seconds": 0.113,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -210,7 +210,7 @@
       "name": "query-db3",
       "status": "PASS",
       "rc": 0,
-      "seconds": 5.703,
+      "seconds": 5.767,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -218,14 +218,14 @@
         "--root",
         "C:\\dev\\projects\\jck\\202412_01_CPF"
       ],
-      "stdout": "CPF_NXT3_QUERY_DB3=PASS scanned=6157 sql=1864 failures=0\n",
+      "stdout": "CPF_NXT3_QUERY_DB3=PASS scanned=6157 sql=1865 failures=0\n",
       "stderr": ""
     },
     {
       "name": "korean-comment-self-test",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.086,
+      "seconds": 0.088,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -241,7 +241,7 @@
       "name": "korean-comment",
       "status": "PASS",
       "rc": 0,
-      "seconds": 1.353,
+      "seconds": 1.435,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -256,7 +256,7 @@
       "name": "adm-incident-canonical-db",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.08,
+      "seconds": 0.084,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -271,7 +271,7 @@
       "name": "central-registry-retention-closure",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.798,
+      "seconds": 0.887,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -286,7 +286,7 @@
       "name": "db-source-plan-derivation",
       "status": "PASS",
       "rc": 0,
-      "seconds": 0.077,
+      "seconds": 0.084,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -301,7 +301,7 @@
       "name": "layout",
       "status": "PASS",
       "rc": 0,
-      "seconds": 2.759,
+      "seconds": 2.836,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -316,7 +316,7 @@
       "name": "garbage-sweep",
       "status": "PASS",
       "rc": 0,
-      "seconds": 5.107,
+      "seconds": 5.76,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -331,7 +331,7 @@
       "name": "hygiene",
       "status": "PASS",
       "rc": 0,
-      "seconds": 2.099,
+      "seconds": 2.204,
       "cmd": [
         "C:\\Users\\fly10\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
         "-B",
@@ -346,13 +346,13 @@
       "name": "cpf-verify-all",
       "status": "PASS",
       "rc": 0,
-      "seconds": 32.402,
+      "seconds": 33.474,
       "cmd": [
         "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.cmd",
         "verify",
         "all"
       ],
-      "stdout": "[CPF][CLI] START command=verify profile=INTERNAL root=C:\\dev\\projects\\jck\\202412_01_CPF time=2026-09-01T11:51:18.980802400Z\n[CPF][CANONICAL-VERIFIER][PASS] current-final rc=0 elapsed=6.862s\n[CPF][CANONICAL-VERIFIER][PASS] physical-db-consolidation rc=0 elapsed=0.085s\n[CPF][CANONICAL-VERIFIER][PASS] unified-cli rc=0 elapsed=0.467s\n[CPF][CANONICAL-VERIFIER][PASS] no-partial rc=0 elapsed=2.709s\n[CPF][CANONICAL-VERIFIER][PASS] clean-source rc=0 elapsed=2.878s\n[CPF][CANONICAL-VERIFIER][PASS] requirement-progress rc=0 elapsed=0.068s\n[CPF][CANONICAL-VERIFIER][PASS] requirement-projection rc=0 elapsed=1.178s\n[CPF][CANONICAL-VERIFIER][PASS] public-function-top100 rc=0 elapsed=0.233s\n[CPF][CANONICAL-VERIFIER][PASS] public-javadoc rc=0 elapsed=0.332s\n[CPF][CANONICAL-VERIFIER][PASS] common-dx rc=0 elapsed=0.179s\n[CPF][CANONICAL-VERIFIER][PASS] crosscut rc=0 elapsed=1.181s\n[CPF][CANONICAL-VERIFIER][PASS] annotation-runtime rc=0 elapsed=0.102s\n[CPF][CANONICAL-VERIFIER][PASS] adm-e2e-contract rc=0 elapsed=0.059s\n[CPF][CANONICAL-VERIFIER][PASS] backoffice-route rc=0 elapsed=0.09s\n[CPF][CANONICAL-VERIFIER][PASS] generated-minimal-ia rc=0 elapsed=0.261s\n[CPF][CANONICAL-VERIFIER][PASS] generated-canonical-ia rc=0 elapsed=0.076s\n[CPF][CANONICAL-VERIFIER][PASS] generated-javac rc=0 elapsed=2.459s\n[CPF][CANONICAL-VERIFIER][PASS] starter-zero-footprint rc=0 elapsed=0.071s\n[CPF][CANONICAL-VERIFIER][PASS] backoffice-classification rc=0 elapsed=0.06s\n[CPF][CANONICAL-VERIFIER][PASS] backoffice-semantic-client rc=0 elapsed=0.07s\n[CPF][CANONICAL-VERIFIER][PASS] runtime-instance-identity rc=0 elapsed=0.629s\n[CPF][CANONICAL-VERIFIER][PASS] runtime-central-registry-retention rc=0 elapsed=0.781s\n[CPF][CANONICAL-VERIFIER][PASS] transaction-system6 rc=0 elapsed=1.385s\n[CPF][CANONICAL-VERIFIER][PASS] nxt3-layout rc=0 elapsed=2.735s\n[CPF][CANONICAL-VERIFIER][PASS] repository-garbage rc=0 elapsed=5.189s\n[CPF][CANONICAL-VERIFIER][PASS] toolchain-contract rc=0 elapsed=0.077s\n[CPF][CANONICAL-VERIFIER][PASS] batch-no-remote-kafka rc=0 elapsed=1.564s\n{\"status\": \"PASS\", \"registryId\": \"cpf-current-canonical-static-verifiers-v3\", \"total\": 27, \"failed\": 0}\n[CPF][CLI] END command=verify status=PASS exitCode=0 start=2026-09-01T11:51:18.980802400Z end=2026-09-01T11:51:51.077556700Z\n",
+      "stdout": "[CPF][CLI] START command=verify profile=INTERNAL root=C:\\dev\\projects\\jck\\202412_01_CPF time=2026-09-01T20:40:08.437787300Z\n[CPF][CANONICAL-VERIFIER][PASS] current-final rc=0 elapsed=7.138s\n[CPF][CANONICAL-VERIFIER][PASS] physical-db-consolidation rc=0 elapsed=0.089s\n[CPF][CANONICAL-VERIFIER][PASS] unified-cli rc=0 elapsed=0.46s\n[CPF][CANONICAL-VERIFIER][PASS] no-partial rc=0 elapsed=2.788s\n[CPF][CANONICAL-VERIFIER][PASS] clean-source rc=0 elapsed=2.873s\n[CPF][CANONICAL-VERIFIER][PASS] requirement-progress rc=0 elapsed=0.067s\n[CPF][CANONICAL-VERIFIER][PASS] requirement-projection rc=0 elapsed=1.173s\n[CPF][CANONICAL-VERIFIER][PASS] public-function-top100 rc=0 elapsed=0.249s\n[CPF][CANONICAL-VERIFIER][PASS] public-javadoc rc=0 elapsed=0.352s\n[CPF][CANONICAL-VERIFIER][PASS] common-dx rc=0 elapsed=0.186s\n[CPF][CANONICAL-VERIFIER][PASS] crosscut rc=0 elapsed=1.2s\n[CPF][CANONICAL-VERIFIER][PASS] annotation-runtime rc=0 elapsed=0.112s\n[CPF][CANONICAL-VERIFIER][PASS] adm-e2e-contract rc=0 elapsed=0.069s\n[CPF][CANONICAL-VERIFIER][PASS] backoffice-route rc=0 elapsed=0.086s\n[CPF][CANONICAL-VERIFIER][PASS] generated-minimal-ia rc=0 elapsed=0.289s\n[CPF][CANONICAL-VERIFIER][PASS] generated-canonical-ia rc=0 elapsed=0.083s\n[CPF][CANONICAL-VERIFIER][PASS] generated-javac rc=0 elapsed=2.326s\n[CPF][CANONICAL-VERIFIER][PASS] starter-zero-footprint rc=0 elapsed=0.08s\n[CPF][CANONICAL-VERIFIER][PASS] backoffice-classification rc=0 elapsed=0.066s\n[CPF][CANONICAL-VERIFIER][PASS] backoffice-semantic-client rc=0 elapsed=0.084s\n[CPF][CANONICAL-VERIFIER][PASS] runtime-instance-identity rc=0 elapsed=0.65s\n[CPF][CANONICAL-VERIFIER][PASS] runtime-central-registry-retention rc=0 elapsed=0.845s\n[CPF][CANONICAL-VERIFIER][PASS] transaction-system6 rc=0 elapsed=1.444s\n[CPF][CANONICAL-VERIFIER][PASS] nxt3-layout rc=0 elapsed=2.836s\n[CPF][CANONICAL-VERIFIER][PASS] repository-garbage rc=0 elapsed=5.503s\n[CPF][CANONICAL-VERIFIER][PASS] toolchain-contract rc=0 elapsed=0.075s\n[CPF][CANONICAL-VERIFIER][PASS] batch-no-remote-kafka rc=0 elapsed=1.531s\n{\"status\": \"PASS\", \"registryId\": \"cpf-current-canonical-static-verifiers-v3\", \"total\": 27, \"failed\": 0}\n[CPF][CLI] END command=verify status=PASS exitCode=0 start=2026-09-01T20:40:08.437787300Z end=2026-09-01T20:40:41.609933Z\n",
       "stderr": ""
     }
   ]

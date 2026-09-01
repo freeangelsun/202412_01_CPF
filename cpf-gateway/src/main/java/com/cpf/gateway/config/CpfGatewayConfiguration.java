@@ -48,8 +48,12 @@ public class CpfGatewayConfiguration {
         return new CpfApiClientSecurityPolicy();
     }
 
-    @Bean(name = "cpfApiClientSecurityRuntimeApplier")
-    @ConditionalOnMissingBean(name = "cpfApiClientSecurityRuntimeApplier")
+    // CpfRuntimeControlAgent 는 changeType 당 Applier 하나만 허용한다. HTTP Integration Starter 도
+    // 같은 API_CLIENT changeType 을 등록하므로, Gateway Runtime 에서는 Gateway 의 보안 정책
+    // Applier 가 소유자임을 canonical Bean 이름으로 선언한다. Starter 의
+    // @ConditionalOnMissingBean(name="cpfApiClientRuntimeApplier") back-off 가 이 이름으로 동작한다.
+    @Bean(name = "cpfApiClientRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfApiClientRuntimeApplier")
     public CpfRuntimeChangeApplier cpfApiClientSecurityRuntimeApplier(CpfApiClientSecurityPolicy policy) {
         return new CpfApiClientSecurityRuntimeApplier(policy);
     }

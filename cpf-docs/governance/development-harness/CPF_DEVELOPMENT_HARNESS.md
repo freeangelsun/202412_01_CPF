@@ -314,3 +314,122 @@ Release 로 인정하지 않는다.
 - Release 전/후 generated-root inventory 를 Evidence 로 남긴다. 최소 previous canonical
   release residue 0 / legacy timestamp release 0 / stale open-git working-tree files 0 /
   stale binary version 0 / current release only PASS 를 검증한다.
+
+## 25. Runtime Bean 해석 계약 (Mandatory)
+
+컴파일과 단위테스트를 모두 통과하고도 Runtime 기동에서만 드러나는 결함이 반복 발생했다. 아래
+계약은 그 결함들을 정적 게이트로 고정한 것이며, 각 항목은 실제 기동 실패 근거를 가진다.
+
+### 25.1 CPF stereotype Type은 proxy-safe여야 한다
+
+`@CpfRepository` / `@CpfService` / `@CpfController` / `@CpfRestController`가 붙은 Business Type은
+`final`일 수 없다. 제품 자신이 이 규칙을 명시한다 — `CpfCapabilityUsageAspect.proxySafeBusinessType()`
+은 final Type을 proxy-unsafe로 판정한다. Advisor가 매칭되면 CGLIB subclass 생성이 불가능해
+`Cannot subclass final class`로 기동이 실패한다.
+
+Gate: `cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py`
+
+### 25.2 `@AutoConfiguration`은 반드시 등록한다
+
+Spring Boot는 `AutoConfiguration.imports`에 나열된 클래스만 활성화한다. 등록하지 않으면 Bean이
+조용히 사라지고 소비자는 `required a bean ... that could not be found`로만 실패한다. 등록이
+의도적으로 없는 항목은 게이트의 `KNOWN_INACTIVE`에 근거와 함께 남기고, 등록되면 목록에서 뺀다.
+
+`@ConditionalOnBean`을 쓰는 AutoConfiguration은 대상 Bean을 등록하는 AutoConfiguration 다음에
+평가되도록 `after`/`afterName`으로 순서를 명시한다. 순서를 생략하면 Bean이 있어도 조건이 거짓이
+될 수 있다.
+
+Gate: `cpf-tools/verification/tests/test_cpf_autoconfiguration_registration.py`
+
+### 25.3 생성자가 여럿이면 주입 대상을 명시한다
+
+운영 생성자와 테스트 seam을 함께 두는 것은 정상 설계다. 다만 생성자가 둘 이상이고 기본 생성자가
+없으면 Spring은 어느 것을 쓸지 정하지 못하고 `No default constructor found`로 기동이 실패한다.
+운영 주입 생성자에 `@Autowired`를 붙인다(완전수식 표기도 유효).
+
+Gate: `cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py`
+
+### 25.4 동일 타입 Bean이 여럿인 자리는 해석 근거를 명시한다
+
+- **DataSource**: Runtime에는 업무 Domain DataSource가 함께 존재한다. 타입만으로 주입하지 말고
+  `CpfDataSourceRegistry.require(CpfDatabaseRole.CPF_PLATFORM_DB)`로 Role을 명시한다.
+- **Clock**: `cpfStarterClock`(foundation)과 `cpfCommonClock`(common)이 의도적으로 공존한다.
+  파라미터 이름을 `cpfStarterClock`으로 맞추거나 `@Qualifier`로 명시한다.
+
+### 25.5 Spring Boot 4에서 사라진 자동설정은 CPF가 소유한다
+
+Spring Boot 4는 Boot 3이 제공하던 Bean 일부를 더 이상 auto-configure하지 않는다.
+
+- `com.fasterxml.jackson.databind.ObjectMapper` — Boot 4는 Jackson 3 `tools.jackson...JsonMapper`를
+  만든다. `CpfJackson2AutoConfiguration`이 소유하며, 다른 스타터의 대체 Bean이 먼저 등록되어
+  foundation이 back-off하지 않도록 순서를 명시한다.
+- `WebClient.Builder` — Boot 4에 `WebClientAutoConfiguration`이 존재하지 않는다. HTTP Integration
+  스타터가 CPF 표준 규약(timeout, codec 상한, 통합 로그 필터)을 담아 **prototype scope**로 소유한다.
+  Builder는 가변 객체이므로 싱글턴 공유는 소비자 설정을 서로 오염시킨다.
+
+`required a bean of type` 실패가 나오면 먼저 Boot 4 자동설정 제거 여부를 확인한다.
+
+### 25.6 Provider의 선택성과 소비자의 요구는 일치해야 한다
+
+Provider AutoConfiguration이 `@ConditionalOnProperty`로 opt-in인데 소비자가 그 Bean을 필수 주입하면,
+기능을 쓰지 않는 Runtime이 기동조차 못 한다. 소비자는 `ObjectProvider`로 받고 기능이 없으면
+`supports()`가 false를 반환해야 한다. 없는 기능을 지원한다고 보고하지 않는다.
+
+소비자가 취할 수 있는 해법은 둘이다. 둘 중 하나는 반드시 적용한다.
+
+1. `ObjectProvider`로 받고 기능이 없으면 `supports()`가 false를 반환한다(Owner Command Adapter).
+2. Provider와 **같은 속성 조건**을 붙여 기능이 꺼지면 소비자도 함께 사라진다(Controller/Service).
+
+반대로 소비자가 조건 없이 요구하는 Port는 Provider 모듈이 Runtime classpath에 반드시 있어야 한다.
+ADM은 internal Provider를 직접 의존하지 않는다 — 선택은 `:apps:admin-runtime` composition 모듈이
+단독으로 소유하고, 기대 집합은 `verify_admin_dependency_boundaries.py`가 고정한다.
+
+같은 `changeType`을 두 Applier가 등록하면 `CpfRuntimeControlAgent`가 fail-closed로 기동을 막는다.
+소유자를 canonical Bean 이름으로 선언해 다른 Provider의 `@ConditionalOnMissingBean(name=...)`
+back-off가 동작하게 한다.
+
+Gate: `cpf-tools/verification/tests/test_cpf_optional_provider_consumer_contract.py`
+
+### 25.6.1 소비하는 설정 속성의 기본값은 소비자가 소유한다
+
+`@Value("${...}")`에 기본값이 없으면 그 속성을 주지 않는 Runtime은 placeholder 미해석으로 기동조차
+못 한다. harness가 명령행으로 넘겨주는 것에 의존하면, 같은 Bean을 쓰는 다른 Runtime(1-WAS 등)이
+그대로 실패한다. 소비 모듈의 `application.yml`이 `${ENV:default}` 형태로 기본값을 소유하고, 값의
+유효성은 사용 시점에 fail-closed로 다시 검증한다.
+
+### 25.6.2 Runtime 데이터 전제는 Verifier가 만든다
+
+Runtime Agent 등록(`OPS_SERVICE` / `OPS_SERVICE_ENDPOINT`), Center-Cut Job 정의처럼 CPF가 seed로
+배포하지 않는 운영 데이터를 Runtime이 fail-closed로 요구하는 경우가 있다. 이런 전제는 Verifier가
+자기 시나리오 안에서 직접 등록하고 등록 결과를 검증한다. Canonical seed 분류를 바꾸거나 sample
+행을 product seed로 승격시키지 않는다. `INSERT IGNORE`처럼 FK 위반까지 삼키는 구문은 쓰지 않는다.
+
+### 25.7 Query Pack은 두 계열을 함께 갱신한다
+
+`cpf-tools/db/runtime-template/**`(템플릿)과 `cpf-tools/db/vendor/<vendor>/runtime/**`(Runtime이
+실제 실행하는 Pack)이 병존하며 자동 동기화가 없다. 한쪽만 고치면 Runtime은 여전히 구 SQL을 실행해
+`Unknown column`으로 실패한다. Migration으로 컬럼을 바꾸면 두 계열과 `platform-runtime-query-contract.json`의
+`parameterCount`를 함께 맞춘다. Migration 파일 자체는 불변 이력이므로 수정하지 않는다.
+
+Gate: `cpf-tools/db/tests/test_query_template_schema_columns.py` (템플릿 + vendor Pack 양쪽 검사)
+
+### 25.8 검증 도구는 Source Tree를 오염시키지 않는다
+
+Source Tree의 형제 모듈을 import하는 도구는 그 옆에 `__pycache__/*.pyc`를 만들고, `clean-source`
+게이트가 이를 garbage로 판정한다. 즉 검증을 실행할 때마다 검증이 깨진다. 해당 도구는 호출자의
+`-B` 여부에 의존하지 말고 스스로 `sys.dont_write_bytecode = True`를 설정한다. pytest는
+`-p no:cacheprovider`로 실행한다.
+
+Gate: `cpf-tools/verification/tests/test_cpf_source_tree_bytecode_hygiene.py`
+
+### 25.9 Full Runtime 실행 중 금지 행위
+
+- **Gradle 병행 실행 금지.** 실행 이력과 산출물이 불일치해 `clean` 이후에도 `UP-TO-DATE` 오판이
+  발생하고, 다른 프로젝트의 클래스 파일이 사라진 것처럼 보인다.
+- **Source/Managed 파일 편집 금지.** `[162] SOURCE_STATE_AFTER` / `[163] MANAGED_STATE_AFTER`가
+  전후 SHA-256 동일성을 요구한다.
+- **실행 중인 Gradle의 `--project-cache-dir` 삭제 금지.** 부분 삭제된 execution history는 위와 같은
+  오판을 만든다.
+- `build/`는 `clean-source` 게이트 검사 대상이 아니다. 삭제할 필요가 없으며, 삭제하면 IDE
+  classpath가 깨진다. 정리 후에는 `cpfPrepareIdeClasspath` + `cpfVerifyIdeClasspathReady`로 복구해
+  VS Code Problems를 0으로 유지한다.

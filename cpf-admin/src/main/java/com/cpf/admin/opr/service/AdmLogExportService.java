@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import com.cpf.foundation.annotation.CpfService;
@@ -55,7 +56,10 @@ public class AdmLogExportService extends AdmBaseService {
             AdmLogQueryService logQueryService,
             AdmAuditLogService auditLogService,
             ObjectMapper objectMapper,
-            JdbcTemplate jdbc) {
+            // 1-WAS 처럼 ADM/BZA/Common JdbcTemplate 이 함께 있는 구성에서 무자격 주입은
+            // 후보가 여러 개라 기동을 막는다. Log 조회/정책 형제 Service 와 같은 Platform DB
+            // JdbcTemplate 를 쓴다는 것을 명시한다.
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbc) {
         this(logQueryService, auditLogService, objectMapper, jdbc, Clock.systemUTC());
     }
 
@@ -64,12 +68,12 @@ public class AdmLogExportService extends AdmBaseService {
             AdmAuditLogService auditLogService,
             ObjectMapper objectMapper,
             JdbcTemplate jdbc,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.logQueryService = logQueryService;
         this.auditLogService = auditLogService;
         this.objectMapper = objectMapper;
         this.jdbc = jdbc;
-        this.clock = clock;
+        this.clock = cpfStarterClock;
     }
 
     @CpfTransactional

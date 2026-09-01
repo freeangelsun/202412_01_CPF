@@ -57,11 +57,11 @@ public final class CpfGatewayControlAuthenticationFilter extends OncePerRequestF
 
     CpfGatewayControlAuthenticationFilter(
             CpfGatewayControlSecurityProperties properties,
-            Clock clock,
+            Clock cpfStarterClock,
             CpfGatewayControlNoncePort noncePort,
             CpfGatewayControlSecurityAuditPort securityAuditPort) {
         this.properties = properties;
-        this.clock = clock;
+        this.clock = cpfStarterClock;
         this.noncePort = Objects.requireNonNull(noncePort, "noncePort");
         this.securityAuditPort = Objects.requireNonNull(securityAuditPort, "securityAuditPort");
         properties.validate();

@@ -32,8 +32,8 @@ public class AdmTotpVerifier {
         this(Clock.systemUTC());
     }
 
-    AdmTotpVerifier(Clock clock) {
-        this.clock = clock;
+    AdmTotpVerifier(Clock cpfStarterClock) {
+        this.clock = cpfStarterClock;
     }
 
     public boolean verify(CpfSecretValue secretValue, String otpCode) {

@@ -79,9 +79,9 @@ public final class TransactionLogFallbackStore implements CpfTransactionLogFallb
             ObjectMapper objectMapper,
             CpfFileLogWriter fileLogWriter,
             Environment environment,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.objectMapper = objectMapper;
-        this.clock = clock;
+        this.clock = cpfStarterClock;
         Path root = fileLogWriter.recoveryPath(Path.of("transaction-db"));
         this.pendingDirectory = root.resolve("pending");
         this.processingDirectory = root.resolve("processing");

@@ -22,6 +22,28 @@ management:
       probes:
         enabled: true
 cpf:
+  logging:
+    # 일반 Runtime 로그는 Application/Instance별 경로로 분리하며 Transaction Evidence와 혼용하지 않습니다.
+    enabled: true
+    root: ${CPF_LOG_ROOT:logs}
+    instance-id: ${CPF_RUNTIME_INSTANCE_ID:${HOSTNAME:local}}
+    maintenance-interval: ${CPF_LOG_MAINTENANCE_INTERVAL:1h}
+    files:
+      runtime:
+        # 전체 Runtime 흐름을 기록하는 기본 파일입니다. Console 출력도 함께 유지됩니다.
+        enabled: true
+        file-name: runtime.log
+        rolling: DAILY
+        compress-after-days: 5
+        delete-after-days: 365
+      error:
+        # ERROR 이상을 별도 파일에도 기록하여 운영 장애 탐색 경로를 명확히 합니다.
+        enabled: true
+        file-name: error.log
+        level: ERROR
+        rolling: DAILY
+        compress-after-days: 5
+        delete-after-days: 365
   # Center-Cut Runner의 거래/Runtime System Code입니다. 기본값 CEC이며 Header/Trace/Registry에서 사용합니다.
   system-code: ${CPF_SYSTEM_CODE:CEC}
   web:

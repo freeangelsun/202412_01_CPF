@@ -82,12 +82,12 @@ public final class CpfAsyncFileLogWriter implements AutoCloseable, CpfAsyncFileL
             int capacity,
             OverflowPolicy overflowPolicy,
             Duration shutdownTimeout,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.adapter = Objects.requireNonNull(adapter, "adapter");
         this.queue = new ArrayBlockingQueue<>(capacity);
         this.overflowPolicy = Objects.requireNonNull(overflowPolicy, "overflowPolicy");
         this.shutdownTimeout = Objects.requireNonNull(shutdownTimeout, "shutdownTimeout");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.clock = Objects.requireNonNull(cpfStarterClock, "clock");
         this.worker = new Thread(this::drainLoop, "cpf-file-log-writer");
         this.worker.setDaemon(true);
         this.worker.setUncaughtExceptionHandler((thread, failure) -> {

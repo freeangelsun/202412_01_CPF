@@ -18,7 +18,7 @@ class GatewayApprovalOwnerCommandAdapterTest {
         CpfGatewayRegistryPort registry = (CpfGatewayRegistryPort) Proxy.newProxyInstance(
                 getClass().getClassLoader(), new Class<?>[]{CpfGatewayRegistryPort.class},
                 (proxy, method, args) -> { throw new UnsupportedOperationException(method.getName()); });
-        GatewayApprovalOwnerCommandAdapter adapter = new GatewayApprovalOwnerCommandAdapter(registry);
+        GatewayApprovalOwnerCommandAdapter adapter = new GatewayApprovalOwnerCommandAdapter(provider(registry));
 
         assertEquals(true, adapter.supports("cpf-gateway", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING"));
         assertEquals(false, adapter.supports("cpf-gateway-shadow", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING"));
@@ -49,7 +49,7 @@ class GatewayApprovalOwnerCommandAdapterTest {
                     }
                     default -> throw new UnsupportedOperationException(method.getName());
                 });
-        GatewayApprovalOwnerCommandAdapter adapter = new GatewayApprovalOwnerCommandAdapter(registry);
+        GatewayApprovalOwnerCommandAdapter adapter = new GatewayApprovalOwnerCommandAdapter(provider(registry));
         var result = adapter.execute(new AdmApprovedOperationCommand(
                 101L, "approval-command-101", "GATEWAY_BINDING_BLOCK", "cpf-gateway",
                 "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING", "binding-1", hash,
@@ -59,5 +59,15 @@ class GatewayApprovalOwnerCommandAdapterTest {
         assertEquals("BLOCKED", invoked.get().targetState());
         assertEquals("101", invoked.get().approvalId());
         assertEquals("approver", invoked.get().requestedBy());
+    }
+
+    /** Gateway Control 은 opt-in 이므로 Adapter 는 ObjectProvider 로 받는다. 테스트도 같은 계약을 쓴다. */
+    private static org.springframework.beans.factory.ObjectProvider<CpfGatewayRegistryPort> provider(CpfGatewayRegistryPort value){
+        return new org.springframework.beans.factory.ObjectProvider<>(){
+            @Override public CpfGatewayRegistryPort getObject(Object... args){return value;}
+            @Override public CpfGatewayRegistryPort getObject(){return value;}
+            @Override public CpfGatewayRegistryPort getIfAvailable(){return value;}
+            @Override public CpfGatewayRegistryPort getIfUnique(){return value;}
+        };
     }
 }

@@ -3,6 +3,7 @@ package com.cpf.admin.approval.owner;
 import com.cpf.admin.approval.api.*;
 import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
 import com.cpf.gateway.api.CpfGatewayRegistryPort;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -11,10 +12,13 @@ import java.util.Objects;
 /** ADM 승인 완료 Snapshot을 Gateway Owner Command로 실행하는 Local/Remote 공통 Adapter입니다. */
 @Component("cpfGatewayApprovalOwnerCommandPort")
 public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwnerCommandPort {
-    private final CpfGatewayRegistryPort registry;
+    // Gateway Control 은 opt-in 이다(AdmGatewayRegistryClientConfiguration 은
+    // cpf.admin.gateway-control.enabled=true 일 때만 Port Bean 을 만든다).
+    // 필수 주입으로 두면 Gateway Control 을 쓰지 않는 Runtime 이 ADM 기동조차 못 한다.
+    private final ObjectProvider<CpfGatewayRegistryPort> registryProvider;
 
-    public GatewayApprovalOwnerCommandAdapter(CpfGatewayRegistryPort registry) {
-        this.registry = registry;
+    public GatewayApprovalOwnerCommandAdapter(ObjectProvider<CpfGatewayRegistryPort> registryProvider) {
+        this.registryProvider = registryProvider;
     }
 
     private static final java.util.Set<OwnerTuple> ALLOWED = java.util.Set.of(
@@ -22,12 +26,19 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
             tuple("GATEWAY_BINDING_BLOCK"), tuple("GATEWAY_BINDING_RETIRE"));
 
     public boolean supports(String ownerModule, String ownerCommand) {
+        if (registry() == null) return false;
         String owner=canonical(ownerModule), command=canonical(ownerCommand);
         return ALLOWED.stream().anyMatch(tuple -> tuple.ownerModule().equals(owner) && tuple.ownerCommand().equals(command));
     }
 
+    /** Gateway Control 이 꺼진 Runtime 에서는 이 Owner Command 자체가 존재하지 않는다. */
+    private CpfGatewayRegistryPort registry() {
+        return registryProvider.getIfAvailable();
+    }
+
     @Override
     public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        if (registry() == null) return false;
         return ALLOWED.contains(new OwnerTuple(canonical(ownerModule),canonical(ownerCommand),canonical(actionType),canonical(targetType)));
     }
 
@@ -39,7 +50,7 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
         if (command.requestedBy().equals(command.approvedBy())) {
             return failed("GATEWAY_SELF_APPROVAL", "요청자와 승인 실행자는 달라야 합니다.");
         }
-        CpfGatewayRegistryPort.GatewayBinding binding = registry.findBindings(null, null, null, 10_000).stream()
+        CpfGatewayRegistryPort.GatewayBinding binding = registry().findBindings(null, null, null, 10_000).stream()
                 .filter(item -> item.bindingId().equals(command.targetId()))
                 .findFirst().orElse(null);
         if (binding == null) return failed("GATEWAY_BINDING_NOT_FOUND", "Gateway Binding을 찾을 수 없습니다.");
@@ -55,7 +66,7 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
         };
         if (targetState == null) return failed("GATEWAY_COMMAND_UNSUPPORTED", "지원하지 않는 Gateway 승인 Command입니다.");
         try {
-            CpfGatewayRegistryPort.MutationResult result = registry.changeBindingState(
+            CpfGatewayRegistryPort.MutationResult result = registry().changeBindingState(
                     new CpfGatewayRegistryPort.BindingStateCommand(
                             command.commandRequestId(), binding.bindingId(), targetState, binding.version(),
                             String.valueOf(command.approvalRequestId()), command.reason(), command.approvedBy()));
@@ -75,7 +86,7 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
             return failed("GATEWAY_RECONCILE_UNSUPPORTED", "Gateway Owner/Command/Action/Target 조합이 일치하지 않습니다.");
         }
         try {
-            CpfGatewayRegistryPort.GatewayBinding binding = registry.findBindings(null, null, null, 10_000).stream()
+            CpfGatewayRegistryPort.GatewayBinding binding = registry().findBindings(null, null, null, 10_000).stream()
                     .filter(item -> item.bindingId().equals(command.targetId()))
                     .findFirst().orElse(null);
             if (binding == null) {

@@ -84,10 +84,10 @@ public class TransactionLogListener implements CpfAsyncLogWriterOperations, Auto
             TransactionLogService logService,
             CpfTransactionLogFallbackPort fallbackStore,
             AsyncSettings settings,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.logService = Objects.requireNonNull(logService, "logService");
         this.fallbackStore = Objects.requireNonNull(fallbackStore, "fallbackStore");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.clock = Objects.requireNonNull(cpfStarterClock, "clock");
         AsyncSettings safeSettings = Objects.requireNonNull(settings, "settings");
         this.workerCount = safeSettings.workerCount();
         this.queueCapacity = safeSettings.queueCapacity();

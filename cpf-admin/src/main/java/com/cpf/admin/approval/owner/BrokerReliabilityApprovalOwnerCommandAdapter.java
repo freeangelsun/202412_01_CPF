@@ -42,10 +42,10 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
     BrokerReliabilityApprovalOwnerCommandAdapter(
             CpfReliabilityOperationsPort operations,
             AdmApprovalRepository approvals,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.operations = Objects.requireNonNull(operations, "operations");
         this.approvals = Objects.requireNonNull(approvals, "approvals");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.clock = Objects.requireNonNull(cpfStarterClock, "clock");
     }
 
     @Override

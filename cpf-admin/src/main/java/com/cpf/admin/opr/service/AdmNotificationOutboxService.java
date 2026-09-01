@@ -58,7 +58,10 @@ public class AdmNotificationOutboxService extends AdmBaseService {
     public AdmNotificationOutboxService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbcTemplate,
             NotificationSender notificationSender,
-            PlatformTransactionManager transactionManager,
+            // Outbox 는 cpfJdbcTemplate(cpfCommonDataSource) 에만 쓴다. 1-WAS 처럼 ADM/BZA/Common
+            // TransactionManager 가 함께 있는 구성에서 무자격 주입은 후보 3개로 기동을 막고,
+            // 우연히 하나만 있을 때는 다른 DataSource 로 커밋하게 된다. Role 을 명시한다.
+            @Qualifier("cpfCommonTransactionManager") PlatformTransactionManager transactionManager,
             @Value("${cpf.notification.outbox.lease-seconds:60}") long leaseSeconds,
             @Value("${cpf.notification.outbox.retry-delay-seconds:30}") long retryDelaySeconds,
             @Value("${cpf.notification.outbox.max-attempts:3}") int maxAttempts) {

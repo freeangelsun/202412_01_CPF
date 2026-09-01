@@ -66,9 +66,9 @@ public class TransactionSegmentFallbackStore {
             ObjectMapper objectMapper,
             CpfFileLogWriter fileLogWriter,
             Environment environment,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.objectMapper = objectMapper;
-        this.clock = clock;
+        this.clock = cpfStarterClock;
         Path root = fileLogWriter.recoveryPath(Path.of("segment-db"));
         this.pendingDirectory = root.resolve("pending");
         this.processingDirectory = root.resolve("processing");

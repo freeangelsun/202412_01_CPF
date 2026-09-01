@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.batch.runtime;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
 
 import com.cpf.admin.approval.api.AdmApprovalExecutionStatus;
@@ -29,6 +30,11 @@ import java.util.Set;
 /**
  * ADM Approval Engine에서 승인된 BAT 명령만 BAT Control Server로 위임합니다.
  */
+// 이 Port 는 원격 BAT Control Server 로만 위임하며, requireRemoteBaseUrl 이 loopback 주소를
+// 명시적으로 거부한다. 즉 별도 BAT Control Server 가 없는 Runtime(1-WAS 등)에서는 존재할 수
+// 없다. 속성이 설정된 경우에만 Bean 을 만들어, 미설정 Runtime 이 placeholder 미해석으로
+// 기동조차 못 하는 일을 막는다. 소비자는 Owner Port 를 Map 으로 받으므로 부재가 안전하다.
+@ConditionalOnProperty(prefix = "cpf.batch.control", name = "base-url")
 @Component("BAT")
 public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort {
     private static final String CALLER_SERVICE = "ADM";

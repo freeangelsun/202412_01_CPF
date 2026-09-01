@@ -9,7 +9,7 @@ import com.cpf.integration.api.webhook.CpfWebhookDelivery;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +25,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+// @ConditionalOnBean 은 component scan 으로 등록되는 Bean 에서는 신뢰할 수 없어, 서비스가
+// 있어도 Controller 가 조용히 사라질 수 있다. Provider(AdmIntegrationClosureConfiguration)와
+// 같은 속성 조건을 써서 활성/비활성이 항상 일치하게 한다.
 @RestController
-@ConditionalOnBean(AdmIntegrationClosureService.class)
+@ConditionalOnProperty(prefix = "cpf.adm.integration-closure", name = "enabled", havingValue = "true")
 @RequestMapping("/adm/api/integration-closure")
 @Tag(name = "ADM-Integration-Closure", description = "시간·데이터 품질·Webhook 운영 조회 및 서버 승인 조치")
 @SecurityRequirement(name = "admSessionCookie")

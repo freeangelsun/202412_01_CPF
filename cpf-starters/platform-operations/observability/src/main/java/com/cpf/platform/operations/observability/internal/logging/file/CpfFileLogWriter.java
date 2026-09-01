@@ -102,10 +102,10 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
     /**
      * 일자 전환 테스트와 재현 가능한 로그 생성을 위해 Clock을 주입합니다.
      */
-    public CpfFileLogWriter(Environment environment, Clock clock) {
+    public CpfFileLogWriter(Environment environment, Clock cpfStarterClock) {
         this.environment = environment;
         this.logZoneId = resolveZoneId(environment);
-        this.clock = clock.withZone(logZoneId);
+        this.clock = cpfStarterClock.withZone(logZoneId);
         this.pathPolicy = new CpfLogPathPolicy(environment);
         this.objectMapper = new ObjectMapper();
         initializeLogRoot();

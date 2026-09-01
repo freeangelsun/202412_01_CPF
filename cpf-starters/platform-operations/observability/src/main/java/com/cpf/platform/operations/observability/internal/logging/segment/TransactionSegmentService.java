@@ -36,9 +36,9 @@ public class TransactionSegmentService {
         this.clock = clockProvider.getIfUnique(Clock::systemUTC);
     }
 
-    TransactionSegmentService(TransactionSegmentPersistenceService persistenceService, Clock clock) {
+    TransactionSegmentService(TransactionSegmentPersistenceService persistenceService, Clock cpfStarterClock) {
         this.persistenceService = persistenceService;
-        this.clock = java.util.Objects.requireNonNull(clock, "clock");
+        this.clock = java.util.Objects.requireNonNull(cpfStarterClock, "clock");
     }
 
     public TransactionSegmentScope start(

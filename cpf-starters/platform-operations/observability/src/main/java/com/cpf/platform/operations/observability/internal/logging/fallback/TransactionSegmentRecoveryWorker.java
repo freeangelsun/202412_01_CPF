@@ -52,11 +52,11 @@ public class TransactionSegmentRecoveryWorker {
             TransactionSegmentPersistenceService persistenceService,
             CpfFileLogWriter fileLogWriter,
             Environment environment,
-            Clock clock) {
+            Clock cpfStarterClock) {
         this.store = store;
         this.persistenceService = persistenceService;
         this.fileLogWriter = fileLogWriter;
-        this.clock = clock;
+        this.clock = cpfStarterClock;
         this.scheduledRecoveryEnabled = environment.getProperty(
                 "cpf.logging.db-fallback.enabled", Boolean.class, true);
         this.batchSize = bounded(environment.getProperty(

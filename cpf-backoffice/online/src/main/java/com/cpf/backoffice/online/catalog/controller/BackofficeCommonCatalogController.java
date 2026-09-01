@@ -27,10 +27,13 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Error/Response Code/Message Common Product Service의 MBW Consumer입니다.
  * MBW는 CMN owner table SQL을 직접 실행하지 않고 Common Management API만 호출합니다.
  */
+// CPF stereotype 이 붙은 Business Type 은 proxy-safe 여야 한다.
+// CpfCapabilityUsageAspect.proxySafeBusinessType() 이 final Type 을 proxy-unsafe 로 판정하고,
+// Advisor 가 매칭되면 CGLIB subclass 생성이 불가능해 Runtime 기동이 실패한다.
 @CpfController
 @RequestMapping("/api/v1/backoffice/common-catalog")
 @Tag(name = "MBW-Common-Catalog", description = "응답코드·다국어 메시지 관리 API")
-public final class BackofficeCommonCatalogController extends com.cpf.backoffice.online.base.BackofficeBaseController {
+public class BackofficeCommonCatalogController extends com.cpf.backoffice.online.base.BackofficeBaseController {
     private final CpfCommonCatalogManagementService common;
     public BackofficeCommonCatalogController(CpfCommonCatalogManagementService common) {
         this.common = common;

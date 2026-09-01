@@ -26,8 +26,10 @@ public final class CpfCli {
     private static final int EXIT_TIMEOUT = 124;
     private static final Duration COMMAND_TIMEOUT = Duration.ofMinutes(45);
     private static final Set<String> PUBLIC = Set.of(
-            "bootstrap", "domain-new", "domain-sync", "build", "test", "run", "stop", "reset", "status", "doctor", "version", "help");
+            "bootstrap", "domain-new", "domain-sync", "build", "test", "run", "stop", "reset", "status", "doctor", "version", "help",
+            "runtime");
     private static final Set<String> INTERNAL_NAMESPACES = Set.of("dev", "verify", "publish", "release");
+    private static final Set<String> RUNTIME_ACTIONS = Set.of("start", "stop", "status", "health", "restart", "log");
 
     private CpfCli() {}
 
@@ -57,6 +59,7 @@ public final class CpfCli {
                 case "stop" -> requireJava25Then(() -> internalEnabled() ? internalRuntime(root, "stop", argv) : bootstrapCommand(root, "stop", argv));
                 case "reset" -> requireJava25Then(() -> internalEnabled() ? internalReset(root, argv) : reset(root, argv));
                 case "status" -> internalEnabled() ? internalRuntime(root, "status", argv) : status(root);
+                case "runtime" -> runtimeLifecycle(root, argv);
                 case "domain-new" -> requireJava25Then(() -> domainNew(root, argv));
                 case "domain-sync" -> requireJava25Then(() -> generator(root, concat(List.of("domain", "sync"), argv)));
                 case "build" -> requireJava25Then(() -> gradle(root, "cpfBuildAll", argv));
@@ -78,6 +81,58 @@ public final class CpfCli {
         }
     }
 
+    /**
+     * Public Runtime lifecycle 진입점.
+     *
+     * <p>Windows/Linux launcher 는 이 명령으로 위임만 하므로 target/option/exit 의미가 두 OS 에서
+     * 갈라지지 않는다. Target 목록은 canonical Runtime Target Catalog 하나에서만 온다.</p>
+     */
+    private static int runtimeLifecycle(Path root, List<String> args) throws Exception {
+        if (args.isEmpty()) return usage("cpf runtime targets|start|stop|status|health|restart|log [--target <target>]");
+        String action = normalize(args.remove(0));
+        String target = null;
+        List<String> rest = new ArrayList<>();
+        for (int index = 0; index < args.size(); index++) {
+            String token = args.get(index);
+            if (("--target".equals(token) || "-t".equals(token)) && index + 1 < args.size()) {
+                target = args.get(++index);
+            } else {
+                rest.add(token);
+            }
+        }
+        try {
+            List<CpfRuntimeTargets.Target> targets = CpfRuntimeTargets.resolveAll(root);
+            if (action.equals("targets") || action.equals("help")) {
+                System.out.println("CPF Runtime Targets");
+                for (CpfRuntimeTargets.Target row : targets) System.out.println(row.describe());
+                System.out.println("  " + String.format("%-20s %s", "all", "전체 Local Runtime"));
+                System.out.println("  " + String.format("%-20s %s", "dev", "일상 개발 구성 Runtime"));
+                return EXIT_OK;
+            }
+            if (!RUNTIME_ACTIONS.contains(action)) {
+                return usage("unsupported runtime action=" + action);
+            }
+            if (target == null || target.isBlank()) {
+                fail("CPF-CLI-RUNTIME-TARGET", "--target is required for runtime " + action);
+                return EXIT_USAGE;
+            }
+            String requested = target.trim();
+            boolean aggregate = requested.equalsIgnoreCase("all") || requested.equalsIgnoreCase("dev");
+            if (!aggregate && targets.stream().noneMatch(row -> row.name().equals(requested))) {
+                fail("CPF-CLI-RUNTIME-TARGET", "unknown runtime target=" + requested
+                        + "; run 'cpf runtime targets' to list available targets");
+                return EXIT_USAGE;
+            }
+            List<String> forwarded = new ArrayList<>(List.of("runtime", action, "--target", requested));
+            forwarded.addAll(rest);
+            return requireJava25Then(() -> internalRuntime(root, action, forwarded));
+        } catch (IOException failure) {
+            // Catalog 부재/손상은 설정 결함이므로 prerequisite 실패로 구분해 보고한다.
+            fail("CPF-CLI-RUNTIME-CATALOG", failure.getMessage());
+            return EXIT_PREREQUISITE;
+        }
+    }
+
     private static int help() {
         System.out.println("CPF Unified CLI");
         System.out.println("Public commands:");
@@ -85,6 +140,8 @@ public final class CpfCli {
         System.out.println("  cpf domain-new <domain> [SYSTEM_CODE]");
         System.out.println("  cpf domain-sync [domain]");
         System.out.println("  cpf build | test | run | stop | reset | status");
+        System.out.println("  cpf runtime targets");
+        System.out.println("  cpf runtime start|stop|status|health|restart|log --target <target>");
         System.out.println("  cpf doctor [--json] [--strict] [--non-interactive]");
         if (internalEnabled()) {
             System.out.println("Internal namespaces:");

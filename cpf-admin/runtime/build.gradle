@@ -10,6 +10,14 @@ dependencies {
     api project(':internal:data:cache:spring-data-redis')
     api project(':framework:messaging')
     api project(':internal:integration:resilience')
+    // AdmBatchJobDefinitionClientConfiguration 은 CpfServiceCaller 를 조건 없이 요구한다.
+    // 그 구현과 AutoConfiguration 은 HTTP Integration Starter 가 소유한다. ADM 이 internal
+    // Provider 를 직접 의존하지 않도록 Provider 선택은 이 composition 모듈에서만 한다.
+    api project(':internal:integration:http')
+    // FeatureFlagApprovalOwnerCommandAdapter 는 CpfFeatureFlagOperations 를 조건 없이
+    // 요구한다. 그 구현은 OpenFeature Provider 가 소유하므로 Runtime 에 없으면 ADM 기동이
+    // 실패한다. internal Provider 선택은 이 composition 모듈에서만 한다.
+    api project(':internal:platform-operations:feature-flag:openfeature')
     api project(':internal:messaging:reliability:jdbc')
     api project(':internal:platform-operations:runtime-health:jdbc')
     api project(':internal:integration:webhook')

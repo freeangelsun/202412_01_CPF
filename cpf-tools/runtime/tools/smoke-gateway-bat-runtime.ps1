@@ -53,6 +53,13 @@ function Get-CpfOptionalRuntimeProperty {
     return $property.Value
 }
 
+# 신규 설치 상태에서는 GW_BINDING 에 행이 없다. Gateway Route 는 CPF 가 배포하는 seed 가 아니라
+# 운영자가 등록하는 운영 데이터이며, product/sample seed 어디에도 행이 없다. Gateway 는 이런
+# 상태를 위해 Default Deny 기동 모드를 제공한다(cpf.gateway.allow-empty-routes).
+# 이 스테이지의 검증 대상은 Gateway OpenAPI 와 BAT Control Server readiness 이지 Route 서빙이
+# 아니므로, 가짜 Route/ACK 를 만들어 넣지 않고 신규 설치와 같은 모드로 기동한다.
+$env:CPF_GATEWAY_ALLOW_EMPTY_ROUTES = 'true'
+
 try {
     $startArgs = @{
         Root = $Root

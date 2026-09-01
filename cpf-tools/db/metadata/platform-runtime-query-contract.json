@@ -64,7 +64,7 @@
           "key": "channel-policy-upsert",
           "consumer": "JdbcCpfChannelRegistryAdapter",
           "usage": "ACTIVE",
-          "parameterCount": 15
+          "parameterCount": 13
         },
         {
           "key": "channel-policy-version-current",

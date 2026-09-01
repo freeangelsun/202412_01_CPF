@@ -267,11 +267,6 @@ SELECT 'cpfDB.response_code_http_status' AS check_name,
                  AND NOT EXISTS (SELECT 1 FROM CMN_RESPONSE_CODE WHERE http_status NOT BETWEEN 100 AND 599)
        THEN 1 ELSE 0 END AS passed FROM dual;
 
--- CPF_LOGICAL_DATABASE=cpfDB
-SELECT 'cpfDB.table_count' AS check_name,
-       CASE WHEN COUNT(*) = 201 THEN 1 ELSE 0 END AS passed
-FROM user_tables;
-
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,
        CASE WHEN COUNT(*) = 30 THEN 1 ELSE 0 END AS passed

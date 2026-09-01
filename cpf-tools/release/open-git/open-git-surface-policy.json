@@ -147,16 +147,74 @@
       "required": true
     },
     {
-      "pattern": "gradlew",
-      "target": "gradlew",
-      "classification": "OPEN_GIT_BOOTSTRAP",
-      "required": true
+      "pattern": "cpf-docs/guides/**",
+      "target": "cpf-docs/guides",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "Framework/Batch developer guides, operator manual, Gateway guide, Specification."
     },
     {
-      "pattern": "gradlew.bat",
-      "target": "gradlew.bat",
-      "classification": "OPEN_GIT_BOOTSTRAP",
-      "required": true
+      "pattern": "cpf-docs/assets/product-docs/**",
+      "target": "cpf-docs/assets/product-docs",
+      "classification": "OPEN_GIT_PUBLIC_DOC_ASSET",
+      "required": true,
+      "reason": "Images referenced by the public documents."
+    },
+    {
+      "pattern": "cpf-docs/legal/THIRD_PARTY_NOTICES.md",
+      "target": "cpf-docs/legal/THIRD_PARTY_NOTICES.md",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "License attribution must ship with any binary distribution."
+    },
+    {
+      "pattern": "cpf-docs/operations/BUILD_AND_DEPLOYMENT_TOPOLOGY_GUIDE.md",
+      "target": "cpf-docs/operations/BUILD_AND_DEPLOYMENT_TOPOLOGY_GUIDE.md",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "Operators need the deployment topology for the public runtimes."
+    },
+    {
+      "pattern": "cpf-docs/deliverables/기술사양서.pdf",
+      "target": "cpf-docs/deliverables/기술사양서.pdf",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "Contracted public specification."
+    },
+    {
+      "pattern": "cpf-docs/deliverables/기술표준서.pdf",
+      "target": "cpf-docs/deliverables/기술표준서.pdf",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "Contracted public technical standard."
+    },
+    {
+      "pattern": "cpf-docs/deliverables/데이터베이스표준서.pdf",
+      "target": "cpf-docs/deliverables/데이터베이스표준서.pdf",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "Contracted public database standard."
+    },
+    {
+      "pattern": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "target": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "Contracted public architecture design."
+    },
+    {
+      "pattern": "cpf-docs/deliverables/산출물목록.pdf",
+      "target": "cpf-docs/deliverables/산출물목록.pdf",
+      "classification": "OPEN_GIT_PUBLIC_DOC",
+      "required": true,
+      "reason": "Contracted public artifact list."
+    },
+    {
+      "pattern": "gradle/cpf-runtime/**",
+      "target": "gradle/cpf-runtime",
+      "classification": "OPEN_GIT_USER_CONFIG",
+      "required": true,
+      "reason": "gradlew wrapper 가 기동 시 gradle/cpf-runtime/{common,profile}.properties 를 fail-closed 로 요구한다. 없으면 Fresh checkout 사용자가 어떤 Gradle 명령도 실행할 수 없다."
     }
   ],
   "templateRules": [
@@ -239,6 +297,88 @@
       "source": "cpf-tools/release/open-git/templates/bin/cpf.ps1",
       "target": "bin/cpf.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-start.ps1",
+      "target": "bin/cpf-start.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-start.sh",
+      "target": "bin/cpf-start.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-stop.ps1",
+      "target": "bin/cpf-stop.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-stop.sh",
+      "target": "bin/cpf-stop.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-status.ps1",
+      "target": "bin/cpf-status.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-status.sh",
+      "target": "bin/cpf-status.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-restart.ps1",
+      "target": "bin/cpf-restart.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-restart.sh",
+      "target": "bin/cpf-restart.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-health.ps1",
+      "target": "bin/cpf-health.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-health.sh",
+      "target": "bin/cpf-health.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-log.ps1",
+      "target": "bin/cpf-log.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-log.sh",
+      "target": "bin/cpf-log.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-help.ps1",
+      "target": "bin/cpf-help.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-help.sh",
+      "target": "bin/cpf-help.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/gradlew",
+      "target": "gradlew",
+      "classification": "OPEN_GIT_BOOTSTRAP",
+      "reason": "개발 저장소 wrapper 는 Gradle project-cache/JVM dump 를 cpf-docs/governance/... 로 보낸다. Public 사용자가 Gradle 을 실행하면 checkout 안에 governance 디렉터리가 생기므로 중립 경로 wrapper 를 투영한다."
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/gradlew.bat",
+      "target": "gradlew.bat",
+      "classification": "OPEN_GIT_BOOTSTRAP",
+      "reason": "개발 저장소 wrapper 는 Gradle project-cache/JVM dump 를 cpf-docs/governance/... 로 보낸다. Public 사용자가 Gradle 을 실행하면 checkout 안에 governance 디렉터리가 생기므로 중립 경로 wrapper 를 투영한다."
     }
   ],
   "allowedClassifications": [
@@ -253,7 +393,9 @@
     "OPEN_GIT_DEPLOY_ASSET",
     "PUBLIC_RELEASE_METADATA",
     "PUBLIC_GENERATED_SOURCE",
-    "OPEN_GIT_CLI_BINARY"
+    "OPEN_GIT_CLI_BINARY",
+    "OPEN_GIT_PUBLIC_DOC",
+    "OPEN_GIT_PUBLIC_DOC_ASSET"
   ],
   "forbiddenPathPrefixes": [
     "cpf-core/",
@@ -264,8 +406,13 @@
     "cpf-gateway/",
     "cpf-starters/",
     "cpf-tools/",
-    "cpf-docs/",
-    ".git/"
+    ".git/",
+    "cpf-docs/governance/",
+    "cpf-docs/work/",
+    "cpf-docs/development/",
+    "cpf-docs/environment/",
+    "cpf-docs/brand/",
+    "cpf-docs/architecture/"
   ],
   "forbiddenNamePatterns": [
     "cpf-domain.yaml",

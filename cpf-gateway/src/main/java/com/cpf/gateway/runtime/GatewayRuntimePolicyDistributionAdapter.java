@@ -2,13 +2,13 @@ package com.cpf.gateway.runtime;
 
 import com.cpf.platform.operations.api.runtime.CpfRuntimePolicyDistributionPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
+import com.cpf.data.persistence.api.CpfDataSourceRegistry;
+import com.cpf.data.persistence.api.CpfDatabaseRole;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -24,16 +24,23 @@ import java.util.UUID;
  * <p>Gateway의 정상 동작은 Claim/ACK 경로를 사용하지만 운영 복구와 동일 JVM 배치에서는 전체 Port가
  * 호출될 수 있으므로 부분 구현을 두지 않습니다.</p>
  */
+// @ConditionalOnBean 은 auto-configuration 에서만 신뢰할 수 있다. component scan 으로
+// 등록되는 이 Adapter 는 auto-configuration 이 대상 Bean 을 정의하기 전에 조건이 평가되어
+// 항상 false 가 된다. Gateway 는 CPF Platform DB 를 소유하는 DataSource Owner 이고 이
+// Adapter 는 해당 Port 의 유일한 구현체이므로, 조건부가 아니라 항상 등록되어야 한다.
+// 의존 Bean 이 없으면 조용히 사라지는 대신 기동이 명확한 원인으로 실패해야 한다.
 @Component("gatewayRuntimePolicyDistributionPort")
-@ConditionalOnBean(DataSource.class)
 public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicyDistributionPort {
     private static final Set<String> ACK_STATUSES = Set.of("APPLIED", "FAILED", "IGNORED");
 
     private final JdbcTemplate jdbc;
     private final CpfRuntimePolicyMetadataCodec metadataCodec;
 
-    public GatewayRuntimePolicyDistributionAdapter(DataSource dataSource, ObjectMapper objectMapper) {
-        this.jdbc = new JdbcTemplate(dataSource);
+    // Gateway Runtime 에는 cpfCommonDataSource 와 cpfPlatformDataSource 가 함께 존재한다.
+    // 타입만으로 주입하면 후보가 둘이라 기동이 실패한다. Gateway 는 CPF Platform DB Role
+    // Owner 이므로 Role 을 명시해 해석한다.
+    public GatewayRuntimePolicyDistributionAdapter(CpfDataSourceRegistry dataSources, ObjectMapper objectMapper) {
+        this.jdbc = new JdbcTemplate(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB));
         this.metadataCodec = new CpfRuntimePolicyMetadataCodec(objectMapper);
     }
 

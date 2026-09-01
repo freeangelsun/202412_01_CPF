@@ -4,13 +4,14 @@ import com.cpf.gateway.api.*;
 import com.cpf.platform.operations.api.runtime.CpfRuntimePolicyDistributionPort;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
+import com.cpf.data.persistence.api.CpfDataSourceRegistry;
+import com.cpf.data.persistence.api.CpfDatabaseRole;
 import java.sql.Timestamp;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -24,8 +25,12 @@ import java.util.*;
  * <p>Vendor 전용 UPSERT/RETURNING/LIMIT를 사용하지 않고 CAS 기반 Select→Insert/Update 흐름으로
  * Oracle·PostgreSQL·MariaDB에서 동일한 동작을 제공합니다.</p>
  */
+// @ConditionalOnBean 은 auto-configuration 에서만 신뢰할 수 있다. component scan 으로
+// 등록되는 이 Adapter 는 auto-configuration 이 대상 Bean 을 정의하기 전에 조건이 평가되어
+// 항상 false 가 된다. Gateway 는 CPF Platform DB 를 소유하는 DataSource Owner 이고 이
+// Adapter 는 해당 Port 의 유일한 구현체이므로, 조건부가 아니라 항상 등록되어야 한다.
+// 의존 Bean 이 없으면 조용히 사라지는 대신 기동이 명확한 원인으로 실패해야 한다.
 @Repository
-@ConditionalOnBean(DataSource.class)
 public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
     private final JdbcTemplate jdbc;
     private final CpfRuntimePolicyDistributionPort distribution;
@@ -35,10 +40,13 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         this(dataSource, (CpfRuntimePolicyDistributionPort) null);
     }
 
+    // Gateway Runtime 에는 cpfCommonDataSource 와 cpfPlatformDataSource 가 함께 존재한다.
+    // 타입만으로 주입하면 후보가 둘이라 기동이 실패한다. Gateway 는 CPF Platform DB Role
+    // Owner 이므로 Role 을 명시해 해석한다.
     @Autowired
     public JdbcCpfGatewayRegistryAdapter(
-            DataSource dataSource, ObjectProvider<CpfRuntimePolicyDistributionPort> distributionProvider) {
-        this(dataSource, distributionProvider == null ? null : distributionProvider.getIfAvailable());
+            CpfDataSourceRegistry dataSources, ObjectProvider<CpfRuntimePolicyDistributionPort> distributionProvider) {
+        this(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB), distributionProvider == null ? null : distributionProvider.getIfAvailable());
     }
 
     private JdbcCpfGatewayRegistryAdapter(

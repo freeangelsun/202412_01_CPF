@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /** Registry의 신선한 UP 인스턴스만 선택하고 URI·DNS·CIDR SSRF 경계를 강제합니다. */
@@ -25,6 +26,9 @@ public final class CpfScgTargetResolver {
     private final ConcurrentHashMap<String, AtomicLong> cursors = new ConcurrentHashMap<>();
     private final AddressResolver addressResolver;
 
+    // 생성자가 둘이면 Spring 은 어느 쪽을 쓸지 스스로 정하지 못하고 기본 생성자를 찾다가
+    // 기동에 실패한다. 주입 대상 생성자를 명시한다. 3-arg 생성자는 테스트 seam 이다.
+    @Autowired
     public CpfScgTargetResolver(
             CpfServiceRegistryQueryPort registry,
             CpfGatewaySafetyProperties safety) {

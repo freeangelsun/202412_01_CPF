@@ -35,6 +35,8 @@ def normalize(text: str) -> str:
 
 
 def render_sources(root: Path, vendor: str) -> dict[str, str]:
+    # 같은 이유로 renderer import 가 Source Tree 에 .pyc 를 남기지 않게 한다.
+    sys.dont_write_bytecode = True
     sys.path.insert(0, str(root / "cpf-tools/db"))
     try:
         import render_vendor_pack as renderer

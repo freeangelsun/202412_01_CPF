@@ -1,5 +1,6 @@
 package com.cpf.admin.approval.owner;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.cpf.admin.approval.api.AdmApprovalExecutionStatus;
 import com.cpf.admin.approval.api.AdmApprovedOperationCommand;
 import com.cpf.admin.approval.api.AdmApprovedOperationResult;
@@ -29,6 +30,9 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
     private final AdmApprovalRepository approvals;
     private final Clock clock;
 
+    // 생성자가 둘이면 Spring 은 어느 쪽을 쓸지 정하지 못하고 기본 생성자를 찾다가 기동에
+    // 실패한다. 운영 주입 대상 생성자를 명시한다. 나머지는 테스트 seam 이다.
+    @Autowired
     public BrokerReliabilityApprovalOwnerCommandAdapter(
             CpfReliabilityOperationsPort operations,
             AdmApprovalRepository approvals) {

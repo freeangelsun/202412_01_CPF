@@ -9,8 +9,11 @@ import java.util.Map;
 import java.util.Set;
 
 /** MBW는 Common owner table을 직접 접근하지 않고 Public Management API만 소비합니다. */
+// CPF stereotype 이 붙은 Business Type 은 proxy-safe 여야 한다.
+// CpfCapabilityUsageAspect.proxySafeBusinessType() 이 final Type 을 proxy-unsafe 로 판정하고,
+// Advisor 가 매칭되면 CGLIB subclass 생성이 불가능해 Runtime 기동이 실패한다.
 @CpfService
-public final class BackofficeCommonManagementService extends com.cpf.backoffice.online.base.BackofficeBaseService {
+public class BackofficeCommonManagementService extends com.cpf.backoffice.online.base.BackofficeBaseService {
     private static final Set<CpfCommonResource> GENERIC = Set.of(
             CpfCommonResource.CODE, CpfCommonResource.PARAMETER, CpfCommonResource.CALENDAR, CpfCommonResource.TEMPLATE);
     private final CpfCommonManagementApi common;

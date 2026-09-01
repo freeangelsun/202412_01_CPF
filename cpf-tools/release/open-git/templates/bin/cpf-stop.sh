@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec "$ROOT/cpf.sh" stop "$@"
+exec "$ROOT/cpf.sh" runtime stop "$@"

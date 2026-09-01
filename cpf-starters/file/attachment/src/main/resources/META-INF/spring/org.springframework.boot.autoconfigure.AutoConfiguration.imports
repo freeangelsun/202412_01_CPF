@@ -1,1 +1,2 @@
+com.cpf.file.config.CpfAttachmentAutoConfiguration
 com.cpf.file.attachment.CpfMultipartAttachmentAutoConfiguration

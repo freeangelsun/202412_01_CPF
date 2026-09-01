@@ -50,6 +50,8 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
     private final ObjectMapper objectMapper;
     private final BatchRuntimeControlClient runtimeClient;
 
+    // 생성자가 둘이면 Spring 은 어느 쪽을 쓸지 정하지 못하고 기본 생성자를 찾다가 기동에
+    // 실패한다. 운영 주입 대상 생성자를 명시한다. 나머지는 테스트 seam 이다.
     @org.springframework.beans.factory.annotation.Autowired
     public BatchRuntimeApprovalOwnerCommandAdapter(CpfBatchOperationsPort batch, ObjectMapper objectMapper, BatchRuntimeControlClient runtimeClient) {
         this.batch = Objects.requireNonNull(batch, "batch");

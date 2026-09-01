@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 @CpfController @RequestMapping("/edu/online/account-inquiry")
 /** AccountInquiryController는 고정길이 전문 Public API와 기관 Outcome Adapter를 분리하는 Fixed-Length Golden Path입니다. */
-public final class AccountInquiryController {
+public class AccountInquiryController {
  private final AccountInquiryService service; public AccountInquiryController(AccountInquiryService service){this.service=service;}
  @PostMapping @Operation(operationId="EDU_ACCOUNT_FIXED_INQUIRY",summary="고정길이 기관 계좌조회")
  @CpfOnlineTransaction(operationId="EDU_ACCOUNT_FIXED_INQUIRY",name="고정길이 기관 계좌조회",description="Controller→Service→Client→Outcome Adapter로 전문 호출의 4상태 Outcome을 보존한다.")

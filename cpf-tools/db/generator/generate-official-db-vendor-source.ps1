@@ -13,6 +13,28 @@ $platformModules=@(
   Where-Object { [bool]$_.Value.enabled } |
   ForEach-Object { $_.Value }
 )
+# A logical database is one physical lifecycle/verification target even when
+# several enabled application modules deliberately share it.  Pick the one
+# explicit owner for every logical DB here, rather than rendering identical
+# provision/grant/verify SQL once for each sharing module.  In particular,
+# generating the same check_name twice is a real Verify Pack contract breach:
+# the runtime installer correctly rejects it rather than silently counting it.
+$platformDatabaseOwners=@(
+ $platformModules |
+ Group-Object { [string]$_.logicalDatabase } |
+  ForEach-Object {
+   $logicalDatabase=[string]$_.Name
+   $owners=@($_.Group | Where-Object {
+    $shareProperty=$_.PSObject.Properties['sharesDatabaseWith']
+    $shareDatabaseWith=if($null -eq $shareProperty){''}else{[string]$shareProperty.Value}
+    [string]::IsNullOrWhiteSpace($shareDatabaseWith)
+   })
+   if($owners.Count -ne 1){
+    throw "Enabled profile logicalDatabase must have exactly one physical owner: logicalDatabase=$logicalDatabase owners=$($owners.Count)"
+   }
+   $owners[0]
+  }
+)
 $profileLogicalDatabases=@($platformModules | ForEach-Object { [string]$_.logicalDatabase } | Sort-Object -Unique)
 if(($logicalDatabases -join "`n") -cne ($profileLogicalDatabases -join "`n")){
  throw "Canonical schema/profile logical database drift. schema=$($logicalDatabases -join ',') profile=$($profileLogicalDatabases -join ',')"
@@ -134,7 +156,7 @@ $mariaDatabaseSource=@(
  '-- DO NOT EDIT generated provision SQL directly.'
  ''
 )
-foreach($module in $platformModules){
+foreach($module in $platformDatabaseOwners){
  $db=[string]$module.logicalDatabase
  $mariaDatabaseSource+=@(
   "CREATE DATABASE IF NOT EXISTS $db"
@@ -154,7 +176,7 @@ $mariaUserSource=@(
 )
 $createdMigrationAccounts=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 $createdRuntimeAccounts=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-foreach($module in $platformModules){
+foreach($module in $platformDatabaseOwners){
  foreach($accountType in @('migration','runtime')){
   $account=$module.$accountType
   $username=[string]$account.username
@@ -179,7 +201,7 @@ foreach($module in $platformModules){
   )
  }
 }
-foreach($module in $platformModules){
+foreach($module in $platformDatabaseOwners){
  $db=[string]$module.logicalDatabase
  $migration=$module.migration
  $runtime=$module.runtime
@@ -208,7 +230,7 @@ $oracleProvision=@(
  '-- DO NOT EDIT generated provision SQL directly.'
  ''
 )
-foreach($module in $platformModules){
+foreach($module in $platformDatabaseOwners){
  $db=[string]$module.logicalDatabase
  $upper=$db.ToUpperInvariant()
  $postgresProvision+=@("-- CPF_LOGICAL_DATABASE=$db","CREATE SCHEMA IF NOT EXISTS $db;",'')
@@ -337,7 +359,7 @@ $oracleVerify=@(
  '-- DO NOT EDIT generated verify SQL directly.'
  ''
 )
-foreach($module in $platformModules){
+foreach($module in $platformDatabaseOwners){
  $db=[string]$module.logicalDatabase
  $systemCode=([string]$module.systemCode).ToUpperInvariant()
  $expected=[int]$tableCounts[$db]

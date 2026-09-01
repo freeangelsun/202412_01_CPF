@@ -109,3 +109,54 @@ Current Registry와 세션 Evidence가 현재 상태의 출발점이다. 별도 
 6. Codex/Claude Independent Review 후 QA Final Acceptance.
 
 H00/H02를 처음부터 재개발하지 않는다. Source Identity drift, Gate regression, 새 Finding이 실제 발생한 영향범위만 재개방한다.
+
+## 8. Claude 세션 20260901 — Runtime Blocker Root Cause 진행 상태
+
+Codex 후속 인계를 위한 현재 상태다. 세부 근거는 `CPF_FULLRUN_RUN26/28` 로그와 각 게이트 실행 결과다.
+
+### 8.1 종결된 Root Cause (Source 반영 완료)
+
+| Runtime 단계 | 확정된 Root Cause | 조치 |
+| --- | --- | --- |
+| `[12] TESTING_TOOLS` | 계약 테스트가 `validate()`가 읽지 않는 `cpf-docs` 전체를 복사 → 실행 중 Gradle 캐시 잠금으로 실패 | 검증기에 `CONTRACT_SOURCES` 정본 선언, 테스트는 그것만 복사 |
+| `[141] BATCH_TWO_WORKER` | Canonical 6 헤더 미전송 / body actor 불일치 / `BAT_JOB` FK 선행행 부재 / `CPF_CENTER_CUT_PARAMETER_KEY` 부재 / PowerShell 배열 언롤링 | harness를 계약에 맞춤. 실행별 임시 키는 자식 환경변수로만 전달 |
+| `[142] GATEWAY_BATCH_RUNTIME` | `@ConditionalOnBean` 오용 / DataSource 다중 후보 / Route 부트스트랩 / 생성자 모호성 / 고아 Provider / Query Pack 컬럼 드리프트 | role 명시 바인딩, Provider 조합, V127 기준 Query Pack 정렬 |
+| `[148] LOCAL_ONE_WAS_START` | CPF stereotype 클래스 `final` / AutoConfiguration 미등록 / HTTP Provider 미조합 / Spring Boot 4 `WebClient.Builder` 자동설정 중단 / 생성자 모호성 / FeatureFlag Provider 미조합 | 각 계층별 정본 수정 |
+
+### 8.2 Spring Boot 4 마이그레이션 잔여 리스크
+
+Spring Boot 4.1은 Boot 3에서 제공하던 Bean 일부를 더 이상 auto-configure 하지 않는다. CPF가 직접 소유해야 한다.
+
+- `com.fasterxml.jackson.databind.ObjectMapper` — Boot 4는 Jackson 3 `tools.jackson...JsonMapper`를 만든다. `CpfJackson2AutoConfiguration`이 소유하며, 보안 스타터 대체 Bean에 밀리지 않도록 순서를 명시했다.
+- `WebClient.Builder` — Boot 4에 `WebClientAutoConfiguration`이 존재하지 않는다(부트 JAR 내 전 모듈 검색으로 확인). HTTP Integration 스타터가 prototype scope로 소유한다.
+- 동일 유형이 더 있을 수 있다. `required a bean of type` 실패가 나오면 먼저 Boot 4 자동설정 제거 여부를 확인한다.
+
+### 8.3 신규 정적 게이트 (모두 음성 변이 검증 완료)
+
+런타임에서만 드러나던 결함을 실행 없이 차단한다.
+
+- `cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py` — CPF stereotype 클래스 `final` 금지
+- `cpf-tools/verification/tests/test_cpf_autoconfiguration_registration.py` — `@AutoConfiguration` 등록 누락 차단
+- `cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py` — 생성자 다중 + `@Autowired` 미지정 차단
+- `cpf-tools/verification/tests/test_cpf_source_tree_bytecode_hygiene.py` — 도구 import가 Source Tree에 `.pyc`를 남겨 clean-source를 깨뜨리는 자기오염 차단
+- `cpf-tools/db/tests/test_query_template_schema_columns.py` — Query Pack ↔ Canonical Schema 컬럼 드리프트 차단. **템플릿과 vendor runtime Pack 양쪽을 검사한다**
+
+### 8.4 Codex가 알아야 할 작업 제약
+
+- **전체 실행 중 Gradle 병행 금지.** 동시 실행은 Gradle 실행 이력과 산출물을 불일치 상태로 만들어 `clean` 이후에도 `UP-TO-DATE` 오판을 유발한다(RUN16/RUN23에서 실측).
+- **전체 실행 중 Source/Managed 파일 편집 금지.** `[162] SOURCE_STATE_AFTER` / `[163] MANAGED_STATE_AFTER`가 전후 SHA-256 동일성을 요구한다.
+- **`build/` 디렉터리는 clean-source 게이트 검사 대상이 아니다.** 삭제할 필요가 없으며, 삭제하면 IDE 클래스패스가 깨진다. 정리 후에는 `cpfPrepareIdeClasspath` + `cpfVerifyIdeClasspathReady`로 복구한다.
+- **pytest는 `-p no:cacheprovider`로 실행한다.** 저장소에 pytest 설정이 없어 `.pytest_cache`가 루트에 생기고 clean-source가 실패한다.
+- Query Pack은 `runtime-template`과 `vendor/<vendor>/runtime` 두 계열이 병존하고 자동 동기화가 없다. 한쪽만 고치면 Runtime은 여전히 구 SQL을 실행한다.
+
+### 8.5 남은 Open Blocker
+
+- `[142]` / `[148]` — 각 계층 수정 반영 후 재검증 필요. `[141]`은 2회 연속 PASS로 안정화.
+- `[149]~[155]` — `[148]` 종결 시 연쇄 해소 예정.
+- Fresh Windows/Linux Consumer, Fresh Replay, 최종 Open Git Release from post-close Source.
+- Git write(commit/push/tag/release publish)는 사용자 승인 전까지 금지.
+
+### 8.6 사용자 판단이 필요한 사항
+
+- `cpf.gateway.allow-empty-routes` 기본값 `false`로 인해 **신규 설치 Gateway는 Route 등록 전까지 기동 불가**다. `GW_BINDING`은 product/sample seed 어디에도 행이 없다(Route는 운영 데이터). 기본값 유지(설치 절차에서 플래그) vs 변경은 보안 자세 결정이라 임의 변경하지 않았다.
+- 미등록 `@AutoConfiguration` 4건이 현재 비활성이다: `CpfCacheAutoConfiguration`, `CpfAttachmentRuntimeControlAutoConfiguration`, `CpfTabularAutoConfiguration`, `CpfOtlpTelemetryAutoConfiguration`. 활성화는 Runtime 동작을 바꾸므로 근거 확인 전까지 켜지 않고 게이트의 `KNOWN_INACTIVE`로 기록했다.

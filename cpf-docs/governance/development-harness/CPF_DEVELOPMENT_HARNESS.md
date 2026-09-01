@@ -200,3 +200,117 @@ Evidence 없는 CLOSED/PASS, 여러 Work Item의 일괄 완료, 일괄 SKIP, 과
 - `60. CPF 배포` 에는 `[전체]` 진입점과 `[개별]` 대상만 노출한다.
 - staging/isolated local publication/verified platform 조립 등 publication orchestration 은
   `94. CPF 내부 배포` 로 분리하고, 예전 이름은 `98` 호환 별칭으로 계속 지원한다.
+
+## 24. Open Git Public Product Distribution (Mandatory)
+
+Open Git 은 고객이 CPF 를 개발하고 **실행하는** 배포 채널이다. Binary 를 제공했는데 실행할 수
+없거나, 문서 없이 Artifact 만 있거나, 외부 Repository 주소를 사용자가 직접 채워야 하면 Public
+Release 로 인정하지 않는다.
+
+### 24.1 Final Tree 는 Allowlist fail-closed projection
+
+- Staging Maven repository 를 `copytree` 로 승격하지 않는다. 허용된 유형만 복사한다.
+- 기본 허용: **Main JAR + POM**.
+- 기본 제외: `.md5` / `.sha1` / `.sha256` / `.sha512` sidecar, sources JAR, javadoc JAR,
+  timestamped SNAPSHOT artifact, staging 부산물, 이전 version artifact.
+- 조건부(`.module`, `maven-metadata.xml`)는 격리 Fresh Consumer 실증으로만 결정한다.
+  "Gradle/Maven 이 만들었다"는 포함 근거가 아니다.
+- Allowlist 방식이므로 대상 artifact 없는 orphan sidecar 는 구조적으로 발생하지 않는다.
+
+### 24.2 Public Release Version 은 immutable
+
+- Development/Staging 은 `-SNAPSHOT` 을 쓸 수 있다.
+- Final Public Artifact 파일명에는 SNAPSHOT/날짜/시각/timestamp/build sequence/session id 를
+  넣지 않는다. `artifactId + immutable public version + 승인된 classifier` 로만 결정한다.
+- 동일 Source + 동일 Public Version 을 Fresh Release 하면 상대경로와 파일명이 같아야 한다.
+- Validator 는 Public Tree 에서 SNAPSHOT/timestamp/build sequence 파일명을 발견하면 FAIL 한다.
+
+### 24.3 Bundled Public Binary Repository
+
+- Final Open Git Tree 안에 Public Binary Repository 가 실제로 존재해야 한다.
+- README 에 `<cpf-binary-repository-url>` 같은 placeholder 를 남기지 않는다. bundled repository
+  가 기본값이고 외부 URL 은 선택 override 다.
+- checkout 만으로 resolve → build → generator → runtime 이 동작해야 한다.
+
+### 24.4 Public Runtime 은 실행까지 계약이다
+
+- executable Runtime 의 `publicationClass` 를 미분류로 남기지 않는다.
+- Product Contract 상 Public 인데 Binary 가 없으면 **Publication 누락 Finding** 으로 처리한다.
+  현재 미게시를 근거로 PRIVATE 로 재분류하지 않는다(순환논리 금지).
+- Public Binary 로 제공하는 Runtime 은 Windows/Linux launcher 와
+  start/stop/status/health/restart/log lifecycle 까지 연결한다.
+- Binary 없는 Launcher Target, Launcher 없는 Public Binary 는 모두 FAIL 이다.
+
+### 24.5 Canonical Runtime Target Catalog
+
+- Gradle Task, Public CLI, Windows/Linux launcher 는 하나의 canonical Target Catalog 를 읽는다.
+  Target 이름/Domain/App 목록을 두 곳에서 관리하면 FAIL 이다.
+- Generated Domain 과 Backoffice 는 이름을 catalog/launcher 에 박지 않고 discovery 규칙으로만
+  표현한다. Domain 추가/삭제에 launcher 수정이 필요하면 Architecture 위반이다.
+- Backoffice Domain 과 Web 은 독립 Component 다. 한쪽 삭제가 다른 쪽 Target 을 지우면 FAIL 이다.
+- 서로 다른 Target 의 기본 port 중복은 0 이어야 한다. 같은 Target 이 profile 마다 같은 port 를
+  반복하는 것은 중복이 아니다.
+- Runtime capability 에 없는 health endpoint 를 억지로 만들지 않는다. server/worker/one-shot 별
+  readiness 계약을 쓰되 CLI UX 는 동일하게 제공한다.
+
+### 24.6 Public Documentation 도 Allowlist
+
+- Final Tree 에 root `README.md` 와 공개 `cpf-docs/` 가 있어야 한다.
+- `cpf-docs/**` 전체 복사는 금지한다. governance / work / development / environment / brand /
+  internal deliverable 은 Leakage 다.
+- 공개 문서는 현행본을 그대로 projection 한다. Open Git 작업을 이유로 공식 문서를 새로 쓰거나
+  품질을 낮추지 않는다. README 는 placeholder/실행 안내 누락만 증분 보완한다.
+- README link, 문서→이미지 link 가 Final Tree 기준으로 실제 존재해야 한다.
+
+### 24.7 Package Manifest 와 무결성
+
+- Release Root 에 canonical Package Manifest 하나를 둔다. 최소 group / artifactId / module /
+  version / classifier / type / relativePath / fileSize / SHA-256 / publicationType /
+  classification / Source Identity 를 기록한다.
+- Manifest 에 없는 binary, Manifest 가 가리키는데 없는 파일, SHA 불일치는 FAIL 이다.
+- 개별 checksum sidecar 를 Public Tree 에 두지 않더라도 Release 과정의 SHA-256 검증은 유지한다.
+  Mandatory SBOM 은 checksum sidecar 와 다르므로 최소화 작업에서 제거하지 않는다.
+
+### 24.8 Fresh Consumer 가 최종 판정자
+
+- 파일 수를 줄였다는 이유로 PASS 하지 않는다.
+- Final Open Git Tree 만으로 격리 dependency cache 에서 resolve → transitive → build → test →
+  CLI → Generator → Generated Sample → Runtime → cleanup → Fresh Replay 를 수행한다.
+- Development Master 의 module/source/local Maven cache 에 의존하면 FAIL 이다.
+- Windows 와 Linux 를 모두 수행한다. 한쪽만 실행하면 Public Runtime Final PASS 가 아니다.
+
+### 24.9 Negative Mutation
+
+다음 재유입이 Release Gate 에서 FAIL 해야 한다.
+
+- Public Binary/POM 누락, Manifest 미등록 binary, Manifest SHA 변조
+- SNAPSHOT/timestamped Public Artifact, checksum sidecar, orphan sidecar
+- 미승인 `.module` / `maven-metadata.xml`, stale version artifact
+- Binary 는 있는데 Launcher Target 없음 / Launcher Target 은 있는데 Binary 없음
+- Windows/Linux Target parity 파괴, Generated Domain/Backoffice stale Target
+- README placeholder 재도입, 필수 Public 문서 누락, broken link, governance leakage
+- 서로 다른 Runtime 의 기본 port 중복
+
+### 24.10 Git write 경계
+
+- Release Tool 은 `git add`/commit/push/tag/release publish 를 수행하지 않는다.
+- Runtime 최종 결과, Final Tree, Package Manifest, Fresh Consumer 결과, Leakage 0,
+  Source Identity, exact diff 를 보고하고 `OPEN GIT PUSH READY` 로 대기한다.
+- 사용자 명시 승인 후에만 Git write 를 수행한다.
+
+### 24.11 Release Generated Root 는 Current-only
+
+- `clean` 은 Source build clean 만이 아니다. Release generated root 자체가 Current-only 다.
+- 매 Release 시작 시 exact `<CPF_ROOT>/cpf-release` 전체(`open-git/`, `binary-repository/`,
+  `reports/`, `logs/`, `work/`)를 안전하게 제거하고 0부터 Fresh 생성한다.
+- 이전 Release 파일을 merge / copy-over / currentize 해서 재사용하지 않는다.
+- Open Git fresh clone 에서도 staging 에 없는 과거 Working Tree 파일은 0 이어야 한다.
+- `.git/**` 은 Open Git Repository history 이므로 Release Artifact garbage 로 취급하거나
+  삭제하지 않는다.
+- cleanup 은 승인된 generated root 안에서만 수행한다. Private Source 와 `.git` 은 절대
+  삭제하지 않는다.
+- legacy publisher 는 독립 Release root(`CPF_PUBLIC_RELEASE_<timestamp>`)를 소유하지 않는다.
+  canonical engine 의 staging backend 역할로만 제한하고, 출력 경로 없는 호출은 fail-closed 다.
+- Release 전/후 generated-root inventory 를 Evidence 로 남긴다. 최소 previous canonical
+  release residue 0 / legacy timestamp release 0 / stale open-git working-tree files 0 /
+  stale binary version 0 / current release only PASS 를 검증한다.

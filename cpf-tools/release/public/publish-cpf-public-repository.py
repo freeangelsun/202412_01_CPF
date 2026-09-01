@@ -225,10 +225,19 @@ def default_release_parent()->Path:
     return downloads if downloads.is_dir() else Path.home()
 
 def release_root(private_root:Path,requested:str|None)->Path:
+    """Canonical Open Git Release 는 cpf-release 하나만 쓴다(Current-only).
+
+    이 모듈은 canonical engine 의 staging backend 로만 쓰이며 독립 Release root 를 소유하지
+    않는다. timestamp Release directory 를 새로 만들면 과거 산출물이 계속 축적되므로,
+    출력 경로를 명시하지 않은 호출은 fail-closed 로 막는다.
+    """
     if requested:
         root=Path(requested).expanduser().resolve()
     else:
-        root=default_release_parent()/('CPF_PUBLIC_RELEASE_'+datetime.now().strftime('%Y%m%d_%H%M%S'))
+        raise PublishError(
+            'legacy publisher no longer owns a release root; '
+            'run cpf-tools/release/open-git/cpf_open_git.py (canonical Current-only release) '
+            'or pass an explicit output root')
     try:
         root.relative_to(private_root)
     except ValueError:

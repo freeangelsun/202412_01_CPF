@@ -27,7 +27,10 @@ public final class CpfThreeTierStructurePolicy {
 
         Class<?> domainBaseType = businessType.getSuperclass();
         if (domainBaseType == null || domainBaseType == Object.class) {
-            throw new IllegalStateException(role + " must extend an abstract Domain Base Class: " + businessType.getName());
+            // 실패 원인이 "상속을 안 썼다"인지 "다른 ClassLoader/다른 산출물이 로드됐다"인지
+            // 구분하지 못하면 Source 가 정상인데도 원인을 찾을 수 없다. 판정 근거를 함께 남긴다.
+            throw new IllegalStateException(role + " must extend an abstract Domain Base Class: "
+                    + businessType.getName() + describeResolution(businessType, domainBaseType));
         }
         if (domainBaseType == frameworkBaseType) {
             throw new IllegalStateException(role + " must not directly extend Framework Base (2-tier is forbidden): " + businessType.getName());
@@ -41,6 +44,35 @@ public final class CpfThreeTierStructurePolicy {
         }
         if (!hasMeaningfulDomainContract(domainBaseType)) {
             throw new IllegalStateException(role + " Domain Base must declare real common behavior/hook/state: " + domainBaseType.getName());
+        }
+    }
+
+    /** 판정에 사용한 실제 type/superclass/ClassLoader/코드출처를 문자열로 남긴다. */
+    private static String describeResolution(Class<?> businessType, Class<?> domainBaseType) {
+        StringBuilder detail = new StringBuilder();
+        detail.append(" [resolvedSuperclass=").append(domainBaseType == null ? "null" : domainBaseType.getName());
+        detail.append(", businessClassLoader=").append(describeLoader(businessType));
+        detail.append(", businessCodeSource=").append(describeCodeSource(businessType));
+        detail.append(']');
+        return detail.toString();
+    }
+
+    private static String describeLoader(Class<?> type) {
+        ClassLoader loader = type.getClassLoader();
+        return loader == null ? "bootstrap" : loader.getClass().getName() + '@' + Integer.toHexString(System.identityHashCode(loader));
+    }
+
+    private static String describeCodeSource(Class<?> type) {
+        try {
+            java.security.ProtectionDomain domain = type.getProtectionDomain();
+            if (domain == null || domain.getCodeSource() == null || domain.getCodeSource().getLocation() == null) {
+                return "unknown";
+            }
+            return domain.getCodeSource().getLocation().toString();
+            // 진단 정보 수집이 실패해도 원래의 3단 구조 위반 보고를 가려서는 안 된다.
+            // SecurityManager/ClassLoader 제약으로 코드 출처를 못 읽는 경우를 값으로 표현한다.
+        } catch (RuntimeException failure) {
+            return "unavailable";
         }
     }
 

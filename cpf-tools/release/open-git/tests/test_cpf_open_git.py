@@ -5,6 +5,7 @@ import json
 import pytest
 import re
 import shutil
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -23,6 +24,56 @@ def _is_command(cmd: list[object], executable: str) -> bool:
     """Match a command executable without making the mock OS-suffix dependent."""
     actual = str(cmd[0]).replace("\\", "/").rsplit("/", 1)[-1].casefold()
     return actual.removesuffix(".exe") == executable.casefold()
+
+
+
+def _materialize_public_distribution(staging: Path) -> None:
+    """Public Product Distribution 필수 구성을 staging 에 만들어 준다.
+
+    verify_open_git_tree 는 bundled binary repository / cpf-docs / README / launcher 까지
+    요구한다. 이 fixture 는 Stage 10 이 실제로 만드는 것과 같은 형태만 최소로 재현한다.
+    """
+    import hashlib
+
+    repository = staging / "binary-repository"
+    artifact_dir = repository / "com/cpf/core/cpf-core/1.0.0"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    jar = artifact_dir / "cpf-core-1.0.0.jar"
+    pom = artifact_dir / "cpf-core-1.0.0.pom"
+    jar.write_bytes(b"jar")
+    pom.write_text("<project/>", encoding="utf-8")
+    artifacts = []
+    for path in (jar, pom):
+        artifacts.append({
+            "group": "com.cpf.core", "artifactId": "cpf-core", "module": "cpf-core",
+            "version": "1.0.0", "classifier": None, "type": path.suffix.lstrip("."),
+            "relativePath": path.relative_to(repository).as_posix(),
+            "fileSize": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "publicationType": "PUBLIC_COMPILE_TIME_JAVA", "classification": "PUBLIC",
+            "sourceIdentitySha256": "0" * 64,
+        })
+    manifest = {
+        "contract": "CPF_PUBLIC_PACKAGE_MANIFEST", "schemaVersion": 1,
+        "publicVersion": "1.0.0", "developmentVersion": "1.0.0-SNAPSHOT",
+        "sourceIdentitySha256": "0" * 64, "artifactCount": len(artifacts),
+        "artifacts": artifacts,
+    }
+    (repository / "package-manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    guide = staging / "cpf-docs/guides"
+    guide.mkdir(parents=True, exist_ok=True)
+    guide_name = "02_developer_guide.pdf"
+    (guide / guide_name).write_bytes(b"pdf")
+    readme_lines = ["# CPF Open Git", "", "`cpf-docs/guides/" + guide_name + "`", ""]
+    (staging / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
+
+    bin_dir = staging / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    for name in ("start", "stop", "status", "restart", "health", "log", "help"):
+        (bin_dir / ("cpf-" + name + ".ps1")).write_text("", encoding="utf-8")
+        (bin_dir / ("cpf-" + name + ".sh")).write_text("", encoding="utf-8")
 
 
 def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Path):
@@ -69,9 +120,23 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
         "cpf-gateway",
         "cpf-starters",
         "cpf-tools",
-        "cpf-docs",
     ):
         assert not (staging / forbidden).exists(), forbidden
+
+    # cpf-docs 는 Public Documentation Allowlist 로 관리한다. root 자체는 허용하되
+    # governance/work 같은 내부 관리자료가 한 건이라도 섞이면 Leakage 다.
+    docs_root = staging / "cpf-docs"
+    if docs_root.is_dir():
+        leaked_docs = [
+            p.relative_to(staging).as_posix()
+            for p in docs_root.rglob("*")
+            if p.is_file() and any(
+                p.relative_to(staging).as_posix().startswith(prefix)
+                for prefix in ("cpf-docs/governance/", "cpf-docs/work/", "cpf-docs/development/",
+                               "cpf-docs/environment/", "cpf-docs/brand/", "cpf-docs/architecture/")
+            )
+        ]
+        assert not leaked_docs, leaked_docs
 
     unexpected_archives = [
         p.relative_to(staging).as_posix()
@@ -82,6 +147,7 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
     ]
     assert unexpected_archives == []
     assert "project(" not in (staging / "cpf-education/build.gradle").read_text(encoding="utf-8")
+    _materialize_public_distribution(staging)
     assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
 
 
@@ -99,6 +165,7 @@ def test_open_git_backoffice_is_optional_and_explicit(tmp_path: Path):
     assert cp.returncode == 0, cp.stdout + cp.stderr
     assert (staging / "cpf-backoffice/gradle.properties").is_file()
     assert (staging / "cpf-backoffice-web").is_dir()
+    _materialize_public_distribution(staging)
     assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
 
 def test_binary_source_and_javadoc_policy_is_default_deny(tmp_path: Path):
@@ -117,17 +184,38 @@ def test_binary_source_and_javadoc_policy_is_default_deny(tmp_path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(b"test")
 
-    result = MODULE.sanitize_binary_repository(ROOT, raw, final)
+    # 추가 garbage: allowlist 방식이면 이런 파일은 애초에 Final Tree 로 넘어오지 않는다.
+    for extra in (f"cpf-common-{version}.jar.sha256", f"cpf-common-{version}.jar.md5",
+                  f"cpf-common-{version}.module", "maven-metadata.xml"):
+        garbage = raw / "com/cpf/common/cpf-common" / version / extra
+        garbage.parent.mkdir(parents=True, exist_ok=True)
+        garbage.write_bytes(b"test")
+
+    result = MODULE.sanitize_binary_repository(
+        ROOT, raw, final, "binary", development_version=version, source_identity="0" * 64)
+
+    # sources/javadoc 은 Final Public Tree 에서 제외된다.
     assert not (final / paths["common-source"].relative_to(raw)).exists()
     assert not (final / paths["common-javadoc"].relative_to(raw)).exists()
     assert not (final / paths["core-source"].relative_to(raw)).exists()
     assert not (final / paths["batch-source"].relative_to(raw)).exists()
+    # Main JAR 은 유지된다.
     assert (final / paths["common-binary"].relative_to(raw)).is_file()
     assert (final / paths["core-binary"].relative_to(raw)).is_file()
-    assert result["keptSources"] == 0
-    assert result["keptJavadocs"] == 0
-    removed = {row["artifactId"] for row in result["removedSourceOrJavadoc"]}
-    assert {"cpf-common", "cpf-core", "cpf-batch-api"}.issubset(removed)
+    # checksum sidecar / module / maven-metadata 는 기본 제외이고 orphan 도 남지 않는다.
+    assert list(final.rglob("*.sha256")) == []
+    assert list(final.rglob("*.md5")) == []
+    assert list(final.rglob("*.module")) == []
+    assert list(final.rglob("maven-metadata.xml")) == []
+    assert result["mode"] == "ALLOWLIST_FAIL_CLOSED"
+    assert result["publicVersion"] == version
+    assert result["droppedArtifacts"] > 0
+    # Package Manifest 는 Final Tree 의 모든 Public artifact 를 정확히 담는다.
+    manifest = json.loads((final / "package-manifest.json").read_text(encoding="utf-8"))
+    listed = {row["relativePath"] for row in manifest["artifacts"]}
+    actual = {p.relative_to(final).as_posix() for p in final.rglob("*")
+              if p.is_file() and p.name != "package-manifest.json"}
+    assert listed == actual, listed ^ actual
 
 
 def test_release_rebuild_deletes_only_exact_generated_root(tmp_path: Path):

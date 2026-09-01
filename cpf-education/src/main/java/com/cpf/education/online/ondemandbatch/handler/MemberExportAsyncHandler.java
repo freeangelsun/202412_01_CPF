@@ -14,8 +14,11 @@ import com.cpf.education.online.ondemandbatch.dto.MemberExportResult;
 import com.cpf.foundation.annotation.CpfService;
 
 /** Async Operation이 실제 On-Demand Batch 접수를 수행하는 Handler입니다. */
+// CPF stereotype 이 붙은 Business Type 은 proxy-safe 여야 한다.
+// CpfCapabilityUsageAspect.proxySafeBusinessType() 이 final Type 을 proxy-unsafe 로 판정하고,
+// Advisor 가 매칭되면 CGLIB subclass 생성이 불가능해 Runtime 기동이 실패한다.
 @CpfService
-public final class MemberExportAsyncHandler extends EducationBaseService implements CpfAsyncHandler<MemberExportCommand, MemberExportResult> {
+public class MemberExportAsyncHandler extends EducationBaseService implements CpfAsyncHandler<MemberExportCommand, MemberExportResult> {
     private final CpfBatchOperations batches;
 
     public MemberExportAsyncHandler(CpfBatchOperations batches) {

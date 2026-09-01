@@ -14,8 +14,10 @@ import java.time.Instant;
 import java.util.HexFormat;
 
 /** JDBC-backed cluster-safe single-use ledger for approval execution capability nonces. */
+// @CpfRepository 는 @Repository stereotype 이므로 Runtime 이 예외변환 Advice 를 위해 CGLIB
+// 프록시를 생성한다. final 클래스는 subclass 를 만들 수 없어 기동 자체가 실패한다.
 @CpfRepository
-public final class AdmApprovalCapabilityNonceRepository extends AdmBaseRepository {
+public class AdmApprovalCapabilityNonceRepository extends AdmBaseRepository {
     private final JdbcTemplate jdbc;
 
     public AdmApprovalCapabilityNonceRepository(@Qualifier("admJdbcTemplate") JdbcTemplate jdbc) {

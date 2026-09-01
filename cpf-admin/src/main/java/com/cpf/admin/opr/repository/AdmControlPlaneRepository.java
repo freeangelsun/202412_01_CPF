@@ -15,8 +15,10 @@ import java.util.Map;
  * ADM Control-Plane의 CPF_PLATFORM_DB(cpfDB) Persistence Owner입니다.
  * Vendor 전용 LIMIT/OFFSET 문법 없이 JDBC maxRows와 bind parameter만 사용합니다.
  */
+// @CpfRepository 는 @Repository stereotype 이므로 Runtime 이 예외변환 Advice 를 위해 CGLIB
+// 프록시를 생성한다. final 클래스는 subclass 를 만들 수 없어 기동 자체가 실패한다.
 @CpfRepository
-public final class AdmControlPlaneRepository extends AdmBaseRepository {
+public class AdmControlPlaneRepository extends AdmBaseRepository {
     private final JdbcTemplate jdbc;
 
     public AdmControlPlaneRepository(@Qualifier("admJdbcTemplate") JdbcTemplate jdbc) {

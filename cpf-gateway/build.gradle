@@ -1,4 +1,4 @@
-plugins { id 'java'; id 'org.springframework.boot'; id 'io.spring.dependency-management' }
+plugins { id 'java'; id 'org.springframework.boot'; id 'io.spring.dependency-management'; id 'maven-publish' }
 group='com.cpf.gateway'
 dependencies {
     // Gateway deployable uses exactly one top-level profile.
@@ -7,17 +7,42 @@ dependencies {
     implementation project(':framework:core')
     implementation project(':framework:integration')
     implementation project(':internal:integration:resilience')
+    // CpfScgTargetResolver 는 CpfServiceRegistryQueryPort 를 조건 없이 요구한다. 그 구현과
+    // AutoConfiguration 은 HTTP Integration Starter 가 소유하므로 Runtime 에 없으면 Gateway
+    // 기동이 실패한다. Gateway 는 이미 internal Provider 를 직접 조합하는 Runtime 이다.
+    implementation project(':internal:integration:http')
     implementation project(':framework:web')
     implementation project(':framework:operations')
     implementation project(':framework:operations:observability')
     implementation project(':internal:platform-operations:runtime-control')
+    // CpfScgPrimaryHandler 는 CpfChannelPolicyService 를 조건 없이 요구한다. 그 Bean 은
+    // Channel Registry JDBC Provider 가 등록하므로 Runtime 에 없으면 Gateway 기동이 실패한다.
+    implementation project(':internal:platform-operations:channel-registry:jdbc')
     implementation project(':starters:data:jdbc')
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc'
     // Boot 4 splits Tomcat compile API from the runtime-only starter.
     implementation 'org.springframework.boot:spring-boot-tomcat'
     implementation 'org.apache.httpcomponents.client5:httpclient5'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Gateway 는 Registry/Nonce/Ledger 와 CPF Common metadata 를 CPF Platform DB 에서 읽는
+    // DataSource Owner 다. 공식 지원 Vendor(MariaDB/PostgreSQL/Oracle) Driver 를 ADM/EDU/BAT 와
+    // 동일하게 runtimeOnly 로 선언한다. 선언이 없으면 role 은 해석되어도 기동이 실패한다.
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 tasks.named('test'){useJUnitPlatform()}
 tasks.named('bootJar'){enabled=true}
+
+// Open Git Public Runtime. 사용자가 bundled binary repository 에서 받아 바로 실행하므로
+// plain jar(components.java)이 아니라 실행 가능한 bootJar 을 Public artifact 로 게시한다.
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact tasks.named('bootJar')
+            artifactId = 'cpf-gateway'
+        }
+    }
+}

@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /** 온라인 On-Demand Batch: 업무 요청은 Async executionId로 접수하고 Batch 실행 ID와 분리합니다. */
+// CPF stereotype 이 붙은 Business Type 은 proxy-safe 여야 한다.
+// CpfCapabilityUsageAspect.proxySafeBusinessType() 이 final Type 을 proxy-unsafe 로 판정하고,
+// Advisor 가 매칭되면 CGLIB subclass 생성이 불가능해 Runtime 기동이 실패한다.
 @CpfController
 @RequestMapping("/edu/online/member-export")
-public final class MemberExportController {
+public class MemberExportController {
     private final MemberExportService service;
 
     public MemberExportController(MemberExportService service) {

@@ -40,6 +40,12 @@ expected_internal={
  ':internal:platform-operations:runtime-health:jdbc',
  ':internal:integration:webhook',
  ':internal:file:tabular:poi',
+ # AdmBatchJobDefinitionClientConfiguration 이 CpfServiceCaller 를 조건 없이 요구한다.
+ # 그 구현과 AutoConfiguration 은 HTTP Integration Starter 가 소유하므로 Runtime 에 없으면
+ # ADM 기동이 실패한다. ADM 이 직접 의존하지 않도록 이 composition 이 소유한다.
+ ':internal:integration:http',
+ # FeatureFlagApprovalOwnerCommandAdapter 가 CpfFeatureFlagOperations 를 조건 없이 요구한다.
+ ':internal:platform-operations:feature-flag:openfeature',
 }
 if not composition.is_file(): fail.append('ADM_RUNTIME_COMPOSITION_MISSING')
 else:

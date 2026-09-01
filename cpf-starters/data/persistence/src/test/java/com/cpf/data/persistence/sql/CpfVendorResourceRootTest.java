@@ -16,19 +16,19 @@ class CpfVendorResourceRootTest {
 
     @Test
     void acceptsExactlyTheCurrentOfficialPackSchema() throws IOException {
-        writeManifest(5);
+        writeManifest(6);
         assertEquals(root.toRealPath(),
                 CpfVendorResourceRoot.required(root, CpfDatabaseVendor.MARIADB));
     }
 
     @Test
     void rejectsRetiredAndUnknownPackSchemas() throws IOException {
-        for (int version : new int[] {1, 4, 6}) {
+        for (int version : new int[] {1, 4, 5, 7}) {
             writeManifest(version);
             IllegalStateException failure = assertThrows(IllegalStateException.class,
                     () -> CpfVendorResourceRoot.required(root, CpfDatabaseVendor.MARIADB));
             org.junit.jupiter.api.Assertions.assertTrue(
-                    failure.getMessage().contains("expected=5, actual=" + version));
+                    failure.getMessage().contains("expected=6, actual=" + version));
         }
     }
 

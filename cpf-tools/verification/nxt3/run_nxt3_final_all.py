@@ -20,7 +20,11 @@ def run_one(name: str, cmd: list[str], root: Path, timeout: int) -> dict:
     started=time.time()
     try:
         env=os.environ.copy(); env['PYTHONDONTWRITEBYTECODE']='1'
-        cp=subprocess.run(cmd,cwd=root,text=True,capture_output=True,timeout=timeout,env=env)
+        # Gate 출력은 한글을 포함한 UTF-8 이다. encoding 을 지정하지 않으면 실행 환경의 기본
+        # 인코딩(예: cp949)으로 해석되어 UnicodeDecodeError 가 나고, 정상 통과한 Gate 가 rc=125
+        # 로 FAIL 처리된다. 판정이 주변 로케일에 좌우되지 않도록 UTF-8 을 고정한다.
+        cp=subprocess.run(cmd,cwd=root,text=True,capture_output=True,timeout=timeout,env=env,
+                          encoding='utf-8',errors='replace')
         return {"name":name,"status":"PASS" if cp.returncode==0 else "FAIL","rc":cp.returncode,
                 "seconds":round(time.time()-started,3),"cmd":cmd,"stdout":cp.stdout[-30000:],"stderr":cp.stderr[-30000:]}
     except subprocess.TimeoutExpired as exc:

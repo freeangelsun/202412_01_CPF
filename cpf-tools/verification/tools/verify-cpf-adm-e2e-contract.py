@@ -10,6 +10,19 @@ ENTRY = re.compile(r'^\s*"(?P<route_id>[^"]+)": \{ routeId: "(?P=route_id)", pat
 def require(text: str, token: str, label: str) -> None:
     if token not in text: raise ContractError(f"{label} missing token={token}")
 
+# validate() 가 읽는 계약 산출물 전체. 검증 대상 Tree 를 복제해야 하는 소비자(계약 테스트 등)가
+# 경로를 따로 하드코딩하지 않도록 여기서 한 곳으로 소유한다.
+CONTRACT_SOURCES = (
+    "cpf-admin/frontend/src/app/routes.ts",
+    "cpf-admin/frontend/src/app/routes",
+    "cpf-admin/frontend/src/generated/adm-route-operation-contract.ts",
+    "cpf-admin/frontend/playwright.config.ts",
+    "cpf-admin/frontend/e2e/adm-route-contract.spec.ts",
+    "cpf-admin/frontend/e2e/adm-route-error-states.spec.ts",
+    "cpf-admin/frontend/src/shared/cpfApi.ts",
+    "cpf-admin/frontend/package.json",
+)
+
 def validate(root: Path) -> dict:
     routes_file = root / "cpf-admin/frontend/src/app/routes.ts"
     routes_dir = root / "cpf-admin/frontend/src/app/routes"

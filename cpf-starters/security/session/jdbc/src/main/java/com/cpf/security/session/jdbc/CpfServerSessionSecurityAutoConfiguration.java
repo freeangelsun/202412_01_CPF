@@ -29,8 +29,16 @@ import org.springframework.session.Session;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
-/** ADM/MBW Browser Credential을 HttpOnly Session Handle + 암호화 JDBC Vault로 보호합니다. */
-@AutoConfiguration
+/**
+ * ADM/MBW Browser Credential을 HttpOnly Session Handle + 암호화 JDBC Vault로 보호합니다.
+ *
+ * <p>{@code cpfBffCredentialObjectMapper}는 BFF 자격증명 전용 대체재이지 Platform의 canonical
+ * ObjectMapper가 아닙니다. 이 AutoConfiguration이 먼저 처리되면 {@code @ConditionalOnMissingBean}
+ * 경쟁에서 foundation의 CpfJackson2AutoConfiguration이 back-off하고, Security Session이 꺼진
+ * Runtime이나 이른 시점 소비자에게 ObjectMapper가 없어집니다. foundation이 먼저 등록되도록
+ * 순서를 명시하며, 모듈 의존을 늘리지 않기 위해 이름으로 지정합니다.</p>
+ */
+@AutoConfiguration(afterName = "com.cpf.starter.runtime.CpfJackson2AutoConfiguration")
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass({DataSource.class, SecurityFilterChain.class, CookieSerializer.class})
 @ConditionalOnProperty(name = "cpf.security.session.enabled", havingValue = "true", matchIfMissing = true)

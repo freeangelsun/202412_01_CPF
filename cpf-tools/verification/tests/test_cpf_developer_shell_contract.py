@@ -26,7 +26,9 @@ def test_canonical_gradle_entrypoints_are_short_and_grouped():
     for task, group in required.items():
         assert task in text, task
         assert group in text, group
-    assert 'tasks.named(\'cpfTestAll\') { dependsOn allJavaTests }' in text
+    assert "tasks.named('cpfTestAll') {" in text
+    assert 'dependsOn allJavaTests' in text
+    assert 'dependsOn cpfAllDomainTestTasks' in text
     assert "tasks.register('cpfBuildInfo')" not in text
     assert "tasks.register('cpfVerifyAllLocal', Exec)" in text
     assert "run-cpf-local-full-validation.ps1" in text

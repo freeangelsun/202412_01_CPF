@@ -98,5 +98,69 @@
       "frameworkPublicSourceProjection": "ALLOWLIST_ONLY",
       "allowlist": "cpf-tools/release/open-git/open-git-public-source-allowlist.json"
     }
+  },
+  "finalPublicTree": {
+    "contract": "CPF_OPEN_GIT_FINAL_PUBLIC_TREE",
+    "schemaVersion": 1,
+    "projection": "ALLOWLIST_FAIL_CLOSED",
+    "publicVersionPolicy": {
+      "mode": "IMMUTABLE_STABLE_FROM_DEVELOPMENT_VERSION",
+      "developmentVersionSource": "gradle/cpf-platform.properties",
+      "developmentVersionProperty": "platformVersion",
+      "strippedSuffixes": [
+        "-SNAPSHOT"
+      ],
+      "publicSnapshotForbidden": true,
+      "timestampedPublicationForbidden": true
+    },
+    "requiredArtifactTypes": [
+      "jar",
+      "pom",
+      "zip"
+    ],
+    "admitGradleModuleMetadata": false,
+    "admitMavenMetadata": false,
+    "admitSourcesJar": false,
+    "admitJavadocJar": false,
+    "admitChecksumSidecar": false,
+    "conditionalAdmissionEvidence": {
+      "gradleModuleMetadata": "Fresh isolated Gradle consumer resolved cpf-platform-bom platform + cpf-starter-web-api with 12 transitive CPF artifacts using JAR+POM only.",
+      "mavenMetadata": "Public consumers use explicit immutable versions; no dynamic or SNAPSHOT resolution is required."
+    },
+    "packageManifest": {
+      "path": "package-manifest.json",
+      "requiredFields": [
+        "group",
+        "artifactId",
+        "module",
+        "version",
+        "classifier",
+        "type",
+        "relativePath",
+        "fileSize",
+        "sha256",
+        "publicationType",
+        "classification",
+        "sourceIdentitySha256"
+      ]
+    },
+    "orphanPolicy": {
+      "sidecarWithoutTargetArtifact": "FAIL",
+      "fileWithoutManifestEntry": "FAIL",
+      "manifestEntryWithoutFile": "FAIL"
+    },
+    "generatorDistribution": {
+      "admitted": true,
+      "types": [
+        "zip",
+        "zip.sha256",
+        "json"
+      ],
+      "reason": "OS별 Generator 배포본은 사용자 Golden Path(Domain 생성)의 필수 Public artifact 다. zip 은 실행체, .sha256/.json 은 그 배포본의 무결성/메타 계약이다.",
+      "classifiers": [
+        "windows-x64",
+        "linux-x64"
+      ]
+    }
   }
 }

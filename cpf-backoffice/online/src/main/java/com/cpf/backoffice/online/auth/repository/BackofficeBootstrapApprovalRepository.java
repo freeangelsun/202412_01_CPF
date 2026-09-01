@@ -15,8 +15,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /** 최초 특권 계정 Bootstrap용 1회 승인 Token 원장입니다. */
+// @CpfRepository 는 @Repository stereotype 이므로 Runtime 이 예외변환 Advice 를 위해 CGLIB
+// 프록시를 생성한다. final 클래스는 subclass 를 만들 수 없어 기동 자체가 실패한다.
+// 형제 Repository 와 동일하게 상속 가능한 형태를 유지한다.
 @CpfRepository
-public final class BackofficeBootstrapApprovalRepository extends BackofficeBaseRepository {
+public class BackofficeBootstrapApprovalRepository extends BackofficeBaseRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcProvider;
     private final CpfVendorSqlCatalog sql;
 

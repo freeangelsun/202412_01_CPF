@@ -26,7 +26,7 @@ def main():
     if not version:
         props=(root/'gradle/cpf-platform.properties').read_text(encoding='utf-8-sig').splitlines()
         version=next((x.split('=',1)[1].strip() for x in props if x.strip().startswith('platformVersion=')),'UNKNOWN')
-    sources=[root/'cpf-tools/runtime/cli/java/CpfCli.java',root/'cpf-tools/runtime/bootstrap/CpfBootstrap.java',root/'cpf-tools/runtime/cli/java/CpfGeneratorLauncher.java']
+    sources=[root/'cpf-tools/runtime/cli/java/CpfCli.java',root/'cpf-tools/runtime/bootstrap/CpfBootstrap.java',root/'cpf-tools/runtime/cli/java/CpfGeneratorLauncher.java',root/'cpf-tools/runtime/cli/java/CpfRuntimeTargets.java']
     missing=[str(p.relative_to(root)) for p in sources if not p.is_file()]
     if missing: raise SystemExit(f'CPF_CLI_BUILD=FAIL missing={missing}')
     target=root/'cpf-tools/runtime/cli/lib/cpf-cli.jar'; target.parent.mkdir(parents=True,exist_ok=True)

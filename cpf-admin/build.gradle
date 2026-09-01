@@ -3,6 +3,7 @@ plugins {
     id 'io.spring.dependency-management'
     id 'java'
     id 'war'
+    id 'maven-publish'
 }
 
 group = 'com.cpf.admin'
@@ -129,4 +130,15 @@ def cpfSkipFrontendBuild = providers.gradleProperty('cpfSkipFrontendBuild').map 
 
 tasks.named('processResources') {
     if (!cpfSkipFrontendBuild.get()) dependsOn 'frontendBuild'
+}
+
+// Open Git Public Runtime. 사용자가 bundled binary repository 에서 받아 바로 실행하므로
+// plain jar(components.java)이 아니라 실행 가능한 bootJar 을 Public artifact 로 게시한다.
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact tasks.named('bootJar')
+            artifactId = 'cpf-admin'
+        }
+    }
 }

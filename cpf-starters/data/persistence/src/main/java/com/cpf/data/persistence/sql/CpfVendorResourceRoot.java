@@ -21,7 +21,10 @@ import java.util.Optional;
  */
 final class CpfVendorResourceRoot {
     static final String PROPERTY_NAME = "cpf.db.resource-root";
-    private static final int SUPPORTED_PACK_SCHEMA_VERSION = 5;
+    // Keep this in lockstep with every official cpf-tools/db/vendor/*/pack.json.
+    // Runtime intentionally accepts one exact pack contract, so an unreviewed
+    // renderer/schema change fails before any vendor SQL is consumed.
+    private static final int SUPPORTED_PACK_SCHEMA_VERSION = 6;
     private static final long MAX_MANIFEST_BYTES = 65_536;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

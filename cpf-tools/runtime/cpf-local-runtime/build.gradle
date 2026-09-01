@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot'
     id 'io.spring.dependency-management'
     id 'java'
+    id 'maven-publish'
 }
 
 group = 'com.cpf.local'
@@ -46,3 +47,14 @@ tasks.named('bootJar') {
 // Root의 cpfIncludeGeneratedDomains는 discovery/classification만 담당하고, 실제 compile/test는
 // 각 Generated Build가 cpfProductCompositeRoot를 지정한 standalone composite consumer로 수행합니다.
 // Local Runtime은 MBW 같은 Root-owned optional project만 조립하며 Generated Source를 내부 classpath로 합치지 않습니다.
+
+// Open Git Public Runtime. 사용자가 bundled binary repository 에서 받아 바로 실행하므로
+// plain jar(components.java)이 아니라 실행 가능한 bootJar 을 Public artifact 로 게시한다.
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact tasks.named('bootJar')
+            artifactId = 'cpf-local-runtime'
+        }
+    }
+}

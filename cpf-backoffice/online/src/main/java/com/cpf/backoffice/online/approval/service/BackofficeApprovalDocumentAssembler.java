@@ -18,8 +18,11 @@ import java.util.regex.Pattern;
  * <p>원본 payload_json을 그대로 외부에 노출하지 않고, Snapshot hash 무결성을 검증한 뒤
  * 민감 필드를 field-level masking하여 업무별 판단 Section과 Before/After를 제공합니다.</p>
  */
+// CPF stereotype 이 붙은 Business Type 은 proxy-safe 여야 한다.
+// CpfCapabilityUsageAspect.proxySafeBusinessType() 이 final Type 을 proxy-unsafe 로 판정하고,
+// Advisor 가 매칭되면 CGLIB subclass 생성이 불가능해 Runtime 기동이 실패한다.
 @CpfService
-public final class BackofficeApprovalDocumentAssembler extends BackofficeBaseService {
+public class BackofficeApprovalDocumentAssembler extends BackofficeBaseService {
     private static final Pattern SENSITIVE = Pattern.compile(
             "(?i).*(password|passwd|pwd|secret|token|credential|api.?key|private.?key|resident|ssn|mobile|phone|email).*");
     private final ObjectMapper mapper;

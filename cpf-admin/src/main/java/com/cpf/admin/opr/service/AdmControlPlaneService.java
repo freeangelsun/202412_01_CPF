@@ -14,8 +14,11 @@ import java.util.Map;
  * ADM Incident/Maintenance Control-Plane의 업무 Service입니다.
  * 상태는 CPF_PLATFORM_DB(cpfDB)에 기록하고 실제 Runtime 변경은 Service Registry Owner Port로 위임합니다.
  */
+// CPF stereotype 이 붙은 Business Type 은 proxy-safe 여야 한다.
+// CpfCapabilityUsageAspect.proxySafeBusinessType() 이 final Type 을 proxy-unsafe 로 판정하고,
+// Advisor 가 매칭되면 CGLIB subclass 생성이 불가능해 Runtime 기동이 실패한다.
 @CpfService
-public final class AdmControlPlaneService extends AdmBaseService {
+public class AdmControlPlaneService extends AdmBaseService {
     private final AdmControlPlaneRepository repository;
     private final CpfServiceRegistryControlPort serviceControlPort;
 

@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import com.cpf.data.persistence.api.CpfDataSourceRegistry;
+import com.cpf.data.persistence.api.CpfDatabaseRole;
 
 import java.io.IOException;
 import java.io.FilterInputStream;
@@ -23,8 +25,12 @@ import java.util.UUID;
  * Gateway 원장 Event를 파일 단위 WAL에 먼저 확정한 뒤 중앙 DB로 적재합니다.
  * DB 장애·Gateway Crash·Replay 중 Crash에서도 Event 파일은 성공 적재 전까지 삭제되지 않습니다.
  */
+// @ConditionalOnBean 은 auto-configuration 에서만 신뢰할 수 있다. component scan 으로
+// 등록되는 이 Adapter 는 auto-configuration 이 대상 Bean 을 정의하기 전에 조건이 평가되어
+// 항상 false 가 된다. Gateway 는 CPF Platform DB 를 소유하는 DataSource Owner 이고 이
+// Adapter 는 해당 Port 의 유일한 구현체이므로, 조건부가 아니라 항상 등록되어야 한다.
+// 의존 Bean 이 없으면 조용히 사라지는 대신 기동이 명확한 원인으로 실패해야 한다.
 @Component
-@ConditionalOnBean(JdbcTemplate.class)
 public final class DurableCpfGatewayLedgerAdapter implements CpfGatewayLedgerPort {
     private static final Logger log = LoggerFactory.getLogger(DurableCpfGatewayLedgerAdapter.class);
     private final JdbcTemplate jdbc;
@@ -34,11 +40,13 @@ public final class DurableCpfGatewayLedgerAdapter implements CpfGatewayLedgerPor
 
     /** DurableCpfGatewayLedgerAdapter 작업을 CPF 표준 계약에 따라 수행한다. */
     public DurableCpfGatewayLedgerAdapter(
-            JdbcTemplate jdbc,
+            CpfDataSourceRegistry dataSources,
             ObjectMapper mapper,
             @Value("${cpf.gateway.ledger.spool-directory:${java.io.tmpdir}/cpf-gateway-ledger}") String spoolDirectory,
             @Value("${cpf.gateway.ledger.max-spool-bytes:1073741824}") long maxSpoolBytes) {
-        this.jdbc = jdbc;
+        // 형제 Gateway Adapter 와 동일하게 canonical role DataSource 에서 직접 만든다.
+        // Spring Boot 의 단일후보 JdbcTemplate autoconfiguration 에 의존하지 않는다.
+        this.jdbc = new JdbcTemplate(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB));
         this.mapper = mapper;
         this.pending = Path.of(spoolDirectory).toAbsolutePath().normalize().resolve("pending");
         if (maxSpoolBytes < 1_024L) {

@@ -20,6 +20,8 @@ import com.cpf.messaging.reliability.api.jdbc.internal.JdbcCpfBrokerReliabilityR
 import java.sql.Connection;
 import java.time.Clock;
 import java.util.List;
+import com.cpf.data.persistence.api.CpfDataSourceRegistry;
+import com.cpf.data.persistence.api.CpfDatabaseRole;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -125,10 +127,14 @@ public class CpfBrokerReliabilityAutoConfiguration {
         return new CpfMessagingTemplateRouter(clients.orderedStream().toList());
     }
 
+    // Runtime 에는 업무 Domain DataSource 가 함께 존재하므로 타입만으로 주입하면 후보가
+    // 여럿이라 기동이 실패한다. Broker 신뢰성 원장(CPF_BROKER_OUTBOX/INBOX/DLQ)은 CPF
+    // Platform DB 에 있으므로 Role 을 명시해 해석한다.
     @Bean
     SmartInitializingSingleton cpfBrokerSchemaVerifier(
             CpfMessagingReliabilityProperties properties,
-            DataSource dataSource) {
+            CpfDataSourceRegistry dataSources) {
+        DataSource dataSource = dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB);
         return () -> {
             properties.validate();
             if (!properties.isEnabled() || !properties.isSchemaRequired()) {
@@ -151,8 +157,12 @@ public class CpfBrokerReliabilityAutoConfiguration {
         };
     }
 
+    // Runtime 에는 업무 Domain DataSource 가 함께 존재하므로 타입만으로 주입하면 후보가
+    // 여럿이라 기동이 실패한다. Broker 신뢰성 원장(CPF_BROKER_OUTBOX/INBOX/DLQ)은 CPF
+    // Platform DB 에 있으므로 Role 을 명시해 해석한다.
     @Bean("cpfBrokerReliabilityHealthIndicator")
-    HealthIndicator cpfBrokerReliabilityHealthIndicator(DataSource dataSource) {
+    HealthIndicator cpfBrokerReliabilityHealthIndicator(CpfDataSourceRegistry dataSources) {
+        DataSource dataSource = dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB);
         return () -> {
             try (Connection connection = dataSource.getConnection()) {
                 return connection.isValid(3)

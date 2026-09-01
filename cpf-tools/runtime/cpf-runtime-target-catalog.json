@@ -1,0 +1,162 @@
+{
+  "contract": "CPF_RUNTIME_TARGET_CATALOG",
+  "schemaVersion": 1,
+  "intent": [
+    "Single canonical source for every runtime target name, owner, port and lifecycle capability.",
+    "Gradle (cpf-root-conventions.gradle), the runtime shell helpers (runtime-common.ps1), the public Java CLI and the Windows/Linux launchers all resolve targets from this one file.",
+    "Generated Domain and optional Backoffice targets are never listed here by name: they are discovered by the rules below so that adding or deleting a domain needs no edit to any launcher."
+  ],
+  "discovery": {
+    "app": {
+      "rule": "top-level directory that is a Gradle subproject applying the Spring Boot plugin",
+      "bootPluginMarker": "id 'org.springframework.boot'",
+      "parentMustBeRepositoryRoot": true,
+      "note": "cpf-tools/runtime/** composite runtimes and domain-owned modules are structurally excluded by the parent rule."
+    },
+    "domain": {
+      "rule": "top-level cpf-* directory carrying the domain contract",
+      "contractFile": "gradle.properties",
+      "contractVersionKey": "cpf.domain.contractVersion",
+      "contractVersion": "1",
+      "nameKey": "cpf.domain.name",
+      "systemCodeKey": "cpf.domain.systemCode",
+      "moduleIncludeFile": "settings.gradle",
+      "modules": ["online", "batch"],
+      "prebuiltGenerationModeIsStaticEntry": ["backoffice"],
+      "portEnvPattern": "{SYSTEM_CODE}_ONLINE_PORT"
+    }
+  },
+  "aggregates": {
+    "ALL": {
+      "label": "전체",
+      "runtimeMode": "full",
+      "excludedRoles": [],
+      "includeDomains": true,
+      "includeBatch": true
+    },
+    "DEV": {
+      "label": "개발",
+      "runtimeMode": "standard",
+      "excludedRoles": ["gateway"],
+      "includeDomains": true,
+      "includeBatch": false
+    },
+    "ONLINE": {
+      "label": "온라인",
+      "runtimeMode": "minimal",
+      "excludedRoles": ["gateway", "admin", "backoffice-web"],
+      "includeDomains": true,
+      "includeBatch": false
+    }
+  },
+  "lifecycleCapabilities": {
+    "http-server": {
+      "start": true, "stop": true, "status": true, "restart": true, "log": true,
+      "health": "http-endpoint",
+      "statusEvidence": ["process", "port", "healthEndpoint", "instanceIdentity"]
+    },
+    "worker": {
+      "start": true, "stop": true, "status": true, "restart": true, "log": true,
+      "health": "runtime-readiness-contract",
+      "statusEvidence": ["process", "port", "leaseOrHeartbeat", "instanceIdentity"],
+      "note": "Batch roles expose an actuator port but readiness is owned by the runtime control plane, not by a plain HTTP 200."
+    },
+    "one-shot": {
+      "start": true, "stop": false, "status": true, "restart": false, "log": true,
+      "health": "execution-result-contract",
+      "statusEvidence": ["lastExecutionResult"],
+      "note": "Local batch runtime completes and exits; stop/restart are not meaningful and must report a clear contract message rather than a fake success."
+    }
+  },
+  "runtimes": [
+    {
+      "target": "admin", "owner": "cpf-admin", "systemCode": "ADM",
+      "capability": "http-server", "port": 8090, "portEnv": "ADM_SERVER_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "CPF 운영 관리 Runtime"
+    },
+    {
+      "target": "gateway", "owner": "cpf-gateway", "systemCode": "GWY",
+      "capability": "http-server", "port": 8070, "portEnv": "GWY_SERVER_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "API Gateway Runtime"
+    },
+    {
+      "target": "batch-control", "owner": "cpf-batch/control-plane", "systemCode": "BAT",
+      "capability": "worker", "port": 8180, "portEnv": "CPF_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Control Plane"
+    },
+    {
+      "target": "batch-scheduler", "owner": "cpf-batch/scheduler", "systemCode": "BAT",
+      "capability": "worker", "port": 8181, "portEnv": "CPF_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Scheduler"
+    },
+    {
+      "target": "batch-worker", "owner": "cpf-batch/worker", "systemCode": "BAT",
+      "capability": "worker", "port": 8182, "portEnv": "CPF_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Worker"
+    },
+    {
+      "target": "batch-center-cut", "owner": "cpf-batch/center-cut", "systemCode": "CEC",
+      "capability": "worker", "port": 8183, "portEnv": "CPF_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Center-Cut Runner"
+    },
+    {
+      "target": "batch-agent", "owner": "cpf-batch/agent", "systemCode": "BAT",
+      "capability": "worker", "port": 8184, "portEnv": "CPF_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Agent"
+    },
+    {
+      "target": "local-runtime", "owner": "cpf-tools/runtime/cpf-local-runtime", "systemCode": "LOCAL",
+      "capability": "http-server", "port": 8080, "portEnv": "CPF_LOCAL_RUNTIME_PORT",
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "aggregateAlias": "ALL",
+      "description": "1-WAS 통합 Local Runtime"
+    },
+    {
+      "target": "local-batch", "owner": "cpf-tools/runtime/cpf-local-batch-runtime", "systemCode": "BAT",
+      "capability": "one-shot", "port": null, "portEnv": null,
+      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "통합 Local Batch Runtime"
+    },
+    {
+      "target": "backoffice", "owner": "cpf-backoffice/online", "systemCode": "MBW",
+      "capability": "http-server", "port": 8091, "portEnv": "MBW_ONLINE_PORT",
+      "provision": "source", "optional": true, "publicationClass": "PUBLIC_RUNTIME",
+      "component": "domain",
+      "description": "업무 백오피스 Domain Runtime"
+    },
+    {
+      "target": "backoffice-web", "owner": "cpf-backoffice-web", "systemCode": "MBW",
+      "capability": "http-server", "port": 8092, "portEnv": "MBW_WEB_PORT",
+      "provision": "source", "optional": true, "publicationClass": "PUBLIC_RUNTIME",
+      "component": "web",
+      "portFinding": "Previously defaulted to 8090 and collided with admin; 8092 continues the MBW block after backoffice online 8091.",
+      "description": "업무 백오피스 Web(BFF) Runtime"
+    },
+    {
+      "target": "education", "owner": "cpf-education", "systemCode": "EDU",
+      "capability": "http-server", "port": 8099, "portEnv": "EDU_SERVER_PORT",
+      "provision": "source", "publicationClass": "PUBLIC_RUNTIME",
+      "description": "교육/샘플 Runtime"
+    }
+  ],
+  "dynamicRuntimes": {
+    "source": "discovery.domain",
+    "targetPattern": "{domainName}-{module}",
+    "capabilityByModule": { "online": "http-server", "batch": "one-shot" },
+    "provision": "source",
+    "publicationClass": "PUBLIC_RUNTIME",
+    "note": "Generated Domain targets appear and disappear with the domain itself. No launcher, help text or catalog entry may hardcode a domain name."
+  },
+  "portPolicy": {
+    "duplicateDefaultPortsForbidden": true,
+    "scope": "distinct owners; the same owner repeating its port across profiles is not a collision",
+    "testProfileRandomPortAllowed": true
+  }
+}

@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.health;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.cpf.platform.operations.api.health.CpfRuntimeHealth;
 import com.cpf.platform.operations.api.health.CpfRuntimeHealthRegistry;
 import java.time.Clock;
@@ -24,6 +25,9 @@ public final class AdmHealthInstanceRegistry {
     private final CpfRuntimeHealthRegistry persistent;
     private final Clock clock;
     private final Duration staleAfter;
+    // 생성자가 둘이면 Spring 은 어느 쪽을 쓸지 정하지 못하고 기본 생성자를 찾다가 기동에
+    // 실패한다. 운영 주입 대상 생성자를 명시한다. 나머지는 테스트 seam 이다.
+    @Autowired
     public AdmHealthInstanceRegistry(ObjectProvider<CpfRuntimeHealthRegistry> providers,@Value("${cpf.adm.health.stale-after:PT90S}") Duration staleAfter){this(providers.getIfAvailable(),staleAfter,Clock.systemUTC());}
     AdmHealthInstanceRegistry(Duration staleAfter,Clock clock){this(null,staleAfter,clock);}
     AdmHealthInstanceRegistry(CpfRuntimeHealthRegistry persistent,Duration staleAfter,Clock clock){if(staleAfter==null||staleAfter.isZero()||staleAfter.isNegative())throw new IllegalArgumentException("staleAfter must be positive");this.persistent=persistent;this.staleAfter=staleAfter;this.clock=clock;}

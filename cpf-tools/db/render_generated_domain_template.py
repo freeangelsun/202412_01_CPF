@@ -2,6 +2,9 @@
 from __future__ import annotations
 import argparse, hashlib, json, sys
 from pathlib import Path
+# import 하는 순간 Source Tree 에 __pycache__/*.pyc 가 생기고, clean-source 게이트가 이를
+# garbage 로 판정한다. 호출자가 -B 를 주지 않아도 안전하도록 여기서 기록을 끈다.
+sys.dont_write_bytecode = True
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import render_vendor_pack as r
 

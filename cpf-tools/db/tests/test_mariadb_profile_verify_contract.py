@@ -35,6 +35,31 @@ class MariaDbProfileVerifyContractTest(unittest.TestCase):
         ):
             self.assertIn(retained_check, verify)
 
+    def test_verify_check_names_are_unique_per_physical_logical_database(self):
+        """공유 CPF DB의 module alias가 동일 Verify check를 중복 생성하면 안 된다."""
+        generator = (ROOT / "cpf-tools/db/generator/generate-official-db-vendor-source.ps1").read_text(
+            encoding="utf-8-sig"
+        )
+        self.assertIn("$platformDatabaseOwners", generator)
+        self.assertIn("Enabled profile logicalDatabase must have exactly one physical owner", generator)
+
+        paths = {
+            "mariadb": ROOT / "cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql",
+            "postgresql": ROOT / "cpf-tools/db/vendor/postgresql/source/00_verify.sql",
+            "oracle": ROOT / "cpf-tools/db/vendor/oracle/source/00_verify.sql",
+        }
+        for vendor, path in paths.items():
+            with self.subTest(vendor=vendor):
+                names = re.findall(
+                    r"(?im)^\s*SELECT\s+'([^']+)'\s+AS\s+check_name\b",
+                    path.read_text(encoding="utf-8-sig"),
+                )
+                self.assertTrue(names, path)
+                self.assertEqual(len(names), len({name.lower() for name in names}), path)
+                self.assertEqual(1, names.count("cpfDB.table_count"), path)
+                if vendor == "mariadb":
+                    self.assertEqual(1, names.count("cpfDB.runtime_transaction_id_contract"), path)
+
     def test_current_sequence_projection_is_separate_from_immutable_history(self):
         contract = json.loads(
             (ROOT / "cpf-tools/db/canonical/platform-non-table-objects.json").read_text(encoding="utf-8")

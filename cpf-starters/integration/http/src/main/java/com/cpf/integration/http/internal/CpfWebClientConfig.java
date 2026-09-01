@@ -6,7 +6,9 @@ import com.cpf.web.context.CpfHeaderPolicyRegistry;
 import com.cpf.web.context.CpfHttpHeaderLogSanitizer;
 import io.netty.channel.ChannelOption;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.boot.restclient.RestTemplateCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
@@ -70,6 +72,36 @@ public class CpfWebClientConfig {
             ObjectProvider<CpfHeaderPolicyRegistry> headerPolicyProvider,
             Environment environment) {
 
+        WebClient.Builder builder = newWebClientBuilder(
+                httpClientProperties, fileLogWriterProvider, headerPolicyProvider);
+
+        return new CpfWebClient(
+                builder, endpointRegistry, serviceCallEngineProvider, runtimePolicy, pinnedConnectorFactory);
+    }
+
+    /**
+     * CPF 표준 규약(연결/응답 timeout, codec 상한, 통합 파일 로그 필터)이 적용된 WebClient Builder를
+     * 노출합니다.
+     *
+     * <p>Spring Boot 4는 {@code WebClient.Builder}를 더 이상 auto-configure하지 않습니다. 이 Bean이
+     * 없으면 Builder를 주입받는 모든 Consumer가 기동에 실패하므로 Platform이 직접 소유합니다.
+     * Builder는 가변 객체이고 Consumer가 자유롭게 변형하므로, Spring Boot가 하던 것과 동일하게
+     * prototype scope로 제공해 서로의 설정이 섞이지 않게 합니다.</p>
+     */
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    @ConditionalOnMissingBean(WebClient.Builder.class)
+    public WebClient.Builder cpfWebClientBuilder(
+            CpfHttpClientProperties httpClientProperties,
+            ObjectProvider<CpfIntegrationLogPort> fileLogWriterProvider,
+            ObjectProvider<CpfHeaderPolicyRegistry> headerPolicyProvider) {
+        return newWebClientBuilder(httpClientProperties, fileLogWriterProvider, headerPolicyProvider);
+    }
+
+    private WebClient.Builder newWebClientBuilder(
+            CpfHttpClientProperties httpClientProperties,
+            ObjectProvider<CpfIntegrationLogPort> fileLogWriterProvider,
+            ObjectProvider<CpfHeaderPolicyRegistry> headerPolicyProvider) {
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, httpClientProperties.getConnectTimeoutMillis())
                 .responseTimeout(Duration.ofMillis(httpClientProperties.getReadTimeoutMillis()));
@@ -79,14 +111,11 @@ public class CpfWebClientConfig {
                         .maxInMemorySize(httpClientProperties.getMaxInMemorySizeKb() * 1024))
                 .build();
 
-        WebClient.Builder builder = WebClient.builder()
+        return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .exchangeStrategies(exchangeStrategies)
                 .filter(integrationFileLogFilter(fileLogWriterProvider,
                         new CpfHttpHeaderLogSanitizer(headerPolicyProvider.getIfAvailable())));
-
-        return new CpfWebClient(
-                builder, endpointRegistry, serviceCallEngineProvider, runtimePolicy, pinnedConnectorFactory);
     }
 
     @Bean

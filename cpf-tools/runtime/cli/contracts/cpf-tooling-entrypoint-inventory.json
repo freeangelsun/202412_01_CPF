@@ -11,7 +11,7 @@
     "DUPLICATE",
     "DEAD"
   ],
-  "entrypointCount": 862,
+  "entrypointCount": 904,
   "duplicateCount": 0,
   "deadCount": 0,
   "entries": [
@@ -198,6 +198,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/db/tests/test_query_template_schema_columns.py",
+      "path": "cpf-tools/db/tests/test_query_template_schema_columns.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/db/tests/test_runtime_query_module_contract_currentization.py",
       "path": "cpf-tools/db/tests/test_runtime_query_module_contract_currentization.py",
       "kind": "PYTHON",
@@ -207,6 +214,13 @@
     {
       "id": "FILE:cpf-tools/db/tests/test_runtime_query_sync_resource_mode.py",
       "path": "cpf-tools/db/tests/test_runtime_query_sync_resource_mode.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/db/tests/test_upstream_provenance_contract.py",
+      "path": "cpf-tools/db/tests/test_upstream_provenance_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -228,6 +242,13 @@
     {
       "id": "FILE:cpf-tools/db/tests/test_v137_generic_runtime_application_role.py",
       "path": "cpf-tools/db/tests/test_v137_generic_runtime_application_role.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/db/tests/test_vendor_pack_schema_runtime_contract.py",
+      "path": "cpf-tools/db/tests/test_vendor_pack_schema_runtime_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -1647,6 +1668,48 @@
       "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
     },
     {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-health.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-health.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-health.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-health.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-help.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-help.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-help.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-help.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-log.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-log.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-log.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-log.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
       "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
       "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
       "kind": "POWERSHELL",
@@ -1656,6 +1719,48 @@
     {
       "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
       "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-restart.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-restart.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-restart.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-restart.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-start.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-start.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-start.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-start.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-status.ps1",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-status.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/templates/bin/cpf-status.sh",
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-status.sh",
       "kind": "SHELL",
       "classification": "THIN_WRAPPER",
       "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
@@ -1724,6 +1829,13 @@
       "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
     },
     {
+      "id": "FILE:cpf-tools/release/open-git/templates/gradlew.bat",
+      "path": "cpf-tools/release/open-git/templates/gradlew.bat",
+      "kind": "BAT",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/release/open-git/templates/tools/verify-open-git-workspace.ps1",
       "path": "cpf-tools/release/open-git/templates/tools/verify-open-git-workspace.ps1",
       "kind": "POWERSHELL",
@@ -1752,6 +1864,27 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/release/open-git/tests/test_open_git_public_distribution_mutation.py",
+      "path": "cpf-tools/release/open-git/tests/test_open_git_public_distribution_mutation.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/verify-current-only-release-root.py",
+      "path": "cpf-tools/release/open-git/verify-current-only-release-root.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/verify-fresh-public-consumer.py",
+      "path": "cpf-tools/release/open-git/verify-fresh-public-consumer.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/release/public/prepare-cpf-public-workspace.py",
       "path": "cpf-tools/release/public/prepare-cpf-public-workspace.py",
       "kind": "PYTHON",
@@ -1771,6 +1904,104 @@
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-health.ps1",
+      "path": "cpf-tools/release/public/templates/bin/cpf-health.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-health.sh",
+      "path": "cpf-tools/release/public/templates/bin/cpf-health.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-help.ps1",
+      "path": "cpf-tools/release/public/templates/bin/cpf-help.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-help.sh",
+      "path": "cpf-tools/release/public/templates/bin/cpf-help.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-log.ps1",
+      "path": "cpf-tools/release/public/templates/bin/cpf-log.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-log.sh",
+      "path": "cpf-tools/release/public/templates/bin/cpf-log.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-restart.ps1",
+      "path": "cpf-tools/release/public/templates/bin/cpf-restart.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-restart.sh",
+      "path": "cpf-tools/release/public/templates/bin/cpf-restart.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-start.ps1",
+      "path": "cpf-tools/release/public/templates/bin/cpf-start.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-start.sh",
+      "path": "cpf-tools/release/public/templates/bin/cpf-start.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-status.ps1",
+      "path": "cpf-tools/release/public/templates/bin/cpf-status.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-status.sh",
+      "path": "cpf-tools/release/public/templates/bin/cpf-status.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-stop.ps1",
+      "path": "cpf-tools/release/public/templates/bin/cpf-stop.ps1",
+      "kind": "POWERSHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
+    },
+    {
+      "id": "FILE:cpf-tools/release/public/templates/bin/cpf-stop.sh",
+      "path": "cpf-tools/release/public/templates/bin/cpf-stop.sh",
+      "kind": "SHELL",
+      "classification": "THIN_WRAPPER",
+      "replacement": "cpf-tools/runtime/cli/java/CpfCli.java"
     },
     {
       "id": "FILE:cpf-tools/release/public/templates/bin/cpf.cmd",
@@ -2538,6 +2769,13 @@
     {
       "id": "FILE:cpf-tools/runtime/tools/tests/test_runtime_handoff_scripts.py",
       "path": "cpf-tools/runtime/tools/tests/test_runtime_handoff_scripts.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/runtime/tools/tests/test_runtime_target_catalog_contract.py",
+      "path": "cpf-tools/runtime/tools/tests/test_runtime_target_catalog_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4055,6 +4293,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_autoconfiguration_registration.py",
+      "path": "cpf-tools/verification/tests/test_cpf_autoconfiguration_registration.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_cross_platform_cli_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_cross_platform_cli_contract.py",
       "kind": "PYTHON",
@@ -4097,6 +4342,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py",
+      "path": "cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_integrated_logging_closure.py",
       "path": "cpf-tools/verification/tests/test_cpf_integrated_logging_closure.py",
       "kind": "PYTHON",
@@ -4118,6 +4370,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py",
+      "path": "cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_resource_policy_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_resource_policy_contract.py",
       "kind": "PYTHON",
@@ -4132,8 +4391,22 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_source_tree_bytecode_hygiene.py",
+      "path": "cpf-tools/verification/tests/test_cpf_source_tree_bytecode_hygiene.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_targeted_verification.py",
       "path": "cpf-tools/verification/tests/test_cpf_targeted_verification.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_three_tier_structure_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_three_tier_structure_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4167,8 +4440,22 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_full_runtime_startup_contract.py",
+      "path": "cpf-tools/verification/tests/test_full_runtime_startup_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_gradle_project_dependency_closure.py",
       "path": "cpf-tools/verification/tests/test_gradle_project_dependency_closure.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_ide_classpath_readiness_contract.py",
+      "path": "cpf-tools/verification/tests/test_ide_classpath_readiness_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4267,6 +4554,13 @@
     {
       "id": "FILE:cpf-tools/verification/tests/test_starter_clock_provider_contract.py",
       "path": "cpf-tools/verification/tests/test_starter_clock_provider_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_static_gate_generated_scope_contract.py",
+      "path": "cpf-tools/verification/tests/test_static_gate_generated_scope_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""

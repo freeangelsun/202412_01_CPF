@@ -139,11 +139,17 @@ def start(root:Path,profile:str,mode:str,skip_build:bool)->int:
     state_file(root).write_text(json.dumps(state,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     readiness=wait_until_ready(p,host,port,ready_timeout)
     if readiness!='READY':
+        # Spring Boot 의 기동 실패 원인(APPLICATION FAILED TO START / BeanCreationException)은
+        # stdout 으로 나간다. err.log 만 읽으면 JVM 의 JAVA_TOOL_OPTIONS 안내만 남고 실제 원인이
+        # 사라져, 실패 판정은 되지만 원인을 찾을 수 없게 된다. 두 스트림을 함께 남긴다.
         tail=''
-        try:
-            errlog=logs/'LOCAL_WEB.err.log'
-            if errlog.is_file(): tail=errlog.read_text(encoding='utf-8',errors='replace')[-2000:]
-        except OSError: pass
+        for name in ('LOCAL_WEB.err.log','LOCAL_WEB.out.log'):
+            try:
+                stream=logs/name
+                if not stream.is_file(): continue
+                text=stream.read_text(encoding='utf-8',errors='replace').strip()
+                if text: tail+=(os.linesep if tail else '')+name+': '+text[-4000:]
+            except OSError: pass
         if readiness=='TIMEOUT' and p.poll() is None:
             try: p.kill()
             except OSError: pass

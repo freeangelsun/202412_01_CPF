@@ -14,10 +14,13 @@ import java.time.Instant;
 import java.util.Map;
 
 /** Code/Parameter/Calendar/Template Common Product Service 운영 API입니다. */
+// CPF stereotype 이 붙은 Business Type 은 proxy-safe 여야 한다.
+// CpfCapabilityUsageAspect.proxySafeBusinessType() 이 final Type 을 proxy-unsafe 로 판정하고,
+// Advisor 가 매칭되면 CGLIB subclass 생성이 불가능해 Runtime 기동이 실패한다.
 @CpfController
 @RequestMapping("/api/v1/backoffice/common")
 @Tag(name="MBW-Common",description="Common Product Service 관리 API")
-public final class BackofficeCommonManagementController extends com.cpf.backoffice.online.base.BackofficeBaseController {
+public class BackofficeCommonManagementController extends com.cpf.backoffice.online.base.BackofficeBaseController {
     private final BackofficeCommonManagementService service;
     public BackofficeCommonManagementController(BackofficeCommonManagementService service){this.service=service;}
 

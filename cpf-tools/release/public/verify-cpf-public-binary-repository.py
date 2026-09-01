@@ -322,6 +322,22 @@ def _verify_generator_distributions(repository: Path, version: str) -> list[str]
     return findings
 
 
+def _catalog_runtime_aliases(root: Path) -> set[str]:
+    """com.cpf.runtime 좌표로 공개되는 artifactId 를 Artifact Catalog 에서 유도한다.
+
+    별도 하드코딩 집합을 두면 Runtime 을 추가할 때 catalog 와 verifier 가 갈라지고,
+    정상 게시물이 "unclassified runtime alias" 로 오탐된다. 분류 소유자는 catalog 하나다.
+    """
+    catalog = json.loads(
+        (root / "cpf-tools/release/cpf-final-artifact-catalog.json").read_text(encoding="utf-8-sig"))
+    aliases = {
+        str(row["artifactId"])
+        for row in catalog.get("artifacts") or []
+        if str(row.get("publicGroupId") or "") == "com.cpf.runtime"
+    }
+    return aliases | RUNTIME_ALIASES
+
+
 def verify(root: Path, repository: Path, version: str) -> dict:
     if not repository.is_dir():
         raise VerificationError(f"public binary repository missing: {repository}")
@@ -342,6 +358,7 @@ def verify(root: Path, repository: Path, version: str) -> dict:
     if not poms:
         raise VerificationError("public binary repository contains no POM")
 
+    runtime_aliases = _catalog_runtime_aliases(root)
     coordinates: dict[tuple[str, str, str], Path] = {}
     dependency_findings: list[str] = []
     leakage_findings: list[str] = []
@@ -359,7 +376,7 @@ def verify(root: Path, repository: Path, version: str) -> dict:
             leakage_findings.append(f"internal CPF group published {group}:{artifact}:{pom_version}")
         if artifact in FORBIDDEN_ARTIFACTS:
             leakage_findings.append(f"forbidden/stale CPF artifact published {group}:{artifact}:{pom_version}")
-        if group == "com.cpf.runtime" and artifact not in RUNTIME_ALIASES:
+        if group == "com.cpf.runtime" and artifact not in runtime_aliases:
             leakage_findings.append(f"unclassified CPF runtime alias {group}:{artifact}:{pom_version}")
         dependency_findings.extend(
             _gradle_plugin_marker_findings(
@@ -409,7 +426,7 @@ def verify(root: Path, repository: Path, version: str) -> dict:
         "version": version,
         "pomCount": len(poms),
         "publicStarterCount": len(public_starters),
-        "runtimeSupportCount": len(RUNTIME_ALIASES),
+        "runtimeSupportCount": len(runtime_aliases),
         "expectedCoordinateCount": len(expected),
         "publicCompileTimeJavaCount": len(compile_time),
         "sourceJarCount": source_count,

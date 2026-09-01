@@ -1,5 +1,6 @@
 package com.cpf.platform.operations.observability.internal.logging.segment;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.cpf.platform.operations.observability.spi.logging.segment.TransactionSegmentRecord;
 import com.cpf.foundation.context.header.CpfHeaderAuditLogger;
 import com.cpf.platform.operations.observability.internal.logging.header.CpfHeaderPropagator;
@@ -26,6 +27,9 @@ public class TransactionSegmentService {
     private final TransactionSegmentPersistenceService persistenceService;
     private final Clock clock;
 
+    // 생성자가 둘이면 Spring 은 어느 쪽을 쓸지 정하지 못하고 기본 생성자를 찾다가 기동에
+    // 실패한다. 운영 주입 대상 생성자를 명시한다. 나머지는 테스트 seam 이다.
+    @Autowired
     public TransactionSegmentService(TransactionSegmentPersistenceService persistenceService,
                                      org.springframework.beans.factory.ObjectProvider<Clock> clockProvider) {
         this.persistenceService = persistenceService;

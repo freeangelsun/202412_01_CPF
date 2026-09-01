@@ -479,39 +479,136 @@ def _repo_coordinate(repo: Path, path: Path) -> tuple[str, str] | None:
     return group, artifact
 
 
-def sanitize_binary_repository(root: Path, raw_repo: Path, final_repo: Path, profile: str = "binary") -> dict[str, Any]:
+CHECKSUM_SIDECAR_SUFFIXES = (".md5", ".sha1", ".sha256", ".sha512")
+DENIED_JAR_CLASSIFIERS = ("sources", "javadoc")
+MAVEN_TIMESTAMP_PATTERN = re.compile(r"(\d{8}\.\d{6}-\d+)")
+
+
+def public_release_version(development_version: str) -> str:
+    """Development SNAPSHOT -> immutable Public Release version."""
+    suffix = "-SNAPSHOT"
+    return development_version[: -len(suffix)] if development_version.endswith(suffix) else development_version
+
+
+def _public_artifact_name(name: str, development_version: str, public_version: str) -> str:
+    match = MAVEN_TIMESTAMP_PATTERN.search(name)
+    projected = name.replace("-" + match.group(1), "") if match else name
+    return projected.replace(development_version, public_version)
+
+
+def _classify_public_artifact(name: str) -> str:
+    # Generator 배포본은 OS 별 zip + 그 무결성/메타 json 이 하나의 Public artifact set 이다.
+    # 사용자 Golden Path(Generator 실행)에 필수이므로 checksum 판정보다 먼저 분류한다.
+    if name.endswith(".zip"):
+        return "generator-distribution"
+    if name.endswith(".zip.sha256"):
+        return "generator-distribution-checksum"
+    if name.endswith(".json"):
+        return "generator-distribution-manifest"
+    if name.endswith(CHECKSUM_SIDECAR_SUFFIXES):
+        return "checksum-sidecar"
+    if name == "maven-metadata.xml":
+        return "maven-metadata"
+    if name.endswith(".module"):
+        return "gradle-module-metadata"
+    if name.endswith(".pom"):
+        return "pom"
+    if name.endswith(".jar"):
+        stem = name[: -len(".jar")]
+        for classifier in DENIED_JAR_CLASSIFIERS:
+            if stem.endswith("-" + classifier):
+                return "denied-classifier-jar"
+        return "jar"
+    return "unclassified"
+
+
+def sanitize_binary_repository(root: Path, raw_repo: Path, final_repo: Path, profile: str = "binary",
+                               development_version: str = "", source_identity: str = "") -> dict[str, Any]:
+    """Allowlist fail-closed projection: staging repository -> Final Public repository."""
+    policy = load_json(root / ARTIFACT_POLICY_REL)
+    final_tree = policy.get("finalPublicTree") or {}
+    allow_module = bool(final_tree.get("admitGradleModuleMetadata", False))
+    allow_metadata = bool(final_tree.get("admitMavenMetadata", False))
+
+    if not development_version:
+        development_version = platform_version(root)
+    public_version = public_release_version(development_version)
+
     if final_repo.exists():
         shutil.rmtree(final_repo)
-    shutil.copytree(raw_repo, final_repo)
-    policy = load_json(root / ARTIFACT_POLICY_REL)
-    coords = _artifact_coordinate_map(root)
-    removed: list[dict[str, str]] = []
-    kept_sources = 0
-    kept_javadocs = 0
-    unknown_docs: list[str] = []
+    final_repo.mkdir(parents=True)
 
-    for path in sorted(final_repo.rglob("*.jar")):
-        name = path.name
-        kind = "sources" if name.endswith("-sources.jar") else "javadoc" if name.endswith("-javadoc.jar") else ""
-        if not kind:
+    coords = _artifact_coordinate_map(root)
+    manifest: list[dict[str, Any]] = []
+    counters: dict[str, int] = {}
+    dropped: list[dict[str, str]] = []
+
+    for source in sorted(p for p in raw_repo.rglob("*") if p.is_file()):
+        relative = source.relative_to(raw_repo)
+        kind = _classify_public_artifact(source.name)
+        admitted = (kind in {"jar", "pom",
+                             "generator-distribution",
+                             "generator-distribution-checksum",
+                             "generator-distribution-manifest"}
+                    or (kind == "gradle-module-metadata" and allow_module)
+                    or (kind == "maven-metadata" and allow_metadata))
+        counters[kind] = counters.get(kind, 0) + 1
+        if not admitted:
+            dropped.append({"path": relative.as_posix(), "kind": kind})
             continue
-        coordinate = _repo_coordinate(final_repo, path)
-        row = coords.get(coordinate) if coordinate else None
-        if row is None:
-            unknown_docs.append(path.relative_to(final_repo).as_posix())
-            path.unlink()
-            continue
-        owner = str(row.get("ownerPath") or "")
-        # Both profiles publish framework binaries only. Source Profile exposes source
-        # through an explicit source-tree allowlist, never through sources/javadoc JARs.
-        removed.append({"path": path.relative_to(final_repo).as_posix(), "kind": kind, "ownerPath": owner, "artifactId": str(row.get("artifactId") or ""), "profile": profile})
-        path.unlink()
+
+        public_name = _public_artifact_name(source.name, development_version, public_version)
+        parts = [part.replace(development_version, public_version) for part in relative.parts[:-1]]
+        destination = final_repo.joinpath(*parts, public_name)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if kind == "pom":
+            projected = source.read_text(encoding="utf-8").replace(
+                f"<version>{development_version}</version>", f"<version>{public_version}</version>")
+            destination.write_text(projected, encoding="utf-8", newline="\n")
+        else:
+            shutil.copy2(source, destination)
+
+        relative_out = destination.relative_to(final_repo).as_posix()
+        segments = relative_out.split("/")
+        group = ".".join(segments[:-3]) if len(segments) >= 3 else ""
+        artifact_id = segments[-3] if len(segments) >= 3 else ""
+        row = coords.get((group, artifact_id))
+        manifest.append({
+            "group": group,
+            "artifactId": artifact_id,
+            "module": str(row.get("ownerPath")) if row else "",
+            "version": public_version,
+            "classifier": None,
+            "type": destination.suffix.lstrip("."),
+            "relativePath": relative_out,
+            "fileSize": destination.stat().st_size,
+            "sha256": sha256(destination),
+            "publicationType": str(row.get("publicationClass")) if row else kind,
+            "classification": "PUBLIC",
+            "sourceIdentitySha256": source_identity,
+        })
+
+    manifest_payload = {
+        "contract": "CPF_PUBLIC_PACKAGE_MANIFEST",
+        "schemaVersion": 1,
+        "publicVersion": public_version,
+        "developmentVersion": development_version,
+        "sourceIdentitySha256": source_identity,
+        "artifactCount": len(manifest),
+        "artifacts": manifest,
+    }
+    write_json(final_repo / "package-manifest.json", manifest_payload)
 
     return {
-        "removedSourceOrJavadoc": removed,
-        "unknownDocumentationArtifactsRemoved": unknown_docs,
-        "keptSources": kept_sources,
-        "keptJavadocs": kept_javadocs,
+        "mode": "ALLOWLIST_FAIL_CLOSED",
+        "publicVersion": public_version,
+        "developmentVersion": development_version,
+        "admittedGradleModuleMetadata": allow_module,
+        "admittedMavenMetadata": allow_metadata,
+        "counters": counters,
+        "admittedArtifacts": len(manifest),
+        "droppedArtifacts": len(dropped),
+        "droppedSample": dropped[:20],
     }
 
 
@@ -575,6 +672,9 @@ def verify_binary_repository(root: Path, repo: Path, version: str, profile: str 
     for path in sorted(p for p in repo.rglob("*") if p.is_file()):
         rel = path.relative_to(repo).as_posix()
         if not any(rel.startswith(prefix) for prefix, _ in classified_prefixes):
+            if rel == "package-manifest.json":
+                # Final Public Tree 의 canonical Package Manifest. Maven 좌표 밖에 있는 것이 정상이다.
+                continue
             findings.append(f"unclassified repository file: {rel}")
 
     for path in sorted(repo.rglob("*.jar")):
@@ -700,6 +800,23 @@ def project_optional_framework_sources(root: Path, open_git: Path, profile: str)
     return {"profile": profile, "fileCount": copied, "target": str(target)}
 
 
+def _is_forbidden_public_document(root: Path, relative_path: str) -> bool:
+    """Public Documentation Allowlist 밖의 cpf-docs 파일인지 판정한다."""
+    policy = load_json(root / SURFACE_POLICY_REL)
+    for prefix in policy.get("forbiddenPathPrefixes", []):
+        if relative_path.startswith(prefix):
+            return True
+    allowed = []
+    for rule in policy.get("sourceRules", []):
+        pattern = str(rule.get("pattern") or "")
+        if not pattern.startswith("cpf-docs/"):
+            continue
+        allowed.append(pattern[:-3] if pattern.endswith("/**") else pattern)
+    if not allowed:
+        return True
+    return not any(relative_path == item or relative_path.startswith(item.rstrip("/") + "/") for item in allowed)
+
+
 def verify_framework_source_projection(root: Path, open_git: Path, profile: str) -> dict[str, Any]:
     target = open_git / "framework-source"
     if profile == "binary":
@@ -725,15 +842,132 @@ def verify_framework_source_projection(root: Path, open_git: Path, profile: str)
     return {"profile": profile, "fileCount": len(actual)}
 
 
+def bundle_public_binary_repository(final_repo: Path, staging: Path) -> dict[str, Any]:
+    """Final Public Binary Repository 를 Open Git Tree 안으로 동봉한다.
+
+    open-git-surface-policy 의 binaryRepositoryDirectory 계약은 checkout 안에 Public Binary
+    Repository 가 있어야 한다고 규정한다. 이전 구현은 binary-repository 를 open-git 과 형제
+    디렉터리로만 만들어, clone 한 사용자는 CPF Binary 를 받을 경로가 없고 README 의
+    <cpf-binary-repository-url> placeholder 를 직접 채워야 했다.
+    """
+    if not final_repo.is_dir():
+        raise OpenGitReleaseError(f"final public binary repository is missing: {final_repo}")
+    target = staging / BINARY_DIR_NAME
+    if target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(final_repo, target)
+    files = [p for p in target.rglob("*") if p.is_file()]
+    jars = [p for p in files if p.suffix == ".jar"]
+    poms = [p for p in files if p.suffix == ".pom"]
+    manifest = target / "package-manifest.json"
+    if not manifest.is_file():
+        raise OpenGitReleaseError("bundled public binary repository has no package-manifest.json")
+    return {
+        "directory": BINARY_DIR_NAME,
+        "fileCount": len(files),
+        "jarCount": len(jars),
+        "pomCount": len(poms),
+        "packageManifest": str(manifest.relative_to(staging).as_posix()),
+    }
+
+
+def verify_public_binary_repository_tree(repository: Path) -> None:
+    """Final Public Binary Repository fail-closed 검증."""
+    if not repository.is_dir():
+        raise OpenGitReleaseError(f"bundled public binary repository missing: {repository}")
+    manifest_path = repository / "package-manifest.json"
+    if not manifest_path.is_file():
+        raise OpenGitReleaseError("bundled public binary repository has no package-manifest.json")
+    manifest = load_json(manifest_path)
+
+    forbidden: list[str] = []
+    for path in repository.rglob("*"):
+        if not path.is_file() or path == manifest_path:
+            continue
+        name = path.name
+        relative = path.relative_to(repository).as_posix()
+        if name.endswith((".zip", ".zip.sha256")) or name.endswith(".json"):
+            # Generator OS 배포본과 그 무결성/메타 파일은 승인된 Public artifact 다.
+            continue
+        if name.endswith(CHECKSUM_SIDECAR_SUFFIXES):
+            forbidden.append(f"checksum-sidecar:{relative}")
+        elif name == "maven-metadata.xml":
+            forbidden.append(f"maven-metadata:{relative}")
+        elif name.endswith(".module"):
+            forbidden.append(f"gradle-module-metadata:{relative}")
+        elif MAVEN_TIMESTAMP_PATTERN.search(name):
+            forbidden.append(f"timestamped-artifact:{relative}")
+        elif "-SNAPSHOT" in name:
+            forbidden.append(f"snapshot-artifact:{relative}")
+        elif name.endswith(("-sources.jar", "-javadoc.jar")):
+            forbidden.append(f"denied-classifier:{relative}")
+    if forbidden:
+        raise OpenGitReleaseError(f"forbidden public artifacts in Open Git: {forbidden[:15]}")
+
+    listed = {str(row["relativePath"]) for row in manifest.get("artifacts", [])}
+    actual = {p.relative_to(repository).as_posix() for p in repository.rglob("*")
+              if p.is_file() and p != manifest_path}
+    unlisted = sorted(actual - listed)
+    absent = sorted(listed - actual)
+    if unlisted:
+        raise OpenGitReleaseError(f"public artifact not registered in package manifest: {unlisted[:15]}")
+    if absent:
+        raise OpenGitReleaseError(f"package manifest entry has no file: {absent[:15]}")
+    for row in manifest.get("artifacts", []):
+        target = repository / str(row["relativePath"])
+        if sha256(target) != str(row["sha256"]):
+            raise OpenGitReleaseError(f"package manifest SHA-256 mismatch: {row['relativePath']}")
+
+
+def verify_public_launcher_parity(open_git: Path) -> None:
+    """Windows/Linux launcher 는 같은 lifecycle 집합을 제공해야 한다."""
+    bin_dir = open_git / "bin"
+    windows = {p.stem for p in bin_dir.glob("cpf-*.ps1")}
+    linux = {p.name[: -len(".sh")] for p in bin_dir.glob("cpf-*.sh")}
+    if windows != linux:
+        raise OpenGitReleaseError(
+            f"Windows/Linux launcher parity broken: windows-only={sorted(windows - linux)} "
+            f"linux-only={sorted(linux - windows)}")
+    required = {"cpf-start", "cpf-stop", "cpf-status", "cpf-restart", "cpf-health", "cpf-log", "cpf-help"}
+    missing = sorted(required - windows)
+    if missing:
+        raise OpenGitReleaseError(f"public runtime launcher missing: {missing}")
+
+
+def verify_public_readme(open_git: Path) -> None:
+    """README 는 checkout 만으로 실행 가능한 Golden Path 를 제시해야 한다."""
+    readme = open_git / "README.md"
+    text = readme.read_text(encoding="utf-8")
+    placeholders = re.findall(r"<[a-z][a-z-]*-(?:url|version)>", text)
+    if placeholders:
+        raise OpenGitReleaseError(f"README still contains placeholders: {sorted(set(placeholders))}")
+    for reference in sorted(set(re.findall(r"`(cpf-docs/[^`]+)`", text))):
+        if not (open_git / reference).exists():
+            raise OpenGitReleaseError(f"README references a missing document: {reference}")
+
+
 def verify_open_git_tree(root: Path, open_git: Path, profile: str = "binary") -> dict[str, Any]:
-    required = ["cpf-education", "bin"]
+    # Public Product Distribution 필수 구성. Binary 만 있고 실행/문서가 없으면 Release 가 아니다.
+    required = ["cpf-education", "bin", "README.md", BINARY_DIR_NAME, "cpf-docs"]
     missing = [item for item in required if not (open_git / item).exists()]
     if missing:
         raise OpenGitReleaseError(f"Open Git required paths missing: {missing}")
-    forbidden_roots = ["cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin", "cpf-batch", "cpf-gateway", "cpf-starters", "cpf-tools", "cpf-docs"]
+    verify_public_binary_repository_tree(open_git / BINARY_DIR_NAME)
+    verify_public_launcher_parity(open_git)
+    verify_public_readme(open_git)
+    forbidden_roots = ["cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin", "cpf-batch", "cpf-gateway", "cpf-starters", "cpf-tools"]
     leaked = [name for name in forbidden_roots if (open_git / name).exists()]
     if leaked:
         raise OpenGitReleaseError(f"private framework source leaked into Open Git: {leaked}")
+    # cpf-docs 는 root 통째 차단이 아니라 Public Documentation Allowlist 로 관리한다.
+    # governance/work 같은 내부 관리자료가 한 건이라도 섞이면 Leakage 다.
+    leaked_docs = sorted(
+        path.relative_to(open_git).as_posix()
+        for path in (open_git / "cpf-docs").rglob("*")
+        if path.is_file() and _is_forbidden_public_document(root, path.relative_to(open_git).as_posix())
+    ) if (open_git / "cpf-docs").is_dir() else []
+    if leaked_docs:
+        raise OpenGitReleaseError(f"internal documentation leaked into Open Git: {leaked_docs[:10]}")
     framework_source = verify_framework_source_projection(root, open_git, profile)
     if (open_git / "domains").exists():
         raise OpenGitReleaseError("duplicate Open Git domains catalog is forbidden; physical cpf-<domain> projects are authoritative")
@@ -758,6 +992,9 @@ def verify_open_git_tree(root: Path, open_git: Path, profile: str = "binary") ->
         if not path.is_file() or path.suffix.lower() not in {".jar", ".war"}: continue
         rel = path.relative_to(open_git).as_posix()
         if rel in {"gradle/wrapper/gradle-wrapper.jar", "bin/lib/cpf-cli.jar"}: continue
+        # bundled Public Binary Repository 는 Package Manifest 와 Allowlist 로 관리되는 정식
+        # 배포물이다. Source Workspace 에 흘러든 누적 JAR 과 구분한다.
+        if rel.startswith(BINARY_DIR_NAME + "/"): continue
         archives.append(rel)
     if archives: raise OpenGitReleaseError(f"Open Git Source Workspace contains accumulated CPF/application JAR/WAR: {archives[:20]}")
     edu_build = open_git / "cpf-education/build.gradle"
@@ -899,6 +1136,7 @@ def build_cross_platform_cli(root: Path, staging: Path, source_identity: str, ve
         root / "cpf-tools/runtime/cli/java/CpfCli.java",
         root / "cpf-tools/runtime/bootstrap/CpfBootstrap.java",
         root / "cpf-tools/runtime/cli/java/CpfGeneratorLauncher.java",
+        root / "cpf-tools/runtime/cli/java/CpfRuntimeTargets.java",
     ]
     missing = [str(path.relative_to(root)) for path in sources if not path.is_file()]
     if missing:
@@ -1045,17 +1283,25 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     run([sys.executable, "-B", str(old_verifier), "--root", str(root), "--repository", str(raw_repo), "--version", version], root)
 
     release_stage(8, "공개 Artifact 필터 적용", f"profile={profile} / Binary만 유지")
-    sanitize_result = sanitize_binary_repository(root, raw_repo, final_repo, profile)
+    sanitize_result = sanitize_binary_repository(
+        root, raw_repo, final_repo, profile,
+        development_version=version, source_identity=source_identity)
 
     release_stage(9, "최종 Binary Repository 검증", "Maven 좌표 / Dependency / Source disclosure")
-    binary_result = verify_binary_repository(root, final_repo, version, profile)
+    # Final Tree 는 immutable Public version 으로 투영되어 있으므로 development SNAPSHOT
+    # 기준으로 검증하면 Gradle plugin marker version 이 어긋난다.
+    binary_result = verify_binary_repository(
+        root, final_repo, public_release_version(version), profile)
 
     release_stage(10, "Open Git 공개 Source 구성", "Generated Domain / Backoffice / EDU / Developer Command")
     env = dict(os.environ)
     env["CPF_MAVEN_REPOSITORY_URL"] = final_repo.resolve().as_uri()
-    env["CPF_VERSION"] = version
+    # Fresh Consumer 는 bundled Public Binary Repository 를 쓰므로 immutable Public version 을 본다.
+    env["CPF_VERSION"] = public_release_version(version)
     ready = _prepare_workspace(root, staging, source_identity, env)
     cli_result = build_cross_platform_cli(root, staging, source_identity, version)
+    bundled_result = bundle_public_binary_repository(final_repo, staging)
+    env["CPF_MAVEN_REPOSITORY_URL"] = (staging / BINARY_DIR_NAME).resolve().as_uri()
     source_projection = project_optional_framework_sources(root, staging, profile)
     verify_open_git_tree(root, staging, profile)
     verify_cross_platform_cli(staging, source_identity)
@@ -1109,6 +1355,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
         "releaseRoot": str(release),
         "openGit": str(open_git),
         "binaryRepository": str(final_repo),
+        "bundledBinaryRepository": bundled_result,
         "openGitFileCount": open_file_count,
         "binaryFileCount": binary_file_count,
         "changedFiles": len(changed),

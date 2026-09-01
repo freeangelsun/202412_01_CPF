@@ -852,17 +852,60 @@ if (!cpfBackofficeMounted) {
     cpfVisibleTaskGroups.putIfAbsent('cpfRunBackoffice', '30. CPF 실행')
 }
 def cpfVisibleTaskNames = cpfVisibleTaskGroups.keySet()
+// Generated/Optional Domain은 root Project의 subproject가 아니라 독립 Gradle build다.
+// GradleBuild로 parent build 안에서 Domain build를 중첩 실행하면 Domain settings의
+// includeBuild(current root)가 parent build를 다시 include하려 해 Gradle이 fail-closed한다.
+// 따라서 모든 Domain 축은 root wrapper를 별도 OS process로 실행한다. 이것은 현재 checkout을
+// composite Consumer로 유지하면서 Gradle의 nested-composite 금지를 우회하는 유일한 실행 경계다.
+// 모든 축(Build/Test/Run/Deploy)이 반드시 *현재* CPF Source와 같은 Vendor 선택을 전달한다.
+def cpfDomainDefaultDbVendor = providers.gradleProperty('cpfDbVendor')
+        .orElse(providers.environmentVariable('CPF_DB_VENDOR')).orElse('mariadb').get()
+if (!(cpfDomainDefaultDbVendor in ['mariadb', 'postgresql', 'oracle'])) {
+    throw new GradleException("Unsupported cpfDbVendor=${cpfDomainDefaultDbVendor}; expected mariadb|postgresql|oracle")
+}
+def cpfDomainGradleWrapper = file(System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows') ? 'gradlew.bat' : 'gradlew')
+if (!cpfDomainGradleWrapper.isFile()) {
+    throw new GradleException("CPF root Gradle wrapper is missing: ${cpfDomainGradleWrapper}")
+}
+def cpfStandaloneDomainProjectArguments = {
+    def childProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
+    // Root entrypoint는 항상 현재 checkout을 Consumer로 쓴다. 외부 published artifact나 stale local
+    // repository가 우연히 해석되어 통과하는 것을 허용하지 않는다.
+    childProperties.put('cpfProductCompositeRoot', rootDir.canonicalFile.absolutePath)
+    childProperties.putIfAbsent('cpfDbVendor', cpfDomainDefaultDbVendor)
+    childProperties.collect { key, value -> "-P${key}=${value}".toString() }
+}
+def configureCpfStandaloneDomainTask = { Exec domainTask, File domainDir, Collection<String> requestedTasks ->
+    domainTask.workingDir domainDir
+    // `--project-dir`와 root wrapper 경로를 함께 고정한다. 현재 process의 CWD, Gradle daemon,
+    // 또는 stale published artifact가 독립 Domain Consumer를 바꾸지 못하게 한다.
+    domainTask.commandLine (([
+            cpfDomainGradleWrapper.canonicalFile.absolutePath,
+            '--project-dir', domainDir.canonicalFile.absolutePath
+    ] + cpfStandaloneDomainProjectArguments() + [
+            '--no-daemon', '--no-parallel', '--console=plain'
+    ] + requestedTasks.collect { it.toString() }).collect { it.toString() })
+}
 // Domain module 단위 Build/Test 는 내부 orchestration 이다(사용자 그룹에 노출하지 않는다).
 cpfDiscoveredDomains.each { d ->
     d.modules.each { m ->
         def suffix = m.substring(0, 1).toUpperCase(Locale.ROOT) + m.substring(1)
-        tasks.register("cpfInternalBuild${d.cap}${suffix}", GradleBuild) {
-            dir = d.dir
-            tasks = [":${m}:build"]
-        }
-        tasks.register("cpfInternalTest${d.cap}${suffix}", GradleBuild) {
-            dir = d.dir
-            tasks = [":${m}:test"]
+        if (d.mounted) {
+            // Root에 mount된 Domain은 같은 Gradle graph의 논리 project를 직접 사용한다. 별도
+            // process로 중복 build하지 않아도 current source/consumer 경계가 이미 보장된다.
+            tasks.register("cpfInternalBuild${d.cap}${suffix}") {
+                dependsOn "${d.mountedPath}:build"
+            }
+            tasks.register("cpfInternalTest${d.cap}${suffix}") {
+                dependsOn "${d.mountedPath}:test"
+            }
+        } else {
+            tasks.register("cpfInternalBuild${d.cap}${suffix}", Exec) { domainTask ->
+                configureCpfStandaloneDomainTask(domainTask, d.dir, [":${m}:build".toString()])
+            }
+            tasks.register("cpfInternalTest${d.cap}${suffix}", Exec) { domainTask ->
+                configureCpfStandaloneDomainTask(domainTask, d.dir, [":${m}:test".toString()])
+            }
         }
     }
 }
@@ -898,6 +941,18 @@ cpfDiscoveredDomains.each { d ->
         dependsOn appTests
         dependsOn domainTests
     }
+}
+
+// `cpfBuildAll` / `cpfTestAll`도 DEV/ONLINE과 같은 Resolver 결과를 소비한다. root subproject
+// 집계만 사용하면 독립 Generated Domain이 Task graph에서 빠진 채 전체 build가 통과할 수 있다.
+def cpfAllResolvedTarget = cpfResolveTarget('ALL')
+def cpfAllDomainBuildTasks = cpfAllResolvedTarget.domainModules.collect {
+    def suffix = it.module.substring(0, 1).toUpperCase(Locale.ROOT) + it.module.substring(1)
+    "cpfInternalBuild${it.domain.cap}${suffix}".toString()
+}
+def cpfAllDomainTestTasks = cpfAllResolvedTarget.domainModules.collect {
+    def suffix = it.module.substring(0, 1).toUpperCase(Locale.ROOT) + it.module.substring(1)
+    "cpfInternalTest${it.domain.cap}${suffix}".toString()
 }
 
 // Batch 전용 축은 Batch capability 를 선언한 Domain 이 있을 때만 의미가 있다.
@@ -1281,7 +1336,10 @@ gradle.projectsEvaluated {
     if (qa34 != null) tasks.named('qa34IntegrationTest') { dependsOn qa34 }
 
     def allJavaTests = subprojects.collectMany { p -> p.tasks.withType(Test).toList() }
-    tasks.named('cpfTestAll') { dependsOn allJavaTests }
+    tasks.named('cpfTestAll') {
+        dependsOn allJavaTests
+        dependsOn cpfAllDomainTestTasks
+    }
 }
 
 
@@ -1290,8 +1348,9 @@ gradle.projectsEvaluated {
 // -----------------------------------------------------------------------------
 tasks.register('cpfBuildAll') {
     group = '10. CPF 빌드'
-    description = '[전체] 전체 CPF Java 모듈 check/assemble + 정적 품질 Gate를 저메모리 정책으로 실행합니다.'
+    description = '[전체] 모든 현재 App/Domain의 check/assemble과 정적 품질 Gate를 실행합니다.'
     dependsOn 'aggregateQualityBuild'
+    dependsOn cpfAllDomainBuildTasks
 }
 
 tasks.register('cpfTestAll') {
@@ -1382,22 +1441,33 @@ allprojects { target ->
 def registerCpfRunAlias = { String taskName, String targetTask, String descriptionText ->
     tasks.register(taskName) { group = '30. CPF 실행'; description = descriptionText; dependsOn targetTask }
 }
-// 발견된 Domain 마다 동일한 4축 Task 를 등록한다. Domain build 는 독립 build 이므로 GradleBuild 로 호출한다.
+// 발견된 Domain 마다 동일한 4축 Task 를 등록한다. 독립 build는 root wrapper의 별도 process로 호출한다.
 cpfDiscoveredDomains.each { d ->
-    def buildTargets = d.modules.collect { ":${it}:build" }
-    def testTargets = d.modules.collect { ":${it}:test" }
-    def deployTargets = d.modules.collect { ":${it}:bootJar" }
-    tasks.register("cpfBuild${d.cap}", GradleBuild) {
-        group = '10. CPF 빌드'
-        description = "[개별] ${d.label} Domain을 빌드합니다."
-        dir = d.dir
-        tasks = buildTargets
-    }
-    tasks.register("cpfVerify${d.cap}", GradleBuild) {
-        group = '20. CPF 검증'
-        description = "[개별] ${d.label} Domain 테스트/검증을 실행합니다."
-        dir = d.dir
-        tasks = testTargets
+    def buildTargets = d.modules.collect { ":${it}:build".toString() }
+    def testTargets = d.modules.collect { ":${it}:test".toString() }
+    def deployTargets = d.modules.collect { ":${it}:bootJar".toString() }
+    if (d.mounted) {
+        tasks.register("cpfBuild${d.cap}") {
+            group = '10. CPF 빌드'
+            description = "[개별] ${d.label} Domain을 빌드합니다."
+            dependsOn "${d.mountedPath}:build"
+        }
+        tasks.register("cpfVerify${d.cap}") {
+            group = '20. CPF 검증'
+            description = "[개별] ${d.label} Domain 테스트/검증을 실행합니다."
+            dependsOn "${d.mountedPath}:test"
+        }
+    } else {
+        tasks.register("cpfBuild${d.cap}", Exec) { domainTask ->
+            group = '10. CPF 빌드'
+            description = "[개별] ${d.label} Domain을 빌드합니다."
+            configureCpfStandaloneDomainTask(domainTask, d.dir, buildTargets)
+        }
+        tasks.register("cpfVerify${d.cap}", Exec) { domainTask ->
+            group = '20. CPF 검증'
+            description = "[개별] ${d.label} Domain 테스트/검증을 실행합니다."
+            configureCpfStandaloneDomainTask(domainTask, d.dir, testTargets)
+        }
     }
     d.modules.each { m ->
         def suffix = m.substring(0, 1).toUpperCase(Locale.ROOT) + m.substring(1)
@@ -1410,18 +1480,24 @@ cpfDiscoveredDomains.each { d ->
             }
             return
         }
-        tasks.register("cpfRun${d.cap}${suffix}", GradleBuild) {
+        tasks.register("cpfRun${d.cap}${suffix}", Exec) { domainTask ->
             group = '30. CPF 실행'
             description = "[개별] ${d.label} Domain ${kind} 애플리케이션을 단독 실행합니다."
-            dir = d.dir
-            tasks = [":${m}:bootRun"]
+            configureCpfStandaloneDomainTask(domainTask, d.dir, [":${m}:bootRun".toString()])
         }
     }
-    tasks.register("cpfDeploy${d.cap}", GradleBuild) {
-        group = '60. CPF 배포'
-        description = "[개별] ${d.label} Domain 실행 산출물(bootJar)을 생성합니다."
-        dir = d.dir
-        tasks = deployTargets
+    if (d.mounted) {
+        tasks.register("cpfDeploy${d.cap}") {
+            group = '60. CPF 배포'
+            description = "[개별] ${d.label} Domain 실행 산출물(bootJar)을 생성합니다."
+            dependsOn "${d.mountedPath}:bootJar"
+        }
+    } else {
+        tasks.register("cpfDeploy${d.cap}", Exec) { domainTask ->
+            group = '60. CPF 배포'
+            description = "[개별] ${d.label} Domain 실행 산출물(bootJar)을 생성합니다."
+            configureCpfStandaloneDomainTask(domainTask, d.dir, deployTargets)
+        }
     }
 }
 

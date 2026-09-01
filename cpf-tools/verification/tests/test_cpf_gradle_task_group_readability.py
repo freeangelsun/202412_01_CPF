@@ -292,6 +292,35 @@ def test_every_domain_has_the_same_four_axes():
         assert group in text
 
 
+def test_standalone_domain_axes_use_process_isolation_with_current_source():
+    """독립 Domain이 parent Gradle build를 재-include하지 않고 현재 checkout을 소비한다."""
+    text = CONVENTION.read_text(encoding="utf-8")
+    # GradleBuild는 parent build에서 Domain settings의 includeBuild(root)를 중첩해 실제 실행이 깨진다.
+    assert "GradleBuild domainTask" not in text
+    assert "configureCpfStandaloneDomainTask = { Exec domainTask" in text
+    assert "cpfDomainGradleWrapper" in text
+    assert "'--project-dir', domainDir.canonicalFile.absolutePath" in text
+    assert "cpfProductCompositeRoot" in text
+    # 독립 Domain은 Process boundary를 쓰고, root에 mount된 Domain은 같은 논리 project를 쓴다.
+    assert "if (d.mounted)" in text
+    assert 'dependsOn "${d.mountedPath}:build"' in text
+    assert 'dependsOn "${d.mountedPath}:test"' in text
+    for task in ("cpfInternalBuild${d.cap}${suffix}", "cpfInternalTest${d.cap}${suffix}",
+                 "cpfBuild${d.cap}", "cpfVerify${d.cap}", "cpfRun${d.cap}${suffix}",
+                 "cpfDeploy${d.cap}"):
+        assert f'tasks.register("{task}"' in text
+
+
+def test_all_build_and_test_use_the_same_resolved_domain_projection():
+    """전체 build/test가 root subproject만 보고 독립 Generated Domain을 누락하면 안 된다."""
+    text = CONVENTION.read_text(encoding="utf-8")
+    assert "def cpfAllResolvedTarget = cpfResolveTarget('ALL')" in text
+    assert "def cpfAllDomainBuildTasks" in text
+    assert "def cpfAllDomainTestTasks" in text
+    assert "dependsOn cpfAllDomainBuildTasks" in text
+    assert "dependsOn cpfAllDomainTestTasks" in text
+
+
 def test_batch_axis_only_when_contract_declares_batch():
     text = CONVENTION.read_text(encoding="utf-8")
     assert "include 'batch'" in text and "include 'online'" in text

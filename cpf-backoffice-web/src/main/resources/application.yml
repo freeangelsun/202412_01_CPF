@@ -1,5 +1,5 @@
 server:
-  port: ${MBW_WEB_PORT:8090}
+  port: ${MBW_WEB_PORT:8092}
   shutdown: graceful
 spring:
   application:

@@ -70,6 +70,14 @@ public class CpfWebContextAutoConfiguration {
         PathMappedEndpoints managementPaths = pathMappedEndpoints.getIfAvailable();
         java.util.ArrayList<String> managementRoots = new java.util.ArrayList<>();
         if (managementPaths != null) managementRoots.addAll(managementPaths.getAllRootPaths());
+        // OpenAPI 문서 표면은 actuator 와 같은 범주다. 업무 거래가 아니므로 Canonical System6 를
+        // 요구하지 않는다. 기본 면제가 없으면 Runtime OpenAPI 계약 검증(/v3/api-docs 조회)이
+        // CPF_HEADER_FAILURE 로 400 을 받는다. 실제로 Gateway 가 그 이유로 실패했고, 같은 표면을
+        // 노출하는 ADM/1-WAS/Domain 도 동일하게 막힌다. Runtime 별 YML 로 중복 선언하지 않고
+        // 이 표면의 Owner 인 web starter 가 한 곳에서 면제한다.
+        managementRoots.add(environment.getProperty("cpf.openapi.webmvc.api-docs-path", "/v3/api-docs"));
+        managementRoots.add(environment.getProperty("springdoc.swagger-ui.path", "/swagger-ui"));
+        managementRoots.add("/swagger-ui.html");
         managementRoots.addAll(webContextProperties.getManagementRootPaths());
         return new CpfWebContextFilter(inbound, dates, transactionIds, trustResolver, clientIpResolver, policies, failures, runtime,
                 subjectCollector.getIfAvailable(),

@@ -1,5 +1,7 @@
 package com.cpf.integration.resilience.internal;
 
+import com.cpf.data.persistence.api.CpfDataSourceRegistry;
+import com.cpf.data.persistence.api.CpfDatabaseRole;
 import com.cpf.data.lock.api.CpfLockManager;
 import com.cpf.data.lock.api.CpfLockingExecutionGuard;
 import com.cpf.platform.operations.observability.api.CpfTelemetry;
@@ -26,8 +28,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Executors;
-import javax.sql.DataSource;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -46,7 +48,12 @@ import org.springframework.transaction.support.TransactionTemplate;
  * JDBC/local provider는 각각의 명시적 속성이 켜진 경우에만 선택됩니다.</p>
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "cpf.integration.resilience", name = "enabled", havingValue = "true")
+// ADM capability registry(ADMUI-056, canonical_ref ADM-APPROVAL/ADM-EXS)가 `resiliencePolicies` 를
+// 등록된 ADM 기능으로 선언하고 ADM Route Contract 가 그 operation 들을 요구한다. Consumer 를 조건부로
+// 지우면 mandatory Admin Route 가 축소된다. 이 Starter 를 Composition 에 선언하는 행위가 opt-in 이고
+// (ADM Composition 과 Generated Domain 모두 명시적으로 선언한다), 속성은 끄기 위한 수단으로 남긴다.
+@ConditionalOnProperty(prefix = "cpf.integration.resilience", name = "enabled",
+        havingValue = "true", matchIfMissing = true)
 public class CpfResilienceAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
@@ -54,15 +61,29 @@ public class CpfResilienceAutoConfiguration {
         return Clock.systemUTC();
     }
 
+    // 무자격 DataSource 주입은 1-WAS 처럼 DataSource 가 여럿인 합성에서 기동을 막고, 하나뿐일 때는
+    // Platform 이 아닌 DB 로 쓰게 된다. 형제 Platform 구성(BatDataSourceConfiguration,
+    // DurableCpfGatewayLedgerAdapter)과 동일하게 canonical role 로 해소한다.
+    // 이 Starter 는 Generated Domain 도 선언한다. Domain 은 CPF_PLATFORM_DB role 을 등록하지 않으므로
+    // require(CPF_PLATFORM_DB) 가 throw 되어 Domain Runtime 기동이 깨진다. Platform DB role 이 실제로
+    // 구성된 Runtime(ADM/1-WAS 등)에서만 Platform 원장을 만든다.
     @Bean
-    CpfResiliencePolicyStore cpfResiliencePolicyStore(DataSource dataSource, PlatformTransactionManager transactionManager) {
+    @ConditionalOnProperty(prefix = "cpf.data.persistence.jdbc.role-datasources.cpf-platform-db",
+            name = "enabled", havingValue = "true")
+    CpfResiliencePolicyStore cpfResiliencePolicyStore(
+            CpfDataSourceRegistry dataSources,
+            @Qualifier("cpfCommonTransactionManager") PlatformTransactionManager transactionManager) {
         return new JdbcCpfResiliencePolicyStore(
-                new JdbcTemplate(dataSource), new TransactionTemplate(transactionManager));
+                new JdbcTemplate(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB)),
+                new TransactionTemplate(transactionManager));
     }
 
     @Bean
-    CpfResilienceAuditSink cpfResilienceAuditSink(DataSource dataSource) {
-        return new JdbcCpfResilienceAuditSink(new JdbcTemplate(dataSource));
+    @ConditionalOnProperty(prefix = "cpf.data.persistence.jdbc.role-datasources.cpf-platform-db",
+            name = "enabled", havingValue = "true")
+    CpfResilienceAuditSink cpfResilienceAuditSink(CpfDataSourceRegistry dataSources) {
+        return new JdbcCpfResilienceAuditSink(
+                new JdbcTemplate(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB)));
     }
 
     @Bean
@@ -85,7 +106,8 @@ public class CpfResilienceAutoConfiguration {
     @ConditionalOnMissingBean(CpfLockStore.class)
     @ConditionalOnProperty(prefix = "cpf.integration.resilience.locking", name = "local-provider-enabled",
             havingValue = "true")
-    CpfLockStore cpfLocalLockStore(Environment environment, Clock clock) {
+    CpfLockStore cpfLocalLockStore(Environment environment,
+            @Qualifier("cpfStarterClock") Clock clock) {
         int maximumTrackedKeys = environment.getProperty(
                 "cpf.integration.resilience.locking.local.maximum-tracked-keys",
                 Integer.class,
@@ -97,9 +119,11 @@ public class CpfResilienceAutoConfiguration {
     @ConditionalOnMissingBean(CpfLockStore.class)
     @ConditionalOnProperty(prefix = "cpf.integration.resilience.locking", name = "jdbc-provider-enabled",
             havingValue = "true")
-    CpfLockStore cpfJdbcLockStore(DataSource dataSource, PlatformTransactionManager transactionManager) {
+    CpfLockStore cpfJdbcLockStore(CpfDataSourceRegistry dataSources,
+            @Qualifier("cpfCommonTransactionManager") PlatformTransactionManager transactionManager) {
         return new JdbcCpfLockStore(
-                new JdbcTemplate(dataSource), new TransactionTemplate(transactionManager));
+                new JdbcTemplate(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB)),
+                new TransactionTemplate(transactionManager));
     }
 
     /** Shared durable state provider for multi-instance deployments. */
@@ -108,10 +132,10 @@ public class CpfResilienceAutoConfiguration {
     @ConditionalOnProperty(prefix = "cpf.integration.resilience.state", name = "jdbc-provider-enabled",
             havingValue = "true")
     CpfStateStore cpfJdbcStateStore(
-            DataSource dataSource,
-            PlatformTransactionManager transactionManager,
+            CpfDataSourceRegistry dataSources,
+            @Qualifier("cpfCommonTransactionManager") PlatformTransactionManager transactionManager,
             Environment environment,
-            Clock clock) {
+            @Qualifier("cpfStarterClock") Clock clock) {
         int maximumStates = environment.getProperty(
                 "cpf.integration.resilience.state.jdbc.maximum-states",
                 Integer.class,
@@ -124,7 +148,7 @@ public class CpfResilienceAutoConfiguration {
                 "cpf.integration.resilience.state.jdbc.command-ttl",
                 Duration.class,
                 JdbcCpfStateStore.DEFAULT_COMMAND_TTL);
-        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        JdbcTemplate jdbc = new JdbcTemplate(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB));
         CpfJdbcStateSchemaVerifier.verify(jdbc);
         return new JdbcCpfStateStore(
                 jdbc,
@@ -138,8 +162,9 @@ public class CpfResilienceAutoConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "cpf.integration.resilience.state", name = "jdbc-provider-enabled",
             havingValue = "true")
-    CpfStateAuditSink cpfJdbcStateAuditSink(DataSource dataSource) {
-        return new JdbcCpfStateAuditSink(new JdbcTemplate(dataSource));
+    CpfStateAuditSink cpfJdbcStateAuditSink(CpfDataSourceRegistry dataSources) {
+        return new JdbcCpfStateAuditSink(
+                new JdbcTemplate(dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB)));
     }
 
     @Bean
@@ -148,7 +173,7 @@ public class CpfResilienceAutoConfiguration {
     CpfStateOperations cpfStateOperations(
             CpfStateStore store,
             ObjectProvider<CpfStateAuditSink> audits,
-            Clock clock) {
+            @Qualifier("cpfStarterClock") Clock clock) {
         List<CpfStateAuditSink> sinks = audits.orderedStream().toList();
         return new DefaultCpfStateOperations(store, clock, sinks);
     }
@@ -157,7 +182,7 @@ public class CpfResilienceAutoConfiguration {
     @ConditionalOnBean(CpfLockStore.class)
     @ConditionalOnMissingBean
     CpfLockManager cpfLockManager(
-            CpfLockStore store, ObjectProvider<CpfLockAuditSink> audit, Clock clock) {
+            CpfLockStore store, ObjectProvider<CpfLockAuditSink> audit, @Qualifier("cpfStarterClock") Clock clock) {
         return CpfLockManagers.create(store, audit.getIfAvailable(), clock);
     }
 
@@ -177,7 +202,7 @@ public class CpfResilienceAutoConfiguration {
             ObjectProvider<CpfLockManager> lockManager,
             ObjectProvider<CpfTelemetry> telemetry,
             CpfContextExecutionFactory contextFactory,
-            Clock clock,
+            @Qualifier("cpfStarterClock") Clock clock,
             Environment environment) {
         int maximumGuardEntries = environment.getProperty(
                 "cpf.integration.resilience.engine.maximum-guard-entries",
@@ -220,7 +245,7 @@ public class CpfResilienceAutoConfiguration {
             ObjectProvider<CpfLockManager> lockManager,
             ObjectProvider<CpfStateOperations> stateOperations,
             CpfResilienceExecutor resilienceExecutor,
-            Clock clock,
+            @Qualifier("cpfStarterClock") Clock clock,
             Environment environment) {
         String workerId = environment.getProperty(
                 "cpf.reconciliation.worker.id", String.class, "CPF-RECONCILIATION");
@@ -230,11 +255,15 @@ public class CpfResilienceAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "cpf.data.persistence.jdbc.role-datasources.cpf-platform-db",
+            name = "enabled", havingValue = "true")
     CpfResiliencePolicyOperations cpfResiliencePolicyOperations(
             CpfResiliencePolicyStore store,
             CpfResilienceAuditSink audit,
-            Clock clock,
-            PlatformTransactionManager transactionManager) {
+            // 1-WAS 처럼 Clock(cpfStarterClock/cpfCommonClock/cpfBrokerClock)과 TransactionManager
+            // 가 여럿인 합성에서 무자격 주입은 기동을 막는다. Platform Role 을 명시한다.
+            @Qualifier("cpfStarterClock") Clock clock,
+            @Qualifier("cpfCommonTransactionManager") PlatformTransactionManager transactionManager) {
         return new CpfResiliencePolicyCommandService(store, audit, clock,
                 new CpfSpringResilienceTransactionRunner(new TransactionTemplate(transactionManager)));
     }

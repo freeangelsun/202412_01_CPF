@@ -22,7 +22,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/adm/api/openapi")
 @Tag(name = "ADM-OpenAPI", description = "OpenAPI Web MVC 상태와 감사된 재대사")
-public final class AdmOpenApiController extends AdmBaseController {
+/** 메서드의 @PreAuthorize 가 Spring AOP 프록시를 만든다. CGLIB 은 final 클래스를 상속할 수 없어
+ *  final 을 두면 "Cannot subclass final class" 로 기동이 실패한다. final 을 다시 붙이지 말 것. */
+public class AdmOpenApiController extends AdmBaseController {
     private final CpfOpenAPIOperations operations;
     private final AdmAuditLogService audit;
     public AdmOpenApiController(CpfOpenAPIOperations operations, AdmAuditLogService audit){ this.operations=operations;this.audit=audit; }

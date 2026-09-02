@@ -10,5 +10,5 @@ INSERT INTO BAT_CENTER_CUT_CLAIM (
     attempt_no,
     takeover_count
 ) VALUES (
-    ?, ?, ?, ?, 'CLAIMED', 1, ?, ?, 1, 0
+    ?, ?, ?, ?, 'CLAIMED', 1, (CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC') + (? * INTERVAL '1 microsecond'), (CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC'), 1, 0
 )

@@ -1,4 +1,7 @@
 cpf:
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}
   gateway:
     # Local 개발은 단일 인스턴스와 loopback 의존성을 허용합니다.
     environment-code: local

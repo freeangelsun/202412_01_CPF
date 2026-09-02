@@ -28,7 +28,11 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
 
     public AdmOperationsGovernanceService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            Clock clock, Environment environment) {
+            // Clock 은 cpfStarterClock / cpfCommonClock / cpfBrokerClock 이 공존한다. 세 공급자 모두
+            // @ConditionalOnMissingBean(name=...) 이라 이름만 보고 물러나므로 타입 후보가 3개로 남는다.
+            // 형제 ADM 클래스와 같은 Platform Clock 을 쓴다. 파라미터 이름 해소는 -parameters 가 없으면
+            // 깨지므로(기동 실패 메시지가 그 점을 경고한다) @Qualifier 로 명시한다.
+            @Qualifier("cpfStarterClock") Clock clock, Environment environment) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.clock = clock;
         this.environment = environment;

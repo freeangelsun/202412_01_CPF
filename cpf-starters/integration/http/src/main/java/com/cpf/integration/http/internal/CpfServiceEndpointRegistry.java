@@ -100,6 +100,22 @@ public class CpfServiceEndpointRegistry {
         if (runtimeEndpoint != null) {
             runtimeEndpoint.attributes().forEach(normalized::putIfAbsent);
         }
+        // 운영자가 선언한 cpf.services.<id> 네트워크 정책은 어느 해석 경로로 들어오든 같게 적용해야
+        // 한다. 이 경로(Service Call/Domain Call 이 Registry 에서 baseUrl 을 얻어오는 경로)만 그 선언을
+        // 무시하고 secureDefault(requireTls=true) 로 판정해, 선언한 정책이 조용히 사라졌다.
+        // 실제로 loopback http Domain 을 호출하는 Batch->Domain 검증이 "endpoint scheme은 TLS 정책에
+        // 맞는 http(s)만 허용" 으로 막혔고, 이를 완화할 수 있는 지원 수단이 없었다.
+        // 우선순위는 caller attributes > runtime endpoint > 선언된 service 설정 순으로 유지한다.
+        CpfServiceEndpointProperties.ServiceEndpoint declared = configured.get(normalize(serviceId));
+        if (declared != null) {
+            normalized.putIfAbsent("allowDns", Boolean.toString(declared.isAllowDns()));
+            normalized.putIfAbsent("allowPrivate", Boolean.toString(declared.isAllowPrivate()));
+            normalized.putIfAbsent("allowPublic", Boolean.toString(declared.isAllowPublic()));
+            normalized.putIfAbsent("requireTls", Boolean.toString(declared.isRequireTls()));
+            normalized.putIfAbsent("allowedCidrs", join(declared.getAllowedCidrs()));
+            normalized.putIfAbsent("allowedPorts", joinIntegers(declared.getAllowedPorts()));
+            normalized.putIfAbsent("pinnedAddresses", join(declared.getPinnedAddresses()));
+        }
         return resolve(normalize(serviceId), baseUrl, normalized);
     }
 

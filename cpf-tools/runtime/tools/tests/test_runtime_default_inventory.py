@@ -67,6 +67,7 @@ class RuntimeDefaultInventoryTest(unittest.TestCase):
         text = (RUNTIME_TOOLS / "runtime-start-services.ps1").read_text(encoding="utf-8")
         self.assertIn("cpf-tools\\db\\config\\database-install.default.json", text)
         self.assertIn("cpf-tools\\db\\tools\\database-profile-common.ps1", text)
+        self.assertIn('Add-CpfRuntimeDatabaseEnvironment -Prefix "CPF_PLATFORM" -Target $coreTarget', text)
         self.assertNotIn("databaseProfilePath", text)
         self.assertNotIn("deploy/database/database-profile.json", text)
         self.assertIn("CUSTOMER_BUSINESS_DB", text)

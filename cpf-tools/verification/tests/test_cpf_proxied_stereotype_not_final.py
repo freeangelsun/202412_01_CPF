@@ -21,7 +21,22 @@ ROOT = Path(__file__).resolve().parents[3]
 # BackofficeCommonCatalogController 가 프록시 대상이 되어 기동이 실패했다.
 PROXIED_STEREOTYPES = ("@CpfRepository", "@CpfService", "@CpfController", "@CpfRestController")
 ADVICE_ANNOTATIONS = ("@CpfTransactional", "@Transactional", "@Async",
-                      "@Validated", "@Cacheable", "@Retryable", "@PreAuthorize")
+                      "@Validated", "@Cacheable", "@CacheEvict", "@Retryable",
+                      "@PreAuthorize", "@PostAuthorize", "@Secured",
+                      "@CpfPermission", "@CpfLogging", "@CpfPerformance", "@CpfTimed",
+                      "@CpfOnlineTransaction", "@CpfClient", "@CpfAudit",
+                      "@CpfIdempotent", "@CpfApprovalRequired")
+# 프록시는 클래스 annotation 뿐 아니라 '메서드' annotation 으로도 생긴다. 클래스 선언부만
+# 보던 초판은 @RestController 만 붙고 @CpfTransactional/@CpfPermission 은 메서드에 있던
+# AdmPlatformVersionController 를 놓쳐 기동 실패를 한 사이클 더 태웠다. Spring Bean 인
+# final 클래스가 프록시 유발 annotation 을 '어디에든' 가지면 위반으로 본다.
+SPRING_BEAN = re.compile(
+    r"(?<![\w.])@(Component|Service|Repository|Controller|RestController"
+    r"|ControllerAdvice|RestControllerAdvice|Configuration"
+    r"|CpfService|CpfRepository|CpfController|CpfRestController)\b")
+# @Scheduled 는 프록시를 만들지 않는다(스케줄러가 대상 메서드를 직접 호출한다). 포함하면
+# 지금 정상 동작 중인 final @Scheduled 클래스 11 개를 오탐으로 보고하게 된다.
+COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
 # 산출물/외부 소스는 제품 Source 가 아니다. cpf-release 는 Release 가 만든 투영본이므로
 # 원본을 고치면 함께 갱신된다. 여기서 중복 검출하면 같은 결함을 두 번 세게 된다.
 EXCLUDED_PARTS = {"build", "out", "node_modules", ".git", "generated"}
@@ -73,9 +88,14 @@ def _violations() -> list[str]:
         if not any(marker in text for marker in PROXIED_STEREOTYPES + ADVICE_ANNOTATIONS):
             continue
         lines = text.splitlines()
+        code = COMMENT.sub(" ", text)
         for match in FINAL_CLASS.finditer(text):
             line_index = text.count("\n", 0, match.start())
             markers = _annotations_on_declaration(lines, line_index)
+            if not markers and SPRING_BEAN.search(code[max(0, match.start() - 400):match.start()]):
+                # 클래스 선언부에 없더라도 메서드 annotation 이 프록시를 만든다.
+                markers = {marker for marker in ADVICE_ANNOTATIONS
+                           if re.search(re.escape(marker) + r"\b", code)}
             if markers:
                 found.append(f"{path.relative_to(ROOT).as_posix()}:{match.group(1)}"
                              f" [{','.join(sorted(markers))}]")

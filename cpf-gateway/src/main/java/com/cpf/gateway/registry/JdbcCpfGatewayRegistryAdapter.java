@@ -546,7 +546,11 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         long lease=Math.max(5,Math.min(leaseSeconds,300));
         List<Map<String,Object>> candidates=queryLimited("""
                 SELECT m.server_group_id,m.instance_id,m.fencing_token,i.host_name,i.port_no,
-                       g.target_protocol,e.context_path,g.response_timeout_ms
+                       g.target_protocol,e.context_path,
+                       (SELECT MAX(b.response_timeout_ms) FROM GW_BINDING b
+                          WHERE b.service_id=g.service_id
+                            AND b.environment_code=g.environment_code
+                            AND b.binding_status<>'RETIRED') AS response_timeout_ms
                   FROM GW_SERVER_GROUP_MEMBER m
                   JOIN GW_SERVER_GROUP g ON g.server_group_id=m.server_group_id
                   JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=m.instance_id
@@ -583,7 +587,11 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
     public HealthProbeTarget claimHealthProbe(String serverGroupId,String instanceId,String gatewayInstanceId,long leaseSeconds) {
         required(serverGroupId,"serverGroupId");required(instanceId,"instanceId");required(gatewayInstanceId,"gatewayInstanceId");
         List<Map<String,Object>> rows=jdbc.queryForList("""
-                SELECT m.fencing_token,i.host_name,i.port_no,g.target_protocol,e.context_path,g.response_timeout_ms
+                SELECT m.fencing_token,i.host_name,i.port_no,g.target_protocol,e.context_path,
+                       (SELECT MAX(b.response_timeout_ms) FROM GW_BINDING b
+                          WHERE b.service_id=g.service_id
+                            AND b.environment_code=g.environment_code
+                            AND b.binding_status<>'RETIRED') AS response_timeout_ms
                   FROM GW_SERVER_GROUP_MEMBER m
                   JOIN GW_SERVER_GROUP g ON g.server_group_id=m.server_group_id
                   JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=m.instance_id
@@ -604,7 +612,12 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         return new HealthProbeTarget(serverGroupId,instanceId,gatewayInstanceId,token+1,
                 Objects.toString(row.get("host_name")),((Number)row.get("port_no")).intValue(),
                 protocol(Objects.toString(row.get("target_protocol"))),clean(Objects.toString(row.get("context_path"))),
-                Math.max(250,((Number)row.get("response_timeout_ms")).intValue()));
+                probeTimeoutMs(row.get("response_timeout_ms")));
+    }
+
+    /** Server Group 에 활성 Binding 이 없으면 서브쿼리가 NULL 이므로 하한값으로 Probe 한다. */
+    private static int probeTimeoutMs(Object configured) {
+        return configured instanceof Number number ? Math.max(250, number.intValue()) : 250;
     }
 
     // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.

@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RestController
 @RequestMapping("/adm/api/platform")
 @Tag(name = "ADM-Platform", description = "CPF Platform runtime metadata")
-public final class AdmPlatformVersionController extends AdmBaseController {
+/** 메서드의 @CpfTransactional / @CpfPermission 가 Spring AOP 프록시를 만든다. CGLIB 은 final 클래스를 상속할 수 없어
+ *  final 을 두면 "Cannot subclass final class" 로 기동이 실패한다. final 을 다시 붙이지 말 것. */
+public class AdmPlatformVersionController extends AdmBaseController {
     private final CpfPlatformVersionLoader versions;
 
     public AdmPlatformVersionController(CpfPlatformVersionLoader versions) {

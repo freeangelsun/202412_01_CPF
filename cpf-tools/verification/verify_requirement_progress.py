@@ -44,9 +44,11 @@ def main()->int:
     if expected is None:
         execution=sum(1 for r in rows if (r.get('item_role') or '').strip()=='ROOT_CAUSE_EXECUTION')
         tracking=sum(1 for r in rows if (r.get('item_role') or '').strip()!='ROOT_CAUSE_EXECUTION')
-        if (tracking,execution)!=(394,17):
-            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+17'); return 1
-        expected=411
+        # WP-R16.01/02(ADM mandatory Admin Route Provider Composition, Canonical Config Owner)
+        # 등록으로 Root Cause Execution 이 17 -> 19 가 되었다.
+        if (tracking,execution)!=(394,19):
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+19'); return 1
+        expected=413
     if len(rows)!=expected:
         print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_count={len(rows)} expected={expected}'); return 1
     result={'schema':'CPF_CURRENT_WORK_ITEM_REGISTRY_V1','rows':len(rows),'overall':dict(Counter((r.get('overall_status') or '').strip() for r in rows)),'development':dict(Counter((r.get('developer_status') or '').strip() for r in rows)),'verification':dict(Counter((r.get('verification_status') or '').strip() for r in rows))}

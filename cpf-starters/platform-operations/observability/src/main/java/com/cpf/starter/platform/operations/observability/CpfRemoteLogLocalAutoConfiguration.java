@@ -17,16 +17,32 @@ import java.time.Duration;
 /** Opt-in local filesystem provider for the common remote-log port. */
 @AutoConfiguration
 @AutoConfigureBefore(CpfRemoteLogAutoConfiguration.class)
-@ConditionalOnProperty(prefix = "cpf.remote-log.local", name = "enabled", havingValue = "true")
+// CPF-FILELOG(platform-operations/observability)와 ADM-LOG(cpf-admin)는 CANONICAL_PRODUCT_REQUIREMENTS
+// 상 CURRENT mandatory capability다. ADM의 mandatory Admin Route(remoteLogs)가 CpfRemoteLogArtifactPort
+// 를 요구하는데, 이 Port 의 구현이 여기 하나뿐이면서 opt-in 이면 mandatory 계약을 설정으로 취소하는 셈이
+// 된다. 실제로 1-WAS 가 그 이유로 기동하지 못했다. 기본 제공으로 두되 두 갈래 재정의는 계속 열어 둔다.
+//   - 다른 Provider 가 Port 를 공급하면 아래 @ConditionalOnMissingBean 이 물러난다.
+//   - 운영이 이 구현만 끄려면 cpf.remote-log.local.enabled=false 를 명시한다.
+@ConditionalOnProperty(prefix = "cpf.remote-log.local", name = "enabled",
+        havingValue = "true", matchIfMissing = true)
 public class CpfRemoteLogLocalAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(CpfRemoteLogArtifactPort.class)
     public LocalCpfRemoteLogArtifactAdapter cpfLocalRemoteLogArtifactPort(
             Environment environment, ObjectProvider<Clock> clockProvider) {
+        // Log Root 의 Canonical Config Owner 는 cpf.logging 네임스페이스를 소유한
+        // CpfApplicationLoggingProperties(cpf.logging.root, 기본 logs)다. 기존 폴백이었던
+        // cpf.logging.file.base-path 는 그 properties 클래스의 필드가 아닌, 같은 네임스페이스에 얹힌
+        // 중복 철자다. 소비자인 여기서 정본 소유자를 따르게 하고 동일 의미 키를 새로 만들지 않는다.
+        // (cpf.remote-log.local.root 는 이 구현 전용 override 로만 남긴다.)
         String root = text(environment, "cpf.remote-log.local.root",
-                environment.getProperty("cpf.logging.file.base-path"));
-        if (root == null) throw new IllegalStateException("cpf.remote-log.local.root is required");
+                environment.getProperty("cpf.logging.root",
+                        environment.getProperty("cpf.logging.file.base-path")));
+        // 이 AutoConfiguration 은 기본 제공이고 observability 는 사실상 모든 Runtime 에 전이된다.
+        // 여기서 throw 하면 Log Root 를 선언하지 않은 Runtime 이 통째로 기동 실패한다.
+        // Canonical Config Owner(CpfApplicationLoggingProperties.root)의 기본값과 같은 값으로 맞춘다.
+        if (root == null) root = "logs";
         String module = text(environment, "cpf.remote-log.local.module", "CPF");
         String service = text(environment, "cpf.remote-log.local.service", module);
         String instance = text(environment, "cpf.remote-log.local.instance", "local-1");

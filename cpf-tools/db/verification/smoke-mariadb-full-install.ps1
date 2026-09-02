@@ -64,7 +64,7 @@ try {
     $pwsh = (Get-Process -Id $PID).Path
     if ($RequireRun) {
         & $pwsh -NoProfile `
-            -File (Join-Path $PSScriptRoot "initialize-cpf-database.ps1") `
+            -File (Join-Path $PSScriptRoot "..\tools\initialize-cpf-database.ps1") `
             -Root $Root `
             -ProfilePath $ProfilePath `
             -ResultDir $ResultDir `

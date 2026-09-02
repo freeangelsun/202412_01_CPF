@@ -11,7 +11,7 @@
     "DUPLICATE",
     "DEAD"
   ],
-  "entrypointCount": 905,
+  "entrypointCount": 914,
   "duplicateCount": 0,
   "deadCount": 0,
   "entries": [
@@ -2326,6 +2326,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/runtime/tools/delay_http_response_proxy.py",
+      "path": "cpf-tools/runtime/tools/delay_http_response_proxy.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/runtime/tools/invoke-bat-deployment.ps1",
       "path": "cpf-tools/runtime/tools/invoke-bat-deployment.ps1",
       "kind": "POWERSHELL",
@@ -4300,8 +4307,22 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_cleanup_preserves_ide_artifacts.py",
+      "path": "cpf-tools/verification/tests/test_cpf_cleanup_preserves_ide_artifacts.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_cross_platform_cli_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_cross_platform_cli_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_default_on_capability_scope.py",
+      "path": "cpf-tools/verification/tests/test_cpf_default_on_capability_scope.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4342,6 +4363,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_infrastructure_injection_resolvable.py",
+      "path": "cpf-tools/verification/tests/test_cpf_infrastructure_injection_resolvable.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py",
       "path": "cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py",
       "kind": "PYTHON",
@@ -4363,8 +4391,22 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_mandatory_route_provider_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_mandatory_route_provider_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_optional_provider_consumer_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_optional_provider_consumer_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_powershell_script_references_exist.py",
+      "path": "cpf-tools/verification/tests/test_cpf_powershell_script_references_exist.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4386,6 +4428,20 @@
     {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_resource_policy_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_resource_policy_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_runtime_logging_policy_declared.py",
+      "path": "cpf-tools/verification/tests/test_cpf_runtime_logging_policy_declared.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_runtime_work_unit_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_runtime_work_unit_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -5002,6 +5058,13 @@
     {
       "id": "FILE:cpf-tools/verification/tools/run-cpf-required-full-runtime-validation.ps1",
       "path": "cpf-tools/verification/tools/run-cpf-required-full-runtime-validation.ps1",
+      "kind": "POWERSHELL",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tools/run-cpf-runtime-work-unit.ps1",
+      "path": "cpf-tools/verification/tools/run-cpf-runtime-work-unit.ps1",
       "kind": "POWERSHELL",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""

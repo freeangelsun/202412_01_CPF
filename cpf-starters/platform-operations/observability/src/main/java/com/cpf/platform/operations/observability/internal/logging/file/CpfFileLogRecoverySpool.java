@@ -51,9 +51,10 @@ final class CpfFileLogRecoverySpool implements AutoCloseable {
             throw new IllegalStateException("dev/stg/prod에서는 cpf.logging.file.recovery-spool-root가 필수입니다.");
         }
         CpfLogPathPolicy logPathPolicy = new CpfLogPathPolicy(environment);
-        Path localDurableFallback = logPathPolicy.logRoot().resolveSibling(".cpf-file-log-recovery")
-                .resolve(logPathPolicy.runtimeModuleCode().toLowerCase(Locale.ROOT))
-                .resolve(logPathPolicy.instanceId());
+        // Local fallback is durable only when it remains under the canonical CPF_LOG_ROOT.
+        // A sibling of the log root leaks generated state into the repository root and falls
+        // outside the configured retention, backup and current-only cleanup boundary.
+        Path localDurableFallback = logPathPolicy.recoveryPath(Path.of("file-log-recovery-spool"));
         this.root = Paths.get(configured == null || configured.isBlank()
                 ? localDurableFallback.toString() : configured).toAbsolutePath().normalize();
         this.quarantine = root.resolve("quarantine");

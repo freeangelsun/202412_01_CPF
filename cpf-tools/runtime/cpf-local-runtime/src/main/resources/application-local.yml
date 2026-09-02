@@ -1,4 +1,7 @@
 cpf:
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}
   local:
     runtime:
       enabled: true

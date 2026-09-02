@@ -4,8 +4,8 @@ UPDATE BAT_CENTER_CUT_CLAIM
        claim_token = ?,
        claim_status = 'CLAIMED',
        fencing_token = ?,
-       lease_until = ?,
-       last_heartbeat_at = ?,
+       lease_until = TIMESTAMPADD(MICROSECOND, ?, UTC_TIMESTAMP(6)),
+       last_heartbeat_at = UTC_TIMESTAMP(6),
        attempt_no = attempt_no + 1,
        takeover_count = takeover_count + 1,
        released_at = NULL

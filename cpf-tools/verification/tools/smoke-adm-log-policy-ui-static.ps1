@@ -10,7 +10,7 @@ $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "runtime-common.ps1")
+. (Join-Path $PSScriptRoot "..\..\runtime\tools\runtime-common.ps1")
 
 $Root = Get-CpfRuntimeRoot -Root $Root
 $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir

@@ -96,7 +96,7 @@ def _declared_columns(text: str) -> set[str]:
             name = token.strip().lower()
             if re.fullmatch(r"[a-z][a-z0-9_]*", name):
                 columns.add(name)
-    for name in re.findall(r"(?:^|,|SET\s+)\s*(?:target\.)?([a-z][a-z0-9_]{2,})\s*=", text, re.MULTILINE):
+    for name in re.findall(r"(?:^|,|\bSET\s+)\s*(?:target\.)?([a-z][a-z0-9_]{2,})\s*=", text, re.MULTILINE):
         columns.add(name.lower())
     return columns
 

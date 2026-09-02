@@ -3,6 +3,7 @@ package com.cpf.admin.opr.filejob;
 import com.cpf.admin.common.base.AdmBaseService;
 
 import com.cpf.file.tabular.api.*;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import com.cpf.foundation.annotation.CpfService;
@@ -36,6 +37,10 @@ public class AdmFileJobService extends AdmBaseService {
 
     public AdmFileJobService(AdmFileJobRepository repository, AdmFileTemplateRegistry registry,
             AdmFileArtifactStore artifacts, List<CpfTabularReader> readers,
+            // File Job 은 AdmFileJobRepository 와 같은 admJdbcTemplate(admDataSource) 에만 쓴다.
+            // 1-WAS 처럼 ADM/BZA/Common TransactionManager 가 함께 있으면 무자격 주입은 후보 3개로
+            // 기동을 막고, 하나뿐일 때는 다른 DataSource 로 커밋한다. Role 을 명시한다.
+            @Qualifier("admTransactionManager")
             org.springframework.transaction.PlatformTransactionManager transactionManager,
             @Value("${cpf.admin.file-job.lease:PT30S}") Duration lease,
             @Value("${cpf.admin.file-job.dispatch-lease:PT15M}") Duration dispatchLease,

@@ -257,11 +257,9 @@
       "consumer": "JdbcSchedulerLeaderRepository.acquire",
       "parameters": [
         "instanceId",
-        "leaseUntil",
-        "heartbeatAt",
+        "leaseDurationMicros",
         "schedulerKey",
-        "currentInstanceId",
-        "expiredBefore"
+        "currentInstanceId"
       ]
     },
     {
@@ -270,8 +268,7 @@
       "parameters": [
         "schedulerKey",
         "instanceId",
-        "leaseUntil",
-        "heartbeatAt"
+        "leaseDurationMicros"
       ]
     },
     {
@@ -285,7 +282,7 @@
       "key": "scheduler-leader-heartbeat",
       "consumer": "JdbcSchedulerLeaderRepository.heartbeat",
       "parameters": [
-        "leaseUntil",
+        "leaseDurationMicros",
         "schedulerKey",
         "instanceId",
         "fencingToken"
@@ -481,8 +478,7 @@
         "poolId",
         "claimToken",
         "fencingToken",
-        "leaseUntil",
-        "heartbeatAt",
+        "leaseDurationMicros",
         "itemId"
       ]
     },
@@ -494,8 +490,7 @@
         "runnerId",
         "poolId",
         "claimToken",
-        "leaseUntil",
-        "heartbeatAt"
+        "leaseDurationMicros"
       ]
     },
     {
@@ -519,7 +514,7 @@
       "key": "centercut-claim-renew",
       "consumer": "JdbcCenterCutClaimRepository.renew",
       "parameters": [
-        "leaseUntil",
+        "leaseDurationMicros",
         "itemId",
         "runnerId",
         "claimToken",

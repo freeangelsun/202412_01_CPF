@@ -1,6 +1,9 @@
 # 개발자 기본 모드: 하나의 JVM/하나의 HTTP Port에서 CPF와 생성 Domain을 함께 사용합니다.
 # Gateway는 선택 Capability이므로 기본 OFF이며 필요할 때 cpf.local.modules.gateway=true로 켭니다.
 cpf:
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}
   local:
     runtime:
       minimum-max-memory-mb: 500

@@ -1,4 +1,7 @@
 cpf:
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}
   gateway:
     # 공유 개발환경은 endpoint/credential을 Deployment/Secret에서 명시하고 localhost로 묵시 fallback하지 않습니다.
     environment-code: dev

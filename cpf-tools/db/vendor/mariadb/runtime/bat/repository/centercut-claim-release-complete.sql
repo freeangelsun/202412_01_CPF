@@ -1,9 +1,9 @@
 UPDATE BAT_CENTER_CUT_CLAIM
    SET claim_status = 'RELEASED',
-       released_at = CURRENT_TIMESTAMP(6)
+       released_at = UTC_TIMESTAMP(6)
  WHERE center_cut_item_id = ?
    AND runner_id = ?
    AND claim_token = ?
    AND fencing_token = ?
    AND claim_status IN ('CLAIMED', 'RUNNING')
-   AND lease_until >= CURRENT_TIMESTAMP(6)
+   AND lease_until >= UTC_TIMESTAMP(6)

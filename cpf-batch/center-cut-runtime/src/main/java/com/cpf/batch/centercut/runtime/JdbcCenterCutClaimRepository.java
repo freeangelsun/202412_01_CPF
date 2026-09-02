@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 
@@ -162,14 +161,15 @@ public class JdbcCenterCutClaimRepository {
     @Transactional
     public Optional<Claim> tryClaim(long item,String runner,String pool,Duration duration,String executionId) {
         Instant now=Instant.now();String token=UUID.randomUUID().toString();
+        long leaseDurationMicros=leaseDurationMicros(duration);
         List<Map<String,Object>> rows=jdbc.queryForList(
                 sql.required("centercut-claim-find-fencing"),item);
         long fence=rows.isEmpty()?1:((Number)rows.get(0).get("fencing_token")).longValue()+1;
         int updated=jdbc.update(sql.required("centercut-claim-reclaim"),
-                runner,pool,token,fence,Timestamp.from(now.plus(duration)),Timestamp.from(now),item);
+                runner,pool,token,fence,leaseDurationMicros,item);
         if(updated==0) try {
             jdbc.update(sql.required("centercut-claim-insert"),
-                    item,runner,pool,token,Timestamp.from(now.plus(duration)),Timestamp.from(now));
+                    item,runner,pool,token,leaseDurationMicros);
             fence=1;
         } catch(DuplicateKeyException conflict){return Optional.empty();}
         if(jdbc.update(sql.required("centercut-item-mark-running"),item)!=1) {
@@ -182,8 +182,26 @@ public class JdbcCenterCutClaimRepository {
 
     public boolean renew(Claim claim,Duration duration) {
         return jdbc.update(sql.required("centercut-claim-renew"),
-                Timestamp.from(Instant.now().plus(duration)),claim.itemId(),claim.runnerId(),
+                leaseDurationMicros(duration),claim.itemId(),claim.runnerId(),
                 claim.claimToken(),claim.fencingToken())==1;
+    }
+
+    /**
+     * Lease expiry must be calculated by the selected DB Vendor Pack's UTC clock, not by a JVM
+     * default timezone.  The value is a duration only; no client timestamp crosses the boundary.
+     */
+    private static long leaseDurationMicros(Duration duration) {
+        if(duration==null||duration.isZero()||duration.isNegative()) {
+            throw new IllegalArgumentException("Center-Cut lease duration must be positive");
+        }
+        try {
+            long micros=Math.addExact(
+                    Math.multiplyExact(duration.getSeconds(),1_000_000L),duration.getNano()/1_000);
+            if(micros<=0) throw new IllegalArgumentException("Center-Cut lease duration must be at least one microsecond");
+            return micros;
+        } catch(ArithmeticException overflow) {
+            throw new IllegalArgumentException("Center-Cut lease duration is too large",overflow);
+        }
     }
 
     public Work load(Claim c) {

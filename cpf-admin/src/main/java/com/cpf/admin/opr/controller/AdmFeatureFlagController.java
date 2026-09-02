@@ -1,6 +1,5 @@
 package com.cpf.admin.opr.controller;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RestController;
 import com.cpf.platform.operations.api.featureflag.CpfFeatureFlagContext;
 import com.cpf.platform.operations.api.featureflag.CpfFeatureFlagOperations;
@@ -22,7 +21,10 @@ import org.springframework.web.server.ResponseStatusException;
 // Feature Flag 은 opt-in Platform 기능이다. Provider AutoConfiguration 과 같은 속성 조건을
 // 붙여, 기능이 꺼진 Runtime 에서는 이 Consumer 도 함께 존재하지 않게 한다. 조건 없이
 // 필수 주입하면 기능을 쓰지 않는 Runtime 이 기동조차 못 한다.
-@ConditionalOnProperty(prefix = "cpf.platform-operations.feature-flag", name = "enabled", havingValue = "true")
+// ADM capability registry(ADMUI-054)가 이 Route 를 등록된 ADM 기능으로 선언하고 ADM Route
+// Contract 가 그 operation 들을 요구한다. Consumer 를 조건부로 지우면 mandatory Admin Route 가
+// 설정으로 사라져 계약이 축소된다. Provider 쪽(Composition 이 소유하는 AutoConfiguration)이
+// 무조건 공급하도록 고쳤으므로 여기서는 조건을 두지 않는다.
 @RestController
 @RequestMapping("/adm/api/platform/feature-flags")
 @Tag(name = "ADM-FeatureFlag", description = "Feature Flag 평가·Override·Kill Switch 운영 API")

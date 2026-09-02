@@ -153,6 +153,9 @@ if ($databaseTargets.Contains("core")) {
     # CMN code/message/config는 cpfDB 소유이고 GWY도 CPF 공개 metadata만 읽습니다.
     Add-CpfRuntimeDatabaseEnvironment -Prefix "CMN" -Target $coreTarget
     Add-CpfRuntimeDatabaseEnvironment -Prefix "GWY" -Target $coreTarget
+    # Batch/Common persistence resolves CPF_PLATFORM_DB, so every profile-driven local runtime
+    # must project the canonical core/cpfDB binding under that role as well.
+    Add-CpfRuntimeDatabaseEnvironment -Prefix "CPF_PLATFORM" -Target $coreTarget
     $databaseEnvironment["CPF_DB_HOST"] = [string] $coreTarget.host
     $databaseEnvironment["CPF_DB_PORT"] = [string] $coreTarget.port
 }
@@ -375,11 +378,21 @@ try {
         $previousDatabaseEnvironment = [ordered]@{}
         try {
             [Environment]::SetEnvironmentVariable($module.portEnv, [string] $module.port, "Process")
-            # Do not synthesize <SYSTEM>01. Explicit CPF_RUNTIME_INSTANCE_ID is preserved when supplied;
-            # otherwise the Runtime resolves its canonical identity from the real Runtime hostname.
+            # Do not synthesize <SYSTEM>01. Explicit CPF_RUNTIME_INSTANCE_ID is preserved when supplied.
+            # When this launcher starts more than one module they all share one host, so leaving the
+            # identity to hostname resolution makes every module register the same instanceId and the
+            # second one dies with CpfRuntimeFenceException. The Runtime's own message says multi-process
+            # hosts must set distinct instance ids. Keep the real host identity and qualify it by module
+            # instead of inventing a serial.
             $launchInstanceId = [Environment]::GetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", "Process")
             if ([string]::IsNullOrWhiteSpace($launchInstanceId)) {
-                [Environment]::SetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", $null, "Process")
+                if ($selectedModules.Count -gt 1) {
+                    $launchHostName = [System.Net.Dns]::GetHostName()
+                    [Environment]::SetEnvironmentVariable(
+                        "CPF_RUNTIME_INSTANCE_ID", ("{0}-{1}" -f $launchHostName, $module.module), "Process")
+                } else {
+                    [Environment]::SetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", $null, "Process")
+                }
             }
             [Environment]::SetEnvironmentVariable("CPF_SYSTEM_CODE", $module.module, "Process")
             [Environment]::SetEnvironmentVariable("CPF_ENV", "local", "Process")

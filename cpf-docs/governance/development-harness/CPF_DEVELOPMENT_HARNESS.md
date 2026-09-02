@@ -433,3 +433,128 @@ Gate: `cpf-tools/verification/tests/test_cpf_source_tree_bytecode_hygiene.py`
 - `build/`는 `clean-source` 게이트 검사 대상이 아니다. 삭제할 필요가 없으며, 삭제하면 IDE
   classpath가 깨진다. 정리 후에는 `cpfPrepareIdeClasspath` + `cpfVerifyIdeClasspathReady`로 복구해
   VS Code Problems를 0으로 유지한다.
+
+## 26. Runtime 실패 수정 전 Ownership/제품 성격 판정 (필수)
+
+Runtime 기동 실패를 Bean/Property 수준에서 바로 고치지 않는다. 반드시 아래 순서로 판정한 뒤
+고칠 계층을 정한다.
+
+```
+Product Contract / Ownership
+  -> mandatory vs optional capability
+  -> Public/Admin Route Contract
+  -> Port
+  -> Provider / Composition Owner
+  -> Config
+  -> Runtime
+  -> Test / Evidence
+```
+
+### 26.1 모듈 성격을 같은 모델로 취급하지 않는다
+
+- **CPF Platform 기능(ADM / Gateway / Batch / Backoffice)** — CPF가 제공하는 Framework/Platform
+  관리 기능이다. 업무 Domain이 아니다.
+- **Generated Business Domain** — 프레임워크를 사용해 개발하는 쪽이다. Starter를 선언해 opt-in 한다.
+- **optional Starter capability** — 선언하지 않으면 없는 기능이다.
+
+ADM을 업무 Domain처럼 취급해 Runtime YAML로 `enabled=true`를 넣거나, EnvironmentPostProcessor로
+같은 값을 주입하는 것은 모두 같은 오류다. 조립하는 Runtime마다 ADM의 내부 요구사항을 알아야 하는
+구조가 되기 때문이다.
+
+### 26.2 mandatory route가 opt-in Provider를 소비하면 Composition 계약을 먼저 의심한다
+
+`CANONICAL_PRODUCT_REQUIREMENTS.csv`의 owner_scope/lifecycle과
+`CPF_ADM_UI_FUNCTION_REQUIREMENTS.csv`의 route_id/canonical_ref로 mandatory 여부를 판정한다.
+optional capability는 CSV에 명시적으로 표기된다(예: `CORE-MESSAGE`).
+
+mandatory route가 요구하는 Port의 Provider가 opt-in이면 다음 두 가지를 하지 마라.
+
+- Consumer(Controller)에 같은 속성 조건을 붙여 숨기는 것 — **Route Contract 축소**다.
+- Runtime YAML/EPP로 임의 `enabled=true`를 넣는 것 — **ADM을 업무 Domain으로 취급**하는 것이다.
+
+올바른 판정은 "Composition이 무조건 공급해야 하는가"이며, 그렇다면 capability owner의
+AutoConfiguration을 `matchIfMissing = true`로 두어 **모듈을 Composition에 선언하는 행위 자체를
+opt-in**으로 삼고, 속성은 끄기 위한 수단으로만 남긴다.
+
+기본 제공으로 전환할 때는 그 AutoConfiguration이 만드는 Bean의 무자격 인프라 주입
+(`DataSource`/`PlatformTransactionManager`/`Clock`)을 함께 canonical role로 해소해야 한다.
+합성 Runtime에서는 후보가 여럿이라 켜는 즉시 다음 실패로 이동한다.
+
+Validator: `cpf-tools/verification/tests/test_cpf_mandatory_route_provider_contract.py`
+
+### 26.3 동일 의미 설정 키를 복제하지 않는다
+
+같은 의미의 값을 여러 정본이 소유하게 두지 않는다. Canonical Config Owner를 먼저 확정하고
+Consumer가 그것을 따르게 한다.
+
+- Log Root의 Canonical Config Owner는 `cpf.logging.root`
+  (`CpfApplicationLoggingProperties`, `@ConfigurationProperties("cpf.logging")`, 기본 `logs`)다.
+- `cpf.logging.file.base-path`는 같은 네임스페이스에 얹혔지만 그 properties 클래스의 필드가 아닌
+  중복 철자다. **절대경로를 강제**하는 `CpfLogPathPolicy`가 아직 이 키를 읽으므로 일괄 치환은
+  파일 로그 경로 의미를 바꾼다. 은퇴는 그 의미 충돌을 해소한 뒤 별도로 수행한다.
+
+### 26.4 Full Runtime을 결함 탐색기로 사용하지 않는다
+
+Full Runtime 163단계를 작은 수정마다 반복하며 같은 Root Cause 계열을 한 겹씩 발견하는 방식은
+금지한다. 실제로 RUN36~RUN40이 동일 계열(multi-bean 주입 모호성)을 다섯 번에 걸쳐 한 건씩
+드러냈고, 매 사이클이 40분씩 소모됐다.
+
+동일 계열 결함은 다음 순서로 **먼저** 닫는다.
+
+```
+repo-wide 후보 상한 추출
+  -> 실제 결함/정상 분류
+  -> 일괄 수정
+  -> Validator
+  -> Negative Mutation
+  -> Targeted Test(compile -> unit/contract -> pytest tree -> 영향 Runtime 기동 -> health/transaction -> error path)
+  -> Full Runtime
+```
+
+후보 추출은 조건(`@Conditional*`)이나 모듈 closure를 정교하게 모델링하려 하지 말고 **상한으로 넓게**
+뽑은 뒤 분류한다. 조건 모델링을 먼저 넣으면 과소검출로 계열을 놓친다(실제로 Runtime closure를
+모델링했다가 scheduler의 Clock 후보를 0건으로 오판했다).
+
+### 26.5 Validator는 발견 사례만 통과시키는 부분 게이트로 만들지 않는다
+
+Validator 작성 전에 Architecture Surface를 먼저 정의한다.
+
+- constructor injection **과** `@Bean` method parameter
+- direct dependency **와** transitive dependency
+- 단일 Runtime **과** aggregate Runtime(1-WAS)
+- Generated Domain **과** ADM/Gateway/Batch/Backoffice direct consumer
+
+실제로 이 세 가지를 각각 놓쳐 같은 계열을 Full Runtime에서 다시 발견했다.
+
+- 검사 타입을 목록으로 고정 → `Clock` 누락
+- constructor만 검사 → `@Bean` parameter 누락
+- Generated Domain만 검사 → batch/gateway direct consumer 누락
+
+게이트 추가 시 "이 규칙이 놓칠 수 있는 형태"를 먼저 나열하고 각각을 negative mutation으로 확인한다.
+
+### 26.6 Root Cause Family 전수 종결 기록 (2026-09-02)
+
+| Family | 후보 | 실제 결함 | Validator |
+| --- | --- | --- | --- |
+| RCF-1 multi-bean 주입 모호성 | 86 | 0 (수정 완료) | `test_cpf_infrastructure_injection_resolvable.py` |
+| RCF-2 mandatory route vs opt-in provider | 7 route | 3 (수정 완료) | `test_cpf_mandatory_route_provider_contract.py` |
+| RCF-3 app-class 전용 등록 | boot app 15 | 1 (ADM, 수정 완료) | — batch는 역할별 독립 Context라 해당 없음 |
+| RCF-4 default-on 전환 영향 | 3 모듈 | 3 (guard 추가) | `test_cpf_default_on_capability_scope.py` |
+
+RCF-1 분류 근거: `ObjectMapper`는 공급자가 `CpfJackson2AutoConfiguration` 하나뿐이고,
+batch/gateway는 `@Primary`(`batDataSource`/`batTransactionManager`/`batJdbcTemplate`)를 가지며,
+1-WAS는 `CpfLocalRuntimePlatformDataSourcePrimary`가 `cpfPlatformDataSource`에 primary를 지정한다.
+따라서 후보 86건 중 실제 해소 불가는 `Clock`/`PlatformTransactionManager` 계열뿐이었고 모두 닫았다.
+
+### 26.7 VS Code Problems 0건은 절대 규칙이다
+
+이 저장소의 IDE(Buildship/JDT) classpath는 각 project의 `build/classes/java/main` 과
+`build/libs/*.jar` 를 직접 참조한다. 따라서 build 산출물을 지우는 순간 VS Code Problems 에
+`code 964 missing required library` 가 수백 건 발생한다.
+
+- **`gradlew clean` 을 실행하지 않는다.** 빌드 캐시 측정 같은 목적이라도 금지한다.
+- `cleanup-cpf-generated-garbage.ps1` 처럼 산출물을 지우는 작업 뒤에는 반드시
+  `cpfPrepareIdeClasspath` 로 복구한다. 이 task 는 compileJava 뿐 아니라 **jar 까지** 만든다.
+- `cpfVerifyIdeClasspathReady` 는 compile output 과 **jar 산출물**을 함께 검사한다
+  (`scope=all-java-projects+jar-artifacts`). compile output 만 보던 초판은 jar 이 없는 상태에서도
+  PASS 를 냈고, 그래서 같은 오류가 반복해서 되살아났다.

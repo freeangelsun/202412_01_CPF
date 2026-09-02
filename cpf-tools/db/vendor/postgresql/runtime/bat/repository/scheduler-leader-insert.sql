@@ -5,5 +5,5 @@ INSERT INTO BAT_SCHEDULER_LEASE (
     lease_until,
     last_heartbeat_at
 ) VALUES (
-    ?, ?, 1, ?, ?
+    ?, ?, 1, (CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC') + (? * INTERVAL '1 microsecond'), (CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC')
 )

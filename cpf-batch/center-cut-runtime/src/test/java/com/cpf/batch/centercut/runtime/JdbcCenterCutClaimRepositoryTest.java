@@ -3,6 +3,7 @@ package com.cpf.batch.centercut.runtime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -84,6 +85,65 @@ class JdbcCenterCutClaimRepositoryTest {
 
         assertThat(actual).isEmpty();
         verify(status).setRollbackOnly();
+    }
+
+    @Test
+    void passesOnlyLeaseDurationToTheVendorPackAndNeverABoundClientTimestamp() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        JdbcCenterCutAdmissionControl admission = mock(JdbcCenterCutAdmissionControl.class);
+        CpfVendorSqlCatalog catalog = mock(CpfVendorSqlCatalog.class);
+        CpfVendorSqlCatalogProvider provider = mock(CpfVendorSqlCatalogProvider.class);
+        when(provider.forModule("bat")).thenReturn(catalog);
+        when(catalog.required(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jdbc.queryForList("centercut-claim-find-fencing", 42L)).thenReturn(List.of());
+        when(jdbc.update(eq("centercut-claim-reclaim"), eq("runner"), eq("pool"), anyString(),
+                eq(1L), eq(30_000_000L), eq(42L))).thenReturn(0);
+        when(jdbc.update(eq("centercut-claim-insert"), eq(42L), eq("runner"), eq("pool"), anyString(),
+                eq(30_000_000L))).thenReturn(1);
+        when(jdbc.update("centercut-item-mark-running", 42L)).thenReturn(1);
+
+        JdbcCenterCutClaimRepository repository = new JdbcCenterCutClaimRepository(
+                jdbc, admission, provider, immediateTransactions());
+
+        assertThat(repository.tryClaim(42L, "runner", "pool", Duration.ofSeconds(30), "exec-42"))
+                .isPresent();
+        verify(jdbc).update(eq("centercut-claim-reclaim"), eq("runner"), eq("pool"), anyString(),
+                eq(1L), eq(30_000_000L), eq(42L));
+        verify(jdbc).update(eq("centercut-claim-insert"), eq(42L), eq("runner"), eq("pool"), anyString(),
+                eq(30_000_000L));
+    }
+
+    @Test
+    void renewPassesOnlyLeaseDurationToTheVendorPack() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        JdbcCenterCutAdmissionControl admission = mock(JdbcCenterCutAdmissionControl.class);
+        CpfVendorSqlCatalog catalog = mock(CpfVendorSqlCatalog.class);
+        CpfVendorSqlCatalogProvider provider = mock(CpfVendorSqlCatalogProvider.class);
+        when(provider.forModule("bat")).thenReturn(catalog);
+        when(catalog.required("centercut-claim-renew")).thenReturn("centercut-claim-renew");
+        JdbcCenterCutClaimRepository.Claim claim = new JdbcCenterCutClaimRepository.Claim(
+                42L, "runner", "token", 3L, Instant.now().plusSeconds(7), "exec-42");
+        when(jdbc.update("centercut-claim-renew", 7_000_000L, 42L, "runner", "token", 3L)).thenReturn(1);
+        JdbcCenterCutClaimRepository repository = new JdbcCenterCutClaimRepository(
+                jdbc, admission, provider, immediateTransactions());
+
+        assertThat(repository.renew(claim, Duration.ofSeconds(7))).isTrue();
+        verify(jdbc).update("centercut-claim-renew", 7_000_000L, 42L, "runner", "token", 3L);
+    }
+
+    @Test
+    void rejectsLeaseDurationBelowDatabaseMicrosecondPrecision() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        JdbcCenterCutAdmissionControl admission = mock(JdbcCenterCutAdmissionControl.class);
+        CpfVendorSqlCatalog catalog = mock(CpfVendorSqlCatalog.class);
+        CpfVendorSqlCatalogProvider provider = mock(CpfVendorSqlCatalogProvider.class);
+        when(provider.forModule("bat")).thenReturn(catalog);
+        JdbcCenterCutClaimRepository repository = new JdbcCenterCutClaimRepository(
+                jdbc, admission, provider, immediateTransactions());
+
+        assertThatThrownBy(() -> repository.tryClaim(42L, "runner", "pool", Duration.ofNanos(999), "exec-42"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("at least one microsecond");
     }
 
 

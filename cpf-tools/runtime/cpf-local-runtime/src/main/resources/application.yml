@@ -9,6 +9,17 @@ server:
   address: 127.0.0.1
   port: ${CPF_LOCAL_RUNTIME_PORT:8080}
 cpf:
+  openapi:
+    webmvc:
+      # ADM(application-adm.yml)과 동일한 정본 계약이다. 기본은 보안 기본값(false)이고
+      # 개발/로컬/테스트 프로파일에서만 켠다. CpfOpenApiEnvironmentPostProcessor 가
+      # springdoc.api-docs.enabled 를 이 값으로 결정하므로, 선언이 없으면 /v3/api-docs 가
+      # 서비스되지 않아 Runtime OpenAPI 검증이 400 으로 실패한다.
+      enabled: ${CPF_OPENAPI_WEBMVC_ENABLED:true}
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:false}
+      api-docs-path: ${CPF_OPENAPI_WEBMVC_API_DOCS_PATH:/v3/api-docs}
+      title: ${CPF_OPENAPI_TITLE:CPF Local Runtime API}
+      version: ${CPF_OPENAPI_VERSION:unspecified}
   logging:
     # 일반 Runtime 로그는 Application/Instance별 경로로 분리하며 Transaction Evidence와 혼용하지 않습니다.
     enabled: true

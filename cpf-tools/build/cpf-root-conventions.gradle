@@ -246,11 +246,19 @@ gradle.afterProject { target, state ->
 }
 
 tasks.register('cpfPrepareIdeClasspath') {
-    description = 'clean 이후 Buildship/JDT가 요구하는 Java compile output을 실제 compile로 복구합니다.'
+    description = 'clean 이후 Buildship/JDT가 요구하는 Java compile output과 jar 산출물을 실제 build로 복구합니다.'
     dependsOn {
+        // Buildship/JDT 는 project 의존을 class folder 뿐 아니라 jar 로도 해석한다. compileJava 만
+        // 걸어 두면 build/libs 가 비어 있는 상태로 PASS 가 나고, VS Code 에는
+        // 'missing required library ... build/libs/*.jar' 오류가 그대로 남는다. 한 번의 canonical
+        // 명령으로 IDE 가 요구하는 산출물이 모두 복구되도록 jar 까지 포함한다.
         subprojects.findAll { it.plugins.hasPlugin('java') }
                 .findAll { !it.sourceSets.main.java.files.empty }
-                .collect { it.tasks.named('compileJava') }
+                .collectMany { target ->
+                    def tasks = [target.tasks.named('compileJava')]
+                    if (target.tasks.findByName('jar') != null) tasks << target.tasks.named('jar')
+                    tasks
+                }
     }
     doLast {
         def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
@@ -277,14 +285,24 @@ tasks.register('cpfPrepareIdeClasspath') {
 tasks.register('cpfVerifyIdeClasspathReady') {
     description = 'Buildship/JDT가 참조하는 모든 canonical Java class folder가 실제 존재하는지 검증합니다.'
     doLast {
-        def missing = subprojects.findAll { it.plugins.hasPlugin('java') }.collect { target ->
+        def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
+        def missing = javaProjects.collect { target ->
             def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
             output.isDirectory() ? null : "${target.path}:compile-output-missing=${output}"
         }.findAll { it != null }
-        if (!missing.isEmpty()) {
-            throw new GradleException("CPF IDE classpath readiness failed:\n - ${missing.join('\\n - ')}")
+        // Buildship/JDT 는 일부 project 의존을 class folder 가 아닌 jar 로 해석한다. compile output 만
+        // 검사하던 초판은 cleanup 이 build/libs 를 지운 뒤에도 PASS 를 냈고, VS Code Problems 에
+        // 'missing required library ... build/libs/*.jar' 가 반복해서 되살아났다. jar 산출물까지 본다.
+        def jarMissing = javaProjects.findAll { it.tasks.findByName('jar') != null }.collect { target ->
+            def archive = target.tasks.named('jar', Jar).get().archiveFile.get().asFile
+            def hasSource = !target.sourceSets.main.allSource.files.empty
+            (!hasSource || archive.isFile()) ? null : "${target.path}:jar-missing=${archive}"
+        }.findAll { it != null }
+        def failures = missing + jarMissing
+        if (!failures.isEmpty()) {
+            throw new GradleException("CPF IDE classpath readiness failed:\n - ${failures.join('\\n - ')}")
         }
-        println "CPF_IDE_CLASSPATH_READY_GATE=PASS scope=all-java-projects"
+        println "CPF_IDE_CLASSPATH_READY_GATE=PASS scope=all-java-projects+jar-artifacts"
     }
 }
 

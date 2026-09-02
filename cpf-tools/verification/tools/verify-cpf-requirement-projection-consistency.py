@@ -42,7 +42,8 @@ def verify(root:Path)->dict:
  projection_required={'work_item_id','source_requirement_ids','priority','work_package','development_status','verification_status','runtime_status','overall_status','source_identity','devgpt_status','independent_reviewer_status','qa_status','current_action','closure_rule'}
  if registry_required-set(rf): raise GateError(f'Current Registry columns missing: {sorted(registry_required-set(rf))}')
  if projection_required-set(pf): raise GateError(f'Current Status projection columns missing: {sorted(projection_required-set(pf))}')
- if len(rrows)!=411 or len(prows)!=411: raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected=411')
+ # WP-R16.01/02 등록으로 Current Registry/Status 가 411 -> 413 이 되었다.
+ if len(rrows)!=413 or len(prows)!=413: raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected=413')
  rids=[(r.get('work_item_id') or '').strip() for r in rrows]; pids=[(r.get('work_item_id') or '').strip() for r in prows]
  if len(set(rids))!=len(rids) or len(set(pids))!=len(pids) or rids!=pids: raise GateError('Current Status work_item_id order/set differs from Current Registry')
  pmap={r['work_item_id']:r for r in prows}

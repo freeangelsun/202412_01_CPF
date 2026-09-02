@@ -42,7 +42,46 @@ function Test-ContainsPath {
         [string] $Path
     )
 
-    return $null -ne $ApiDocs.paths -and $ApiDocs.paths.PSObject.Properties.Name -contains $Path
+    $paths = Get-JsonProperty -Value $ApiDocs -Name "paths"
+    return $null -ne $paths -and $paths.PSObject.Properties.Name -contains $Path
+}
+
+function Get-JsonProperty {
+    param(
+        [object] $Value,
+        [string] $Name,
+        [object] $Default = $null
+    )
+
+    if ($null -eq $Value) { return $Default }
+    $property = $Value.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) { return $Default }
+    return $property.Value
+}
+
+function Get-OpenApiTagNames {
+    param([object] $ApiDocs)
+
+    # OpenAPI top-level `tags` is a catalog/description and is optional.  The actual operation
+    # tags are authoritative for a generated document, so inspect both forms without accessing a
+    # missing JSON property directly under StrictMode.
+    $names = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($tag in @(Get-JsonProperty -Value $ApiDocs -Name "tags" -Default @())) {
+        $name = [string](Get-JsonProperty -Value $tag -Name "name" -Default "")
+        if (-not [string]::IsNullOrWhiteSpace($name)) { [void]$names.Add($name) }
+    }
+    $paths = Get-JsonProperty -Value $ApiDocs -Name "paths"
+    if ($null -ne $paths) {
+        foreach ($pathEntry in @($paths.PSObject.Properties)) {
+            foreach ($operation in @($pathEntry.Value.PSObject.Properties.Value)) {
+                foreach ($tag in @(Get-JsonProperty -Value $operation -Name "tags" -Default @())) {
+                    $name = [string]$tag
+                    if (-not [string]::IsNullOrWhiteSpace($name)) { [void]$names.Add($name) }
+                }
+            }
+        }
+    }
+    return @($names | Sort-Object)
 }
 
 function Get-Utf8Json {
@@ -184,17 +223,14 @@ function Invoke-JsonSmoke {
         $swaggerUrl = "$BaseUrl/swagger-ui/index.html"
         $apiDocs = Get-Utf8Json -Uri $apiDocsUrl
         $swagger = Invoke-WebRequest -Method Get -Uri $swaggerUrl -TimeoutSec 15 -UseBasicParsing
-        if ($null -eq $apiDocs.openapi) {
+        if ($null -eq (Get-JsonProperty -Value $apiDocs -Name "openapi")) {
             throw "Invalid OpenAPI document format: $apiDocsUrl"
         }
         if ($swagger.StatusCode -ne 200) {
             throw "Swagger UI response is not healthy: $swaggerUrl"
         }
 
-        $tagNames = @()
-        if ($apiDocs.tags) {
-            $tagNames = @($apiDocs.tags | ForEach-Object { [string] $_.name })
-        }
+        $tagNames = @(Get-OpenApiTagNames -ApiDocs $apiDocs)
         foreach ($tag in @($Contract.tags)) {
             if ($tagNames -notcontains $tag) { $serviceResult.missingTags += $tag }
         }
@@ -214,8 +250,9 @@ function Invoke-JsonSmoke {
         }
 
         $serviceResult.status = "PASSED"
-        $serviceResult.openapi = $apiDocs.openapi
-        $serviceResult.pathCount = $apiDocs.paths.PSObject.Properties.Name.Count
+        $serviceResult.openapi = Get-JsonProperty -Value $apiDocs -Name "openapi"
+        $paths = Get-JsonProperty -Value $apiDocs -Name "paths"
+        $serviceResult.pathCount = if ($null -eq $paths) { 0 } else { @($paths.PSObject.Properties).Count }
         $serviceResult.tagCount = $tagNames.Count
     } catch {
         $serviceResult.error = $_.Exception.Message

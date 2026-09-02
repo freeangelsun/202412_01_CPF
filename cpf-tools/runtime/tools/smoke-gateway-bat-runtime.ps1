@@ -171,7 +171,7 @@ try {
         health = Get-CpfOptionalRuntimeProperty $batchResult "health" $null
     }
 
-    & (Join-Path $PSScriptRoot "smoke-openapi.ps1") `
+    & (Join-Path $PSScriptRoot "..\..\verification\openapi\smoke-openapi.ps1") `
         -Root $Root `
         -Modules @("GWY") `
         -ResultDir $runtimeDir `

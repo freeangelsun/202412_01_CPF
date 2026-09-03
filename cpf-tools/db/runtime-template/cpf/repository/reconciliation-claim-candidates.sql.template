@@ -11,7 +11,7 @@ SELECT unknown_id AS unknownId,
        resolved_at AS resolvedAt,
        attempt_count AS attemptCount,
        row_version AS rowVersion
-FROM cpf_unknown_result
+FROM CPF_UNKNOWN_RESULT
 WHERE unknown_status = 'CHECK_PENDING'
   AND (? IS NULL OR unknown_type = ?)
   AND detected_at <= ?

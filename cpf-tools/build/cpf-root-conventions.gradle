@@ -856,7 +856,17 @@ def cpfVisibleTaskGroups = [
         'cpfDomainDiscovery':'40. CPF 구성', 'cpfDatabaseDiscovery':'40. CPF 구성',
         'cpfModules':'40. CPF 구성', 'cpfModulesAll':'40. CPF 구성',
         'cpfResourcePolicy':'50. CPF 설정',
-        'cpfDeployAll':'60. CPF 배포'
+        'cpfDeployAll':'60. CPF 배포',
+        // Open Git Release 는 최종 사용자가 직접 수행하는 공식 lifecycle 이므로 90~99 내부 영역이
+        // 아니라 사용자 Task 영역에 노출한다(Harness §29). 여기에 등록하지 않으면 뒤의 분류가
+        // 이름 규칙만 보고 '내부 빌드/검증' 또는 '원시 명령' 으로 덮어써서 화면에서 사라진다.
+        'cpfOpenGitBuild':'70. CPF 오픈깃 릴리즈',
+        'cpfOpenGitVerify':'70. CPF 오픈깃 릴리즈',
+        'cpfOpenGitStatus':'70. CPF 오픈깃 릴리즈',
+        'cpfOpenGitPrepare':'70. CPF 오픈깃 릴리즈',
+        'cpfOpenGitCommit':'70. CPF 오픈깃 릴리즈',
+        'cpfOpenGitPush':'70. CPF 오픈깃 릴리즈',
+        'cpfOpenGitCommitAndPush':'70. CPF 오픈깃 릴리즈'
 ]
 // publication orchestration 은 배포 진입점이 아니라 내부 구현이다. Task 는 유지하되
 // 사용자 그룹에서 분리하고, 예전 이름으로 부르던 Consumer 는 호환 별칭으로 계속 지원한다.
@@ -1292,6 +1302,113 @@ tasks.register('cpfPublishAllVerifiedLocalPlatformArtifacts') {
         if (exit != 0) throw new GradleException("CPF verified local artifact promotion failed: exit=${exit}")
     }
 }
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 70. CPF 오픈깃 릴리즈
+//
+// Open Git Release 는 최종 사용자가 직접 수행하는 공식 lifecycle 이므로 내부(90~99)가 아니라
+// 사용자 Task 영역에 둔다(Harness §29).
+//
+// Release 로직은 여기에 복제하지 않는다. 아래 Task 는 모두 정본 진입점
+// `cpf-tools/release/open-git/cpf-open-git.ps1` -> `cpf_open_git.py` 를 호출하는 wrapper 다.
+// CLI / PowerShell / Gradle Task 가 서로 다른 구현을 갖지 않게 하기 위한 구조다(§29.2).
+//
+// Git Write(Commit/Push)는 `-PconfirmGitWrite=true` 없이는 수행되지 않는다(§29.3/§29.4).
+// Build / Verify / Prepare 는 어떤 경우에도 Git 을 변경하지 않는다.
+// ─────────────────────────────────────────────────────────────────────────────
+def cpfOpenGitGroup = '70. CPF 오픈깃 릴리즈'
+def cpfOpenGitScript = rootProject.file('cpf-tools/release/open-git/cpf-open-git.ps1')
+
+// 사용자가 자주 바꾸는 값은 Gradle property 로 노출한다.
+//   -PopenGitProfile=binary|source   Release Profile
+//   -PopenGitRemote=<url>            Open Git remote
+//   -PopenGitMessage="..."           Commit 메시지
+//   -PconfirmGitWrite=true           Commit/Push 명시 승인
+def cpfOpenGitExec = { String action, boolean gitWrite ->
+    def command = ['pwsh', '-NoProfile', '-File', cpfOpenGitScript.absolutePath, '-Action', action]
+    def profile = (project.findProperty('openGitProfile') ?: 'binary').toString()
+    command += ['-ReleaseProfile', profile]
+    def remote = (project.findProperty('openGitRemote') ?: '').toString()
+    if (remote) { command += ['-Remote', remote] }
+    if (gitWrite) {
+        def message = (project.findProperty('openGitMessage') ?: '').toString()
+        if (message) { command += ['-Message', message] }
+        // 승인값이 정확히 true 일 때만 Git Write 를 허용한다. 오타/누락은 모두 거부한다.
+        def confirmed = (project.findProperty('confirmGitWrite') ?: 'false').toString().trim().toLowerCase(Locale.ROOT)
+        if (confirmed != 'true') {
+            throw new GradleException(
+                    "Open Git ${action} 은 명시적 Git Write 승인이 필요합니다. " +
+                    "다시 실행: ./gradlew cpfOpenGit${action.capitalize()} -PconfirmGitWrite=true")
+        }
+        command += '-ConfirmGitWrite'
+    }
+    return command
+}
+
+def cpfOpenGitRun = { String action, boolean gitWrite ->
+    if (!cpfOpenGitScript.isFile()) { throw new GradleException("Open Git 진입점이 없습니다: ${cpfOpenGitScript}") }
+    def command = cpfOpenGitExec(action, gitWrite)
+    def process = new ProcessBuilder(command).directory(rootDir).inheritIO().start()
+    def exit = process.waitFor()
+    if (exit != 0) throw new GradleException("CPF Open Git ${action} 실패: exit=${exit}")
+}
+
+tasks.register('cpfOpenGitBuild') {
+    group = cpfOpenGitGroup
+    description = '[생성] Open Git 공개 Release 산출물을 생성합니다. Git 변경은 수행하지 않습니다.'
+    doLast {
+        cpfOpenGitRun('build', false)
+    }
+}
+
+tasks.register('cpfOpenGitVerify') {
+    group = cpfOpenGitGroup
+    description = '[검증] Open Git 공개 Release 전체 검증(산출물/공개 API/Leakage/Fresh Consumer)을 수행합니다.'
+    doLast {
+        cpfOpenGitRun('check', false)
+    }
+}
+
+tasks.register('cpfOpenGitStatus') {
+    group = cpfOpenGitGroup
+    description = '[상태] 마지막 Open Git Release 결과와 변경 파일 수를 표시합니다.'
+    doLast {
+        cpfOpenGitRun('status', false)
+    }
+}
+
+tasks.register('cpfOpenGitPrepare') {
+    group = cpfOpenGitGroup
+    description = '[준비] 생성 후 검증까지 순서대로 수행합니다. Git 변경은 절대 수행하지 않습니다.'
+    dependsOn 'cpfOpenGitBuild'
+    dependsOn 'cpfOpenGitVerify'
+}
+tasks.named('cpfOpenGitVerify') { mustRunAfter 'cpfOpenGitBuild' }
+
+tasks.register('cpfOpenGitCommit') {
+    group = cpfOpenGitGroup
+    description = '[Git] 검증된 Open Git 변경사항을 Commit합니다. -PconfirmGitWrite=true 승인이 필요합니다.'
+    doLast {
+        cpfOpenGitRun('commit', true)
+    }
+}
+
+tasks.register('cpfOpenGitPush') {
+    group = cpfOpenGitGroup
+    description = '[Git] 검증된 Open Git Commit을 원격 Repository로 Push합니다. -PconfirmGitWrite=true 승인이 필요합니다.'
+    doLast {
+        cpfOpenGitRun('push', true)
+    }
+}
+
+tasks.register('cpfOpenGitCommitAndPush') {
+    group = cpfOpenGitGroup
+    description = '[Git] Commit 후 Push를 순서대로 수행합니다. -PconfirmGitWrite=true 승인이 필요합니다.'
+    dependsOn 'cpfOpenGitCommit'
+    dependsOn 'cpfOpenGitPush'
+}
+tasks.named('cpfOpenGitPush') { mustRunAfter 'cpfOpenGitCommit' }
 
 tasks.register('qa34IntegrationTest') {
     description = 'QA34 Batch integration/fencing/recovery test aggregate입니다.'

@@ -1207,7 +1207,7 @@ public class CpfRuntimeControlPlaneRepository {
         String identity=emptyToNull(r.managementIdentity());
         if(explicit!=null){
             java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(
-                    "SELECT management_identity,enabled_yn FROM ops_managed_server WHERE managed_server_id=?",explicit);
+                    "SELECT management_identity,enabled_yn FROM OPS_MANAGED_SERVER WHERE managed_server_id=?",explicit);
             if(rows.isEmpty()) throw new IllegalStateException("등록된 Managed Server가 아닙니다: "+explicit);
             String currentIdentity=nullable(rows.getFirst().get("management_identity"));
             if(identity!=null && currentIdentity!=null && !currentIdentity.isBlank() && !identity.equals(currentIdentity))
@@ -1218,13 +1218,13 @@ public class CpfRuntimeControlPlaneRepository {
         }
         if(identity==null) return null; // hostname만으로 자동 merge하지 않습니다.
         java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(
-                "SELECT managed_server_id FROM ops_managed_server WHERE management_identity=? AND enabled_yn='Y' ORDER BY managed_server_id",identity);
+                "SELECT managed_server_id FROM OPS_MANAGED_SERVER WHERE management_identity=? AND enabled_yn='Y' ORDER BY managed_server_id",identity);
         if(rows.size()>1) throw new IllegalStateException("managementIdentity가 둘 이상의 Managed Server에 연결되어 있습니다.");
         if(rows.size()==1) return nullable(rows.getFirst().get("managed_server_id"));
         // 인증된 Runtime discovery는 승인 전 PENDING inventory만 생성합니다. Production ACTIVE로 자동 승격하지 않습니다.
         String discovered="DISC-"+java.util.UUID.nameUUIDFromBytes((identity+"|"+blank(r.environment())).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString().substring(0,20).toUpperCase(java.util.Locale.ROOT);
         try{
-            jdbc.update("INSERT INTO ops_managed_server(managed_server_id,server_name,display_name,hostname,management_identity,environment_code,server_group,zone_code,description,enabled_yn,status,tags_json,registered_at,registered_by,row_version,created_at,updated_at,updated_by) " +
+            jdbc.update("INSERT INTO OPS_MANAGED_SERVER(managed_server_id,server_name,display_name,hostname,management_identity,environment_code,server_group,zone_code,description,enabled_yn,status,tags_json,registered_at,registered_by,row_version,created_at,updated_at,updated_by) " +
                             "VALUES (?,?,?,?,?,?,NULL,?,'Authenticated runtime discovery','Y','PENDING','{}',CURRENT_TIMESTAMP,'RUNTIME_DISCOVERY',0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'RUNTIME_DISCOVERY')",
                     discovered,discovered,discovered,emptyToNull(r.runtimeHostname()),identity,blank(r.environment()),emptyToNull(r.zone()));
         }catch(DuplicateKeyException ignored){ }
@@ -1245,13 +1245,13 @@ public class CpfRuntimeControlPlaneRepository {
             String q = "%" + keyword.trim().toLowerCase(java.util.Locale.ROOT) + "%";
             args.add(q); args.add(q); args.add(q); args.add(q);
         }
-        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM ops_managed_server s" + where, Long.class, args.toArray());
+        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM OPS_MANAGED_SERVER s" + where, Long.class, args.toArray());
         String sql = "SELECT * FROM (SELECT s.*, " +
                 "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id) runtime_count, " +
                 "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id AND i.active_yn='Y' " +
                 "AND i.instance_status IN ('UP','ACTIVE','DEGRADED','RECOVERING','DRAINING')) active_runtime_count, " +
                 "ROW_NUMBER() OVER(ORDER BY s.environment_code,s.server_name,s.managed_server_id) cpf_rn " +
-                "FROM ops_managed_server s" + where + ") cpf_page WHERE cpf_rn>? AND cpf_rn<=? ORDER BY cpf_rn";
+                "FROM OPS_MANAGED_SERVER s" + where + ") cpf_page WHERE cpf_rn>? AND cpf_rn<=? ORDER BY cpf_rn";
         java.util.List<Object> pageArgs = new java.util.ArrayList<>(args);
         pageArgs.add(from); pageArgs.add(to);
         java.util.List<CpfManagedServerSnapshot> items = jdbc.queryForList(sql, pageArgs.toArray()).stream().map(this::managedServer).toList();
@@ -1264,7 +1264,7 @@ public class CpfRuntimeControlPlaneRepository {
                 "SELECT s.*, (SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id) runtime_count, " +
                 "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id AND i.active_yn='Y' " +
                 "AND i.instance_status IN ('UP','ACTIVE','DEGRADED','RECOVERING','DRAINING')) active_runtime_count " +
-                "FROM ops_managed_server s WHERE s.managed_server_id=?", managedServerId);
+                "FROM OPS_MANAGED_SERVER s WHERE s.managed_server_id=?", managedServerId);
         if(rows.isEmpty()) throw new IllegalArgumentException("Managed Server를 찾을 수 없습니다: "+managedServerId);
         return managedServer(rows.getFirst());
     }
@@ -1275,14 +1275,14 @@ public class CpfRuntimeControlPlaneRepository {
         requireText(c.displayName(),"displayName"); requireText(c.environment(),"environment");
         requireText(c.reason(),"reason"); requireText(c.operatorId(),"operatorId");
         java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(
-                "SELECT row_version FROM ops_managed_server WHERE managed_server_id=? FOR UPDATE",c.managedServerId());
+                "SELECT row_version FROM OPS_MANAGED_SERVER WHERE managed_server_id=? FOR UPDATE",c.managedServerId());
         String tags=(c.tagsJson()==null||c.tagsJson().isBlank())?"{}":c.tagsJson();
         // Validate JSON eagerly so malformed tags cannot be persisted and break dashboard projection.
         readMap(tags);
         if(rows.isEmpty()) {
             if(c.expectedVersion()!=null && c.expectedVersion()!=0L) throw new CpfRuntimeVersionConflictException(c.expectedVersion(),0L);
             try {
-                jdbc.update("INSERT INTO ops_managed_server(managed_server_id,server_name,display_name,hostname,management_identity,environment_code,server_group,zone_code,location,description,enabled_yn,status,tags_json,registered_at,registered_by,row_version,created_at,updated_at,updated_by) " +
+                jdbc.update("INSERT INTO OPS_MANAGED_SERVER(managed_server_id,server_name,display_name,hostname,management_identity,environment_code,server_group,zone_code,location,description,enabled_yn,status,tags_json,registered_at,registered_by,row_version,created_at,updated_at,updated_by) " +
                                 "VALUES (?,?,?,?,?,?,?,?,?,?,'Y','REGISTERED',?,CURRENT_TIMESTAMP,?,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?)",
                         c.managedServerId(),c.serverName().trim(),c.displayName().trim(),emptyToNull(c.hostname()),emptyToNull(c.managementIdentity()),
                         c.environment().trim(),emptyToNull(c.serverGroup()),emptyToNull(c.zone()),emptyToNull(c.location()),emptyToNull(c.description()),
@@ -1291,7 +1291,7 @@ public class CpfRuntimeControlPlaneRepository {
         } else {
             long current=((Number)rows.getFirst().get("row_version")).longValue();
             if(c.expectedVersion()==null || c.expectedVersion()!=current) throw new CpfRuntimeVersionConflictException(c.expectedVersion()==null?-1L:c.expectedVersion(),current);
-            int updated=jdbc.update("UPDATE ops_managed_server SET server_name=?,display_name=?,hostname=?,management_identity=?,environment_code=?,server_group=?,zone_code=?,location=?,description=?,tags_json=?,row_version=row_version+1,updated_at=CURRENT_TIMESTAMP,updated_by=? WHERE managed_server_id=? AND row_version=?",
+            int updated=jdbc.update("UPDATE OPS_MANAGED_SERVER SET server_name=?,display_name=?,hostname=?,management_identity=?,environment_code=?,server_group=?,zone_code=?,location=?,description=?,tags_json=?,row_version=row_version+1,updated_at=CURRENT_TIMESTAMP,updated_by=? WHERE managed_server_id=? AND row_version=?",
                     c.serverName().trim(),c.displayName().trim(),emptyToNull(c.hostname()),emptyToNull(c.managementIdentity()),c.environment().trim(),emptyToNull(c.serverGroup()),emptyToNull(c.zone()),emptyToNull(c.location()),emptyToNull(c.description()),tags,c.operatorId(),c.managedServerId(),current);
             if(updated!=1) throw new CpfRuntimeVersionConflictException(current,current);
         }
@@ -1300,10 +1300,10 @@ public class CpfRuntimeControlPlaneRepository {
 
     public void disableManagedServer(String managedServerId,long expectedVersion,String reason,String operatorId) {
         requireText(managedServerId,"managedServerId"); requireText(reason,"reason"); requireText(operatorId,"operatorId");
-        int updated=jdbc.update("UPDATE ops_managed_server SET enabled_yn='N',status='DISABLED',row_version=row_version+1,updated_at=CURRENT_TIMESTAMP,updated_by=? WHERE managed_server_id=? AND row_version=?",
+        int updated=jdbc.update("UPDATE OPS_MANAGED_SERVER SET enabled_yn='N',status='DISABLED',row_version=row_version+1,updated_at=CURRENT_TIMESTAMP,updated_by=? WHERE managed_server_id=? AND row_version=?",
                 operatorId,managedServerId,expectedVersion);
         if(updated!=1) {
-            java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM ops_managed_server WHERE managed_server_id=?",managedServerId);
+            java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM OPS_MANAGED_SERVER WHERE managed_server_id=?",managedServerId);
             if(rows.isEmpty()) throw new IllegalArgumentException("Managed Server를 찾을 수 없습니다: "+managedServerId);
             long current=((Number)rows.getFirst().get("row_version")).longValue();
             throw new CpfRuntimeVersionConflictException(expectedVersion,current);
@@ -1327,7 +1327,7 @@ public class CpfRuntimeControlPlaneRepository {
             where.append(" AND (LOWER(i.instance_id) LIKE ? OR LOWER(COALESCE(ms.server_name,'')) LIKE ? OR LOWER(COALESCE(i.runtime_hostname,'')) LIKE ? OR LOWER(COALESCE(i.system_code,'')) LIKE ?)");
             String q="%"+keyword.trim().toLowerCase(java.util.Locale.ROOT)+"%";args.add(q);args.add(q);args.add(q);args.add(q);
         }
-        String joins=" FROM OPS_SERVICE_INSTANCE i LEFT JOIN ops_managed_server ms ON ms.managed_server_id=i.managed_server_id LEFT JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id";
+        String joins=" FROM OPS_SERVICE_INSTANCE i LEFT JOIN OPS_MANAGED_SERVER ms ON ms.managed_server_id=i.managed_server_id LEFT JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id";
         Long total=jdbc.queryForObject("SELECT COUNT(*)"+joins+where,Long.class,args.toArray());
         String sql="SELECT * FROM (SELECT i.instance_id,i.managed_server_id,ms.server_name,i.service_id,i.system_code,i.application_name,i.application_role,i.runtime_hostname,i.environment_code,i.zone_code,i.instance_status,i.started_at,i.last_heartbeat_at,"+
                 "s.artifact_version,s.capabilities_json,i.cpf_version,i.java_version,ROW_NUMBER() OVER(ORDER BY i.environment_code,COALESCE(ms.server_name,''),i.instance_id) cpf_rn"+

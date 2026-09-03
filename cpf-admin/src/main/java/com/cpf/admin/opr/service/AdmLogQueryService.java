@@ -145,7 +145,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     START_TIME,
                     END_TIME,
                     DURATION_MS
-                FROM cpf_transaction_log l
+                FROM CPF_TRANSACTION_LOG l
                 WHERE 1 = 1
                 """);
         sql.append(filter.sql());
@@ -288,7 +288,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private long queryTotal(QueryFilter filter) {
-        String sql = "SELECT COUNT(*) FROM cpf_transaction_log l WHERE 1 = 1" + filter.sql();
+        String sql = "SELECT COUNT(*) FROM CPF_TRANSACTION_LOG l WHERE 1 = 1" + filter.sql();
         Long total = cpfJdbcTemplate.queryForObject(sql, Long.class, filter.args().toArray());
         return total == null ? 0L : total;
     }
@@ -322,11 +322,11 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                        MEMBER_NO, CUSTOMER_NO, DEVICE_ID, CLIENT_IP, USER_AGENT, LOCALE,
                        HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, EXEC_USER,
                        START_TIME, END_TIME, DURATION_MS, REQUEST_BODY, RESPONSE, ERROR_MESSAGE
-                  FROM cpf_transaction_log
+                  FROM CPF_TRANSACTION_LOG
                  WHERE LOG_IDX = ?
                 """, logIdx);
         List<Map<String, Object>> details = cpfJdbcTemplate.queryForList(
-                "SELECT DETAIL_KEY, DETAIL_VALUE, CREATED_AT FROM cpf_transaction_log_detail WHERE LOG_IDX = ? ORDER BY DETAIL_KEY",
+                "SELECT DETAIL_KEY, DETAIL_VALUE, CREATED_AT FROM CPF_TRANSACTION_LOG_DETAIL WHERE LOG_IDX = ? ORDER BY DETAIL_KEY",
                 logIdx);
 
         Map<String, Object> safeSummary = new LinkedHashMap<>(summary);
@@ -431,7 +431,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
 
     private void appendDetailLike(StringBuilder sql, List<Object> args, String detailKey, String value) {
         if (CpfStrings.hasText(value)) {
-            sql.append(" AND EXISTS (SELECT 1 FROM cpf_transaction_log_detail d WHERE d.LOG_IDX = l.LOG_IDX AND d.DETAIL_KEY = ? AND d.DETAIL_VALUE LIKE ?)");
+            sql.append(" AND EXISTS (SELECT 1 FROM CPF_TRANSACTION_LOG_DETAIL d WHERE d.LOG_IDX = l.LOG_IDX AND d.DETAIL_KEY = ? AND d.DETAIL_VALUE LIKE ?)");
             args.add(detailKey);
             args.add("%" + value.trim() + "%");
         }

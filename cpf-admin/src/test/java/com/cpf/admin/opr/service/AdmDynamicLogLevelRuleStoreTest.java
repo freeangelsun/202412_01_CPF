@@ -36,7 +36,7 @@ class AdmDynamicLogLevelRuleStoreTest {
         assertThatCode(() -> store.save(rule)).doesNotThrowAnyException();
 
         verify(jdbc).update(
-                contains("UPDATE adm_dynamic_log_level_rule"),
+                contains("UPDATE ADM_DYNAMIC_LOG_LEVEL_RULE"),
                 eq(rule.transactionId()),
                 eq(rule.businessTransactionId()),
                 eq(rule.moduleId()),
@@ -89,7 +89,7 @@ class AdmDynamicLogLevelRuleStoreTest {
     void disableDistinguishesMissingRuleFromStoreFailure() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         when(jdbc.update(
-                contains("UPDATE adm_dynamic_log_level_rule"),
+                contains("UPDATE ADM_DYNAMIC_LOG_LEVEL_RULE"),
                 eq("tester"), eq("missing-rule")))
                 .thenReturn(0);
         AdmDynamicLogLevelRuleStore store = new AdmDynamicLogLevelRuleStore(jdbc);
@@ -97,7 +97,7 @@ class AdmDynamicLogLevelRuleStoreTest {
         assertThat(store.disable("missing-rule", "tester")).isFalse();
 
         when(jdbc.update(
-                contains("UPDATE adm_dynamic_log_level_rule"),
+                contains("UPDATE ADM_DYNAMIC_LOG_LEVEL_RULE"),
                 eq("tester"), eq("unavailable-rule")))
                 .thenThrow(new DataAccessResourceFailureException("test database unavailable"));
 
@@ -127,7 +127,7 @@ class AdmDynamicLogLevelRuleStoreTest {
             JdbcTemplate jdbc,
             DynamicLogLevelRule rule) {
         return when(jdbc.update(
-                contains("UPDATE adm_dynamic_log_level_rule"),
+                contains("UPDATE ADM_DYNAMIC_LOG_LEVEL_RULE"),
                 eq(rule.transactionId()),
                 eq(rule.businessTransactionId()),
                 eq(rule.moduleId()),

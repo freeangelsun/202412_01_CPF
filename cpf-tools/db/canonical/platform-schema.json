@@ -93,7 +93,7 @@
       "exsDB"
     ]
   },
-  "tableCount": 235,
+  "tableCount": 237,
   "tables": [
     {
       "name": "ADM_API_PERMISSION",
@@ -43918,6 +43918,182 @@
       "migrationOwner": "security",
       "runtimeConsumer": "security",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "SPRING_SESSION",
+      "columns": [
+        {
+          "name": "PRIMARY_ID",
+          "type": "CHAR(36)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "세션 기본 식별자"
+        },
+        {
+          "name": "SESSION_ID",
+          "type": "CHAR(36)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "세션 ID"
+        },
+        {
+          "name": "CREATION_TIME",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "생성 시각(epoch millis)"
+        },
+        {
+          "name": "LAST_ACCESS_TIME",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 접근 시각(epoch millis)"
+        },
+        {
+          "name": "MAX_INACTIVE_INTERVAL",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최대 비활성 유지 시간(초)"
+        },
+        {
+          "name": "EXPIRY_TIME",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "만료 시각(epoch millis)"
+        },
+        {
+          "name": "PRINCIPAL_NAME",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "세션 주체 이름"
+        }
+      ],
+      "primaryKey": [
+        "PRIMARY_ID"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "SPRING_SESSION_IX1",
+          "columns": [
+            "SESSION_ID"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "SPRING_SESSION_IX2",
+          "columns": [
+            "EXPIRY_TIME"
+          ]
+        },
+        {
+          "name": "SPRING_SESSION_IX3",
+          "columns": [
+            "PRINCIPAL_NAME"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "서버 세션 저장소(Spring Session JDBC 표준 규격)",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "spring_session",
+      "logicalOwner": "cpf",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "SPRING_SESSION",
+      "targetTablePrefix": "SPRING_",
+      "migrationOwner": "cpf",
+      "runtimeConsumer": "cpf",
+      "atomicityClass": "PLATFORM_SHARED_CONTROL",
+      "productionDefault": true
+    },
+    {
+      "name": "SPRING_SESSION_ATTRIBUTES",
+      "columns": [
+        {
+          "name": "SESSION_PRIMARY_ID",
+          "type": "CHAR(36)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "세션 기본 식별자"
+        },
+        {
+          "name": "ATTRIBUTE_NAME",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "세션 속성 이름"
+        },
+        {
+          "name": "ATTRIBUTE_BYTES",
+          "type": "BLOB",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "직렬화된 세션 속성 값"
+        }
+      ],
+      "primaryKey": [
+        "SESSION_PRIMARY_ID",
+        "ATTRIBUTE_NAME"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "SPRING_SESSION_ATTRIBUTES_FK",
+          "columns": [
+            "SESSION_PRIMARY_ID"
+          ],
+          "refTable": "SPRING_SESSION",
+          "refColumns": [
+            "PRIMARY_ID"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "서버 세션 속성 저장소(Spring Session JDBC 표준 규격)",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "spring_session_attributes",
+      "logicalOwner": "cpf",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "SPRING_SESSION_ATTRIBUTES",
+      "targetTablePrefix": "SPRING_",
+      "migrationOwner": "cpf",
+      "runtimeConsumer": "cpf",
+      "atomicityClass": "PLATFORM_SHARED_CONTROL",
       "productionDefault": true
     }
   ]

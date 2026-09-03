@@ -1,4 +1,4 @@
-INSERT INTO mbw_admin_user (
+INSERT INTO MBW_ADMIN_USER (
     admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn,
     password_change_required_yn, created_by, updated_by
 ) VALUES (

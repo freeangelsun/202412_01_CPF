@@ -1,4 +1,4 @@
-MERGE INTO mbw_role target
+MERGE INTO MBW_ROLE target
 USING (
     SELECT :roleCode role_code, :roleName role_name, :writeAllowedYn write_allowed_yn,
            :dataScope data_scope, :useYn use_yn, :requestUser request_user

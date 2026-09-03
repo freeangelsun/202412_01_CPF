@@ -1,4 +1,4 @@
-UPDATE mbw_admin_user
+UPDATE MBW_ADMIN_USER
 SET login_fail_count = login_fail_count + 1,
     lock_yn = CASE WHEN login_fail_count + 1 >= 5 THEN 'Y' ELSE lock_yn END,
     updated_by = 'MBW_AUTH', updated_at = CURRENT_TIMESTAMP

@@ -58,9 +58,9 @@ def main()->int:
         # 등록으로 Root Cause Execution 이 17 -> 19 가 되었고, 2026-09-03 사용자 Steering 3건
         # (WP-R17.01 Shell 조립성 / WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목)
         # 등록으로 19 -> 22 가 되었다.
-        if (tracking,execution)!=(394,22):
-            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+22'); return 1
-        expected=416
+        if (tracking,execution)!=(394,23):
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+23'); return 1
+        expected=417
     if len(rows)!=expected:
         print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_count={len(rows)} expected={expected}'); return 1
     result={'schema':'CPF_CURRENT_WORK_ITEM_REGISTRY_V1','rows':len(rows),'overall':dict(Counter((r.get('overall_status') or '').strip() for r in rows)),'development':dict(Counter((r.get('developer_status') or '').strip() for r in rows)),'verification':dict(Counter((r.get('verification_status') or '').strip() for r in rows))}

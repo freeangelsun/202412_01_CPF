@@ -1,4 +1,4 @@
-UPDATE cpf_idempotency_record
+UPDATE CPF_IDEMPOTENCY_RECORD
 SET record_status = 'EXPIRED',
     retry_allowed_yn = 'Y',
     updated_by = 'CPF_IDEMPOTENCY_CLEANUP',

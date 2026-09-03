@@ -92,8 +92,8 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                            p.MOBILE_NO, p.OFFICE_PHONE_NO, u.ACCOUNT_STATUS, u.VERSION_NO,
                            u.LOCKED_YN, u.PASSWORD_CHANGED_AT,
                            u.PASSWORD_CHANGE_REQUIRED_YN, u.CREATED_AT, u.UPDATED_AT
-                    FROM adm_operator u
-                    LEFT JOIN adm_operator_profile p ON p.OPERATOR_ID = u.OPERATOR_ID
+                    FROM ADM_OPERATOR u
+                    LEFT JOIN ADM_OPERATOR_PROFILE p ON p.OPERATOR_ID = u.OPERATOR_ID
                     WHERE u.USE_YN = 'Y'
                     ORDER BY u.OPERATOR_ID
                     """, (rs, rowNum) -> new OperatorDirectoryRow(
@@ -135,7 +135,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
 
         try {
             List<String> prior = admJdbcTemplate.queryForList(
-                    "SELECT OPERATOR_ID FROM adm_operator WHERE CREATE_OPERATION_ID = ?", String.class, operationId);
+                    "SELECT OPERATOR_ID FROM ADM_OPERATOR WHERE CREATE_OPERATION_ID = ?", String.class, operationId);
             if (!prior.isEmpty()) {
                 if (!prior.getFirst().equals(operatorId)) {
                     throw new CpfValidationException("operationId가 다른 운영자 생성에 이미 사용되었습니다.");
@@ -143,7 +143,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 return findOperator(operatorId);
             }
             admJdbcTemplate.update("""
-                    INSERT INTO adm_operator (
+                    INSERT INTO ADM_OPERATOR (
                         OPERATOR_ID, OPERATOR_NAME, PASSWORD_HASH, ACCOUNT_STATUS, VERSION_NO, CREATE_OPERATION_ID, LOCKED_YN, FAIL_COUNT,
                         PASSWORD_CHANGED_AT, PASSWORD_CHANGE_REQUIRED_YN, USE_YN, CREATED_BY, UPDATED_BY
                     ) VALUES (?, ?, ?, 'PENDING_ACTIVATION', 0, ?, 'N', 0, CURRENT_TIMESTAMP, 'Y', 'Y', ?, ?)
@@ -152,7 +152,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         } catch (DuplicateKeyException ex) {
             if (persistencePolicy.databaseRequired()) {
                 List<String> owners = admJdbcTemplate.queryForList(
-                        "SELECT OPERATOR_ID FROM adm_operator WHERE CREATE_OPERATION_ID = ?", String.class, operationId);
+                        "SELECT OPERATOR_ID FROM ADM_OPERATOR WHERE CREATE_OPERATION_ID = ?", String.class, operationId);
                 if (!owners.isEmpty() && owners.getFirst().equals(operatorId)) {
                     return findOperator(operatorId);
                 }
@@ -195,7 +195,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
         try {
             List<String> operatorIds = admJdbcTemplate.queryForList(
-                    "SELECT OPERATOR_ID FROM adm_operator WHERE CREATE_OPERATION_ID = ?", String.class, operationId);
+                    "SELECT OPERATOR_ID FROM ADM_OPERATOR WHERE CREATE_OPERATION_ID = ?", String.class, operationId);
             if (operatorIds.isEmpty()) {
                 throw new CpfNotFoundException("operationId에 해당하는 운영자 생성 결과가 없습니다.");
             }
@@ -221,13 +221,13 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         String passwordHash = hashPassword(password);
         try {
             int inserted = admJdbcTemplate.update("""
-                    INSERT INTO adm_operator (
+                    INSERT INTO ADM_OPERATOR (
                         OPERATOR_ID, OPERATOR_NAME, PASSWORD_HASH, ACCOUNT_STATUS, VERSION_NO, LOCKED_YN, FAIL_COUNT,
                         PASSWORD_CHANGED_AT, PASSWORD_CHANGE_REQUIRED_YN, USE_YN, CREATED_BY, UPDATED_BY
                     )
                     SELECT ?, ?, ?, 'ACTIVE', 0, 'N', 0, CURRENT_TIMESTAMP, 'Y', 'Y', 'BOOTSTRAP', 'BOOTSTRAP'
                     WHERE NOT EXISTS (
-                        SELECT 1 FROM adm_operator WHERE OPERATOR_ID = ?
+                        SELECT 1 FROM ADM_OPERATOR WHERE OPERATOR_ID = ?
                     )
                     """, operatorId, operatorName, passwordHash, operatorId);
             if (inserted > 0) {
@@ -270,7 +270,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 int failed = state.failedLoginCount + 1;
                 boolean locked = failed >= passwordPolicyService.maxFailCount();
                 admJdbcTemplate.update("""
-                        UPDATE adm_operator
+                        UPDATE ADM_OPERATOR
                         SET FAIL_COUNT = ?, LOCKED_YN = ?, ACCOUNT_STATUS = CASE WHEN ? = 'Y' THEN 'LOCKED' ELSE ACCOUNT_STATUS END,
                             VERSION_NO = VERSION_NO + 1, UPDATED_BY = 'ADM', UPDATED_AT = CURRENT_TIMESTAMP
                         WHERE OPERATOR_ID = ?
@@ -278,7 +278,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 throw new CpfValidationException("운영자 인증에 실패했습니다.");
             }
             admJdbcTemplate.update("""
-                    UPDATE adm_operator
+                    UPDATE ADM_OPERATOR
                     SET FAIL_COUNT = 0,
                         LAST_LOGIN_AT = CURRENT_TIMESTAMP,
                         VERSION_NO = VERSION_NO + 1,
@@ -288,7 +288,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                     """, operatorId);
             if (verification.rehashRequired()) {
                 admJdbcTemplate.update("""
-                        UPDATE adm_operator
+                        UPDATE ADM_OPERATOR
                         SET PASSWORD_HASH = ?, UPDATED_BY = 'CPF_PASSWORD_UPGRADE', UPDATED_AT = CURRENT_TIMESTAMP
                         WHERE OPERATOR_ID = ? AND PASSWORD_HASH = ?
                         """, hashPassword(password), operatorId, state.passwordHash);
@@ -319,11 +319,11 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             }
             requirePasswordNotReused(operatorId, newPassword, before);
             admJdbcTemplate.update("""
-                    INSERT INTO adm_password_history (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
+                    INSERT INTO ADM_PASSWORD_HISTORY (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
                     VALUES (?, ?, ?, ?, ?)
                     """, operatorId, before.passwordHash, reason, operatorId, operatorId);
             int updated = admJdbcTemplate.update("""
-                    UPDATE adm_operator
+                    UPDATE ADM_OPERATOR
                     SET PASSWORD_HASH = ?, PASSWORD_CHANGED_AT = CURRENT_TIMESTAMP,
                         PASSWORD_CHANGE_REQUIRED_YN = 'N', FAIL_COUNT = 0, LOCKED_YN = 'N',
                         ACCOUNT_STATUS = CASE WHEN ACCOUNT_STATUS = 'LOCKED' THEN 'ACTIVE' ELSE ACCOUNT_STATUS END,
@@ -371,11 +371,11 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             OperatorState before = loadOperatorState(operatorId);
             requirePasswordNotReused(operatorId, request.newPassword(), before);
             admJdbcTemplate.update("""
-                    INSERT INTO adm_password_history (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
+                    INSERT INTO ADM_PASSWORD_HISTORY (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
                     VALUES (?, ?, ?, ?, ?)
                     """, operatorId, before.passwordHash, CpfStrings.defaultIfBlank(request.reason(), "비밀번호 초기화"), requestUser, requestUser);
             int updated = admJdbcTemplate.update("""
-                    UPDATE adm_operator
+                    UPDATE ADM_OPERATOR
                     SET PASSWORD_HASH = ?,
                         PASSWORD_CHANGED_AT = CURRENT_TIMESTAMP,
                         PASSWORD_CHANGE_REQUIRED_YN = ?,
@@ -420,12 +420,12 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
         try {
             Integer roleCount = admJdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM adm_operator_role WHERE OPERATOR_ID = ?", Integer.class, operatorId);
+                    "SELECT COUNT(*) FROM ADM_OPERATOR_ROLE WHERE OPERATOR_ID = ?", Integer.class, operatorId);
             if (roleCount == null || roleCount == 0) {
                 throw new CpfValidationException("역할이 없는 운영자는 잠금 해제 후 ACTIVE로 전환할 수 없습니다.");
             }
             int updated = admJdbcTemplate.update("""
-                    UPDATE adm_operator
+                    UPDATE ADM_OPERATOR
                     SET LOCKED_YN = 'N',
                         FAIL_COUNT = 0,
                         ACCOUNT_STATUS = 'ACTIVE',
@@ -468,13 +468,13 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
         try {
             Integer operatorCount = admJdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM adm_operator WHERE OPERATOR_ID = ? AND USE_YN = 'Y'", Integer.class, operatorId);
+                    "SELECT COUNT(*) FROM ADM_OPERATOR WHERE OPERATOR_ID = ? AND USE_YN = 'Y'", Integer.class, operatorId);
             if (operatorCount == null || operatorCount == 0) {
                 throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             replaceRoles(operatorId, roleIds, requestUser);
             int updated = admJdbcTemplate.update("""
-                    UPDATE adm_operator SET VERSION_NO = VERSION_NO + 1, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
+                    UPDATE ADM_OPERATOR SET VERSION_NO = VERSION_NO + 1, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                     WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
                     """, requestUser, operatorId);
             if (updated != 1) throw new CpfValidationException("운영자 역할 변경에 실패했습니다.");
@@ -506,8 +506,8 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         try {
             List<AdmOperatorRawContactResponse> rows = admJdbcTemplate.query("""
                     SELECT u.OPERATOR_ID, p.MOBILE_NO, p.OFFICE_PHONE_NO
-                    FROM adm_operator u
-                    LEFT JOIN adm_operator_profile p ON p.OPERATOR_ID = u.OPERATOR_ID
+                    FROM ADM_OPERATOR u
+                    LEFT JOIN ADM_OPERATOR_PROFILE p ON p.OPERATOR_ID = u.OPERATOR_ID
                     WHERE u.OPERATOR_ID = ? AND u.USE_YN = 'Y'
                     """, (rs, rowNum) -> new AdmOperatorRawContactResponse(
                     rs.getString("OPERATOR_ID"), rs.getString("MOBILE_NO"), rs.getString("OFFICE_PHONE_NO"),
@@ -551,7 +551,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 : request.officePhoneNo() == null || request.officePhoneNo().isBlank() ? current.officePhoneNo()
                 : CpfSensitiveData.normalizePhone(request.officePhoneNo(), "officePhoneNo");
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_operator
+                UPDATE ADM_OPERATOR
                    SET VERSION_NO = VERSION_NO + 1, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                  WHERE OPERATOR_ID = ? AND VERSION_NO = ? AND USE_YN = 'Y'
                 """, user, operatorId, request.expectedVersion());
@@ -588,7 +588,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             OperatorState current = loadOperatorState(operatorId);
             requireAllowedTransition(current.accountStatus, status, current.roleIds);
             int updated = admJdbcTemplate.update("""
-                    UPDATE adm_operator
+                    UPDATE ADM_OPERATOR
                        SET ACCOUNT_STATUS = ?, LOCKED_YN = CASE WHEN ? = 'LOCKED' THEN 'Y' ELSE 'N' END,
                            VERSION_NO = VERSION_NO + 1, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                      WHERE OPERATOR_ID = ? AND VERSION_NO = ? AND ACCOUNT_STATUS = ? AND USE_YN = 'Y'
@@ -605,7 +605,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         try {
             return admJdbcTemplate.query("""
                     SELECT ROLE_ID, ROLE_NAME, DESCRIPTION
-                    FROM adm_role
+                    FROM ADM_ROLE
                     WHERE USE_YN = 'Y'
                     ORDER BY ROLE_ID
                     """, (rs, rowNum) -> new AdmRole(rs.getString("ROLE_ID"), rs.getString("ROLE_NAME"), rs.getString("DESCRIPTION")));
@@ -619,7 +619,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         try {
             return admJdbcTemplate.query("""
                     SELECT MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER
-                    FROM adm_menu
+                    FROM ADM_MENU
                     WHERE USE_YN = 'Y'
                     ORDER BY SORT_ORDER, MENU_ID
                     """, (rs, rowNum) -> new AdmMenu(
@@ -643,8 +643,8 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                            MAX(rm.READ_YN) AS READ_YN,
                            MAX(rm.WRITE_YN) AS WRITE_YN,
                            MAX(rm.DELETE_YN) AS DELETE_YN
-                    FROM adm_menu m
-                    JOIN adm_role_menu rm ON rm.MENU_ID = m.MENU_ID
+                    FROM ADM_MENU m
+                    JOIN ADM_ROLE_MENU rm ON rm.MENU_ID = m.MENU_ID
                     WHERE m.USE_YN = 'Y'
                       AND rm.READ_YN = 'Y'
                       AND rm.ROLE_ID IN (%s)
@@ -674,8 +674,8 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             String placeholders = String.join(",", roleIds.stream().map(role -> "?").toList());
             return admJdbcTemplate.queryForList("""
                     SELECT DISTINCT b.BUTTON_ID
-                    FROM adm_button b
-                    JOIN adm_role_button rb ON rb.BUTTON_ID = b.BUTTON_ID
+                    FROM ADM_BUTTON b
+                    JOIN ADM_ROLE_BUTTON rb ON rb.BUTTON_ID = b.BUTTON_ID
                     WHERE b.USE_YN = 'Y'
                       AND rb.ALLOW_YN = 'Y'
                       AND rb.ROLE_ID IN (%s)
@@ -697,10 +697,10 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private void replaceRoles(String operatorId, List<String> roleIds, String requestUser) {
-        admJdbcTemplate.update("DELETE FROM adm_operator_role WHERE OPERATOR_ID = ?", operatorId);
+        admJdbcTemplate.update("DELETE FROM ADM_OPERATOR_ROLE WHERE OPERATOR_ID = ?", operatorId);
         for (String roleId : roleIds.stream().filter(value -> value != null && !value.isBlank()).distinct().sorted().toList()) {
             admJdbcTemplate.update("""
-                    INSERT INTO adm_operator_role (OPERATOR_ID, ROLE_ID, CREATED_BY, UPDATED_BY)
+                    INSERT INTO ADM_OPERATOR_ROLE (OPERATOR_ID, ROLE_ID, CREATED_BY, UPDATED_BY)
                     VALUES (?, ?, ?, ?)
                     """, operatorId, roleId, requestUser, requestUser);
         }
@@ -718,7 +718,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 SELECT u.OPERATOR_ID, u.OPERATOR_NAME, u.PASSWORD_HASH, u.ACCOUNT_STATUS, u.VERSION_NO,
                        u.LOCKED_YN, u.FAIL_COUNT, u.PASSWORD_CHANGED_AT, u.PASSWORD_CHANGE_REQUIRED_YN,
                        u.CREATED_AT, u.UPDATED_AT
-                FROM adm_operator u
+                FROM ADM_OPERATOR u
                 WHERE u.OPERATOR_ID = ? AND u.USE_YN = 'Y'
                 """, (rs, rowNum) -> new OperatorState(
                 rs.getString("OPERATOR_ID"), rs.getString("OPERATOR_NAME"), rs.getString("PASSWORD_HASH"),
@@ -735,7 +735,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
 
     private List<String> findRoleIds(String operatorId) {
         return admJdbcTemplate.queryForList("""
-                SELECT ROLE_ID FROM adm_operator_role WHERE OPERATOR_ID = ? ORDER BY ROLE_ID
+                SELECT ROLE_ID FROM ADM_OPERATOR_ROLE WHERE OPERATOR_ID = ? ORDER BY ROLE_ID
                 """, String.class, operatorId);
     }
 
@@ -774,7 +774,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
         List<String> historyHashes = admJdbcTemplate.queryForList("""
                 SELECT PASSWORD_HASH
-                FROM adm_password_history
+                FROM ADM_PASSWORD_HISTORY
                 WHERE OPERATOR_ID = ?
                 ORDER BY created_at DESC, HISTORY_ID DESC
                 """, String.class, operatorId).stream().limit(historyLimit).toList();
@@ -815,7 +815,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         String normalizedMobileNo = CpfSensitiveData.normalizePhone(mobileNo, "mobileNo");
         String normalizedOfficePhoneNo = CpfSensitiveData.normalizePhone(officePhoneNo, "officePhoneNo");
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_operator_profile
+                UPDATE ADM_OPERATOR_PROFILE
                    SET DISPLAY_NAME = COALESCE(?, DISPLAY_NAME), MOBILE_NO = ?, OFFICE_PHONE_NO = ?,
                        VERSION_NO = VERSION_NO + 1, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                  WHERE OPERATOR_ID = ?
@@ -825,16 +825,16 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             String resolvedDisplayName = displayName;
             if (resolvedDisplayName == null || resolvedDisplayName.isBlank()) {
                 resolvedDisplayName = admJdbcTemplate.queryForObject(
-                        "SELECT OPERATOR_NAME FROM adm_operator WHERE OPERATOR_ID = ?", String.class, operatorId);
+                        "SELECT OPERATOR_NAME FROM ADM_OPERATOR WHERE OPERATOR_ID = ?", String.class, operatorId);
             }
             admJdbcTemplate.update("""
-                    INSERT INTO adm_operator_profile (
+                    INSERT INTO ADM_OPERATOR_PROFILE (
                         OPERATOR_ID, DISPLAY_NAME, MOBILE_NO, OFFICE_PHONE_NO, VERSION_NO, CREATED_BY, UPDATED_BY
                     ) VALUES (?, ?, ?, ?, 0, ?, ?)
                     """, operatorId, resolvedDisplayName, normalizedMobileNo, normalizedOfficePhoneNo, requestUser, requestUser);
         } catch (DuplicateKeyException race) {
             admJdbcTemplate.update("""
-                    UPDATE adm_operator_profile
+                    UPDATE ADM_OPERATOR_PROFILE
                        SET DISPLAY_NAME = COALESCE(?, DISPLAY_NAME), MOBILE_NO = ?, OFFICE_PHONE_NO = ?,
                            VERSION_NO = VERSION_NO + 1, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                      WHERE OPERATOR_ID = ?
@@ -846,7 +846,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         try {
             List<OperatorContactProfile> profiles = admJdbcTemplate.query("""
                     SELECT MOBILE_NO, OFFICE_PHONE_NO
-                    FROM adm_operator_profile
+                    FROM ADM_OPERATOR_PROFILE
                     WHERE OPERATOR_ID = ?
                     """, (rs, rowNum) -> new OperatorContactProfile(
                     rs.getString("MOBILE_NO"), rs.getString("OFFICE_PHONE_NO")), operatorId);

@@ -87,7 +87,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         int updated = jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement("""
-                    INSERT INTO cpf_notification_delivery_log (
+                    INSERT INTO CPF_NOTIFICATION_DELIVERY_LOG (
                         rule_id, event_type, target_type, target_id, receiver,
                         delivery_status, delivery_message, requested_at, delivered_at,
                         operation_id, request_hash, payload_body, attempt_count, max_attempts,
@@ -119,7 +119,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
         Number key = generatedNumber(keyHolder, "delivery_id");
         if (key == null) {
             Long deliveryId = jdbcTemplate.queryForObject(
-                    "SELECT delivery_id FROM cpf_notification_delivery_log WHERE operation_id = ?",
+                    "SELECT delivery_id FROM CPF_NOTIFICATION_DELIVERY_LOG WHERE operation_id = ?",
                     Long.class,
                     operationId);
             if (deliveryId == null) {
@@ -194,7 +194,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
             throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
         }
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_notification_delivery_log
+                UPDATE CPF_NOTIFICATION_DELIVERY_LOG
                 SET delivery_status = 'RETRY',
                     next_attempt_at = ?,
                     lease_owner = NULL,
@@ -230,7 +230,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
             throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
         }
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_notification_delivery_log
+                UPDATE CPF_NOTIFICATION_DELIVERY_LOG
                 SET delivery_status = 'CANCELLED',
                     next_attempt_at = NULL,
                     lease_owner = NULL,
@@ -266,7 +266,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
         // complete()와 동일하게 Parent Outbox row를 먼저 확정한 뒤 Attempt row를 갱신합니다.
         // 반대 순서로 잠그면 정상 결과 확정과 Lease 복구가 교차할 때 DB deadlock 가능성이 있습니다.
         int recovered = jdbcTemplate.update("""
-                UPDATE cpf_notification_delivery_log
+                UPDATE CPF_NOTIFICATION_DELIVERY_LOG
                 SET delivery_status = 'UNKNOWN_RESULT',
                     delivery_message = 'Worker lease expired before delivery result was committed',
                     next_attempt_at = NULL,
@@ -284,7 +284,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
         // V68 적용 이전에 이미 PROCESSING이었던 row는 Attempt row가 없을 수 있으므로
         // Parent 격리는 유지하되 존재하는 미완료 Attempt만 결과 불명으로 확정합니다.
         jdbcTemplate.update("""
-                UPDATE cpf_notification_delivery_attempt
+                UPDATE CPF_NOTIFICATION_DELIVERY_ATTEMPT
                 SET attempt_status = 'UNKNOWN_RESULT',
                     provider_status = 'LEASE_EXPIRED_UNKNOWN_RESULT',
                     provider_message = 'Worker lease expired before delivery result was committed',
@@ -292,7 +292,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
                 WHERE completed_at IS NULL
                   AND delivery_id IN (
                       SELECT delivery_id
-                      FROM cpf_notification_delivery_log
+                      FROM CPF_NOTIFICATION_DELIVERY_LOG
                       WHERE delivery_status = 'UNKNOWN_RESULT'
                         AND last_error_code = 'LEASE_EXPIRED_UNKNOWN_RESULT'
                         AND updated_by = ?
@@ -306,7 +306,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
         return jdbcTemplate.query(connection -> {
             PreparedStatement statement = connection.prepareStatement("""
                     SELECT delivery_id, version
-                    FROM cpf_notification_delivery_log
+                    FROM CPF_NOTIFICATION_DELIVERY_LOG
                     WHERE delivery_status IN ('READY', 'RETRY')
                       AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
                       AND (lease_until IS NULL OR lease_until < ?)
@@ -322,7 +322,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
     private ClaimedDelivery claim(Candidate candidate, String owner) {
         Instant now = Instant.now();
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_notification_delivery_log
+                UPDATE CPF_NOTIFICATION_DELIVERY_LOG
                 SET delivery_status = 'PROCESSING',
                     lease_owner = ?,
                     lease_until = ?,
@@ -351,8 +351,8 @@ public class AdmNotificationOutboxService extends AdmBaseService {
                        r.severity, r.receiver_group, r.use_yn, r.created_by AS rule_created_by,
                        r.created_at AS rule_created_at, r.updated_by AS rule_updated_by,
                        r.updated_at AS rule_updated_at
-                FROM cpf_notification_delivery_log d
-                JOIN cpf_notification_rule r ON r.rule_id = d.rule_id
+                FROM CPF_NOTIFICATION_DELIVERY_LOG d
+                JOIN CPF_NOTIFICATION_RULE r ON r.rule_id = d.rule_id
                 WHERE d.delivery_id = ? AND d.lease_owner = ? AND d.delivery_status = 'PROCESSING'
                 """, (rs, rowNum) -> new ClaimedDelivery(
                 rs.getLong("delivery_id"),
@@ -379,7 +379,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
                         rs.getString("rule_updated_by"),
                         toLocalDateTime(rs.getTimestamp("rule_updated_at")))));
         int attemptInserted = jdbcTemplate.update("""
-                INSERT INTO cpf_notification_delivery_attempt (
+                INSERT INTO CPF_NOTIFICATION_DELIVERY_ATTEMPT (
                     delivery_id, attempt_no, operation_id, worker_id, attempt_status,
                     provider_status, provider_message, started_at, completed_at,
                     lease_version, created_by
@@ -416,7 +416,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
         }
         String safeProviderMessage = sanitizeProviderMessage(defaultText(result.deliveryMessage(), finalStatus));
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_notification_delivery_log
+                UPDATE CPF_NOTIFICATION_DELIVERY_LOG
                 SET delivery_status = ?,
                     delivery_message = ?,
                     delivered_at = ?,
@@ -445,7 +445,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
             throw new IllegalStateException("알림 발송 결과 CAS 확정에 실패했습니다. deliveryId=" + delivery.deliveryId());
         }
         int attemptUpdated = jdbcTemplate.update("""
-                UPDATE cpf_notification_delivery_attempt
+                UPDATE CPF_NOTIFICATION_DELIVERY_ATTEMPT
                 SET attempt_status = ?,
                     provider_status = ?,
                     provider_message = ?,
@@ -475,7 +475,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
                 SELECT delivery_id, operation_id, request_hash, delivery_status,
                        attempt_count, max_attempts, next_attempt_at, lease_owner,
                        lease_until, version, last_error_code, updated_by, updated_at
-                FROM cpf_notification_delivery_log
+                FROM CPF_NOTIFICATION_DELIVERY_LOG
                 WHERE delivery_id = ?
                 """, (rs, rowNum) -> new AdmNotificationDeliveryStatusResponse(
                 rs.getLong("delivery_id"),rs.getString("operation_id"),rs.getString("request_hash"),
@@ -489,7 +489,7 @@ public class AdmNotificationOutboxService extends AdmBaseService {
     private void throwVersionConflict(long deliveryId, long expectedVersion, String action) {
         List<CurrentState> current = jdbcTemplate.query("""
                 SELECT delivery_status, version
-                FROM cpf_notification_delivery_log
+                FROM CPF_NOTIFICATION_DELIVERY_LOG
                 WHERE delivery_id = ?
                 """,
                 (rs, rowNum) -> new CurrentState(

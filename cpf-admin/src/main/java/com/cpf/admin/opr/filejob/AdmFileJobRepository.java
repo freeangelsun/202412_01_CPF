@@ -24,23 +24,23 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     }
 
     public Optional<Job> findByOperation(String operationId){
-        return jdbc.query("SELECT * FROM adm_file_job WHERE operation_id=?",
+        return jdbc.query("SELECT * FROM ADM_FILE_JOB WHERE operation_id=?",
                 ps->ps.setString(1,operationId),rs->rs.next()?Optional.of(mapJob(rs)):Optional.empty());
     }
     public Job get(String jobId){
-        return jdbc.query("SELECT * FROM adm_file_job WHERE job_id=?",ps->ps.setString(1,jobId),
+        return jdbc.query("SELECT * FROM ADM_FILE_JOB WHERE job_id=?",ps->ps.setString(1,jobId),
                 rs->{if(!rs.next())throw new IllegalArgumentException("File Job을 찾을 수 없습니다.");return mapJob(rs);});
     }
     public List<Job> list(int limit){
         int bounded=Math.max(1,Math.min(limit,500));
         return jdbc.query(con->{
-            PreparedStatement ps=con.prepareStatement("SELECT * FROM adm_file_job ORDER BY created_at DESC");
+            PreparedStatement ps=con.prepareStatement("SELECT * FROM ADM_FILE_JOB ORDER BY created_at DESC");
             ps.setMaxRows(bounded);return ps;},(rs,row)->mapJob(rs));
     }
     public Job insert(Job job){
         try{
             jdbc.update("""
-                INSERT INTO adm_file_job
+                INSERT INTO ADM_FILE_JOB
                 (job_id,operation_id,request_hash,job_type,template_code,template_version,file_format,
                  job_state,dry_run,rollback_supported,source_path,result_path,source_sha256,result_sha256,
                  total_rows,success_rows,failed_rows,lease_owner,fencing_token,lease_until,retention_until,
@@ -63,7 +63,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     }
     public boolean transition(String jobId,AdmFileJobState expected,AdmFileJobState next,String errorCode,String errorMessage){
         return jdbc.update("""
-            UPDATE adm_file_job SET job_state=?,error_code=?,error_message=?,updated_at=?
+            UPDATE ADM_FILE_JOB SET job_state=?,error_code=?,error_message=?,updated_at=?
              WHERE job_id=? AND job_state=?
             """,next.name(),errorCode,errorMessage,ts(Instant.now()),jobId,expected.name())==1;
     }
@@ -72,7 +72,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
                                      String errorCode, String errorMessage){
         Objects.requireNonNull(actor,"actor");
         String actorColumn=switch(actor){case APPLIED_BY->"applied_by";case RESOLVED_BY->"resolved_by";case NONE->null;};
-        String sql="UPDATE adm_file_job SET job_state=?,error_code=?,error_message=?,approval_id=?,control_by=?,control_reason=?,control_updated_at=?,updated_at=?"
+        String sql="UPDATE ADM_FILE_JOB SET job_state=?,error_code=?,error_message=?,approval_id=?,control_by=?,control_reason=?,control_updated_at=?,updated_at=?"
                 +(actorColumn==null?"":","+actorColumn+"=?")+" WHERE job_id=? AND job_state=?";
         List<Object> args=new ArrayList<>(Arrays.asList(next.name(),errorCode,errorMessage,approvalId,operator,reason,ts(Instant.now()),ts(Instant.now())));
         if(actorColumn!=null)args.add(operator);
@@ -83,7 +83,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
         for(AdmFileJobState state:states){
             List<Job> candidates=jdbc.query(con->{
                 PreparedStatement ps=con.prepareStatement("""
-                    SELECT * FROM adm_file_job
+                    SELECT * FROM ADM_FILE_JOB
                      WHERE job_state=? AND (lease_until IS NULL OR lease_until<?)
                      ORDER BY created_at
                     """);ps.setString(1,state.name());ps.setTimestamp(2,ts(Instant.now()));ps.setMaxRows(10);return ps;
@@ -91,7 +91,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
             for(Job candidate:candidates){
                 long fence=candidate.fencingToken()+1;
                 int updated=jdbc.update("""
-                    UPDATE adm_file_job SET lease_owner=?,fencing_token=?,lease_until=?,updated_at=?
+                    UPDATE ADM_FILE_JOB SET lease_owner=?,fencing_token=?,lease_until=?,updated_at=?
                      WHERE job_id=? AND job_state=? AND fencing_token=?
                        AND (lease_until IS NULL OR lease_until<?)
                     """,owner,fence,ts(Instant.now().plus(lease)),ts(Instant.now()),candidate.jobId(),
@@ -103,7 +103,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     }
     public void heartbeat(String jobId,String owner,long fence,Duration lease){
         if(jdbc.update("""
-            UPDATE adm_file_job SET lease_until=?,updated_at=?
+            UPDATE ADM_FILE_JOB SET lease_until=?,updated_at=?
              WHERE job_id=? AND lease_owner=? AND fencing_token=? AND lease_until>=?
             """,ts(Instant.now().plus(lease)),ts(Instant.now()),jobId,owner,fence,ts(Instant.now()))!=1)throw new IllegalStateException("File Job lease/fencing을 잃었습니다.");
     }
@@ -114,7 +114,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     public void complete(String jobId,String owner,long fence,AdmFileJobState state,long total,long success,long failed,
                          String sourceSha,String resultPath,String resultSha,String errorCode,String errorMessage){
         if(jdbc.update("""
-            UPDATE adm_file_job SET job_state=?,total_rows=?,success_rows=?,failed_rows=?,
+            UPDATE ADM_FILE_JOB SET job_state=?,total_rows=?,success_rows=?,failed_rows=?,
                    source_sha256=?,result_path=?,result_sha256=?,error_code=?,error_message=?,
                    lease_owner=NULL,lease_until=NULL,updated_at=?
              WHERE job_id=? AND lease_owner=? AND fencing_token=? AND lease_until>=?
@@ -123,17 +123,17 @@ public class AdmFileJobRepository extends AdmBaseRepository {
             throw new IllegalStateException("File Job 완료 fencing 검증에 실패했습니다.");
     }
     public void deleteRowsFenced(String jobId,String owner,long fence){
-        int active=jdbc.queryForObject("SELECT COUNT(*) FROM adm_file_job WHERE job_id=? AND lease_owner=? AND fencing_token=? AND lease_until>=?",
+        int active=jdbc.queryForObject("SELECT COUNT(*) FROM ADM_FILE_JOB WHERE job_id=? AND lease_owner=? AND fencing_token=? AND lease_until>=?",
                 Integer.class,jobId,owner,fence,ts(Instant.now()));
         if(active!=1)throw new IllegalStateException("File Job 행 초기화 fencing 검증에 실패했습니다.");
-        jdbc.update("DELETE FROM adm_file_job_row WHERE job_id=?",jobId);
+        jdbc.update("DELETE FROM ADM_FILE_JOB_ROW WHERE job_id=?",jobId);
     }
     public void markRowDispatching(String jobId,long rowNumber,String owner,long fence,String expectedState,String dispatchState){
         Instant now=Instant.now();
         int updated=jdbc.update("""
-            UPDATE adm_file_job_row SET row_state=?,error_code=NULL,error_message=NULL,updated_at=?
+            UPDATE ADM_FILE_JOB_ROW SET row_state=?,error_code=NULL,error_message=NULL,updated_at=?
              WHERE job_id=? AND row_no=? AND row_state=?
-               AND EXISTS (SELECT 1 FROM adm_file_job j WHERE j.job_id=? AND j.lease_owner=? AND j.fencing_token=? AND j.lease_until>=?)
+               AND EXISTS (SELECT 1 FROM ADM_FILE_JOB j WHERE j.job_id=? AND j.lease_owner=? AND j.fencing_token=? AND j.lease_until>=?)
             """,dispatchState,ts(now),jobId,rowNumber,expectedState,jobId,owner,fence,ts(now));
         if(updated!=1)throw new IllegalStateException("File Job 행 Dispatch lease/fencing/CAS 검증에 실패했습니다.");
     }
@@ -141,16 +141,16 @@ public class AdmFileJobRepository extends AdmBaseRepository {
                                 String errorCode,String message,String rollbackToken){
         Instant now=Instant.now();
         int updated=jdbc.update("""
-            UPDATE adm_file_job_row SET row_state=?,business_key=?,error_code=?,error_message=?,rollback_token=?,updated_at=?
+            UPDATE ADM_FILE_JOB_ROW SET row_state=?,business_key=?,error_code=?,error_message=?,rollback_token=?,updated_at=?
              WHERE job_id=? AND row_no=? AND row_state=?
-               AND EXISTS (SELECT 1 FROM adm_file_job j WHERE j.job_id=? AND j.lease_owner=? AND j.fencing_token=? AND j.lease_until>=?)
+               AND EXISTS (SELECT 1 FROM ADM_FILE_JOB j WHERE j.job_id=? AND j.lease_owner=? AND j.fencing_token=? AND j.lease_until>=?)
             """,state,businessKey,errorCode,message,rollbackToken,ts(now),jobId,rowNumber,expectedState,jobId,owner,fence,ts(now));
         if(updated!=1)throw new IllegalStateException("File Job 행 갱신 lease/fencing/CAS 검증에 실패했습니다.");
     }
     public void resolveUnknownJob(String jobId,long success,long failed,AdmFileJobState next,String errorCode,String errorMessage,
                                   String operator,String reason,String approvalId){
         int updated=jdbc.update("""
-            UPDATE adm_file_job SET job_state=?,success_rows=?,failed_rows=?,error_code=?,error_message=?,
+            UPDATE ADM_FILE_JOB SET job_state=?,success_rows=?,failed_rows=?,error_code=?,error_message=?,
                    approval_id=?,resolved_by=?,control_by=?,control_reason=?,control_updated_at=?,lease_owner=NULL,lease_until=NULL,updated_at=?
              WHERE job_id=? AND job_state=?
             """,next.name(),success,failed,errorCode,errorMessage,approvalId,operator,operator,reason,ts(Instant.now()),
@@ -160,7 +160,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     public void addRow(String jobId,long rowNumber,String status,String businessKey,Map<String,String> payload,
                        String errorCode,String message,String rollbackToken){
         jdbc.update("""
-            INSERT INTO adm_file_job_row
+            INSERT INTO ADM_FILE_JOB_ROW
             (job_id,row_no,row_state,business_key,payload_json,error_code,error_message,rollback_token,created_at,updated_at)
             VALUES (?,?,?,?,?,?,?,?,?,?)
             """,jobId,rowNumber,status,businessKey,payloadProtector.protect(json(payload)),errorCode,message,rollbackToken,
@@ -169,16 +169,16 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     public List<Row> rows(String jobId){
         return jdbc.query("""
             SELECT job_id,row_no,row_state,business_key,payload_json,error_code,error_message,rollback_token
-              FROM adm_file_job_row WHERE job_id=? ORDER BY row_no
+              FROM ADM_FILE_JOB_ROW WHERE job_id=? ORDER BY row_no
             """,(rs,row)->new Row(rs.getString(1),rs.getLong(2),rs.getString(3),rs.getString(4),
                 map(payloadProtector.unprotect(rs.getString(5))),rs.getString(6),rs.getString(7),rs.getString(8)),jobId);
     }
     public void resolveUnknownRow(String jobId,long rowNumber,String expectedState,String nextState,String businessKey,
                                   String errorCode,String message,String rollbackToken){
         int updated=jdbc.update("""
-            UPDATE adm_file_job_row SET row_state=?,business_key=?,error_code=?,error_message=?,rollback_token=?,updated_at=?
+            UPDATE ADM_FILE_JOB_ROW SET row_state=?,business_key=?,error_code=?,error_message=?,rollback_token=?,updated_at=?
              WHERE job_id=? AND row_no=? AND row_state=?
-               AND EXISTS (SELECT 1 FROM adm_file_job j WHERE j.job_id=? AND j.job_state=?)
+               AND EXISTS (SELECT 1 FROM ADM_FILE_JOB j WHERE j.job_id=? AND j.job_state=?)
             """,nextState,businessKey,errorCode,message,rollbackToken,ts(Instant.now()),jobId,rowNumber,expectedState,
                 jobId,AdmFileJobState.UNKNOWN_RESULT.name());
         if(updated!=1)throw new IllegalStateException("결과 불명 행 상태가 이미 변경되었습니다.");
@@ -186,7 +186,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     public List<Job> expired(int limit){
         int bounded=Math.max(1,Math.min(limit,500));
         return jdbc.query(con->{PreparedStatement ps=con.prepareStatement("""
-            SELECT * FROM adm_file_job WHERE retention_until<?
+            SELECT * FROM ADM_FILE_JOB WHERE retention_until<?
              AND (job_state IN (?,?,?,?,?)
                   OR (job_state=? AND (source_path IS NOT NULL OR result_path IS NOT NULL)))
              ORDER BY retention_until
@@ -199,7 +199,7 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     }
     public boolean beginExpiry(String jobId){
         return jdbc.update("""
-            UPDATE adm_file_job SET job_state=?,updated_at=?
+            UPDATE ADM_FILE_JOB SET job_state=?,updated_at=?
              WHERE job_id=? AND retention_until<?
                AND job_state IN (?,?,?,?,?,?)
             """,AdmFileJobState.EXPIRED.name(),ts(Instant.now()),jobId,ts(Instant.now()),
@@ -208,11 +208,11 @@ public class AdmFileJobRepository extends AdmBaseRepository {
     }
     public void finalizeExpiry(String jobId){
         int updated=jdbc.update("""
-            UPDATE adm_file_job SET source_path=NULL,result_path=NULL,updated_at=?
+            UPDATE ADM_FILE_JOB SET source_path=NULL,result_path=NULL,updated_at=?
              WHERE job_id=? AND job_state=?
             """,ts(Instant.now()),jobId,AdmFileJobState.EXPIRED.name());
         if(updated!=1)throw new IllegalStateException("만료 Job 상태가 변경되었습니다.");
-        jdbc.update("DELETE FROM adm_file_job_row WHERE job_id=?",jobId);
+        jdbc.update("DELETE FROM ADM_FILE_JOB_ROW WHERE job_id=?",jobId);
     }
 
     private Job mapJob(ResultSet rs)throws SQLException{

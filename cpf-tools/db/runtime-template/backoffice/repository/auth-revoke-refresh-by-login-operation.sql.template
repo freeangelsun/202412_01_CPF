@@ -1,1 +1,1 @@
-UPDATE mbw_refresh_token SET revoked_yn = 'Y', revoked_at = @NOW@, updated_by = 'MBW_LOGIN_RETRY', updated_at = @NOW@ WHERE login_operation_id = :operationId AND revoked_yn = 'N'
+UPDATE MBW_REFRESH_TOKEN SET revoked_yn = 'Y', revoked_at = @NOW@, updated_by = 'MBW_LOGIN_RETRY', updated_at = @NOW@ WHERE login_operation_id = :operationId AND revoked_yn = 'N'

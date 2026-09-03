@@ -3,6 +3,6 @@ SELECT login_history_id AS historyId, login_domain AS loginDomain, admin_user_id
        client_ip AS clientIp, user_agent AS userAgent, transaction_id AS transactionId,
        system_code AS moduleId, application_name AS wasId, instance_id AS instanceId,
        created_at AS occurredAt
-FROM mbw_login_history
+FROM MBW_LOGIN_HISTORY
 ORDER BY login_history_id DESC
 @LIMIT_NAMED@

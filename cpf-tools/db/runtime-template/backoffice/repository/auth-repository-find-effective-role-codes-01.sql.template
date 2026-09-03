@@ -1,6 +1,6 @@
 SELECT ur.role_code
-  FROM mbw_user_role ur
-  JOIN mbw_role r ON r.role_code = ur.role_code AND r.use_yn = 'Y'
+  FROM MBW_USER_ROLE ur
+  JOIN MBW_ROLE r ON r.role_code = ur.role_code AND r.use_yn = 'Y'
  WHERE ur.admin_user_id = :adminUserId
    AND (ur.valid_from IS NULL OR ur.valid_from <= @NOW3@)
    AND (ur.valid_to IS NULL OR ur.valid_to > @NOW3@)

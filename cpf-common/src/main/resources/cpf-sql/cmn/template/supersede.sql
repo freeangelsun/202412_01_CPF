@@ -1,1 +1,1 @@
-UPDATE cmn_template_definition SET status_code='RETIRED',active_yn='N',revision_no=revision_no+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE template_code=? AND template_version=? AND channel_code=? AND revision_no=? AND status_code='APPROVED' AND active_yn='Y'
+UPDATE CMN_TEMPLATE_DEFINITION SET status_code='RETIRED',active_yn='N',revision_no=revision_no+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE template_code=? AND template_version=? AND channel_code=? AND revision_no=? AND status_code='APPROVED' AND active_yn='Y'

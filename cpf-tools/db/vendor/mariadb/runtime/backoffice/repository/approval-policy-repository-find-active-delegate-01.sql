@@ -1,5 +1,5 @@
 SELECT delegate_employee_no AS delegateEmployeeNo
-  FROM mbw_approval_delegation
+  FROM MBW_APPROVAL_DELEGATION
  WHERE delegator_employee_no=:employeeNo AND use_yn='Y'
    AND valid_from <= :at AND valid_to > :at
    AND (business_domain IS NULL OR business_domain=:businessDomain)

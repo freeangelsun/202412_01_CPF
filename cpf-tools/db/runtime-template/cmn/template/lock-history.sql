@@ -1,1 +1,1 @@
-SELECT template_code,template_version,channel_code,template_body,allowed_variables,status_code,active_yn,revision_no,created_by FROM cmn_template_definition WHERE template_code=? AND channel_code=? ORDER BY template_version FOR UPDATE
+SELECT template_code,template_version,channel_code,template_body,allowed_variables,status_code,active_yn,revision_no,created_by FROM CMN_TEMPLATE_DEFINITION WHERE template_code=? AND channel_code=? ORDER BY template_version FOR UPDATE

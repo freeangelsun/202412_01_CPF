@@ -204,6 +204,13 @@ public class BackofficeAuthRepository extends BackofficeBaseRepository {
 
     /**
      * 업무 관리자 로그인 이력을 저장합니다.
+     *
+     * <p>Named parameter 이름은 Query Pack 정본(auth-repository-insert-login-history-01)과
+     * platform-runtime-query-contract.json 이 선언한 {@code moduleId}/{@code wasId} 를 따른다.
+     * 이전에는 record 필드 이름을 그대로 써서 {@code systemCode}/{@code application} 으로 넘겼고,
+     * 로그인 실패 이력 기록에서
+     * {@code InvalidDataAccessApiUsageException: No value supplied for the SQL parameter 'moduleId'}
+     * 가 발생해 인증 실패가 401 대신 500(ECPF990000)으로 나갔다.</p>
      */
     public void insertLoginHistory(LoginHistoryWrite row) {
         jdbc().update(sql.required("auth-repository-insert-login-history-01"), new MapSqlParameterSource()
@@ -215,8 +222,8 @@ public class BackofficeAuthRepository extends BackofficeBaseRepository {
                 .addValue("clientIp", row.clientIp())
                 .addValue("userAgent", row.userAgent())
                 .addValue("transactionId", row.transactionId())
-                .addValue("systemCode", row.systemCode())
-                .addValue("application", row.application())
+                .addValue("moduleId", row.systemCode())
+                .addValue("wasId", row.application())
                 .addValue("instanceId", row.instanceId()));
     }
 

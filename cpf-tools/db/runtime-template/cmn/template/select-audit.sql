@@ -1,1 +1,1 @@
-SELECT audit_id,template_code,template_version,channel_code,action_type,request_user,request_reason,before_status,after_status,revision_no,occurred_at FROM cmn_template_audit WHERE template_code=? AND template_version=? AND channel_code=? ORDER BY occurred_at DESC,audit_id DESC
+SELECT audit_id,template_code,template_version,channel_code,action_type,request_user,request_reason,before_status,after_status,revision_no,occurred_at FROM CMN_TEMPLATE_AUDIT WHERE template_code=? AND template_version=? AND channel_code=? ORDER BY occurred_at DESC,audit_id DESC

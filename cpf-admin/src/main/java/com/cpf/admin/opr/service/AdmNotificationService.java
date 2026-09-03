@@ -38,7 +38,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     private static final String RULE_SELECT = """
             SELECT rule_id, event_type, event_sub_type, channel_code, template_code,
                    severity, receiver_group, use_yn, created_by, created_at, updated_by, updated_at
-            FROM cpf_notification_rule
+            FROM CPF_NOTIFICATION_RULE
             """;
     private final JdbcTemplate cpfJdbcTemplate;
     private final AdmAuditLogService auditLogService;
@@ -131,7 +131,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
             throw new EmptyResultDataAccessException("알림 규칙을 찾을 수 없습니다. ruleId=" + ruleId, 1);
         }
         int updated = cpfJdbcTemplate.update("""
-                UPDATE cpf_notification_rule
+                UPDATE CPF_NOTIFICATION_RULE
                 SET use_yn = 'N',
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
@@ -172,7 +172,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                        operation_id, request_hash, attempt_count, max_attempts,
                        next_attempt_at, lease_owner, lease_until, version, last_error_code,
                        created_by, updated_by, requested_at, delivered_at, created_at, updated_at
-                FROM cpf_notification_delivery_log
+                FROM CPF_NOTIFICATION_DELIVERY_LOG
                 """ + where + " ORDER BY requested_at DESC, delivery_id DESC";
         return queryWithMaxRows(sql, resolveLimit(limit), statement -> {
             if (status != null) statement.setString(1, status);
@@ -239,7 +239,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                     SELECT delivery_id, attempt_no, operation_id, worker_id, attempt_status,
                            provider_status, provider_message, started_at, completed_at,
                            lease_version, created_by, created_at
-                    FROM cpf_notification_delivery_attempt
+                    FROM CPF_NOTIFICATION_DELIVERY_ATTEMPT
                     WHERE delivery_id = ?
                     ORDER BY attempt_no DESC
                     """);
@@ -320,7 +320,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
         KeyHolder keyHolder = new GeneratedKeyHolder();
         int updated = cpfJdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement("""
-                    INSERT INTO cpf_notification_rule (
+                    INSERT INTO CPF_NOTIFICATION_RULE (
                         event_type, event_sub_type, channel_code, template_code, severity,
                         receiver_group, use_yn, created_by, updated_by
                     )
@@ -351,7 +351,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
             String channelCode,
             String requestUser) {
         int updated = cpfJdbcTemplate.update("""
-                UPDATE cpf_notification_rule
+                UPDATE CPF_NOTIFICATION_RULE
                 SET event_type = ?,
                     event_sub_type = ?,
                     channel_code = ?,

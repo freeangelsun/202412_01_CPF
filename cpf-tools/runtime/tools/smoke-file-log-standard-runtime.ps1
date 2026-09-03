@@ -1,11 +1,41 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [Alias("ReferenceBaseUrl")]
     [string] $EducationBaseUrl = "http://localhost:8099",
     [string] $ResultDir = "",
     [string] $LogBasePath = "",
     [int] $TimeoutSec = 20,
-    [switch] $RequireRuntime
+    # CPF System6 계약상 X-System-Code / X-Target-System-Code 는 **수신 Runtime 의 System Code**
+    # 와 같아야 한다(CpfHttpInboundContextAdapter.validateReceiverSystem). 단독 EDU 실행에서는
+    # EDU 지만, 1-WAS 통합 Runtime 은 자신을 LOCAL 로 선언한다. 대상 Runtime 을 호출자가 알려준다.
+    [string] $SystemCode = "EDU",
+    [switch] $RequireRuntime,
+
+    # --------------------------------------------------------------------------------------
+    # Probe 대상 설정 — 자주 바뀌는 값은 여기 한 곳에 모은다.
+    #
+    # 이 검증기가 확인하는 것은 "표준 File Log 22개 필드"이지 특정 업무의 결과가 아니다.
+    # 따라서 대상 Runtime 에 **실제로 존재하는** @CpfOnlineTransaction 이면 무엇이든 된다.
+    # (LoggingAspect 는 @CpfOnlineTransaction 에만 걸리므로, 표준 Controller 호출로는
+    #  transactions/ File Log 자체가 생성되지 않는다.)
+    #
+    # 기본값 : 단독 EDU Runtime(8099)
+    # 1-WAS  : EDU 는 Local Module Catalog(CpfLocalRuntimeModules)에 없다. 호출자가
+    #          MBW_AUTH_LOGIN 처럼 조립 안에 있는 거래를 지정한다.
+    # --------------------------------------------------------------------------------------
+    [string] $ProbePath = "/edu/online/member-processing",
+    [string] $ProbeOperationId = "EDU_LOCAL_MEMBER_PROCESS",
+    [string] $ProbeBody = '"runtime-log-probe"',
+    # File Log 디렉터리의 모듈 세그먼트(<env>/<module>/<instance>/transactions/...). 1-WAS 는
+    # 앱별이 아니라 Runtime 자신의 모듈 코드 하나로 남긴다(CpfLogPathPolicy.instanceRoot).
+    [string] $ProbeModuleCode = "EDU",
+    [int[]] $ProbeDiagnosticPorts = @(8099),
+    # 로그인 실패처럼 업무 결과가 2xx 가 아니어도 표준 로그 필드는 동일하게 남는다.
+    # 자격증명 없이 표준 필드만 검증할 때 켠다.
+    [switch] $AllowNonSuccessProbe,
+    # Idempotency-Key 처럼 대상 거래가 요구하는 추가 Header 를 "이름=값;이름=값" 으로 전달한다.
+    # 값이 비어 있으면 새 GUID 를 채운다(매 실행 고유 Idempotency-Key 용).
+    [string] $ProbeExtraHeaders = ''
 )
 
 # PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
@@ -55,17 +85,29 @@ function Save-Result {
     [System.IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 30), $Utf8NoBom)
 }
 
+function Get-CpfIssuerCode([string] $Code) {
+    # CPF 정본 거래ID 의 issuer 는 **3자리**다(CpfTransactionIds). Runtime System Code 가 3자리보다
+    # 길면 CpfSystemCodes.normalize 가 앞 3자리를 issuer 로 쓴다(LOCAL -> LOC).
+    # 그래서 X-System-Code/X-Target-System-Code(수신자 일치)와 X-Original-System-Code/거래ID issuer
+    # 는 서로 다른 값일 수 있다. 둘을 같은 값으로 보내면 1-WAS 에서 반드시 거절된다.
+    if ([string]::IsNullOrWhiteSpace($Code)) { return 'CPF' }
+    $trimmed = $Code.Trim().ToUpperInvariant()
+    if ($trimmed.Length -le 3) { return $trimmed }
+    return $trimmed.Substring(0, 3)
+}
+
 function New-SmokeHeaders {
     $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
     $traceId = [guid]::NewGuid().ToString("N")
     $spanId = [guid]::NewGuid().ToString("N").Substring(0,16)
-    return @{
-        "X-Transaction-Id" = "$timestamp" + "EDU" + "flog001" + "0000001"
-        "X-Original-System-Code" = "EDU"
-        "X-System-Code" = "EDU"
-        "X-Caller-System-Code" = "EDU"
-        "X-Target-System-Code" = "EDU"
-        "X-Target-Operation-Id" = "EDU_LOCAL_MEMBER_PROCESS"
+    $headers = @{
+        # X-Original-System-Code 는 X-Transaction-Id 에 박힌 issuer(3자리)와 같아야 한다.
+        "X-Transaction-Id" = "$timestamp" + (Get-CpfIssuerCode $SystemCode) + "flog001" + "0000001"
+        "X-Original-System-Code" = (Get-CpfIssuerCode $SystemCode)
+        "X-System-Code" = $SystemCode
+        "X-Caller-System-Code" = $SystemCode
+        "X-Target-System-Code" = $SystemCode
+        "X-Target-Operation-Id" = $ProbeOperationId
         "traceparent" = "00-$traceId-$spanId-01"
         "X-Correlation-Id" = "file-log-$timestamp"
         "X-Request-Type" = "RUNTIME_VALIDATION"
@@ -73,6 +115,17 @@ function New-SmokeHeaders {
         "X-Client-Version" = "1.0.0"
         "X-User-Id" = "runtime-validation"
     }
+    # 대상 거래가 요구하는 추가 Header(Idempotency-Key 등)를 덮어쓴다.
+    foreach ($entry in ($ProbeExtraHeaders -split ';')) {
+        if ([string]::IsNullOrWhiteSpace($entry)) { continue }
+        $pair = $entry.Split('=', 2)
+        $name = $pair[0].Trim()
+        if ([string]::IsNullOrWhiteSpace($name)) { continue }
+        $value = if ($pair.Count -eq 2) { $pair[1].Trim() } else { '' }
+        if ([string]::IsNullOrWhiteSpace($value)) { $value = [guid]::NewGuid().ToString('N') }
+        $headers[$name] = $value
+    }
+    return $headers
 }
 
 function Read-CpfLiveLogText {
@@ -142,7 +195,9 @@ function Test-LogFile {
         if ($LogType -eq 'batch') {
             return $relative -match "^[^/]+/$moduleLower/jobs/[0-9]{8}/[^/]+/.+\.log$"
         }
-        return $relative -match "^[^/]+/$moduleLower/[^/]+/.+/cpf-[^-]+-$LogType-.+\.log$"
+        # 파일명은 CpfLogPathPolicy.generalLogPath 가 cpf-<owner>-<type>-<instance>.<date>.log 로 만든다.
+        # owner 자체에 '-' 가 들어갈 수 있으므로(local-runtime) owner 를 그대로 대조한다.
+        return $relative -match "^[^/]+/$moduleLower/[^/]+/.+/cpf-$moduleLower-$LogType-.+\.log$"
     })
     $path = $null
     if (-not [string]::IsNullOrWhiteSpace($TransactionId)) {
@@ -180,7 +235,7 @@ function Test-LogFile {
         try { $json = $lastLine | ConvertFrom-Json } catch { $json = $null }
     }
     foreach ($field in $result.requiredFields) {
-        if ($json -ne $null -and $null -ne $json.$field) {
+        if ($null -ne $json -and $null -ne $json.$field) {
             $item.requiredFieldsPresent += $field
         } else {
             $item.missingFields += $field
@@ -205,40 +260,59 @@ function Test-LogFile {
 try {
     try {
         if (-not (Test-EndpointListening -BaseUrl $EducationBaseUrl)) {
-            throw "EDU runtime port is not listening. baseUrl=$EducationBaseUrl"
+            throw "target runtime port is not listening. baseUrl=$EducationBaseUrl"
         }
-        $response = Invoke-WebRequest `
-            -Method Post `
-            -Uri "$EducationBaseUrl/edu/online/member-processing" `
-            -Headers (New-SmokeHeaders) `
-            -ContentType 'application/json' `
-            -Body '"runtime-log-probe"' `
-            -TimeoutSec $TimeoutSec `
-            -UseBasicParsing
-        $body = $response.Content | ConvertFrom-Json
+        # 보낸 거래ID 를 그대로 보관한다. CPF Runtime 은 X-Transaction-Id 를 그대로 승계하므로
+        # 업무 응답이 2xx 가 아니어도 File Log 를 찾을 추적 키는 확정된다.
+        $probeHeaders = New-SmokeHeaders
+        $sentTransactionId = [string] $probeHeaders['X-Transaction-Id']
+        $probeArgs = @{
+            Method = 'Post'
+            Uri = "$EducationBaseUrl$ProbePath"
+            Headers = $probeHeaders
+            ContentType = 'application/json'
+            Body = $ProbeBody
+            TimeoutSec = $TimeoutSec
+            UseBasicParsing = $true
+        }
+        # 자격증명 없이 표준 필드만 검증할 때는 4xx/5xx 를 예외로 만들지 않는다.
+        if ($AllowNonSuccessProbe) { $probeArgs['SkipHttpErrorCheck'] = $true }
+        $response = Invoke-WebRequest @probeArgs
         $result.runtimeProbe.status = $StatusDone
         $result.runtimeProbe.httpStatus = [int] $response.StatusCode
-        $transactionProperty = $body.PSObject.Properties['transactionId']
-        $legacyProperty = $body.PSObject.Properties['transactionId']
-        $result.transactionId = if ($null -ne $transactionProperty) {
+        $result.runtimeProbe.operationId = $ProbeOperationId
+        $result.runtimeProbe.path = $ProbePath
+        # 실패 원인을 다음 실행까지 미루지 않는다. 응답 본문/오류 Header 를 증적에 그대로 남긴다.
+        $result.runtimeProbe.responseBody = [string] $response.Content
+        $result.runtimeProbe.messageCode = [string] $response.Headers['X-Message-Code']
+        # 업무 거절(4xx)은 표준 로그 필드 검증에 지장이 없지만, 5xx 는 거래가 정상 수행되지
+        # 않았다는 뜻이므로 표준 File Log 증적으로 인정하지 않는다.
+        if ([int] $response.StatusCode -ge 500) {
+            throw "probe returned a server error. status=$([int]$response.StatusCode) body=$([string]$response.Content)"
+        }
+        $body = $null
+        try { $body = $response.Content | ConvertFrom-Json } catch { $body = $null }
+        $transactionProperty = if ($null -ne $body) { $body.PSObject.Properties['transactionId'] } else { $null }
+        $result.transactionId = if ($null -ne $transactionProperty -and
+                -not [string]::IsNullOrWhiteSpace([string] $transactionProperty.Value)) {
             [string] $transactionProperty.Value
-        } elseif ($null -ne $legacyProperty) {
-            [string] $legacyProperty.Value
+        } elseif (-not [string]::IsNullOrWhiteSpace($sentTransactionId)) {
+            $sentTransactionId
         } else {
-            throw 'EDU 거래 응답에 transactionId가 없습니다.'
+            throw '거래 응답과 요청 Header 어디에도 transactionId가 없습니다.'
         }
         Start-Sleep -Seconds 2
     } catch {
         $result.runtimeProbe.status = $StatusNotVerified
         $result.runtimeProbe.error = $_.Exception.Message
-        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "EDU" -Ports @(8099) -ErrorMessage $_.Exception.Message
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module $ProbeModuleCode -Ports $ProbeDiagnosticPorts -ErrorMessage $_.Exception.Message
         if ($RequireRuntime) { throw }
     }
 
     $tx = [string] $result.transactionId
     $runtimeVerified = $result.runtimeProbe.status -eq $StatusDone
-    $result.files += Test-LogFile -Module "EDU" -LogType "transaction" -TransactionId $tx -Required $runtimeVerified
-    $result.files += Test-LogFile -Module "EDU" -LogType "integration" -TransactionId $tx -Required $false
+    $result.files += Test-LogFile -Module $ProbeModuleCode -LogType "transaction" -TransactionId $tx -Required $runtimeVerified
+    $result.files += Test-LogFile -Module $ProbeModuleCode -LogType "integration" -TransactionId $tx -Required $false
     $result.files += Test-LogFile -Module "BAT" -LogType "batch" -TransactionId "" -Required $false
 
     $grepLines = New-Object System.Collections.Generic.List[string]
@@ -261,7 +335,7 @@ try {
     $result.error = $_.Exception.Message
     $diagnosticsProperty = $result.runtimeProbe.PSObject.Properties["diagnostics"]
     if ($null -eq $diagnosticsProperty -or $null -eq $diagnosticsProperty.Value) {
-        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "EDU" -Ports @(8099) -ErrorMessage $_.Exception.Message
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module $ProbeModuleCode -Ports $ProbeDiagnosticPorts -ErrorMessage $_.Exception.Message
     }
     Save-Result
     throw

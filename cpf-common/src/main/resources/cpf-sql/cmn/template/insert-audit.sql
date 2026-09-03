@@ -1,1 +1,1 @@
-INSERT INTO cmn_template_audit (audit_id,template_code,template_version,channel_code,action_type,request_user,request_reason,before_status,after_status,revision_no,occurred_at) VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+INSERT INTO CMN_TEMPLATE_AUDIT (audit_id,template_code,template_version,channel_code,action_type,request_user,request_reason,before_status,after_status,revision_no,occurred_at) VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)

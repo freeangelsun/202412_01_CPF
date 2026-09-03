@@ -7,7 +7,7 @@ SELECT approval_id AS approvalId, approval_no AS approvalNo,
        due_at AS dueAt, attachment_group_id AS attachmentGroupId,
        resubmitted_from_approval_id AS resubmittedFromApprovalId,
        transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
-  FROM mbw_approval_document
+  FROM MBW_APPROVAL_DOCUMENT
  WHERE requester_employee_no = :employeeNo
    AND (:status IS NULL OR approval_status = :status)
  ORDER BY approval_id DESC

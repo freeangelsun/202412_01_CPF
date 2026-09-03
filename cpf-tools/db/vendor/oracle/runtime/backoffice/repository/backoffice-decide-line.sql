@@ -1,4 +1,4 @@
-UPDATE mbw_approval_line
+UPDATE MBW_APPROVAL_LINE
 SET decision_status = :decision, decision_comment = :comment,
     decided_at = CURRENT_TIMESTAMP, updated_by = :actorEmployeeNo, updated_at = CURRENT_TIMESTAMP
 WHERE approval_id = :approvalId AND step_no = :stepNo

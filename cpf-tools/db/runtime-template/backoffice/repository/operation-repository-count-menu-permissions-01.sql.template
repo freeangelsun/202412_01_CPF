@@ -1,4 +1,4 @@
 SELECT COUNT(*)
-  FROM mbw_permission
+  FROM MBW_PERMISSION
  WHERE menu_code = :menuCode
    AND use_yn = 'Y'

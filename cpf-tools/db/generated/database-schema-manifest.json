@@ -5,7 +5,7 @@
   "physicalSourceRoot": "cpf-tools/db/generated/current/mariadb",
   "installProfile": "cpf-tools/db/config/database-install.default.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 235,
+  "tableCount": 237,
   "tables": [
     {
       "vendor": "mariadb",
@@ -9969,6 +9969,69 @@
         }
       ],
       "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "SPRING_SESSION",
+      "columns": [
+        "PRIMARY_ID",
+        "SESSION_ID",
+        "CREATION_TIME",
+        "LAST_ACCESS_TIME",
+        "MAX_INACTIVE_INTERVAL",
+        "EXPIRY_TIME",
+        "PRINCIPAL_NAME"
+      ],
+      "indexes": [
+        {
+          "name": "SPRING_SESSION_IX1",
+          "unique": true,
+          "columns": [
+            "SESSION_ID"
+          ]
+        },
+        {
+          "name": "SPRING_SESSION_IX2",
+          "unique": false,
+          "columns": [
+            "EXPIRY_TIME"
+          ]
+        },
+        {
+          "name": "SPRING_SESSION_IX3",
+          "unique": false,
+          "columns": [
+            "PRINCIPAL_NAME"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "SPRING_SESSION_ATTRIBUTES",
+      "columns": [
+        "SESSION_PRIMARY_ID",
+        "ATTRIBUTE_NAME",
+        "ATTRIBUTE_BYTES"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "SPRING_SESSION_ATTRIBUTES_FK",
+          "columns": [
+            "SESSION_PRIMARY_ID"
+          ],
+          "referencedTable": "SPRING_SESSION",
+          "referencedColumns": [
+            "PRIMARY_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",

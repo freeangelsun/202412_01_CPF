@@ -1,4 +1,4 @@
-UPDATE cpf_unknown_result
+UPDATE CPF_UNKNOWN_RESULT
 SET unknown_status = ?,
     resolved_at = CURRENT_TIMESTAMP,
     resolved_by = ?,

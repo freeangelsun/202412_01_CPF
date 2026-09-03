@@ -28,7 +28,7 @@ public class AdmAuditLogService extends com.cpf.admin.common.base.AdmBaseService
     public List<Map<String,Object>> findAuditLogs(String operatorId,String actionType,String targetType,String targetId,int limit){
         StringBuilder sql=new StringBuilder("""
           SELECT AUDIT_ID,TRANSACTION_ID,TRACE_ID,OPERATOR_ID,MENU_ID,BUTTON_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,BEFORE_DATA,AFTER_DATA,DIFF_DATA,CLIENT_IP,RETENTION_UNTIL,IMMUTABLE_YN,CREATED_AT
-          FROM adm_audit_log WHERE 1=1
+          FROM ADM_AUDIT_LOG WHERE 1=1
           """); List<Object> args=new ArrayList<>();
         if(CpfStrings.hasText(operatorId)){sql.append(" AND OPERATOR_ID=?");args.add(operatorId.trim());}
         if(CpfStrings.hasText(actionType)){sql.append(" AND ACTION_TYPE=?");args.add(actionType.trim());}

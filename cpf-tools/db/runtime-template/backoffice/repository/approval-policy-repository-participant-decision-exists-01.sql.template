@@ -1,1 +1,1 @@
-SELECT COUNT(*) FROM mbw_approval_participant WHERE idempotency_key=:key
+SELECT COUNT(*) FROM MBW_APPROVAL_PARTICIPANT WHERE idempotency_key=:key

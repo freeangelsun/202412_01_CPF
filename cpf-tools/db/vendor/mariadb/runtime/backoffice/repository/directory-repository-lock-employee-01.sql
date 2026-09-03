@@ -1,1 +1,1 @@
-SELECT employee_id FROM mbw_employee WHERE employee_no=:employeeNo FOR UPDATE
+SELECT employee_id FROM MBW_EMPLOYEE WHERE employee_no=:employeeNo FOR UPDATE

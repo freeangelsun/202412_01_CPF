@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,8 +24,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.jdbc.JdbcIndexedSessionRepository;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.session.Session;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -139,12 +144,35 @@ public class CpfServerSessionSecurityAutoConfiguration {
                                 "/adm", "/adm/", "/adm/index.html", "/adm/assets/**",
                                 "/adm/api/auth/login")
                         .permitAll()
+                        // Health/Liveness/Readiness 는 AdmApiAuthFilter.isPublicHealthRequest 가
+                        // 이미 GET/HEAD 공개로 선언한 3개 경로다. 그런데 이 Chain 이 그 Filter 앞에서
+                        // 401 로 잘라내면 "공개 선언" 이 실현되지 않는다. 실제로 1-WAS 에서
+                        // GET /adm/api/health 가 401 이 되어 로그정책 검증기의 기동 재사용 판정이
+                        // 실패하고 이미 떠 있는 Runtime 을 두고 ADM boot jar 를 다시 찾았다.
+                        // 두 계층의 공개 범위를 같은 3개 경로/같은 read-only method 로 일치시킨다.
+                        .requestMatchers(HttpMethod.GET,
+                                "/adm/api/health", "/adm/api/health/liveness", "/adm/api/health/readiness")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.HEAD,
+                                "/adm/api/health", "/adm/api/health/liveness", "/adm/api/health/readiness")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                         .accessDeniedHandler((request, response, failure) ->
                                 response.sendError(HttpStatus.FORBIDDEN.value())))
-                .csrf(csrf -> csrf.csrfTokenRepository(csrfRepository))
+                // Spring Security 6 의 기본 CsrfTokenRequestHandler 는
+                // XorCsrfTokenRequestAttributeHandler 다. 이 handler 는 Header 값이 "XOR 마스킹된"
+                // 토큰이기를 기대하는데, CookieCsrfTokenRepository 는 Cookie 에 **원본** 토큰을 저장한다.
+                // ADM SPA(cpfApi.ts)와 Backoffice Web 은 표준 SPA 방식대로 XSRF-TOKEN Cookie 값을
+                // 그대로 X-XSRF-TOKEN 으로 되돌려 보내므로, 기본 handler 로는 모든 상태 변경 요청이
+                // 403 이 된다(실제로 1-WAS 에서 POST /adm/api/auth/login 이 403 으로 막혔다).
+                // Cookie 기반 SPA 계약에 맞는 plain handler 를 명시한다. XOR(BREACH 완화)을 포기하는
+                // 대신, 같은 Chain 의 CpfTrustedOriginFilter 가 Origin/Referer allowlist 로
+                // cross-origin 상태 변경을 이미 차단한다.
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfRepository)
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation(fixation -> fixation.changeSessionId()))
@@ -166,6 +194,35 @@ public class CpfServerSessionSecurityAutoConfiguration {
                 .addFilterAfter(bridgeFilter, CpfCsrfCookieExposureFilter.class)
                 .addFilterAfter(logoutFilter, CpfBffSessionBridgeFilter.class);
         return http.build();
+    }
+
+    /**
+     * 서버 세션 저장소를 CPF가 소유합니다.
+     *
+     * <p>Spring Boot 4 의 의존 트리에는 session 자동설정 모듈이 포함되어 있지 않다
+     * ({@code SessionAutoConfiguration} 이 존재하지 않는다). 그래서 아무도
+     * {@link FindByIndexNameSessionRepository} 를 만들지 않고, 아래 동시 세션 제어가
+     * {@code required a bean of type 'FindByIndexNameSessionRepository' that could not be found}
+     * 로 1-WAS 기동을 실패시켰다. Boot 4 에서 사라진 자동설정은 CPF 가 소유한다(Harness §25.5) —
+     * Jackson 2 ObjectMapper 를 {@code CpfJackson2AutoConfiguration} 이 소유하는 것과 같은 이유다.</p>
+     *
+     * <p>DataSource 는 {@link #resolveSessionDataSource}로 해석한다. 1-WAS 합성에는 후보가 여럿이라
+     * 타입 주입은 기동을 깨뜨린다. 저장 테이블은 정본 스키마의 {@code SPRING_SESSION} /
+     * {@code SPRING_SESSION_ATTRIBUTES} 이며, 컬럼/인덱스는 Spring Session 표준 DDL 과 동일하다.</p>
+     *
+     * <p>벤더별 SQL 분기는 Application Source 에 두지 않는다(NXT3 DB3 계약). Spring Session 의
+     * 표준 질의는 속성의 신규/변경을 구분해 INSERT/UPDATE 를 나누므로 3개 공식 벤더에서 그대로
+     * 동작한다. 벤더 고유 구문이 필요해지면 Java 분기가 아니라 Vendor Pack 이 소유한다.</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(FindByIndexNameSessionRepository.class)
+    JdbcIndexedSessionRepository cpfJdbcIndexedSessionRepository(
+            ListableBeanFactory beanFactory,
+            ObjectProvider<DataSource> dataSources) {
+        DataSource dataSource = resolveSessionDataSource(beanFactory, dataSources);
+        return new JdbcIndexedSessionRepository(
+                new JdbcTemplate(dataSource),
+                new TransactionTemplate(new DataSourceTransactionManager(dataSource)));
     }
 
     @Bean

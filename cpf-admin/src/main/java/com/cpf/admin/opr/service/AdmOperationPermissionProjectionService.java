@@ -69,8 +69,8 @@ public class AdmOperationPermissionProjectionService {
         try {
             List<Map<String, Object>> rows = admJdbcTemplate.queryForList("""
                     SELECT a.HTTP_METHOD, a.API_PATH, ra.ALLOW_YN
-                      FROM adm_api_permission a
-                      LEFT JOIN adm_role_api_permission ra
+                      FROM ADM_API_PERMISSION a
+                      LEFT JOIN ADM_ROLE_API_PERMISSION ra
                         ON ra.API_PERMISSION_ID = a.API_PERMISSION_ID
                        AND ra.ROLE_ID IN (%s)
                      WHERE a.USE_YN = 'Y'

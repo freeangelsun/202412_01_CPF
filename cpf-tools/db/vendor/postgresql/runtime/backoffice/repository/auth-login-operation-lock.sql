@@ -9,6 +9,6 @@ SELECT operation_id AS operationId,
        result_expires_at AS resultExpiresAt,
        failure_code AS failureCode,
        failure_message AS failureMessage
-  FROM mbw_login_operation
+  FROM MBW_LOGIN_OPERATION
  WHERE operation_id = :operationId
  FOR UPDATE

@@ -1,4 +1,4 @@
-INSERT INTO mbw_approval_document (
+INSERT INTO MBW_APPROVAL_DOCUMENT (
     approval_no, approval_type, business_domain, policy_code, policy_version,
     policy_snapshot_json, title, requester_employee_no,
     requester_organization_code, requester_position_code, requester_job_title_code,

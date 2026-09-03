@@ -54,7 +54,7 @@ def verify(root:Path)->dict:
  if projection_required-set(pf): raise GateError(f'Current Status projection columns missing: {sorted(projection_required-set(pf))}')
  # WP-R16.01/02 등록으로 411 -> 413, 2026-09-03 사용자 Steering 3건(WP-R17.01 Shell 조립성 /
  # WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목) 등록으로 413 -> 416 이 되었다.
- if len(rrows)!=416 or len(prows)!=416: raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected=416')
+ if len(rrows)!=417 or len(prows)!=417: raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected=417')
  rids=[(r.get('work_item_id') or '').strip() for r in rrows]; pids=[(r.get('work_item_id') or '').strip() for r in prows]
  if len(set(rids))!=len(rids) or len(set(pids))!=len(pids) or rids!=pids: raise GateError('Current Status work_item_id order/set differs from Current Registry')
  pmap={r['work_item_id']:r for r in prows}

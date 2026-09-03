@@ -128,7 +128,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                        BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE,
                        HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE,
                        EXEC_USER, CHANNEL_CODE, START_TIME, END_TIME, DURATION_MS
-                FROM cpf_transaction_log
+                FROM CPF_TRANSACTION_LOG
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -156,7 +156,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                 SELECT AUDIT_ID, TRANSACTION_ID, TRACE_ID, OPERATOR_ID, MENU_ID, BUTTON_ID,
                        ACTION_TYPE, TARGET_TYPE, TARGET_ID, REASON, BEFORE_DATA, AFTER_DATA,
                        DIFF_DATA, CLIENT_IP, RETENTION_UNTIL, IMMUTABLE_YN, CREATED_AT
-                FROM adm_audit_log
+                FROM ADM_AUDIT_LOG
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();

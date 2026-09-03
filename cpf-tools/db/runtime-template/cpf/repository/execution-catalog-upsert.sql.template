@@ -1,4 +1,4 @@
-INSERT INTO cpf_standard_execution (
+INSERT INTO CPF_STANDARD_EXECUTION (
     standard_execution_id, execution_name, execution_type, owner_domain,
     source_module, source_class, source_method, http_method, endpoint, operation_id,
     description, required_permission, audit_reason_required_yn, visibility,

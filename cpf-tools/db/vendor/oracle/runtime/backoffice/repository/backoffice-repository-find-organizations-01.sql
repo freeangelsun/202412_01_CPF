@@ -2,5 +2,5 @@ SELECT organization_id AS organizationId, organization_code AS organizationCode,
        parent_organization_code AS parentOrganizationCode, organization_name AS organizationName,
        organization_type AS organizationType, sort_order AS sortOrder, effective_from AS effectiveFrom, effective_to AS effectiveTo, use_yn AS useYn,
        version_no AS versionNo, created_at AS createdAt, updated_at AS updatedAt
-  FROM mbw_organization
+  FROM MBW_ORGANIZATION
  ORDER BY sort_order, organization_code

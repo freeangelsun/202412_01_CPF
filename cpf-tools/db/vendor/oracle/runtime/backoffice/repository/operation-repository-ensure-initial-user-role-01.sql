@@ -1,10 +1,10 @@
-MERGE INTO mbw_user_role target
+MERGE INTO MBW_USER_ROLE target
 USING (
     SELECT admin_user_id,
            :roleCode role_code,
            'INIT:' || TO_CHAR(admin_user_id) || ':' || :roleCode operation_id,
            :actor actor
-    FROM mbw_admin_user
+    FROM MBW_ADMIN_USER
     WHERE admin_login_id = :loginId
 ) source
 ON (target.operation_id = source.operation_id)

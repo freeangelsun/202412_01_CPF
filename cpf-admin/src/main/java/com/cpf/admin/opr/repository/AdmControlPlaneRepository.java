@@ -33,7 +33,7 @@ public class AdmControlPlaneRepository extends AdmBaseRepository {
                        acknowledged_at AS acknowledgedAt, mitigated_at AS mitigatedAt,
                        resolved_at AS resolvedAt, created_by AS createdBy, updated_by AS updatedBy,
                        reason, version
-                FROM adm_incident
+                FROM ADM_INCIDENT
                 WHERE 1 = 1
                 """);
         ArrayList<Object> args = new ArrayList<>();
@@ -52,15 +52,15 @@ public class AdmControlPlaneRepository extends AdmBaseRepository {
             String incidentNo, String severity, String title, String summary,
             String sourceType, String sourceId, String operatorId, String reason) {
         jdbc.update("""
-            INSERT INTO adm_incident(incident_no,severity,title,summary,source_type,source_id,status,detected_at,created_by,updated_by,reason,version)
+            INSERT INTO ADM_INCIDENT(incident_no,severity,title,summary,source_type,source_id,status,detected_at,created_by,updated_by,reason,version)
             VALUES(?,?,?,?,?,?,'OPEN',CURRENT_TIMESTAMP,?,?,?,0)
             """, incidentNo, severity, title, summary, sourceType, sourceId, operatorId, operatorId, reason);
-        return jdbc.queryForMap("SELECT * FROM adm_incident WHERE incident_no=?", incidentNo);
+        return jdbc.queryForMap("SELECT * FROM ADM_INCIDENT WHERE incident_no=?", incidentNo);
     }
 
     /** incident 작업을 CPF 표준 계약에 따라 수행한다. */
     public Map<String, Object> incident(long incidentId) {
-        return jdbc.queryForMap("SELECT incident_id,status,version FROM adm_incident WHERE incident_id=?", incidentId);
+        return jdbc.queryForMap("SELECT incident_id,status,version FROM ADM_INCIDENT WHERE incident_id=?", incidentId);
     }
 
     public boolean transitionIncident(
@@ -71,14 +71,14 @@ public class AdmControlPlaneRepository extends AdmBaseRepository {
             case "" -> "";
             default -> throw new IllegalArgumentException("Unsupported incident timestamp column");
         };
-        String sql = "UPDATE adm_incident SET status=?, updated_by=?, reason=?, version=version+1, updated_at=CURRENT_TIMESTAMP"
+        String sql = "UPDATE ADM_INCIDENT SET status=?, updated_by=?, reason=?, version=version+1, updated_at=CURRENT_TIMESTAMP"
                 + timeFragment + " WHERE incident_id=? AND version=?";
         return jdbc.update(sql, status, operatorId, reason, incidentId, expectedVersion) == 1;
     }
 
     /** incidentDetail 작업을 CPF 표준 계약에 따라 수행한다. */
     public Map<String, Object> incidentDetail(long incidentId) {
-        return jdbc.queryForMap("SELECT * FROM adm_incident WHERE incident_id=?", incidentId);
+        return jdbc.queryForMap("SELECT * FROM ADM_INCIDENT WHERE incident_id=?", incidentId);
     }
 
     public List<Map<String, Object>> findMaintenanceActions(int limit) {
@@ -87,7 +87,7 @@ public class AdmControlPlaneRepository extends AdmBaseRepository {
                        instance_id AS instanceId, action_type AS actionType, before_status AS beforeStatus,
                        after_status AS afterStatus, result_status AS resultStatus, reason,
                        requested_by AS requestedBy, requested_at AS requestedAt, result_detail AS resultDetail
-                FROM adm_maintenance_action
+                FROM ADM_MAINTENANCE_ACTION
                 ORDER BY action_id DESC
                 """, List.of(), operationPageSize(limit));
     }
@@ -97,7 +97,7 @@ public class AdmControlPlaneRepository extends AdmBaseRepository {
             String serviceId, String endpointCode, String instanceId, String action,
             String before, String after, String status, String reason, String user, String detail) {
         jdbc.update("""
-                INSERT INTO adm_maintenance_action(service_id,endpoint_code,instance_id,action_type,before_status,after_status,result_status,reason,requested_by,requested_at,result_detail)
+                INSERT INTO ADM_MAINTENANCE_ACTION(service_id,endpoint_code,instance_id,action_type,before_status,after_status,result_status,reason,requested_by,requested_at,result_detail)
                 VALUES(?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,?)
                 """, serviceId, endpointCode, instanceId, action, before, after, status, reason, user, detail);
     }

@@ -27,7 +27,7 @@ public class AdmApprovalCapabilityNonceRepository extends AdmBaseRepository {
     public void issue(String nonce,String approvalReference,Instant expiresAt) {
         try {
             jdbc.update("""
-                INSERT INTO adm_approval_capability_nonce
+                INSERT INTO ADM_APPROVAL_CAPABILITY_NONCE
                   (NONCE_HASH,APPROVAL_REFERENCE,EXPIRES_AT,CONSUMED_AT,created_by,updated_by)
                 VALUES (?,?,?,NULL,'ADM','ADM')
                 """,sha256(nonce),approvalReference,java.sql.Timestamp.from(expiresAt));
@@ -39,7 +39,7 @@ public class AdmApprovalCapabilityNonceRepository extends AdmBaseRepository {
     @CpfTransactional(transactionManager="admTransactionManager")
     public boolean consume(String nonce,String approvalReference,Instant now,String consumerId) {
         int changed=jdbc.update("""
-            UPDATE adm_approval_capability_nonce
+            UPDATE ADM_APPROVAL_CAPABILITY_NONCE
                SET CONSUMED_AT=?,CONSUMED_BY=?,updated_by=?
              WHERE NONCE_HASH=? AND APPROVAL_REFERENCE=? AND CONSUMED_AT IS NULL AND EXPIRES_AT>=?
             """,java.sql.Timestamp.from(now),consumerId,consumerId,sha256(nonce),approvalReference,
@@ -49,7 +49,7 @@ public class AdmApprovalCapabilityNonceRepository extends AdmBaseRepository {
 
     public int purgeExpired(Instant before) {
         return jdbc.update("""
-            DELETE FROM adm_approval_capability_nonce
+            DELETE FROM ADM_APPROVAL_CAPABILITY_NONCE
              WHERE EXPIRES_AT<? AND (CONSUMED_AT IS NOT NULL OR EXPIRES_AT<?)
             """,java.sql.Timestamp.from(before),java.sql.Timestamp.from(before));
     }

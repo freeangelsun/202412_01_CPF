@@ -45,9 +45,32 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         return ResponseEntity.ok(base("UP", Map.of("process", "UP")));
     }
 
-    @GetMapping({"", "/readiness"})
+    /**
+     * 하나의 {@code @Operation} 으로 두 경로를 매핑하면 springdoc 이 중복을 피하려고
+     * {@code getAdmReadiness_1} 처럼 접미사를 붙이고, 그 값은 CPF 정본 operationId 규격
+     * (밑줄+숫자 접미사 금지)에 걸려 Runtime OpenAPI 계약 검증이 실패한다. 그래서 경로를
+     * 분리한다. 공개 계약(cpf-admin/frontend/openapi/cpf-openapi.json)은
+     * {@code GET /adm/api/health = getAdmReadiness} 하나만 선언하므로 그 대응을 그대로 유지한다.
+     */
+    @GetMapping("")
     @Operation(operationId = "getAdmReadiness", summary = "ADM Readiness 조회")
     public ResponseEntity<Map<String, Object>> readiness() {
+        return readinessState();
+    }
+
+    /**
+     * {@code /readiness} 는 Infra probe 용 별칭 경로다
+     * ({@code AdmApiAuthFilter.isPublicHealthRequest} 가 공개로 선언한다).
+     * 공개 API 계약에는 없는 경로이므로 OpenAPI 문서에서는 감춘다 — 노출하면 정본 계약과
+     * Runtime 문서가 어긋나 parity 검증이 실패한다.
+     */
+    @GetMapping("/readiness")
+    @Operation(hidden = true)
+    public ResponseEntity<Map<String, Object>> readinessAlias() {
+        return readinessState();
+    }
+
+    private ResponseEntity<Map<String, Object>> readinessState() {
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDataStore", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));

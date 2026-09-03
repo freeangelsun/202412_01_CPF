@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$VerifierRunId,
     [Parameter(Mandatory=$true)][string]$RuntimeDbResultPath,
@@ -73,8 +73,10 @@ INSERT INTO MBW_BOOTSTRAP_APPROVAL (
  TOKEN_HASH, ENV_FINGERPRINT, STATUS, OPERATION_ID, EXPIRES_AT,
  CLEANUP_STATUS, REQUESTED_BY, APPROVED_BY, APPROVAL_REASON, CREATED_AT, UPDATED_AT
 ) VALUES (
- '$tokenHash', '$fingerprint', 'APPROVED', NULL, DATE_ADD(CURRENT_TIMESTAMP(6), INTERVAL 15 MINUTE),
- 'PENDING', 'CPF_FULLLOCAL_REQUESTER', 'CPF_FULLLOCAL_APPROVER', 'Verifier-owned isolated Backoffice browser runtime', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6)
+ -- 만료 비교는 Runtime 이 UTC DB clock 으로 수행한다. 승인 행도 같은 시계로 기록해야
+ -- 서버 timezone 설정과 무관하게 같은 기준으로 비교된다.
+ '$tokenHash', '$fingerprint', 'APPROVED', NULL, DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 15 MINUTE),
+ 'PENDING', 'CPF_FULLLOCAL_REQUESTER', 'CPF_FULLLOCAL_APPROVER', 'Verifier-owned isolated Backoffice browser runtime', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 );
 "@
     $sqlFile=Join-Path $secretDir "backoffice-bootstrap-approval-$VerifierRunId.sql"

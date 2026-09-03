@@ -1,4 +1,4 @@
-UPDATE cpf_unknown_result
+UPDATE CPF_UNKNOWN_RESULT
 SET lease_owner = NULL,
     lease_until = NULL,
     next_check_at = ?,

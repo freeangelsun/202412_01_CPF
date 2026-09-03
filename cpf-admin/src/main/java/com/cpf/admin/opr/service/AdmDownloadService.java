@@ -124,7 +124,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         StringBuilder sql = new StringBuilder("""
                 SELECT DOWNLOAD_ID, ADMIN_ID, DOWNLOAD_TYPE, ROW_COUNT, MASKED_YN, INCLUDE_SENSITIVE_YN,
                        REASON, STATUS, REQUESTED_AT, COMPLETED_AT
-                FROM adm_download_audit_log
+                FROM ADM_DOWNLOAD_AUDIT_LOG
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -208,7 +208,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                        HOST_NAME, PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID,
                        LOG_TYPE, REQUEST_TYPE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, HTTP_METHOD,
                        URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, START_TIME, END_TIME, DURATION_MS
-                FROM cpf_transaction_log
+                FROM CPF_TRANSACTION_LOG
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -226,7 +226,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         StringBuilder sql = new StringBuilder("""
                 SELECT DELIVERY_ID, RULE_ID, EVENT_TYPE, TARGET_TYPE, TARGET_ID, RECEIVER,
                        DELIVERY_STATUS, DELIVERY_MESSAGE, REQUESTED_AT, DELIVERED_AT, CREATED_AT
-                FROM cpf_notification_delivery_log
+                FROM CPF_NOTIFICATION_DELIVERY_LOG
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -252,7 +252,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         KeyHolder keyHolder = new GeneratedKeyHolder();
         admJdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement("""
-                    INSERT INTO adm_download_audit_log (
+                    INSERT INTO ADM_DOWNLOAD_AUDIT_LOG (
                         ADMIN_ID, MENU_ID, SCREEN_ID, DOWNLOAD_TYPE, TARGET_TYPE,
                         SEARCH_CONDITION_SUMMARY, ROW_COUNT, MASKED_YN, INCLUDE_SENSITIVE_YN,
                         REASON, CLIENT_IP, USER_AGENT, CSV_POLICY_VERSION, REQUESTED_AT, COMPLETED_AT, STATUS,

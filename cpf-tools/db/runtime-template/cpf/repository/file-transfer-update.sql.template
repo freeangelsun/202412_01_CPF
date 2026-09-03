@@ -1,4 +1,4 @@
-UPDATE cpf_file_transfer_history
+UPDATE CPF_FILE_TRANSFER_HISTORY
 SET transfer_status = ?,
     result_detail = ?,
     completed_at = ?,

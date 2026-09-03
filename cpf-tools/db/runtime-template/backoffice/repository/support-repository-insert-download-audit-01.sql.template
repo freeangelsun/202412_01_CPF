@@ -1,4 +1,4 @@
-INSERT INTO mbw_download_audit (
+INSERT INTO MBW_DOWNLOAD_AUDIT (
     actor_id, download_code, reason, filter_json, row_count,
     result_status, file_name, masking_applied_yn, transaction_id,
     created_by, updated_by

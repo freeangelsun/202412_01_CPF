@@ -1,4 +1,4 @@
-MERGE INTO mbw_saved_search target
+MERGE INTO MBW_SAVED_SEARCH target
 USING (
     SELECT :ownerLoginId owner_login_id, :screenCode screen_code, :searchName search_name,
            :criteriaJson criteria_json, :sharedYn shared_yn, :requestUser request_user

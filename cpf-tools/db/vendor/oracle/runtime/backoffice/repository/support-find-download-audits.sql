@@ -3,6 +3,6 @@ SELECT download_audit_id AS downloadAuditId, actor_id AS actorId,
        row_count AS rowCount, result_status AS resultStatus, file_name AS fileName,
        masking_applied_yn AS maskingAppliedYn,
        transaction_id AS transactionId, created_at AS createdAt
-FROM mbw_download_audit
+FROM MBW_DOWNLOAD_AUDIT
 ORDER BY download_audit_id DESC
 FETCH FIRST :limit ROWS ONLY

@@ -1,4 +1,4 @@
-INSERT INTO mbw_saved_search (
+INSERT INTO MBW_SAVED_SEARCH (
     owner_login_id, screen_code, search_name, criteria_json,
     shared_yn, use_yn, created_by, updated_by
 ) VALUES (

@@ -1,4 +1,4 @@
-MERGE INTO cpf_standard_execution target
+MERGE INTO CPF_STANDARD_EXECUTION target
 USING (
     SELECT ? standard_execution_id, ? execution_name, ? execution_type, ? owner_domain,
            ? source_module, ? source_class, ? source_method, ? http_method,

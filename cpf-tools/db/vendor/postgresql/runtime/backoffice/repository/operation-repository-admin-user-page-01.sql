@@ -2,4 +2,4 @@ SELECT admin_user_id AS adminUserId,admin_login_id AS adminLoginId,admin_name AS
        role_code AS roleCode,account_status AS accountStatus,version_no AS versionNo,
        use_yn AS useYn,lock_yn AS lockYn,password_change_required_yn AS passwordChangeRequiredYn,
        last_login_at AS lastLoginAt,created_at AS createdAt,updated_at AS updatedAt
-  FROM mbw_admin_user ORDER BY admin_user_id DESC LIMIT :limit OFFSET :offset
+  FROM MBW_ADMIN_USER ORDER BY admin_user_id DESC LIMIT :limit OFFSET :offset

@@ -342,8 +342,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         try {
             List<Map<String, Object>> permissions = admJdbcTemplate.queryForList("""
                     SELECT a.API_PATH, a.HTTP_METHOD, ra.ALLOW_YN
-                      FROM adm_api_permission a
-                      LEFT JOIN adm_role_api_permission ra
+                      FROM ADM_API_PERMISSION a
+                      LEFT JOIN ADM_ROLE_API_PERMISSION ra
                         ON ra.API_PERMISSION_ID = a.API_PERMISSION_ID
                        AND ra.ROLE_ID IN (%s)
                      WHERE a.USE_YN = 'Y'
@@ -375,8 +375,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         try {
             Integer count = admJdbcTemplate.queryForObject("""
                     SELECT COUNT(*)
-                    FROM adm_role_menu rm
-                    JOIN adm_menu m ON m.MENU_ID = rm.MENU_ID
+                    FROM ADM_ROLE_MENU rm
+                    JOIN ADM_MENU m ON m.MENU_ID = rm.MENU_ID
                     WHERE rm.ROLE_ID IN (%s)
                       AND rm.MENU_ID = ?
                       AND m.USE_YN = 'Y'
@@ -401,8 +401,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         try {
             Integer count = admJdbcTemplate.queryForObject("""
                     SELECT COUNT(*)
-                    FROM adm_role_button rb
-                    JOIN adm_button b ON b.BUTTON_ID = rb.BUTTON_ID
+                    FROM ADM_ROLE_BUTTON rb
+                    JOIN ADM_BUTTON b ON b.BUTTON_ID = rb.BUTTON_ID
                     WHERE rb.ROLE_ID IN (%s)
                       AND rb.BUTTON_ID = ?
                       AND rb.ALLOW_YN = 'Y'

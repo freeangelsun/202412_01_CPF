@@ -1558,9 +1558,141 @@ def print_release_summary(result: dict[str, Any]) -> None:
         print(f"Open Git 경로 : {result.get('openGit')}")
 
 
+def _git(open_git: Path, *arguments: str) -> str:
+    """Open Git 작업 Repository 안에서만 git 을 읽는다."""
+    completed = subprocess.run(["git", *arguments], cwd=open_git, text=True,
+                               encoding="utf-8", errors="replace",
+                               capture_output=True, check=False)
+    if completed.returncode:
+        raise OpenGitReleaseError(
+            "git " + " ".join(arguments) + f" 실패(exit={completed.returncode}): "
+            + (completed.stderr or "").strip())
+    return (completed.stdout or "").strip()
+
+
+def _require_git_write_approval(approved: bool) -> None:
+    """명시적 Git Write 승인이 없으면 즉시 중단한다.
+
+    클릭 실수나 자동 실행으로 Commit/Push 가 일어나면 안 된다. Build/Verify/Prepare 는 이 함수를
+    호출하지 않으며, 승인값 없이 Commit/Push 에 도달하면 여기서 fail-closed 로 끝난다.
+    """
+    if not approved:
+        raise OpenGitReleaseError(
+            "Git Write 가 승인되지 않았습니다. Commit/Push 는 명시적 승인이 필요합니다. "
+            "Gradle: -PconfirmGitWrite=true / CLI: --confirm-git-write")
+
+
+def _open_git_write_preflight(root: Path) -> dict[str, Any]:
+    """Commit/Push 직전에 대상·검증 상태를 모두 확인한다.
+
+    하나라도 어긋나면 중단한다. 중간 실패를 전체 PASS 로 처리하지 않는다.
+    """
+    root = ensure_private_root(root)
+    status_path = release_root(root) / REPORTS_DIR_NAME / "OPEN_GIT_RELEASE_STATUS.json"
+    if not status_path.is_file():
+        raise OpenGitReleaseError(
+            "Open Git Release 상태 파일이 없습니다. 먼저 cpfOpenGitPrepare(build+verify)를 수행하세요.")
+    status = load_json(status_path)
+
+    open_git = Path(str(status.get("openGit") or ""))
+    if not open_git.is_dir():
+        raise OpenGitReleaseError(f"Open Git 작업 Repository 를 찾을 수 없습니다: {open_git}")
+    # 개발 Master 를 대상으로 삼는 사고를 원천 차단한다.
+    expected = (release_root(root) / OPEN_GIT_DIR_NAME).resolve(strict=False)
+    if open_git.resolve(strict=False) != expected:
+        raise OpenGitReleaseError(
+            f"Open Git 대상이 정본 경로가 아닙니다. expected={expected} actual={open_git}")
+    if open_git.resolve(strict=False) == root.resolve():
+        raise OpenGitReleaseError("Development Master 저장소에는 Open Git Commit/Push 를 하지 않습니다.")
+    if not (open_git / ".git").exists():
+        raise OpenGitReleaseError(f"Open Git 작업 Repository 가 git 저장소가 아닙니다: {open_git}")
+
+    # Release/검증 결과가 PASS 가 아니면 Git Write 로 진입하지 않는다.
+    overall = str(status.get("result") or status.get("status") or "UNKNOWN").upper()
+    if overall not in ("PASS", "SUCCESS", "COMPLETED"):
+        raise OpenGitReleaseError(f"Open Git Release 결과가 PASS 가 아닙니다: {overall}")
+    leakage = int(status.get("leakageCount", 0) or 0)
+    if leakage:
+        raise OpenGitReleaseError(f"Open Git Leakage 가 0 이 아닙니다: {leakage}")
+    if not str(status.get("sourceIdentitySha256") or "").strip():
+        raise OpenGitReleaseError("Source identity 가 확인되지 않았습니다.")
+
+    branch = _git(open_git, "branch", "--show-current")
+    if not branch:
+        raise OpenGitReleaseError("Open Git branch 를 확인할 수 없습니다(detached HEAD).")
+    allowed = [value.strip() for value in
+               os.environ.get("CPF_OPEN_GIT_ALLOWED_BRANCHES", "main,master").split(",")
+               if value.strip()]
+    if branch not in allowed:
+        raise OpenGitReleaseError(
+            f"허용되지 않은 branch 입니다: {branch} (허용: {', '.join(allowed)})")
+
+    remotes = _git(open_git, "remote", "-v")
+    if "origin" not in remotes:
+        raise OpenGitReleaseError("Open Git remote origin 이 설정되어 있지 않습니다.")
+    remote_url = _git(open_git, "remote", "get-url", "origin")
+    expected_remote = str(status.get("remote") or "").strip()
+    if expected_remote and remote_url.strip() != expected_remote:
+        raise OpenGitReleaseError(
+            f"Open Git remote 가 정본과 다릅니다. expected={expected_remote} actual={remote_url}")
+
+    changed = _git(open_git, "status", "--short")
+    print("CPF Open Git Git Write 사전 점검")
+    print("--------------------------------")
+    print(f"대상 Repository : {open_git}")
+    print(f"branch          : {branch}")
+    print(f"remote(origin)  : {remote_url}")
+    print(f"Release 결과    : {overall}")
+    print(f"Leakage         : {leakage}")
+    print(f"Source Identity : {status.get('sourceIdentitySha256')}")
+    print(f"변경 파일       : {len(changed.splitlines())} files")
+    if changed:
+        for line in changed.splitlines()[:50]:
+            print(f"  {line}")
+    return {"openGit": open_git, "branch": branch, "remote": remote_url,
+            "changed": changed, "status": status}
+
+
+def commit_release(root: Path, *, approved: bool, message: str | None = None) -> dict[str, Any]:
+    """검증이 끝난 Open Git Working Tree 를 Commit 한다(승인 필수)."""
+    _require_git_write_approval(approved)
+    context = _open_git_write_preflight(root)
+    open_git: Path = context["openGit"]
+    if not context["changed"]:
+        print("CPF_OPEN_GIT_COMMIT=SKIPPED reason=NO_CHANGES")
+        return {"action": "commit", "result": "SKIPPED", "reason": "NO_CHANGES"}
+    _git(open_git, "add", "-A")
+    _git(open_git, "diff", "--cached", "--check")
+    text = message or ("CPF Open Git " + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S"))
+    _git(open_git, "commit", "-m", text)
+    sha = _git(open_git, "rev-parse", "HEAD")
+    print(f"CPF_OPEN_GIT_COMMIT=PASS sha={sha} branch={context['branch']}")
+    return {"action": "commit", "result": "PASS", "sha": sha, "branch": context["branch"]}
+
+
+def push_release(root: Path, *, approved: bool) -> dict[str, Any]:
+    """검증이 끝난 Open Git Commit 을 remote 로 Push 한다(승인 필수)."""
+    _require_git_write_approval(approved)
+    context = _open_git_write_preflight(root)
+    open_git: Path = context["openGit"]
+    if context["changed"]:
+        raise OpenGitReleaseError(
+            "Commit 되지 않은 변경이 남아 있습니다. cpfOpenGitCommit 을 먼저 수행하세요.")
+    sha = _git(open_git, "rev-parse", "HEAD")
+    print(f"[Push 대상] sha={sha} branch={context['branch']} remote={context['remote']}")
+    _git(open_git, "push", "origin", context["branch"])
+    print(f"CPF_OPEN_GIT_PUSH=PASS sha={sha} branch={context['branch']}")
+    return {"action": "push", "result": "PASS", "sha": sha, "branch": context["branch"]}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="CPF Open Git release packaging")
-    parser.add_argument("action", nargs="?", default="build", choices=("build", "check", "status", "setup"))
+    parser.add_argument("action", nargs="?", default="build",
+                        choices=("build", "check", "status", "setup", "commit", "push"))
+    # Git Write 는 명시적 승인 없이는 절대 수행하지 않는다(Harness §29.3).
+    parser.add_argument("--confirm-git-write", action="store_true",
+                        help="Open Git Commit/Push 를 명시적으로 승인합니다.")
+    parser.add_argument("--message", help="Open Git Commit 메시지(생략 시 표준 형식)")
     parser.add_argument("--root", default=".")
     parser.add_argument("--remote")
     parser.add_argument("--generator-artifacts")
@@ -1574,6 +1706,10 @@ def main() -> int:
             result = check_release(root, args.profile)
         elif args.action == "status":
             result = status_release(root)
+        elif args.action == "commit":
+            result = commit_release(root, approved=args.confirm_git_write, message=args.message)
+        elif args.action == "push":
+            result = push_release(root, approved=args.confirm_git_write)
         else:
             result = setup_integration(root)
         code = 0
@@ -1589,6 +1725,7 @@ def main() -> int:
                 _append_log(f"[CPF][OPEN-GIT] FAIL {exc}")
         except Exception:
             pass
+    # build 요약은 build 에서만 출력한다. Git Write 결과는 각 함수가 자체 표준 출력을 남긴다.
     if args.action == "build" and code == 0:
         print_release_summary(result)
     if args.action not in {"status", "setup", "check"}:

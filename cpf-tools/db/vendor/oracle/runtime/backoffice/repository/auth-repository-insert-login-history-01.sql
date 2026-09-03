@@ -1,4 +1,4 @@
-INSERT INTO mbw_login_history (
+INSERT INTO MBW_LOGIN_HISTORY (
     admin_user_id,
     login_domain,
     admin_login_id,

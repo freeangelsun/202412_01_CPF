@@ -40,7 +40,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
 
     @Override
     public List<Map<String,Object>> findIdempotency(String scope,String status,String key,int limit) {
-        StringBuilder sql=new StringBuilder("SELECT * FROM cpf_idempotency_record WHERE 1=1");
+        StringBuilder sql=new StringBuilder("SELECT * FROM CPF_IDEMPOTENCY_RECORD WHERE 1=1");
         List<Object> args=new ArrayList<>();
         eq(sql,args,"scope",scope); eq(sql,args,"record_status",status); like(sql,args,"idempotency_key",key);
         sql.append(" ORDER BY updated_at DESC, idempotency_seq DESC");
@@ -77,7 +77,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
 
     @Override
     public List<Map<String,Object>> findFileTransfers(String status,String transactionId,String endpointCode,int limit) {
-        StringBuilder sql=new StringBuilder("SELECT * FROM cpf_file_transfer_history WHERE 1=1");
+        StringBuilder sql=new StringBuilder("SELECT * FROM CPF_FILE_TRANSFER_HISTORY WHERE 1=1");
         List<Object> args=new ArrayList<>();
         eq(sql,args,"transfer_status",status); eq(sql,args,"transaction_id",transactionId); eq(sql,args,"endpoint_code",endpointCode);
         sql.append(" ORDER BY updated_at DESC, history_id DESC");
@@ -86,7 +86,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
 
     @Override
     public List<Map<String,Object>> findUnknownResults(String type,String status,String transactionId,int limit) {
-        StringBuilder sql=new StringBuilder("SELECT * FROM cpf_unknown_result WHERE 1=1");
+        StringBuilder sql=new StringBuilder("SELECT * FROM CPF_UNKNOWN_RESULT WHERE 1=1");
         List<Object> args=new ArrayList<>();
         eq(sql,args,"unknown_type",type); eq(sql,args,"unknown_status",status); eq(sql,args,"transaction_id",transactionId);
         sql.append(" ORDER BY updated_at DESC, unknown_seq DESC");
@@ -97,7 +97,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
     public Optional<Map<String,Object>> findUnknownResult(String unknownId) {
         requireJdbc();
         if(!hasText(unknownId)) return Optional.empty();
-        List<Map<String,Object>> rows=query("SELECT * FROM cpf_unknown_result WHERE unknown_id = ?",List.of(unknownId.trim()),2);
+        List<Map<String,Object>> rows=query("SELECT * FROM CPF_UNKNOWN_RESULT WHERE unknown_id = ?",List.of(unknownId.trim()),2);
         if(rows.size()>1) throw new IllegalStateException("duplicate CPF unknown result id: "+unknownId);
         return rows.stream().findFirst();
     }
@@ -110,7 +110,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
         String id=hasText(command.unknownId())?command.unknownId().trim():"UNK-"+UUID.randomUUID();
         try {
             jdbc.update("""
-                INSERT INTO cpf_unknown_result
+                INSERT INTO CPF_UNKNOWN_RESULT
                 (unknown_id, unknown_type, unknown_status, transaction_id, segment_id, external_key,
                  failure_code, failure_message, next_action, created_by, updated_by)
                 VALUES (?, ?, 'CHECK_PENDING', ?, ?, ?, ?, ?, ?, ?, ?)
@@ -165,7 +165,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
             throw new IllegalArgumentException("unsupported UNKNOWN target status: "+status);
         Map<String,Object> before=findUnknownResult(id).orElseThrow(()->new IllegalArgumentException("unknown result not found: "+id));
         int changed=jdbc.update("""
-            UPDATE cpf_unknown_result SET unknown_status=?, resolved_at=?, resolved_by=?, audit_reason=?,
+            UPDATE CPF_UNKNOWN_RESULT SET unknown_status=?, resolved_at=?, resolved_by=?, audit_reason=?,
                 row_version=row_version+1, updated_by=?, updated_at=CURRENT_TIMESTAMP
             WHERE unknown_id=? AND row_version=?
             """,status,isFinal(status)?Timestamp.from(Instant.now()):null,isFinal(status)?actor:null,audit,actor,id,expectedVersion);

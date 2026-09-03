@@ -1,4 +1,4 @@
-UPDATE mbw_admin_user
+UPDATE MBW_ADMIN_USER
    SET admin_name=:adminName,
        password_hash=COALESCE(:passwordHash,password_hash),
        account_status=:accountStatus,

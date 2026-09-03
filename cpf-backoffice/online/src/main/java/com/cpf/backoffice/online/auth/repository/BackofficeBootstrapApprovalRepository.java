@@ -30,6 +30,19 @@ public class BackofficeBootstrapApprovalRepository extends BackofficeBaseReposit
         this.sql = sqlCatalogProvider.forModule("backoffice");
     }
 
+    /**
+     * 승인 토큰을 선점합니다. 만료 비교는 Vendor Pack 의 UTC DB clock 이 수행합니다.
+     *
+     * <p>이전에는 {@code EXPIRES_AT > :claimedAt} 처럼 **Client JVM 이 만든 Timestamp** 를
+     * DB 가 만든 시각과 비교했다. JDBC 는 {@code Timestamp} 를 JVM 기본 timezone 으로 보내므로
+     * KST(UTC+9) 개발/검증 환경에서 9시간 앞선 값이 전달되어, 15분 만료의 정상 승인이 항상
+     * "만료됨"으로 판정됐다. 실제로 1-WAS 기동 직후
+     * {@code SecurityException: MBW_BOOTSTRAP_APPROVAL_NOT_CLAIMABLE:APPROVED} 로 Runtime 이
+     * 스스로 종료했다.</p>
+     *
+     * <p>Center-Cut lease 와 같은 규칙을 적용한다 — 시각은 DB 가 정하고, 파라미터로는
+     * "얼마나 오래"(마이크로초)만 넘긴다.</p>
+     */
     public boolean claim(
             String tokenHash,
             String environmentFingerprint,
@@ -37,13 +50,16 @@ public class BackofficeBootstrapApprovalRepository extends BackofficeBaseReposit
             String claimOwnerId,
             Instant now,
             Instant leaseUntil) {
+        long leaseDurationMicros = java.time.Duration.between(now, leaseUntil).toNanos() / 1_000L;
+        if (leaseDurationMicros <= 0L) {
+            throw new IllegalArgumentException("bootstrap claim lease duration must be positive");
+        }
         int updated = jdbc().update(sql.required("auth-bootstrap-approval-claim"), new MapSqlParameterSource()
                 .addValue("tokenHash", tokenHash)
                 .addValue("environmentFingerprint", environmentFingerprint)
                 .addValue("operationId", operationId)
                 .addValue("claimOwnerId", claimOwnerId)
-                .addValue("claimedAt", Timestamp.from(now))
-                .addValue("claimExpiresAt", Timestamp.from(leaseUntil)));
+                .addValue("leaseDurationMicros", leaseDurationMicros));
         return updated == 1;
     }
 

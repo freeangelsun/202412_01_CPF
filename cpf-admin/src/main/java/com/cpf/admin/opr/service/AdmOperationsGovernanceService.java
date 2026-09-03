@@ -72,7 +72,7 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
                        SUM(CASE WHEN LOG_TYPE = 'FAILURE' OR ERROR_CODE IS NOT NULL THEN 1 ELSE 0 END) AS failure_count,
                        AVG(DURATION_MS) AS avg_duration_ms,
                        MAX(DURATION_MS) AS max_duration_ms
-                FROM cpf_transaction_log
+                FROM CPF_TRANSACTION_LOG
                 WHERE START_TIME >= ?
                 """, List.of(since), 1);
         result.put("available", true);
@@ -99,7 +99,7 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
                 SELECT incident_id, policy_id, severity, status, title, source_type, source_id,
                        correlation_id, transaction_id, occurrence_count, escalation_level,
                        first_occurred_at, last_occurred_at, acknowledged_at, resolved_at, owner_id, version
-                FROM adm_incident_lifecycle
+                FROM ADM_INCIDENT_LIFECYCLE
                 ORDER BY last_occurred_at DESC, incident_id DESC
                 """, List.of(), MAX_ITEMS));
         result.put("ownerRoute", "incidents");
@@ -217,7 +217,7 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
         result.put("available", true);
         result.put("items", query("""
                 SELECT external_institution_code, result_state, COUNT(*) AS call_count, MAX(ended_at) AS last_call_at
-                FROM cpf_transaction_segment
+                FROM CPF_TRANSACTION_SEGMENT
                 WHERE external_institution_code IS NOT NULL
                 GROUP BY external_institution_code, result_state
                 ORDER BY external_institution_code, result_state

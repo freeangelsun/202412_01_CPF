@@ -1,1 +1,1 @@
-INSERT INTO cmn_template_definition (template_code,template_version,channel_code,template_body,allowed_variables,status_code,active_yn,revision_no,created_by,updated_by) VALUES (?,?,?,?,?,'DRAFT','N',0,?,?)
+INSERT INTO CMN_TEMPLATE_DEFINITION (template_code,template_version,channel_code,template_body,allowed_variables,status_code,active_yn,revision_no,created_by,updated_by) VALUES (?,?,?,?,?,'DRAFT','N',0,?,?)

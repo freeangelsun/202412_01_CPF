@@ -1,4 +1,4 @@
-INSERT INTO mbw_approval_policy_step (
+INSERT INTO MBW_APPROVAL_POLICY_STEP (
     policy_code, policy_version, step_no, step_type, target_type, target_code,
     decision_rule, required_count, required_yn, sort_order, created_by, updated_by
 ) VALUES (

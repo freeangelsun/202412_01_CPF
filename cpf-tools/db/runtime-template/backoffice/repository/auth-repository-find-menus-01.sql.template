@@ -1,7 +1,7 @@
 SELECT p.menu_code
-  FROM mbw_permission p
-  JOIN mbw_role r ON r.role_code = p.role_code AND r.use_yn = 'Y'
-  JOIN mbw_menu m ON m.menu_code = p.menu_code AND m.use_yn = 'Y'
+  FROM MBW_PERMISSION p
+  JOIN MBW_ROLE r ON r.role_code = p.role_code AND r.use_yn = 'Y'
+  JOIN MBW_MENU m ON m.menu_code = p.menu_code AND m.use_yn = 'Y'
  WHERE p.role_code IN (:roleCodes)
    AND p.use_yn = 'Y'
    AND p.environment_code IN ('ALL', :environmentCode)

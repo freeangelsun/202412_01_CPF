@@ -1,1 +1,1 @@
-UPDATE mbw_admin_user SET role_code=:roleCode,updated_by=:actor,updated_at=@NOW@ WHERE admin_login_id=:loginId
+UPDATE MBW_ADMIN_USER SET role_code=:roleCode,updated_by=:actor,updated_at=@NOW@ WHERE admin_login_id=:loginId

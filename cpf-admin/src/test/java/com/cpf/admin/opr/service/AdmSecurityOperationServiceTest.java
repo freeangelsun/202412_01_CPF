@@ -36,7 +36,7 @@ class AdmSecurityOperationServiceTest {
                 "ALLOW_ID", 1L,
                 "IP_PATTERN", "10.0.0.0/8",
                 "USE_YN", "Y"));
-        when(jdbc.queryForList(contains("FROM adm_ip_allowlist"))).thenReturn(rows);
+        when(jdbc.queryForList(contains("FROM ADM_IP_ALLOWLIST"))).thenReturn(rows);
 
         AdmSecurityOperationService service = new AdmSecurityOperationService(jdbc);
 
@@ -46,7 +46,7 @@ class AdmSecurityOperationServiceTest {
     @Test
     void findIpAllowlistFailsClosedWhenStoreIsUnavailable() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        when(jdbc.queryForList(contains("FROM adm_ip_allowlist")))
+        when(jdbc.queryForList(contains("FROM ADM_IP_ALLOWLIST")))
                 .thenThrow(new DataAccessResourceFailureException("test database unavailable"));
 
         AdmSecurityOperationService service = new AdmSecurityOperationService(jdbc);
@@ -59,7 +59,7 @@ class AdmSecurityOperationServiceTest {
     @Test
     void findMfaStatesFailsClosedWhenStoreIsUnavailable() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        when(jdbc.queryForList(contains("FROM adm_mfa_otp_secret")))
+        when(jdbc.queryForList(contains("FROM ADM_MFA_OTP_SECRET")))
                 .thenThrow(new DataAccessResourceFailureException("test database unavailable"));
 
         AdmSecurityOperationService service = new AdmSecurityOperationService(jdbc);
@@ -73,7 +73,7 @@ class AdmSecurityOperationServiceTest {
     void upsertIpAllowlistUsesVendorNeutralUpdateFirstFlow() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         when(jdbc.update(
-                contains("UPDATE adm_ip_allowlist"),
+                contains("UPDATE ADM_IP_ALLOWLIST"),
                 eq("office network"), eq("Y"), eq("tester"), eq("10.0.0.0/8")))
                 .thenReturn(1);
         Map<String, Object> persisted = Map.of(
@@ -88,7 +88,7 @@ class AdmSecurityOperationServiceTest {
 
         assertThat(result).isSameAs(persisted);
         verify(jdbc).update(
-                contains("UPDATE adm_ip_allowlist"),
+                contains("UPDATE ADM_IP_ALLOWLIST"),
                 eq("office network"), eq("Y"), eq("tester"), eq("10.0.0.0/8"));
     }
 
@@ -96,11 +96,11 @@ class AdmSecurityOperationServiceTest {
     void registerMfaRetriesUpdateAfterConcurrentInsert() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         when(jdbc.update(
-                contains("UPDATE adm_mfa_otp_secret"),
+                contains("UPDATE ADM_MFA_OTP_SECRET"),
                 eq("vault://otp/operator-1"), eq("tester"), eq("operator-1")))
                 .thenReturn(0, 1);
         when(jdbc.update(
-                contains("INSERT INTO adm_mfa_otp_secret"),
+                contains("INSERT INTO ADM_MFA_OTP_SECRET"),
                 eq("operator-1"), eq("vault://otp/operator-1"), eq("tester"), eq("tester")))
                 .thenThrow(new DuplicateKeyException("concurrent insert"));
         Map<String, Object> persisted = Map.of(
@@ -117,13 +117,13 @@ class AdmSecurityOperationServiceTest {
 
         assertThat(result).isSameAs(persisted);
         verify(jdbc, times(2)).update(
-                contains("UPDATE adm_mfa_otp_secret"),
+                contains("UPDATE ADM_MFA_OTP_SECRET"),
                 eq("vault://otp/operator-1"), eq("tester"), eq("operator-1"));
     }
     @Test
     void verifyMfaResolvesSecretAndRejectsInvalidOtpWithoutEnabling() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        when(jdbc.queryForMap(contains("FROM adm_mfa_otp_secret"), eq("operator-1"))).thenReturn(Map.of(
+        when(jdbc.queryForMap(contains("FROM ADM_MFA_OTP_SECRET"), eq("operator-1"))).thenReturn(Map.of(
                 "OPERATOR_ID", "operator-1", "SECRET_REF", "ENV:ADM_OTP", "ENABLED_YN", "N"));
         CpfSecretProvider provider = new CpfSecretProvider() {
             public String providerId() { return "ENV"; }
@@ -147,7 +147,7 @@ class AdmSecurityOperationServiceTest {
     @Test
     void loginRequiresOtpOnlyWhenMfaIsEnabled() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        when(jdbc.queryForMap(contains("FROM adm_mfa_otp_secret"), eq("operator-1"))).thenReturn(Map.of(
+        when(jdbc.queryForMap(contains("FROM ADM_MFA_OTP_SECRET"), eq("operator-1"))).thenReturn(Map.of(
                 "OPERATOR_ID", "operator-1", "SECRET_REF", "ENV:ADM_OTP", "ENABLED_YN", "Y"));
         CpfSecretProvider provider = new CpfSecretProvider() {
             public String providerId() { return "ENV"; }

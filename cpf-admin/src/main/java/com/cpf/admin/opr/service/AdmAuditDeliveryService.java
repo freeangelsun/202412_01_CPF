@@ -74,7 +74,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbc.update(connection -> {
                 PreparedStatement ps = connection.prepareStatement("""
-                    INSERT INTO adm_audit_delivery(
+                    INSERT INTO ADM_AUDIT_DELIVERY(
                       TRANSACTION_ID,TRACE_ID,OPERATOR_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,BEFORE_DATA,CLIENT_IP,
                       OPERATION_STATUS,DELIVERY_STATUS,ATTEMPT_COUNT,MAX_ATTEMPTS,NEXT_ATTEMPT_AT,CREATED_BY,UPDATED_BY)
                     VALUES(?,?,?,?,?,?,?,?,?,'REQUESTED','PENDING',0,?,?,?,?)
@@ -110,7 +110,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
         AuditCommand c = command.normalized();
         requiresNew.executeWithoutResult(status -> {
             int updated = jdbc.update("""
-                UPDATE adm_audit_delivery
+                UPDATE ADM_AUDIT_DELIVERY
                    SET TRANSACTION_ID=?,TRACE_ID=?,OPERATOR_ID=?,ACTION_TYPE=?,TARGET_TYPE=?,TARGET_ID=?,
                        REASON=?,BEFORE_DATA=?,CLIENT_IP=?,UPDATED_BY=?,UPDATED_AT=?
                  WHERE DELIVERY_ID=? AND DELIVERY_STATUS<>'DELIVERED'
@@ -145,7 +145,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
         try {
             requiresNew.executeWithoutResult(status -> {
                 int updated = jdbc.update("""
-                    UPDATE adm_audit_delivery
+                    UPDATE ADM_AUDIT_DELIVERY
                        SET OPERATION_STATUS=?,AFTER_DATA=?,DIFF_DATA=?,UPDATED_BY=OPERATOR_ID,UPDATED_AT=?
                      WHERE DELIVERY_ID=? AND DELIVERY_STATUS<>'DELIVERED'
                     """, operationStatus, sanitizeSnapshot(after), sanitizeSnapshot(diff), nowTimestamp(), id);
@@ -167,14 +167,14 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                 ? """
                   SELECT DELIVERY_ID,TRANSACTION_ID,TRACE_ID,OPERATOR_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,
                          OPERATION_STATUS,DELIVERY_STATUS,ATTEMPT_COUNT,MAX_ATTEMPTS,NEXT_ATTEMPT_AT,LAST_ERROR,AUDIT_ID,REQUESTED_AT,DELIVERED_AT,UPDATED_AT
-                    FROM adm_audit_delivery
+                    FROM ADM_AUDIT_DELIVERY
                    WHERE DELIVERY_STATUS=?
                    ORDER BY DELIVERY_ID DESC
                   """
                 : """
                   SELECT DELIVERY_ID,TRANSACTION_ID,TRACE_ID,OPERATOR_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,
                          OPERATION_STATUS,DELIVERY_STATUS,ATTEMPT_COUNT,MAX_ATTEMPTS,NEXT_ATTEMPT_AT,LAST_ERROR,AUDIT_ID,REQUESTED_AT,DELIVERED_AT,UPDATED_AT
-                    FROM adm_audit_delivery
+                    FROM ADM_AUDIT_DELIVERY
                    ORDER BY DELIVERY_ID DESC
                   """;
         return jdbc.query(connection -> {
@@ -188,7 +188,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
     }
 
     public Map<String, Object> findDelivery(long id) {
-        return jdbc.queryForMap("SELECT * FROM adm_audit_delivery WHERE DELIVERY_ID=?", id);
+        return jdbc.queryForMap("SELECT * FROM ADM_AUDIT_DELIVERY WHERE DELIVERY_ID=?", id);
     }
 
     public Map<String, Object> retry(long id, String operatorId, String reason) {
@@ -197,7 +197,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
         Timestamp now = nowTimestamp();
         requiresNew.executeWithoutResult(status -> {
             int updated = jdbc.update("""
-                UPDATE adm_audit_delivery
+                UPDATE ADM_AUDIT_DELIVERY
                    SET DELIVERY_STATUS='RETRY',NEXT_ATTEMPT_AT=?,LAST_ERROR=?,UPDATED_BY=?,UPDATED_AT=?
                  WHERE DELIVERY_ID=? AND DELIVERY_STATUS IN('PENDING','RETRY','FAILED')
                 """, now, truncate("manual retry: " + why, MAX_ERROR_LENGTH), actor, now, id);
@@ -216,7 +216,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
             List<Long> ids = jdbc.query(connection -> {
                 PreparedStatement ps = connection.prepareStatement("""
                     SELECT DELIVERY_ID
-                      FROM adm_audit_delivery
+                      FROM ADM_AUDIT_DELIVERY
                      WHERE DELIVERY_STATUS IN('PENDING','RETRY')
                        AND OPERATION_STATUS IN('SUCCEEDED','FAILED','UNKNOWN')
                        AND (NEXT_ATTEMPT_AT IS NULL OR NEXT_ATTEMPT_AT<=?)
@@ -237,7 +237,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
         Timestamp staleCutoff = Timestamp.from(now.toInstant().minusSeconds(requestedStaleSeconds));
         try {
             requiresNew.executeWithoutResult(status -> jdbc.update("""
-                UPDATE adm_audit_delivery
+                UPDATE ADM_AUDIT_DELIVERY
                    SET OPERATION_STATUS='UNKNOWN',DELIVERY_STATUS='RETRY',NEXT_ATTEMPT_AT=?,
                        LAST_ERROR=COALESCE(LAST_ERROR,'stale REQUESTED recovered as UNKNOWN'),UPDATED_AT=?
                  WHERE OPERATION_STATUS='REQUESTED'
@@ -257,7 +257,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                 Map<String, Object> row = jdbc.queryForMap("""
                     SELECT DELIVERY_ID,TRANSACTION_ID,TRACE_ID,OPERATOR_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,
                            BEFORE_DATA,AFTER_DATA,DIFF_DATA,CLIENT_IP,OPERATION_STATUS,DELIVERY_STATUS,ATTEMPT_COUNT,MAX_ATTEMPTS
-                      FROM adm_audit_delivery
+                      FROM ADM_AUDIT_DELIVERY
                      WHERE DELIVERY_ID=?
                      FOR UPDATE
                     """, id);
@@ -273,7 +273,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                 int maxAttempts = Math.max(1, number(row.get("MAX_ATTEMPTS")));
                 if (attempts >= maxAttempts && !manual) {
                     jdbc.update("""
-                        UPDATE adm_audit_delivery
+                        UPDATE ADM_AUDIT_DELIVERY
                            SET DELIVERY_STATUS='FAILED',NEXT_ATTEMPT_AT=NULL,UPDATED_AT=?
                          WHERE DELIVERY_ID=?
                         """, nowTimestamp(), id);
@@ -283,7 +283,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                 KeyHolder keyHolder = new GeneratedKeyHolder();
                 jdbc.update(connection -> {
                     PreparedStatement ps = connection.prepareStatement("""
-                        INSERT INTO adm_audit_log(
+                        INSERT INTO ADM_AUDIT_LOG(
                           TRANSACTION_ID,TRACE_ID,OPERATOR_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,
                           BEFORE_DATA,AFTER_DATA,DIFF_DATA,CLIENT_IP,RETENTION_UNTIL,IMMUTABLE_YN,CREATED_BY,UPDATED_BY)
                         VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'Y',?,?)
@@ -313,7 +313,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                 }
                 Timestamp deliveredAt = nowTimestamp();
                 jdbc.update("""
-                    UPDATE adm_audit_delivery
+                    UPDATE ADM_AUDIT_DELIVERY
                        SET DELIVERY_STATUS='DELIVERED',ATTEMPT_COUNT=ATTEMPT_COUNT+1,AUDIT_ID=?,
                            DELIVERED_AT=?,NEXT_ATTEMPT_AT=NULL,LAST_ERROR=NULL,UPDATED_AT=?
                      WHERE DELIVERY_ID=?
@@ -329,7 +329,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
             requiresNew.executeWithoutResult(status -> {
                 Map<String, Object> row = jdbc.queryForMap("""
                     SELECT ATTEMPT_COUNT,MAX_ATTEMPTS
-                      FROM adm_audit_delivery
+                      FROM ADM_AUDIT_DELIVERY
                      WHERE DELIVERY_ID=? AND DELIVERY_STATUS<>'DELIVERED'
                      FOR UPDATE
                     """, id);
@@ -340,7 +340,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                 Timestamp now = nowTimestamp();
                 Timestamp nextAt = failed ? null : Timestamp.from(now.toInstant().plusSeconds(backoffSeconds));
                 jdbc.update("""
-                    UPDATE adm_audit_delivery
+                    UPDATE ADM_AUDIT_DELIVERY
                        SET ATTEMPT_COUNT=?,DELIVERY_STATUS=?,NEXT_ATTEMPT_AT=?,LAST_ERROR=?,UPDATED_AT=?
                      WHERE DELIVERY_ID=? AND DELIVERY_STATUS<>'DELIVERED'
                     """, nextAttempt, failed ? "FAILED" : "RETRY", nextAt,

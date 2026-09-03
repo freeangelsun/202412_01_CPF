@@ -1,4 +1,4 @@
-MERGE INTO mbw_permission target
+MERGE INTO MBW_PERMISSION target
 USING (
     SELECT :roleCode role_code, :menuCode menu_code, :buttonCode button_code,
            :permissionType permission_type, :httpMethod http_method, :apiPattern api_pattern,

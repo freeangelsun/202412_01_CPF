@@ -3,4 +3,4 @@ SELECT employee_id AS employeeId,employee_no AS employeeNo,admin_user_id AS admi
        job_title_code AS jobTitleCode,manager_employee_no AS managerEmployeeNo,employment_status AS employmentStatus,
        join_date AS joinDate,leave_date AS leaveDate,email,mobile_no AS mobileNo,office_phone_no AS officePhoneNo,
        use_yn AS useYn,version_no AS versionNo,created_at AS createdAt,updated_at AS updatedAt
-  FROM mbw_employee WHERE employee_no=:employeeNo
+  FROM MBW_EMPLOYEE WHERE employee_no=:employeeNo

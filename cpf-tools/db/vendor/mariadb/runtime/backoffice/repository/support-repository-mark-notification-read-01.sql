@@ -1,4 +1,4 @@
-UPDATE mbw_notification
+UPDATE MBW_NOTIFICATION
    SET read_yn = 'Y', read_at = CURRENT_TIMESTAMP,
        updated_by = :requestUser, updated_at = CURRENT_TIMESTAMP
  WHERE notification_id = :notificationId

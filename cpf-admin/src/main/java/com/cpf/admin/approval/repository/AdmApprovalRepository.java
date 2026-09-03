@@ -36,7 +36,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                        EFFECTIVE_FROM AS effectiveFrom, EFFECTIVE_TO AS effectiveTo,
                        ENABLED_YN AS enabledYn, SELF_APPROVAL_ALLOWED_YN AS selfApprovalAllowedYn,
                        BREAK_GLASS_ALLOWED_YN AS breakGlassAllowedYn, DESCRIPTION AS description
-                  FROM adm_approval_policy
+                  FROM ADM_APPROVAL_POLICY
                  WHERE (? IS NULL OR ACTION_TYPE=?)
                  ORDER BY POLICY_CODE, POLICY_VERSION DESC
                 """, emptyToNull(actionType), emptyToNull(actionType));
@@ -49,7 +49,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                        EFFECTIVE_FROM AS effectiveFrom, EFFECTIVE_TO AS effectiveTo,
                        ENABLED_YN AS enabledYn, SELF_APPROVAL_ALLOWED_YN AS selfApprovalAllowedYn,
                        BREAK_GLASS_ALLOWED_YN AS breakGlassAllowedYn, DESCRIPTION AS description
-                  FROM adm_approval_policy WHERE POLICY_CODE=? AND POLICY_VERSION=?
+                  FROM ADM_APPROVAL_POLICY WHERE POLICY_CODE=? AND POLICY_VERSION=?
                 """, code, version).stream().findFirst();
     }
 
@@ -60,7 +60,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                        EFFECTIVE_FROM AS effectiveFrom, EFFECTIVE_TO AS effectiveTo,
                        ENABLED_YN AS enabledYn, SELF_APPROVAL_ALLOWED_YN AS selfApprovalAllowedYn,
                        BREAK_GLASS_ALLOWED_YN AS breakGlassAllowedYn, DESCRIPTION AS description
-                  FROM adm_approval_policy
+                  FROM ADM_APPROVAL_POLICY
                  WHERE ACTION_TYPE=? AND ENABLED_YN='Y'
                    AND EFFECTIVE_FROM <= ?
                    AND (EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > ?)
@@ -78,7 +78,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
     public void lockPolicyActionType(String actionType) {
         int bucket = Math.floorMod(Objects.requireNonNull(actionType, "actionType").hashCode(), 64);
         Integer locked = jdbc.queryForObject(
-                "SELECT LOCK_BUCKET FROM adm_approval_policy_lock WHERE LOCK_BUCKET=? FOR UPDATE",
+                "SELECT LOCK_BUCKET FROM ADM_APPROVAL_POLICY_LOCK WHERE LOCK_BUCKET=? FOR UPDATE",
                 Integer.class, bucket);
         if (locked == null || locked != bucket) {
             throw new IllegalStateException("approval policy lock bucket is not initialized: " + bucket);
@@ -89,7 +89,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
         Timestamp from = Timestamp.from(Objects.requireNonNull(effectiveFrom, "effectiveFrom"));
         Timestamp to = effectiveTo == null ? null : Timestamp.from(effectiveTo);
         Integer count = jdbc.queryForObject("""
-                SELECT COUNT(*) FROM adm_approval_policy
+                SELECT COUNT(*) FROM ADM_APPROVAL_POLICY
                  WHERE ACTION_TYPE=? AND ENABLED_YN='Y'
                    AND (? IS NULL OR EFFECTIVE_FROM < ?)
                    AND (EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > ?)
@@ -102,7 +102,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                 SELECT POLICY_CODE AS policyCode, POLICY_VERSION AS policyVersion, STEP_NO AS stepNo,
                        STEP_TYPE AS stepType, TARGET_TYPE AS targetType, TARGET_CODE AS targetCode,
                        DECISION_RULE AS decisionRule, REQUIRED_COUNT AS requiredCount, REQUIRED_YN AS requiredYn
-                  FROM adm_approval_policy_step
+                  FROM ADM_APPROVAL_POLICY_STEP
                  WHERE POLICY_CODE=? AND POLICY_VERSION=?
                  ORDER BY STEP_NO, TARGET_TYPE, TARGET_CODE
                 """, code, version);
@@ -117,7 +117,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                     "approval policy version already exists: " + code + "/" + version);
         }
         jdbc.update("""
-                INSERT INTO adm_approval_policy (
+                INSERT INTO ADM_APPROVAL_POLICY (
                     POLICY_CODE,POLICY_VERSION,POLICY_NAME,ACTION_TYPE,EFFECTIVE_FROM,EFFECTIVE_TO,
                     ENABLED_YN,SELF_APPROVAL_ALLOWED_YN,BREAK_GLASS_ALLOWED_YN,DESCRIPTION,created_by,updated_by
                 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
@@ -126,7 +126,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                 p.get("breakGlassAllowedYn"),p.get("description"),p.get("operatorId"),p.get("operatorId"));
         for (Map<String,Object> s : steps) {
             jdbc.update("""
-                    INSERT INTO adm_approval_policy_step (
+                    INSERT INTO ADM_APPROVAL_POLICY_STEP (
                         POLICY_CODE,POLICY_VERSION,STEP_NO,STEP_TYPE,TARGET_TYPE,TARGET_CODE,
                         DECISION_RULE,REQUIRED_COUNT,REQUIRED_YN,created_by,updated_by
                     ) VALUES (?,?,?,?,?,?,?,?,?,?,?)
@@ -152,7 +152,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
             case OPERATOR -> """
                 SELECT o.OPERATOR_ID operatorId,p.ORGANIZATION_CODE organizationCode,
                        p.POSITION_CODE positionCode,p.JOB_TITLE_CODE jobTitleCode
-                  FROM adm_operator o LEFT JOIN adm_operator_profile p ON p.OPERATOR_ID=o.OPERATOR_ID
+                  FROM ADM_OPERATOR o LEFT JOIN ADM_OPERATOR_PROFILE p ON p.OPERATOR_ID=o.OPERATOR_ID
                  WHERE o.OPERATOR_ID=? AND o.USE_YN='Y' AND o.LOCKED_YN='N'
                    AND (p.EFFECTIVE_FROM IS NULL OR p.EFFECTIVE_FROM<=?)
                    AND (p.EFFECTIVE_TO IS NULL OR p.EFFECTIVE_TO>?)
@@ -160,8 +160,8 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
             case ROLE -> """
                 SELECT o.OPERATOR_ID operatorId,p.ORGANIZATION_CODE organizationCode,
                        p.POSITION_CODE positionCode,p.JOB_TITLE_CODE jobTitleCode
-                  FROM adm_operator_role r JOIN adm_operator o ON o.OPERATOR_ID=r.OPERATOR_ID
-                  LEFT JOIN adm_operator_profile p ON p.OPERATOR_ID=o.OPERATOR_ID
+                  FROM ADM_OPERATOR_ROLE r JOIN ADM_OPERATOR o ON o.OPERATOR_ID=r.OPERATOR_ID
+                  LEFT JOIN ADM_OPERATOR_PROFILE p ON p.OPERATOR_ID=o.OPERATOR_ID
                  WHERE r.ROLE_ID=? AND o.USE_YN='Y' AND o.LOCKED_YN='N'
                    AND (p.EFFECTIVE_FROM IS NULL OR p.EFFECTIVE_FROM<=?)
                    AND (p.EFFECTIVE_TO IS NULL OR p.EFFECTIVE_TO>?)
@@ -169,7 +169,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
             case ORGANIZATION -> """
                 SELECT o.OPERATOR_ID operatorId,p.ORGANIZATION_CODE organizationCode,
                        p.POSITION_CODE positionCode,p.JOB_TITLE_CODE jobTitleCode
-                  FROM adm_operator_profile p JOIN adm_operator o ON o.OPERATOR_ID=p.OPERATOR_ID
+                  FROM ADM_OPERATOR_PROFILE p JOIN ADM_OPERATOR o ON o.OPERATOR_ID=p.OPERATOR_ID
                  WHERE p.ORGANIZATION_CODE=? AND o.USE_YN='Y' AND o.LOCKED_YN='N'
                    AND (p.EFFECTIVE_FROM IS NULL OR p.EFFECTIVE_FROM<=?)
                    AND (p.EFFECTIVE_TO IS NULL OR p.EFFECTIVE_TO>?)
@@ -177,8 +177,8 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
             case ORG_MANAGER -> """
                 SELECT o.OPERATOR_ID operatorId,p.ORGANIZATION_CODE organizationCode,
                        p.POSITION_CODE positionCode,p.JOB_TITLE_CODE jobTitleCode
-                  FROM adm_organization g JOIN adm_operator o ON o.OPERATOR_ID=g.MANAGER_OPERATOR_ID
-                  LEFT JOIN adm_operator_profile p ON p.OPERATOR_ID=o.OPERATOR_ID
+                  FROM ADM_ORGANIZATION g JOIN ADM_OPERATOR o ON o.OPERATOR_ID=g.MANAGER_OPERATOR_ID
+                  LEFT JOIN ADM_OPERATOR_PROFILE p ON p.OPERATOR_ID=o.OPERATOR_ID
                  WHERE g.ORGANIZATION_CODE=? AND g.USE_YN='Y' AND o.USE_YN='Y' AND o.LOCKED_YN='N'
                    AND (p.EFFECTIVE_FROM IS NULL OR p.EFFECTIVE_FROM<=?)
                    AND (p.EFFECTIVE_TO IS NULL OR p.EFFECTIVE_TO>?)
@@ -206,7 +206,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                    COMMAND_PAYLOAD_SNAPSHOT payloadSnapshot,APPROVAL_STATUS approvalStatus,
                    CURRENT_STEP_NO currentStepNo,EXPIRE_AT expireAt,TRANSACTION_ID transactionId,
                    VERSION_NO versionNo
-              FROM adm_approval_request WHERE REQUEST_KEY=?
+              FROM ADM_APPROVAL_REQUEST WHERE REQUEST_KEY=?
             """,requestKey).stream().findFirst();
     }
 
@@ -214,7 +214,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
         KeyHolder kh=new GeneratedKeyHolder();
         jdbc.update(c->{
             PreparedStatement ps=c.prepareStatement("""
-                INSERT INTO adm_approval_request (
+                INSERT INTO ADM_APPROVAL_REQUEST (
                     REQUEST_KEY,POLICY_CODE,POLICY_VERSION,ACTION_TYPE,OWNER_MODULE,OWNER_COMMAND,
                     TARGET_TYPE,TARGET_ID,REQUESTED_BY,REQUEST_REASON,COMMAND_PAYLOAD_HASH,
                     COMMAND_PAYLOAD_SNAPSHOT,APPROVAL_STATUS,CURRENT_STEP_NO,EXPIRE_AT,TRANSACTION_ID,
@@ -237,7 +237,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
     public void insertParticipant(long requestId,int stepNo,AdmApprovalDirectoryEntry e,
                                   String targetType,String targetCode,String operatorId){
         jdbc.update("""
-            INSERT INTO adm_approval_participant (
+            INSERT INTO ADM_APPROVAL_PARTICIPANT (
               APPROVAL_REQUEST_ID,STEP_NO,OPERATOR_ID,SOURCE_TARGET_TYPE,SOURCE_TARGET_CODE,
               ORGANIZATION_CODE_SNAPSHOT,POSITION_CODE_SNAPSHOT,JOB_TITLE_CODE_SNAPSHOT,
               DECISION_STATUS,created_by,updated_by
@@ -255,7 +255,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                    COMMAND_PAYLOAD_SNAPSHOT payloadSnapshot,
                    APPROVAL_STATUS approvalStatus,CURRENT_STEP_NO currentStepNo,EXPIRE_AT expireAt,
                    TRANSACTION_ID transactionId,VERSION_NO versionNo
-              FROM adm_approval_request WHERE APPROVAL_REQUEST_ID=?
+              FROM ADM_APPROVAL_REQUEST WHERE APPROVAL_REQUEST_ID=?
             """,id).stream().findFirst();
     }
 
@@ -266,7 +266,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                    ORGANIZATION_CODE_SNAPSHOT organizationCode,POSITION_CODE_SNAPSHOT positionCode,
                    JOB_TITLE_CODE_SNAPSHOT jobTitleCode,DECISION_STATUS decisionStatus,
                    DECISION_REASON decisionReason,DECIDED_AT decidedAt
-              FROM adm_approval_participant WHERE APPROVAL_REQUEST_ID=?
+              FROM ADM_APPROVAL_PARTICIPANT WHERE APPROVAL_REQUEST_ID=?
              ORDER BY STEP_NO,APPROVAL_PARTICIPANT_ID
             """,id);
     }
@@ -275,7 +275,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
         return jdbc.queryForList("""
             SELECT APPROVAL_PARTICIPANT_ID participantId,STEP_NO stepNo,SOURCE_TARGET_TYPE sourceTargetType,
                    SOURCE_TARGET_CODE sourceTargetCode
-              FROM adm_approval_participant
+              FROM ADM_APPROVAL_PARTICIPANT
              WHERE APPROVAL_REQUEST_ID=? AND STEP_NO=? AND OPERATOR_ID=? AND DECISION_STATUS='WAITING'
             """,id,stepNo,operatorId).stream().findFirst();
     }
@@ -284,7 +284,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
         return jdbc.queryForList("""
             SELECT APPROVAL_REQUEST_ID approvalRequestId,APPROVAL_PARTICIPANT_ID participantId,
                    OPERATOR_ID operatorId,DECISION_STATUS decisionStatus,DECISION_REASON decisionReason
-              FROM adm_approval_participant WHERE IDEMPOTENCY_KEY=?
+              FROM ADM_APPROVAL_PARTICIPANT WHERE IDEMPOTENCY_KEY=?
             """,key).stream().findFirst();
     }
 
@@ -294,7 +294,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
 
     public int decideParticipant(long participantId,String status,String key,String reason,String operatorId){
         return jdbc.update("""
-            UPDATE adm_approval_participant SET DECISION_STATUS=?,IDEMPOTENCY_KEY=?,DECISION_REASON=?,
+            UPDATE ADM_APPROVAL_PARTICIPANT SET DECISION_STATUS=?,IDEMPOTENCY_KEY=?,DECISION_REASON=?,
                    DECIDED_AT=CURRENT_TIMESTAMP(3),updated_by=?
              WHERE APPROVAL_PARTICIPANT_ID=? AND DECISION_STATUS='WAITING'
             """,status,key,reason,operatorId,participantId);
@@ -302,7 +302,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
 
     public int updateRequest(long id,long version,String status,int step,String operatorId){
         return jdbc.update("""
-            UPDATE adm_approval_request SET APPROVAL_STATUS=?,CURRENT_STEP_NO=?,VERSION_NO=VERSION_NO+1,updated_by=?
+            UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS=?,CURRENT_STEP_NO=?,VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND VERSION_NO=?
             """,status,step,operatorId,id,version);
     }
@@ -316,7 +316,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
     public void recordIntegrityFailure(long id,String operatorId,String beforeStatus,
                                        String reason,String eventData,String transactionId){
         int changed=jdbc.update("""
-            UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+            UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS=?
             """,operatorId,id,beforeStatus);
         if(changed!=1)throw new IllegalStateException("approval integrity status transition failed");
@@ -325,7 +325,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
 
     public void history(long id,String event,String actor,String before,String after,String reason,String data,String tx){
         jdbc.update("""
-            INSERT INTO adm_approval_history (
+            INSERT INTO ADM_APPROVAL_HISTORY (
               APPROVAL_REQUEST_ID,EVENT_TYPE,ACTOR_ID,BEFORE_STATUS,AFTER_STATUS,REASON,EVENT_DATA,TRANSACTION_ID
             ) VALUES (?,?,?,?,?,?,?,?)
             """,id,event,actor,before,after,reason,data,tx);
@@ -337,7 +337,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                    EXECUTION_STATUS executionStatus,OWNER_RESULT_CODE ownerResultCode,
                    OWNER_RESULT_MESSAGE ownerResultMessage,STARTED_AT startedAt,COMPLETED_AT completedAt,
                    RECOVERY_REQUIRED_YN recoveryRequiredYn,LEASE_OWNER leaseOwner,LEASE_EXPIRES_AT leaseExpiresAt,FENCE_TOKEN fenceToken
-              FROM adm_approval_execution WHERE APPROVAL_REQUEST_ID=?
+              FROM ADM_APPROVAL_EXECUTION WHERE APPROVAL_REQUEST_ID=?
             """,id).stream().findFirst();
     }
 
@@ -347,7 +347,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
      */
     public boolean isApprovedParticipant(long requestId,String operatorId){
         Integer count=jdbc.queryForObject("""
-            SELECT COUNT(*) FROM adm_approval_participant
+            SELECT COUNT(*) FROM ADM_APPROVAL_PARTICIPANT
              WHERE APPROVAL_REQUEST_ID=? AND OPERATOR_ID=? AND DECISION_STATUS='APPROVED'
             """,Integer.class,requestId,operatorId);
         return count!=null&&count>0;
@@ -363,8 +363,8 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                    r.APPROVAL_STATUS approvalStatus,r.EXPIRE_AT expireAt,r.TRANSACTION_ID transactionId,
                    r.VERSION_NO versionNo,e.COMMAND_REQUEST_ID commandRequestId,e.EXECUTION_STATUS executionStatus,
                    e.LEASE_OWNER leaseOwner,e.LEASE_EXPIRES_AT leaseExpiresAt,e.FENCE_TOKEN fenceToken
-              FROM adm_approval_request r
-              JOIN adm_approval_execution e ON e.APPROVAL_REQUEST_ID=r.APPROVAL_REQUEST_ID
+              FROM ADM_APPROVAL_REQUEST r
+              JOIN ADM_APPROVAL_EXECUTION e ON e.APPROVAL_REQUEST_ID=r.APPROVAL_REQUEST_ID
              WHERE r.APPROVAL_REQUEST_ID=? AND e.COMMAND_REQUEST_ID=?
                AND r.APPROVAL_STATUS='EXECUTING' AND e.EXECUTION_STATUS='RUNNING'
             """,id,commandRequestId).stream().findFirst();
@@ -373,13 +373,13 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
     @CpfTransactional(transactionManager="admTransactionManager")
     public boolean reserveExecution(long id,long expectedVersion,String commandRequestId,String operatorId){
         int requestChanged=jdbc.update("""
-            UPDATE adm_approval_request SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
+            UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='APPROVED' AND VERSION_NO=?
             """,operatorId,id,expectedVersion);
         if(requestChanged!=1)return false;
         Instant leaseExpiresAt=Instant.now().plus(EXECUTION_LEASE);
         jdbc.update("""
-            INSERT INTO adm_approval_execution (
+            INSERT INTO ADM_APPROVAL_EXECUTION (
               APPROVAL_REQUEST_ID,COMMAND_REQUEST_ID,EXECUTION_STATUS,STARTED_AT,RECOVERY_REQUIRED_YN,
               LEASE_OWNER,LEASE_EXPIRES_AT,FENCE_TOKEN,created_by,updated_by
             ) VALUES (?,?,'RUNNING',CURRENT_TIMESTAMP,'N',?,?,1,?,?)
@@ -391,13 +391,13 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
     @CpfTransactional(transactionManager="admTransactionManager")
     public boolean reserveReconcile(long id,long expectedVersion,String operatorId){
         int executionChanged=jdbc.update("""
-            UPDATE adm_approval_execution SET EXECUTION_STATUS='RUNNING',STARTED_AT=CURRENT_TIMESTAMP,
+            UPDATE ADM_APPROVAL_EXECUTION SET EXECUTION_STATUS='RUNNING',STARTED_AT=CURRENT_TIMESTAMP,
                    COMPLETED_AT=NULL,LEASE_OWNER=?,LEASE_EXPIRES_AT=?,FENCE_TOKEN=FENCE_TOKEN+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='UNKNOWN' AND RECOVERY_REQUIRED_YN='Y'
             """,executionLeaseOwner(),Timestamp.from(Instant.now().plus(EXECUTION_LEASE)),operatorId,id);
         if(executionChanged!=1)return false;
         int requestChanged=jdbc.update("""
-            UPDATE adm_approval_request SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
+            UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='UNKNOWN' AND VERSION_NO=?
             """,operatorId,id,expectedVersion);
         if(requestChanged!=1)throw new IllegalStateException("approval reconcile reservation failed");
@@ -415,7 +415,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
     public void finishExecution(long id,String commandRequestId,String leaseOwner,long fenceToken,
             String status,String code,String message,boolean recovery,String operatorId){
         int changed=jdbc.update("""
-            UPDATE adm_approval_execution SET EXECUTION_STATUS=?,OWNER_RESULT_CODE=?,OWNER_RESULT_MESSAGE=?,
+            UPDATE ADM_APPROVAL_EXECUTION SET EXECUTION_STATUS=?,OWNER_RESULT_CODE=?,OWNER_RESULT_MESSAGE=?,
                    COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN=?,LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
                AND LEASE_OWNER=? AND FENCE_TOKEN=?
@@ -430,7 +430,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
             String reason,String eventData,String transactionId){
         finishExecution(id,commandRequestId,leaseOwner,fenceToken,executionStatus,code,message,recovery,operatorId);
         int requestChanged=jdbc.update("""
-            UPDATE adm_approval_request SET APPROVAL_STATUS=?,VERSION_NO=VERSION_NO+1,updated_by=?
+            UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS=?,VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING' AND VERSION_NO=?
             """,requestStatus,operatorId,id,expectedRequestVersion);
         if(requestChanged!=1)throw new IllegalStateException("approval request finalization failed");
@@ -444,13 +444,13 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                                                 String code,String message,String operatorId,
                                                 String reason,String eventData,String transactionId){
         int executionChanged=jdbc.update("""
-            UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
+            UPDATE ADM_APPROVAL_EXECUTION SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
                    OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
                AND LEASE_OWNER=? AND FENCE_TOKEN=?
             """,code,message,operatorId,id,commandRequestId,leaseOwner,fenceToken);
         int requestChanged=jdbc.update("""
-            UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+            UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
             """,operatorId,id);
         if(executionChanged!=1||requestChanged!=1)
@@ -462,13 +462,13 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
     public void markExecutionUnknown(long id,String commandRequestId,String leaseOwner,long fenceToken,
                                      String code,String message,String operatorId){
         int executionChanged=jdbc.update("""
-            UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
+            UPDATE ADM_APPROVAL_EXECUTION SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
                    OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
                AND LEASE_OWNER=? AND FENCE_TOKEN=?
             """,code,message,operatorId,id,commandRequestId,leaseOwner,fenceToken);
         int requestChanged=jdbc.update("""
-            UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+            UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
             """,operatorId,id);
         if(executionChanged!=1||requestChanged!=1)
@@ -492,7 +492,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
         Timestamp legacyCutoff=Timestamp.from(now.minus(LEGACY_RUNNING_GRACE));
         List<Map<String,Object>> candidates=jdbc.queryForList("""
             SELECT APPROVAL_REQUEST_ID approvalRequestId,COMMAND_REQUEST_ID commandRequestId,
-                   LEASE_OWNER leaseOwner,FENCE_TOKEN fenceToken FROM adm_approval_execution
+                   LEASE_OWNER leaseOwner,FENCE_TOKEN fenceToken FROM ADM_APPROVAL_EXECUTION
              WHERE EXECUTION_STATUS='RUNNING'
                AND ((LEASE_EXPIRES_AT IS NOT NULL AND LEASE_EXPIRES_AT<=?)
                     OR (LEASE_EXPIRES_AT IS NULL AND STARTED_AT IS NOT NULL AND STARTED_AT<=?))
@@ -505,7 +505,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
             String leaseOwner=nullable(value(candidate,"leaseOwner"));
             long fenceToken=((Number)value(candidate,"fenceToken")).longValue();
             int executionChanged=leaseOwner==null ? jdbc.update("""
-                UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE='ADM-EXECUTION-LEASE-EXPIRED',
+                UPDATE ADM_APPROVAL_EXECUTION SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE='ADM-EXECUTION-LEASE-EXPIRED',
                        OWNER_RESULT_MESSAGE='실행 Lease 만료로 Owner 결과 확인이 필요합니다.',COMPLETED_AT=CURRENT_TIMESTAMP,
                        RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
                  WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
@@ -513,7 +513,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                    AND ((LEASE_EXPIRES_AT IS NOT NULL AND LEASE_EXPIRES_AT<=?)
                         OR (LEASE_EXPIRES_AT IS NULL AND STARTED_AT IS NOT NULL AND STARTED_AT<=?))
                 """,operatorId,id,commandRequestId,fenceToken,nowTs,legacyCutoff) : jdbc.update("""
-                UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE='ADM-EXECUTION-LEASE-EXPIRED',
+                UPDATE ADM_APPROVAL_EXECUTION SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE='ADM-EXECUTION-LEASE-EXPIRED',
                        OWNER_RESULT_MESSAGE='실행 Lease 만료로 Owner 결과 확인이 필요합니다.',COMPLETED_AT=CURRENT_TIMESTAMP,
                        RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
                  WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
@@ -523,7 +523,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                 """,operatorId,id,commandRequestId,leaseOwner,fenceToken,nowTs,legacyCutoff);
             if(executionChanged!=1) continue;
             int requestChanged=jdbc.update("""
-                UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+                UPDATE ADM_APPROVAL_REQUEST SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
                  WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
                 """,operatorId,id);
             if(requestChanged!=1) throw new IllegalStateException("stale approval request transition failed: "+id);
@@ -541,7 +541,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
 
     public int updateCommandSnapshot(long id,long version,String payloadHash,String payloadSnapshot,String operatorId){
         return jdbc.update("""
-            UPDATE adm_approval_request SET COMMAND_PAYLOAD_HASH=?,COMMAND_PAYLOAD_SNAPSHOT=?,
+            UPDATE ADM_APPROVAL_REQUEST SET COMMAND_PAYLOAD_HASH=?,COMMAND_PAYLOAD_SNAPSHOT=?,
                    VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='PENDING' AND VERSION_NO=?
             """,payloadHash,payloadSnapshot,operatorId,id,version);

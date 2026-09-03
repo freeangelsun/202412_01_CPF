@@ -1,3 +1,3 @@
 SELECT standard_execution_id
-FROM cpf_standard_execution_alias
+FROM CPF_STANDARD_EXECUTION_ALIAS
 WHERE legacy_execution_id = ?

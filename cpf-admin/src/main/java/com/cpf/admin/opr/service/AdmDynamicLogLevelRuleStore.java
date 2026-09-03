@@ -49,7 +49,7 @@ public class AdmDynamicLogLevelRuleStore extends AdmBaseRepository {
     public boolean disable(String ruleId, String requestUser) {
         try {
             return admJdbcTemplate.update("""
-                    UPDATE adm_dynamic_log_level_rule
+                    UPDATE ADM_DYNAMIC_LOG_LEVEL_RULE
                        SET USE_YN = 'N',
                            UPDATED_BY = ?,
                            UPDATED_AT = CURRENT_TIMESTAMP
@@ -65,7 +65,7 @@ public class AdmDynamicLogLevelRuleStore extends AdmBaseRepository {
             return admJdbcTemplate.query("""
                     SELECT RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL,
                            REASON, CREATED_BY, CREATED_AT, EXPIRE_AT
-                      FROM adm_dynamic_log_level_rule
+                      FROM ADM_DYNAMIC_LOG_LEVEL_RULE
                      WHERE USE_YN = 'Y'
                        AND EXPIRE_AT > CURRENT_TIMESTAMP
                      ORDER BY CREATED_AT DESC
@@ -87,7 +87,7 @@ public class AdmDynamicLogLevelRuleStore extends AdmBaseRepository {
     public Map<String, Object> persistenceStatus() {
         try {
             Integer count = admJdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM adm_dynamic_log_level_rule WHERE USE_YN = 'Y' AND EXPIRE_AT > CURRENT_TIMESTAMP",
+                    "SELECT COUNT(*) FROM ADM_DYNAMIC_LOG_LEVEL_RULE WHERE USE_YN = 'Y' AND EXPIRE_AT > CURRENT_TIMESTAMP",
                     Integer.class);
             return Map.of("available", true, "activeCount", count == null ? 0 : count);
         } catch (DataAccessException ex) {
@@ -110,7 +110,7 @@ public class AdmDynamicLogLevelRuleStore extends AdmBaseRepository {
 
     private int updateRule(DynamicLogLevelRule rule, LocalDateTime updatedAt) {
         return admJdbcTemplate.update("""
-                UPDATE adm_dynamic_log_level_rule
+                UPDATE ADM_DYNAMIC_LOG_LEVEL_RULE
                 SET TRANSACTION_ID = ?,
                     BUSINESS_TRANSACTION_ID = ?,
                     MODULE_ID = ?,
@@ -135,7 +135,7 @@ public class AdmDynamicLogLevelRuleStore extends AdmBaseRepository {
 
     private void insertRule(DynamicLogLevelRule rule, LocalDateTime updatedAt) {
         admJdbcTemplate.update("""
-                INSERT INTO adm_dynamic_log_level_rule (
+                INSERT INTO ADM_DYNAMIC_LOG_LEVEL_RULE (
                     RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL,
                     EXPIRE_AT, REASON, USE_YN, CREATED_BY, CREATED_AT, UPDATED_BY, UPDATED_AT
                 )

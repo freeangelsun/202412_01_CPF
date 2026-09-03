@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [switch] $Check
 )
@@ -17,6 +17,10 @@ $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $expectedVendors = @("mariadb", "postgresql", "oracle")
 
 $vendorTokens = @{
+    # Lease/승인 만료 같은 시각 비교는 각 Vendor Pack 의 UTC DB clock 이 계산한다.
+    # Client JVM 기본 timezone 으로 만든 Timestamp 를 DB 가 만든 값과 비교하면 시간대 차이만큼
+    # 어긋난다(실제로 MBW bootstrap 승인 claim 이 KST/UTC 9시간 차이로 만료 판정에 걸렸다).
+    # 파라미터로는 "얼마나 오래"(마이크로초)만 넘긴다.
     mariadb = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
         "@NOW3@" = "CURRENT_TIMESTAMP(3)"
@@ -28,6 +32,8 @@ $vendorTokens = @{
         "@WITH_RECURSIVE@" = "WITH RECURSIVE"
         "@COALESCE_CREATED_BY@" = "IFNULL(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "IFNULL(#{updatedBy}, 'CPF')"
+        "@UTC_NOW6@" = "UTC_TIMESTAMP(6)"
+        "@UTC_NOW6_PLUS_MICROS_NAMED@" = "TIMESTAMPADD(MICROSECOND, :leaseDurationMicros, UTC_TIMESTAMP(6))"
         "@CHAR_LENGTH@" = "CHAR_LENGTH"
     }
     postgresql = @{
@@ -41,6 +47,8 @@ $vendorTokens = @{
         "@WITH_RECURSIVE@" = "WITH RECURSIVE"
         "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "COALESCE(#{updatedBy}, 'CPF')"
+        "@UTC_NOW6@" = "(CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC')"
+        "@UTC_NOW6_PLUS_MICROS_NAMED@" = "(CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC') + (:leaseDurationMicros * INTERVAL '1 microsecond')"
         "@CHAR_LENGTH@" = "CHAR_LENGTH"
     }
     oracle = @{
@@ -54,6 +62,8 @@ $vendorTokens = @{
         "@WITH_RECURSIVE@" = "WITH"
         "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "COALESCE(#{updatedBy}, 'CPF')"
+        "@UTC_NOW6@" = "SYS_EXTRACT_UTC(SYSTIMESTAMP)"
+        "@UTC_NOW6_PLUS_MICROS_NAMED@" = "SYS_EXTRACT_UTC(SYSTIMESTAMP) + NUMTODSINTERVAL(:leaseDurationMicros / 1000000, 'SECOND')"
         "@CHAR_LENGTH@" = "LENGTH"
     }
 }

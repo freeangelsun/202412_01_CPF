@@ -9,6 +9,6 @@ SELECT approval_history_id AS approvalHistoryId,
        comment_text AS comment,
        transaction_id AS transactionId,
        created_at AS createdAt
-  FROM mbw_approval_history
+  FROM MBW_APPROVAL_HISTORY
  WHERE approval_id = :approvalId
  ORDER BY created_at ASC, approval_history_id ASC

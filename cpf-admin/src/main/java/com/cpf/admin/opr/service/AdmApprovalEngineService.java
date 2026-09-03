@@ -64,7 +64,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                 + "effective_to AS effectiveTo,enabled_yn AS enabledYn,"
                 + "self_approval_allowed_yn AS selfApprovalAllowedYn,"
                 + "break_glass_allowed_yn AS breakGlassAllowedYn,description "
-                + "FROM adm_approval_policy";
+                + "FROM ADM_APPROVAL_POLICY";
         if (actionType == null || actionType.isBlank()) {
             return jdbc.queryForList(select + " ORDER BY action_type,policy_code,policy_version DESC");
         }
@@ -83,13 +83,13 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                         + "effective_to AS effectiveTo,enabled_yn AS enabledYn,"
                         + "self_approval_allowed_yn AS selfApprovalAllowedYn,"
                         + "break_glass_allowed_yn AS breakGlassAllowedYn,description "
-                        + "FROM adm_approval_policy WHERE policy_code=? AND policy_version=?",
+                        + "FROM ADM_APPROVAL_POLICY WHERE policy_code=? AND policy_version=?",
                 policyCode, policyVersion));
         result.put("steps", jdbc.queryForList(
                 "SELECT step_no AS stepNo,step_type AS stepType,target_type AS targetType,"
                         + "target_code AS targetCode,decision_rule AS decisionRule,"
                         + "required_count AS requiredCount,required_yn AS requiredYn "
-                        + "FROM adm_approval_policy_step WHERE policy_code=? AND policy_version=? "
+                        + "FROM ADM_APPROVAL_POLICY_STEP WHERE policy_code=? AND policy_version=? "
                         + "ORDER BY step_no,target_type,target_code",
                 policyCode, policyVersion));
         return result;
@@ -111,7 +111,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         }
         try {
             jdbc.update(
-                    "INSERT INTO adm_approval_policy(policy_code,policy_version,policy_name,action_type,"
+                    "INSERT INTO ADM_APPROVAL_POLICY(policy_code,policy_version,policy_name,action_type,"
                             + "effective_from,effective_to,enabled_yn,self_approval_allowed_yn,"
                             + "break_glass_allowed_yn,description,created_by,updated_by) "
                             + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -131,7 +131,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                     ? positive(step.requiredCount() == null ? 0 : step.requiredCount(), "requiredCount")
                     : null;
             jdbc.update(
-                    "INSERT INTO adm_approval_policy_step(policy_code,policy_version,step_no,step_type,"
+                    "INSERT INTO ADM_APPROVAL_POLICY_STEP(policy_code,policy_version,step_no,step_type,"
                             + "target_type,target_code,decision_rule,required_count,required_yn,"
                             + "created_by,updated_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
                     command.policyCode(), command.policyVersion(), positive(step.stepNo(), "stepNo"),
@@ -174,7 +174,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         try {
             jdbc.update(connection -> {
                 var ps = connection.prepareStatement(
-                        "INSERT INTO adm_approval_request(request_key,policy_code,policy_version,"
+                        "INSERT INTO ADM_APPROVAL_REQUEST(request_key,policy_code,policy_version,"
                                 + "action_type,owner_module,owner_command,target_type,target_id,requested_by,"
                                 + "request_reason,command_payload_hash,command_payload_snapshot,approval_status,"
                                 + "current_step_no,expire_at,created_by,updated_by) "
@@ -213,7 +213,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
             canonicalSnapshot = write(riskSnapshot(risk));
         }
         int updated = jdbc.update(
-                "UPDATE adm_approval_request SET command_payload_hash=?,command_payload_snapshot=?,"
+                "UPDATE ADM_APPROVAL_REQUEST SET command_payload_hash=?,command_payload_snapshot=?,"
                         + "updated_by=? WHERE approval_request_id=? AND approval_status='PENDING'",
                 hash, canonicalSnapshot, actor, requestId);
         if (updated != 1) {
@@ -239,7 +239,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                         + "command_payload_snapshot AS commandPayloadSnapshot,approval_status AS approvalStatus,"
                         + "current_step_no AS currentStepNo,expire_at AS expireAt,transaction_id AS transactionId,"
                         + "version_no AS versionNo,created_at AS createdAt,updated_at AS updatedAt "
-                        + "FROM adm_approval_request WHERE approval_request_id=?",
+                        + "FROM ADM_APPROVAL_REQUEST WHERE approval_request_id=?",
                 positiveLong(id, "requestId")));
         result.put("participants", jdbc.queryForList(
                 "SELECT approval_participant_id AS participantId,step_no AS stepNo,operator_id AS operatorId,"
@@ -248,7 +248,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                         + "position_code_snapshot AS positionCodeSnapshot,"
                         + "job_title_code_snapshot AS jobTitleCodeSnapshot,decision_status AS decisionStatus,"
                         + "idempotency_key AS idempotencyKey,decision_reason AS decisionReason,"
-                        + "decided_at AS decidedAt FROM adm_approval_participant "
+                        + "decided_at AS decidedAt FROM ADM_APPROVAL_PARTICIPANT "
                         + "WHERE approval_request_id=? ORDER BY step_no,operator_id",
                 id));
         try {
@@ -257,7 +257,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                             + "owner_result_code AS ownerResultCode,owner_result_message AS ownerResultMessage,"
                             + "started_at AS startedAt,completed_at AS completedAt,"
                             + "recovery_required_yn AS recoveryRequiredYn "
-                            + "FROM adm_approval_execution WHERE approval_request_id=?",
+                            + "FROM ADM_APPROVAL_EXECUTION WHERE approval_request_id=?",
                     id));
         } catch (EmptyResultDataAccessException ignored) {
             // Execution has not started.
@@ -284,7 +284,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         try {
             participant = jdbc.queryForMap(
                     "SELECT approval_participant_id,step_no,decision_status,idempotency_key "
-                            + "FROM adm_approval_participant "
+                            + "FROM ADM_APPROVAL_PARTICIPANT "
                             + "WHERE approval_request_id=? AND step_no=? AND operator_id=?",
                     id, currentStep, actor);
         } catch (EmptyResultDataAccessException denied) {
@@ -297,7 +297,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
             throw new IllegalStateException("approval decision is already finalized");
         }
         int changed = jdbc.update(
-                "UPDATE adm_approval_participant SET decision_status=?,idempotency_key=?,"
+                "UPDATE ADM_APPROVAL_PARTICIPANT SET decision_status=?,idempotency_key=?,"
                         + "decision_reason=?,decided_at=CURRENT_TIMESTAMP,updated_by=? "
                         + "WHERE approval_participant_id=? AND decision_status='WAITING'",
                 action.equals("APPROVE") ? "APPROVED" : "REJECTED",
@@ -332,13 +332,13 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         if ("RUNNING".equals(prior)) return request(id);
 
         int reserved = jdbc.update(
-                "UPDATE adm_approval_execution SET execution_status='RUNNING',started_at=CURRENT_TIMESTAMP,"
+                "UPDATE ADM_APPROVAL_EXECUTION SET execution_status='RUNNING',started_at=CURRENT_TIMESTAMP,"
                         + "recovery_required_yn='N',updated_by=? "
                         + "WHERE approval_request_id=? AND execution_status='PENDING'",
                 actor, id);
         if (reserved != 1) return request(id);
         jdbc.update(
-                "UPDATE adm_approval_request SET approval_status='EXECUTING',version_no=version_no+1,updated_by=? "
+                "UPDATE ADM_APPROVAL_REQUEST SET approval_status='EXECUTING',version_no=version_no+1,updated_by=? "
                         + "WHERE approval_request_id=? AND approval_status='APPROVED'",
                 actor, id);
 
@@ -376,7 +376,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         String commandRequestId = text(request, "requestKey") + ":owner";
         try {
             jdbc.update(
-                    "INSERT INTO adm_approval_execution(approval_request_id,command_request_id,execution_status,"
+                    "INSERT INTO ADM_APPROVAL_EXECUTION(approval_request_id,command_request_id,execution_status,"
                             + "recovery_required_yn,created_by,updated_by) VALUES(?,?,'PENDING','N',?,?)",
                     id, commandRequestId, actor, actor);
         } catch (DataIntegrityViolationException replay) {
@@ -384,7 +384,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         }
         return jdbc.queryForMap(
                 "SELECT approval_request_id,command_request_id,execution_status,owner_result_code,"
-                        + "owner_result_message,recovery_required_yn FROM adm_approval_execution "
+                        + "owner_result_message,recovery_required_yn FROM ADM_APPROVAL_EXECUTION "
                         + "WHERE approval_request_id=?", id);
     }
 
@@ -392,7 +392,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
             long id, String actor, String executionStatus, String resultCode,
             String resultMessage, boolean recoveryRequired) {
         int executionChanged = jdbc.update(
-                "UPDATE adm_approval_execution SET execution_status=?,owner_result_code=?,owner_result_message=?,"
+                "UPDATE ADM_APPROVAL_EXECUTION SET execution_status=?,owner_result_code=?,owner_result_message=?,"
                         + "completed_at=CURRENT_TIMESTAMP,recovery_required_yn=?,updated_by=? "
                         + "WHERE approval_request_id=? AND execution_status='RUNNING'",
                 executionStatus, resultCode, boundedText(resultMessage, 1000),
@@ -406,13 +406,13 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
             default -> "UNKNOWN";
         };
         int requestChanged = jdbc.update(
-                "UPDATE adm_approval_request SET approval_status=?,version_no=version_no+1,updated_by=? "
+                "UPDATE ADM_APPROVAL_REQUEST SET approval_status=?,version_no=version_no+1,updated_by=? "
                         + "WHERE approval_request_id=? AND approval_status='EXECUTING'",
                 requestStatus, actor, id);
         if (requestChanged != 1) {
             // Owner side effect 이후 request 상태 저장 실패는 결과를 추정할 수 없으므로 execution도 UNKNOWN으로 강등한다.
             jdbc.update(
-                    "UPDATE adm_approval_execution SET execution_status='UNKNOWN',recovery_required_yn='Y',"
+                    "UPDATE ADM_APPROVAL_EXECUTION SET execution_status='UNKNOWN',recovery_required_yn='Y',"
                             + "owner_result_code='ADM_FINALIZATION_UNKNOWN',updated_by=? WHERE approval_request_id=?",
                     actor, id);
             throw new IllegalStateException("approval request finalization is UNKNOWN");
@@ -448,7 +448,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT policy_code AS policyCode,policy_version AS policyVersion,policy_name AS policyName,"
                         + "action_type AS actionType,self_approval_allowed_yn AS selfApprovalAllowedYn "
-                        + "FROM adm_approval_policy WHERE action_type=? AND enabled_yn='Y' "
+                        + "FROM ADM_APPROVAL_POLICY WHERE action_type=? AND enabled_yn='Y' "
                         + "AND effective_from<=CURRENT_TIMESTAMP "
                         + "AND (effective_to IS NULL OR effective_to>CURRENT_TIMESTAMP) "
                         + "ORDER BY policy_version DESC",
@@ -474,7 +474,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
     private void createParticipants(
             long requestId, String policyCode, int policyVersion, String requester, boolean selfAllowed) {
         List<Map<String, Object>> targets = jdbc.queryForList(
-                "SELECT step_no,target_type,target_code FROM adm_approval_policy_step "
+                "SELECT step_no,target_type,target_code FROM ADM_APPROVAL_POLICY_STEP "
                         + "WHERE policy_code=? AND policy_version=? AND required_yn='Y' ORDER BY step_no",
                 policyCode, policyVersion);
         if (targets.isEmpty()) throw new IllegalStateException("approval policy has no required steps");
@@ -490,7 +490,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                 if (!insertedKeys.add(stepNo + "\u0000" + approver)) continue;
                 Map<String, Object> profile = profile(approver);
                 jdbc.update(
-                        "INSERT INTO adm_approval_participant(approval_request_id,step_no,operator_id,"
+                        "INSERT INTO ADM_APPROVAL_PARTICIPANT(approval_request_id,step_no,operator_id,"
                                 + "source_target_type,source_target_code,organization_code_snapshot,"
                                 + "position_code_snapshot,job_title_code_snapshot,decision_status,"
                                 + "created_by,updated_by) VALUES(?,?,?,?,?,?,?,?, 'WAITING',?,?)",
@@ -505,7 +505,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         }
         for (Integer stepNo : requiredStepNumbers(policyCode, policyVersion)) {
             Long count = jdbc.queryForObject(
-                    "SELECT COUNT(*) FROM adm_approval_participant "
+                    "SELECT COUNT(*) FROM ADM_APPROVAL_PARTICIPANT "
                             + "WHERE approval_request_id=? AND step_no=?",
                     Long.class, requestId, stepNo);
             if (count == null || count == 0) {
@@ -516,7 +516,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
 
     private List<Integer> requiredStepNumbers(String policyCode, int policyVersion) {
         List<Number> values = jdbc.queryForList(
-                "SELECT DISTINCT step_no FROM adm_approval_policy_step "
+                "SELECT DISTINCT step_no FROM ADM_APPROVAL_POLICY_STEP "
                         + "WHERE policy_code=? AND policy_version=? AND required_yn='Y' ORDER BY step_no",
                 Number.class, policyCode, policyVersion);
         List<Integer> result = new ArrayList<>(values.size());
@@ -528,18 +528,18 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         return switch (type.toUpperCase(Locale.ROOT)) {
             case "OPERATOR" -> List.of(code);
             case "ROLE" -> jdbc.queryForList(
-                    "SELECT r.operator_id FROM adm_operator_role r JOIN adm_operator o "
+                    "SELECT r.operator_id FROM ADM_OPERATOR_ROLE r JOIN ADM_OPERATOR o "
                             + "ON o.operator_id=r.operator_id WHERE r.role_id=? "
                             + "AND o.account_status='ACTIVE' AND o.use_yn='Y'",
                     String.class, code);
             case "ORGANIZATION" -> jdbc.queryForList(
-                    "SELECT p.operator_id FROM adm_operator_profile p JOIN adm_operator o "
+                    "SELECT p.operator_id FROM ADM_OPERATOR_PROFILE p JOIN ADM_OPERATOR o "
                             + "ON o.operator_id=p.operator_id WHERE p.organization_code=? "
                             + "AND (p.effective_to IS NULL OR p.effective_to>CURRENT_TIMESTAMP) "
                             + "AND o.account_status='ACTIVE' AND o.use_yn='Y'",
                     String.class, code);
             case "ORG_MANAGER" -> jdbc.queryForList(
-                    "SELECT manager_operator_id FROM adm_organization WHERE organization_code=? "
+                    "SELECT manager_operator_id FROM ADM_ORGANIZATION WHERE organization_code=? "
                             + "AND use_yn='Y' AND manager_operator_id IS NOT NULL",
                     String.class, code);
             default -> throw new IllegalArgumentException("unsupported approval target type: " + type);
@@ -550,7 +550,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         try {
             return jdbc.queryForMap(
                     "SELECT organization_code,position_code,job_title_code "
-                            + "FROM adm_operator_profile WHERE operator_id=? "
+                            + "FROM ADM_OPERATOR_PROFILE WHERE operator_id=? "
                             + "AND (effective_to IS NULL OR effective_to>CURRENT_TIMESTAMP)",
                     operator);
         } catch (EmptyResultDataAccessException missing) {
@@ -566,12 +566,12 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         Map<String, Object> request = request(requestId);
         int currentStep = ((Number) value(request, "currentStepNo")).intValue();
         Long rejected = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM adm_approval_participant "
+                "SELECT COUNT(*) FROM ADM_APPROVAL_PARTICIPANT "
                         + "WHERE approval_request_id=? AND step_no=? AND decision_status='REJECTED'",
                 Long.class, requestId, currentStep);
         if (rejected != null && rejected > 0) {
             jdbc.update(
-                    "UPDATE adm_approval_request SET approval_status='REJECTED',version_no=version_no+1,"
+                    "UPDATE ADM_APPROVAL_REQUEST SET approval_status='REJECTED',version_no=version_no+1,"
                             + "updated_by=? WHERE approval_request_id=? AND approval_status='PENDING'",
                     actor, requestId);
             return;
@@ -579,15 +579,15 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
 
         Map<String, Object> rule = jdbc.queryForMap(
                 "SELECT DISTINCT s.step_no,s.decision_rule,s.required_count "
-                        + "FROM adm_approval_request r JOIN adm_approval_policy_step s "
+                        + "FROM ADM_APPROVAL_REQUEST r JOIN ADM_APPROVAL_POLICY_STEP s "
                         + "ON s.policy_code=r.policy_code AND s.policy_version=r.policy_version "
                         + "WHERE r.approval_request_id=? AND s.step_no=? AND s.required_yn='Y'",
                 requestId, currentStep);
         Long total = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM adm_approval_participant WHERE approval_request_id=? AND step_no=?",
+                "SELECT COUNT(*) FROM ADM_APPROVAL_PARTICIPANT WHERE approval_request_id=? AND step_no=?",
                 Long.class, requestId, currentStep);
         Long approved = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM adm_approval_participant "
+                "SELECT COUNT(*) FROM ADM_APPROVAL_PARTICIPANT "
                         + "WHERE approval_request_id=? AND step_no=? AND decision_status='APPROVED'",
                 Long.class, requestId, currentStep);
         Object requiredCount = value(rule, "required_count");
@@ -599,20 +599,20 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         if (evaluation.status() != AdmApprovalDecisionEvaluator.Status.APPROVED) return;
 
         Integer nextStep = jdbc.queryForObject(
-                "SELECT MIN(s.step_no) FROM adm_approval_request r JOIN adm_approval_policy_step s "
+                "SELECT MIN(s.step_no) FROM ADM_APPROVAL_REQUEST r JOIN ADM_APPROVAL_POLICY_STEP s "
                         + "ON s.policy_code=r.policy_code AND s.policy_version=r.policy_version "
                         + "WHERE r.approval_request_id=? AND s.required_yn='Y' AND s.step_no>?",
                 Integer.class, requestId, currentStep);
         if (nextStep != null) {
             int changed = jdbc.update(
-                    "UPDATE adm_approval_request SET current_step_no=?,version_no=version_no+1,updated_by=? "
+                    "UPDATE ADM_APPROVAL_REQUEST SET current_step_no=?,version_no=version_no+1,updated_by=? "
                             + "WHERE approval_request_id=? AND approval_status='PENDING' AND current_step_no=?",
                     nextStep, actor, requestId, currentStep);
             if (changed != 1) throw new IllegalStateException("approval step changed concurrently");
             return;
         }
         int approvedRequest = jdbc.update(
-                "UPDATE adm_approval_request SET approval_status='APPROVED',version_no=version_no+1,updated_by=? "
+                "UPDATE ADM_APPROVAL_REQUEST SET approval_status='APPROVED',version_no=version_no+1,updated_by=? "
                         + "WHERE approval_request_id=? AND approval_status='PENDING' AND current_step_no=?",
                 actor, requestId, currentStep);
         if (approvedRequest != 1) throw new IllegalStateException("approval request changed concurrently");
@@ -689,7 +689,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                     "SELECT approval_request_id,request_key,policy_code,policy_version,action_type,"
                             + "owner_module,owner_command,target_type,target_id,requested_by,request_reason,"
                             + "command_payload_hash,approval_status,expire_at,version_no "
-                            + "FROM adm_approval_request WHERE request_key=?",
+                            + "FROM ADM_APPROVAL_REQUEST WHERE request_key=?",
                     key);
         } catch (EmptyResultDataAccessException missing) {
             return null;
@@ -700,7 +700,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         Instant expires = instant(value(request, "expireAt"));
         if (expires != null && !expires.isAfter(Instant.now())) {
             jdbc.update(
-                    "UPDATE adm_approval_request SET approval_status='EXPIRED',version_no=version_no+1,"
+                    "UPDATE ADM_APPROVAL_REQUEST SET approval_status='EXPIRED',version_no=version_no+1,"
                             + "updated_by=? WHERE approval_request_id=? AND approval_status IN ('PENDING','APPROVED')",
                     actor, id);
             throw new IllegalStateException("approval request has expired");

@@ -7,4 +7,4 @@ SELECT approval_id AS approvalId, approval_no AS approvalNo,
        due_at AS dueAt, payload_json AS payloadJson, payload_hash AS payloadHash,
        attachment_group_id AS attachmentGroupId,
        resubmitted_from_approval_id AS resubmittedFromApprovalId, transaction_id AS transactionId
-  FROM mbw_approval_document WHERE approval_id=:approvalId
+  FROM MBW_APPROVAL_DOCUMENT WHERE approval_id=:approvalId

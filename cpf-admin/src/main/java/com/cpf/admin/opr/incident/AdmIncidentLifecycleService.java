@@ -59,7 +59,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
         List<PolicyResponse> rows = jdbc.query("""
                 SELECT * FROM (
                   SELECT p.*, ROW_NUMBER() OVER (ORDER BY p.policy_id DESC) AS rn
-                  FROM adm_incident_policy p
+                  FROM ADM_INCIDENT_POLICY p
                 ) x WHERE x.rn > ? AND x.rn <= ? ORDER BY x.rn
                 """, (rs, n) -> new PolicyResponse(
                 rs.getLong("policy_id"), rs.getString("policy_code"), rs.getString("event_type"),
@@ -82,7 +82,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
             KeyHolder holder = new GeneratedKeyHolder();
             int inserted = jdbc.update(c -> {
                 PreparedStatement ps = c.prepareStatement("""
-                        INSERT INTO adm_incident_policy
+                        INSERT INTO ADM_INCIDENT_POLICY
                         (policy_code,event_type,event_sub_type,severity,threshold_count,window_seconds,
                          escalation_minutes,receiver_group,use_yn,version,created_by,updated_by,created_at,updated_at)
                         VALUES (?,?,?,?,?,?,?,?,?,0,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
@@ -98,7 +98,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
             id = holder.getKey().longValue();
         } else {
             int updated = jdbc.update("""
-                    UPDATE adm_incident_policy SET policy_code=?, event_type=?, event_sub_type=?, severity=?,
+                    UPDATE ADM_INCIDENT_POLICY SET policy_code=?, event_type=?, event_sub_type=?, severity=?,
                       threshold_count=?, window_seconds=?, escalation_minutes=?, receiver_group=?, use_yn=?,
                       version=version+1, updated_by=?, updated_at=CURRENT_TIMESTAMP
                     WHERE policy_id=? AND version=?
@@ -118,13 +118,13 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
     public Page<IncidentResponse> findIncidents(String status, int page, int size) {
         int p=page(page), s=size(size); String normalized = blank(status);
         long total = normalized == null ? count("adm_incident_lifecycle") : jdbc.queryForObject(
-                "SELECT COUNT(*) FROM adm_incident_lifecycle WHERE status=?", Long.class, normalized.toUpperCase(Locale.ROOT));
+                "SELECT COUNT(*) FROM ADM_INCIDENT_LIFECYCLE WHERE status=?", Long.class, normalized.toUpperCase(Locale.ROOT));
         String where = normalized == null ? "" : " WHERE i.status=?";
         Object[] args = normalized == null ? new Object[]{p*s,(p+1)*s} : new Object[]{normalized.toUpperCase(Locale.ROOT),p*s,(p+1)*s};
         List<IncidentResponse> rows = jdbc.query("""
                 SELECT * FROM (
                   SELECT i.*, ROW_NUMBER() OVER (ORDER BY i.last_occurred_at DESC, i.incident_id DESC) rn
-                  FROM adm_incident_lifecycle i%s
+                  FROM ADM_INCIDENT_LIFECYCLE i%s
                 ) x WHERE x.rn > ? AND x.rn <= ? ORDER BY x.rn
                 """.formatted(where), (rs,n)->incident(rs), args);
         return page(rows,p,s,total);
@@ -132,7 +132,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
 
     public IncidentResponse findIncident(long incidentId) {
         try {
-            return jdbc.queryForObject("SELECT * FROM adm_incident_lifecycle WHERE incident_id=?", (rs,n)->incident(rs), incidentId);
+            return jdbc.queryForObject("SELECT * FROM ADM_INCIDENT_LIFECYCLE WHERE incident_id=?", (rs,n)->incident(rs), incidentId);
         } catch (EmptyResultDataAccessException e) {
             throw new AdmIncidentConflictException(AdmIncidentConflictException.Type.NOT_FOUND, "Incident not found: " + incidentId);
         }
@@ -142,7 +142,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
         return jdbc.query("""
                 SELECT timeline_id,incident_id,action_type,before_status,after_status,reason,
                        approval_request_id,actor_id,created_at
-                FROM adm_incident_timeline WHERE incident_id=? ORDER BY timeline_id
+                FROM ADM_INCIDENT_TIMELINE WHERE incident_id=? ORDER BY timeline_id
                 """, (rs,n)->new TimelineResponse(rs.getLong(1),rs.getLong(2),rs.getString(3),rs.getString(4),
                 rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),local(rs.getTimestamp(9))), incidentId);
     }
@@ -165,7 +165,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
         }
         LocalDateTime from = occurredAt.minusSeconds(policy.windowSeconds());
         Integer observed = jdbc.queryForObject("""
-                SELECT COUNT(*) FROM adm_incident_signal
+                SELECT COUNT(*) FROM ADM_INCIDENT_SIGNAL
                 WHERE policy_id=? AND source_type=? AND source_id=? AND suppressed_yn='N' AND occurred_at BETWEEN ? AND ?
                 """, Integer.class, policy.policyId(), required(request.sourceType(),"sourceType"), required(request.sourceId(),"sourceId"),
                 Timestamp.valueOf(from), Timestamp.valueOf(occurredAt));
@@ -196,7 +196,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
         int updated;
         try {
             updated = jdbc.update("""
-                    UPDATE adm_incident_lifecycle SET status=?, active_key=?, escalation_level=escalation_level+?,
+                    UPDATE ADM_INCIDENT_LIFECYCLE SET status=?, active_key=?, escalation_level=escalation_level+?,
                       acknowledged_at=CASE WHEN ?='ACKNOWLEDGED' THEN CURRENT_TIMESTAMP ELSE acknowledged_at END,
                       resolved_at=CASE WHEN ?='RESOLVED' THEN CURRENT_TIMESTAMP ELSE NULL END,
                       owner_id=?, version=version+1, updated_by=?, updated_at=CURRENT_TIMESTAMP
@@ -226,7 +226,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
             throw new AdmIncidentConflictException(AdmIncidentConflictException.Type.INVALID_TRANSITION,
                     "Postmortem is allowed only after incident resolution");
         }
-        int updated = jdbc.update("UPDATE adm_incident_lifecycle SET version=version+1, updated_by=?, updated_at=CURRENT_TIMESTAMP WHERE incident_id=? AND version=?",
+        int updated = jdbc.update("UPDATE ADM_INCIDENT_LIFECYCLE SET version=version+1, updated_by=?, updated_at=CURRENT_TIMESTAMP WHERE incident_id=? AND version=?",
                 operatorId, incidentId, request.expectedVersion());
         if (updated != 1) throw new AdmIncidentConflictException(AdmIncidentConflictException.Type.VERSION_CONFLICT, "Incident version conflict");
         insertTimeline(incidentId, "POSTMORTEM", before.status(), before.status(), request.reason(), request.approvalRequestId(), operatorId);
@@ -241,7 +241,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
         int p=page(page), s=size(size); long total=count("adm_maintenance_window");
         List<MaintenanceResponse> rows=jdbc.query("""
                 SELECT * FROM (SELECT m.*,ROW_NUMBER() OVER(ORDER BY m.starts_at DESC,m.maintenance_id DESC) rn
-                FROM adm_maintenance_window m) x WHERE x.rn>? AND x.rn<=? ORDER BY x.rn
+                FROM ADM_MAINTENANCE_WINDOW m) x WHERE x.rn>? AND x.rn<=? ORDER BY x.rn
                 """,(rs,n)->maintenance(rs),p*s,(p+1)*s);
         return page(rows,p,s,total);
     }
@@ -257,7 +257,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
         if(id==null){
             KeyHolder h=new GeneratedKeyHolder();
             int inserted=jdbc.update(c->{PreparedStatement ps=c.prepareStatement("""
-                    INSERT INTO adm_maintenance_window(maintenance_code,target_type,target_id,starts_at,ends_at,use_yn,version,
+                    INSERT INTO ADM_MAINTENANCE_WINDOW(maintenance_code,target_type,target_id,starts_at,ends_at,use_yn,version,
                     created_by,updated_by,created_at,updated_at) VALUES(?,?,?,?,?,?,0,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
                     """,new String[]{"maintenance_id"});
                 ps.setString(1,required(request.maintenanceCode(),"maintenanceCode")); ps.setString(2,required(request.targetType(),"targetType"));
@@ -267,7 +267,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
             if(inserted!=1||h.getKey()==null)throw new IllegalStateException("Maintenance insert failed"); target=h.getKey().longValue();
         } else {
             int updated=jdbc.update("""
-                    UPDATE adm_maintenance_window SET maintenance_code=?,target_type=?,target_id=?,starts_at=?,ends_at=?,use_yn=?,
+                    UPDATE ADM_MAINTENANCE_WINDOW SET maintenance_code=?,target_type=?,target_id=?,starts_at=?,ends_at=?,use_yn=?,
                     version=version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE maintenance_id=? AND version=?
                     """,required(request.maintenanceCode(),"maintenanceCode"),required(request.targetType(),"targetType"),
                     required(request.targetId(),"targetId"),Timestamp.valueOf(request.startsAt()),Timestamp.valueOf(request.endsAt()),
@@ -286,7 +286,7 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
         try {
             KeyHolder holder=new GeneratedKeyHolder();
             jdbc.update(c->{PreparedStatement ps=c.prepareStatement("""
-                    INSERT INTO adm_incident_lifecycle(policy_id,policy_code,severity,status,title,summary,source_type,source_id,
+                    INSERT INTO ADM_INCIDENT_LIFECYCLE(policy_id,policy_code,severity,status,title,summary,source_type,source_id,
                     correlation_id,transaction_id,occurrence_count,escalation_level,first_occurred_at,last_occurred_at,
                     active_key,version,created_by,updated_by,created_at,updated_at)
                     VALUES(?,?,?,'OPEN',?,?,?,?,?,?,?,0,?,?,?,0,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
@@ -301,17 +301,17 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
             insertTimeline(id,"OPEN",null,"OPEN","threshold reached",null,operatorId);return id;
         } catch(DuplicateKeyException race){
             int updated=jdbc.update("""
-                    UPDATE adm_incident_lifecycle SET occurrence_count=occurrence_count+1,last_occurred_at=?,summary=?,version=version+1,
+                    UPDATE ADM_INCIDENT_LIFECYCLE SET occurrence_count=occurrence_count+1,last_occurred_at=?,summary=?,version=version+1,
                     updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE active_key=?
                     """,Timestamp.valueOf(occurredAt),blank(request.summary()),operatorId,key);
             if(updated!=1)throw race;
-            return jdbc.queryForObject("SELECT incident_id FROM adm_incident_lifecycle WHERE active_key=?",Long.class,key);
+            return jdbc.queryForObject("SELECT incident_id FROM ADM_INCIDENT_LIFECYCLE WHERE active_key=?",Long.class,key);
         }
     }
 
     private long insertSignal(long policyId, SignalRequest r, LocalDateTime occurredAt, boolean suppressed, String operatorId){
         KeyHolder h=new GeneratedKeyHolder();jdbc.update(c->{PreparedStatement ps=c.prepareStatement("""
-                INSERT INTO adm_incident_signal(policy_id,source_type,source_id,correlation_id,transaction_id,title,summary,
+                INSERT INTO ADM_INCIDENT_SIGNAL(policy_id,source_type,source_id,correlation_id,transaction_id,title,summary,
                 occurred_at,suppressed_yn,idempotency_key,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
                 """,new String[]{"signal_id"});int i=1;ps.setLong(i++,policyId);ps.setString(i++,required(r.sourceType(),"sourceType"));
             ps.setString(i++,required(r.sourceId(),"sourceId"));ps.setString(i++,blank(r.correlationId()));ps.setString(i++,blank(r.transactionId()));
@@ -321,24 +321,24 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
 
     private boolean isMaintenance(String targetType,String targetId,LocalDateTime at){
         Integer count=jdbc.queryForObject("""
-                SELECT COUNT(*) FROM adm_maintenance_window WHERE use_yn='Y' AND starts_at<=? AND ends_at>?
+                SELECT COUNT(*) FROM ADM_MAINTENANCE_WINDOW WHERE use_yn='Y' AND starts_at<=? AND ends_at>?
                 AND (target_type='ALL' OR (target_type=? AND target_id=?))
                 """,Integer.class,Timestamp.valueOf(at),Timestamp.valueOf(at),required(targetType,"targetType"),required(targetId,"targetId"));
         return count!=null&&count>0;
     }
 
-    private PolicyResponse findPolicy(long id){try{return jdbc.queryForObject("SELECT * FROM adm_incident_policy WHERE policy_id=?",(rs,n)->new PolicyResponse(
+    private PolicyResponse findPolicy(long id){try{return jdbc.queryForObject("SELECT * FROM ADM_INCIDENT_POLICY WHERE policy_id=?",(rs,n)->new PolicyResponse(
             rs.getLong("policy_id"),rs.getString("policy_code"),rs.getString("event_type"),rs.getString("event_sub_type"),
             rs.getString("severity"),rs.getInt("threshold_count"),rs.getInt("window_seconds"),rs.getInt("escalation_minutes"),
             rs.getString("receiver_group"),rs.getString("use_yn"),rs.getLong("version"),rs.getString("created_by"),
             local(rs.getTimestamp("created_at")),rs.getString("updated_by"),local(rs.getTimestamp("updated_at"))),id);}
         catch(EmptyResultDataAccessException e){throw new AdmIncidentConflictException(AdmIncidentConflictException.Type.NOT_FOUND,"Incident policy not found: "+id);}}
-    private PolicyResponse findPolicyByCode(String code){return jdbc.queryForObject("SELECT * FROM adm_incident_policy WHERE policy_code=? AND use_yn='Y'",(rs,n)->new PolicyResponse(
+    private PolicyResponse findPolicyByCode(String code){return jdbc.queryForObject("SELECT * FROM ADM_INCIDENT_POLICY WHERE policy_code=? AND use_yn='Y'",(rs,n)->new PolicyResponse(
             rs.getLong("policy_id"),rs.getString("policy_code"),rs.getString("event_type"),rs.getString("event_sub_type"),
             rs.getString("severity"),rs.getInt("threshold_count"),rs.getInt("window_seconds"),rs.getInt("escalation_minutes"),
             rs.getString("receiver_group"),rs.getString("use_yn"),rs.getLong("version"),rs.getString("created_by"),
             local(rs.getTimestamp("created_at")),rs.getString("updated_by"),local(rs.getTimestamp("updated_at"))),code);}
-    private MaintenanceResponse findMaintenanceById(long id){try{return jdbc.queryForObject("SELECT * FROM adm_maintenance_window WHERE maintenance_id=?",(rs,n)->maintenance(rs),id);}
+    private MaintenanceResponse findMaintenanceById(long id){try{return jdbc.queryForObject("SELECT * FROM ADM_MAINTENANCE_WINDOW WHERE maintenance_id=?",(rs,n)->maintenance(rs),id);}
         catch(EmptyResultDataAccessException e){throw new AdmIncidentConflictException(AdmIncidentConflictException.Type.NOT_FOUND,"Maintenance window not found: "+id);}}
     private IncidentResponse incident(java.sql.ResultSet rs)throws java.sql.SQLException{return new IncidentResponse(rs.getLong("incident_id"),rs.getLong("policy_id"),
             rs.getString("policy_code"),rs.getString("severity"),rs.getString("status"),rs.getString("title"),rs.getString("summary"),rs.getString("source_type"),rs.getString("source_id"),
@@ -349,22 +349,22 @@ public class AdmIncidentLifecycleService extends AdmBaseService {
             rs.getString("target_type"),rs.getString("target_id"),local(rs.getTimestamp("starts_at")),local(rs.getTimestamp("ends_at")),rs.getString("use_yn"),rs.getLong("version"),
             rs.getString("created_by"),local(rs.getTimestamp("created_at")),rs.getString("updated_by"),local(rs.getTimestamp("updated_at")));}
     private void insertTimeline(long incidentId,String action,String before,String after,String reason,String approval,String actor){jdbc.update("""
-            INSERT INTO adm_incident_timeline(incident_id,action_type,before_status,after_status,reason,approval_request_id,actor_id,created_at)
+            INSERT INTO ADM_INCIDENT_TIMELINE(incident_id,action_type,before_status,after_status,reason,approval_request_id,actor_id,created_at)
             VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
             """,incidentId,action,before,after,reason,approval,actor);}
 
     private CommandReservation reserve(String type,String key,String requestHash,String actor){
         try{KeyHolder h=new GeneratedKeyHolder();jdbc.update(c->{PreparedStatement ps=c.prepareStatement("""
-                INSERT INTO adm_incident_command(command_type,idempotency_key,request_hash,status,created_by,created_at,updated_at)
+                INSERT INTO ADM_INCIDENT_COMMAND(command_type,idempotency_key,request_hash,status,created_by,created_at,updated_at)
                 VALUES(?,?,?,'RUNNING',?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
                 """,new String[]{"command_id"});ps.setString(1,type);ps.setString(2,required(key,"idempotencyKey"));ps.setString(3,requestHash);ps.setString(4,actor);return ps;},h);
             return new CommandReservation(Objects.requireNonNull(h.getKey()).longValue(),false,null);
-        }catch(DuplicateKeyException duplicate){Map<String,Object> row=jdbc.queryForMap("SELECT command_id,request_hash,status,result_ref FROM adm_incident_command WHERE idempotency_key=?",key);
+        }catch(DuplicateKeyException duplicate){Map<String,Object> row=jdbc.queryForMap("SELECT command_id,request_hash,status,result_ref FROM ADM_INCIDENT_COMMAND WHERE idempotency_key=?",key);
             if(!requestHash.equals(row.get("request_hash")))throw new AdmIncidentConflictException(AdmIncidentConflictException.Type.IDEMPOTENCY_CONFLICT,"Idempotency key reused with different payload");
             if(!"DONE".equals(row.get("status")))throw new AdmIncidentConflictException(AdmIncidentConflictException.Type.COMMAND_IN_PROGRESS,"Idempotent command is still running or failed");
             return new CommandReservation(((Number)row.get("command_id")).longValue(),true,String.valueOf(row.get("result_ref")));}}
     private void completeCommand(long commandId,String resultRef){int
-            updated=jdbc.update("UPDATE adm_incident_command SET status='DONE',result_ref=?,updated_at=CURRENT_TIMESTAMP WHERE command_id=? AND status='RUNNING'",resultRef,commandId);
+            updated=jdbc.update("UPDATE ADM_INCIDENT_COMMAND SET status='DONE',result_ref=?,updated_at=CURRENT_TIMESTAMP WHERE command_id=? AND status='RUNNING'",resultRef,commandId);
             if(updated!=1)throw new IllegalStateException("Incident command completion conflict");}
     private record CommandReservation(long commandId,boolean replayed,String resultRef){}
 

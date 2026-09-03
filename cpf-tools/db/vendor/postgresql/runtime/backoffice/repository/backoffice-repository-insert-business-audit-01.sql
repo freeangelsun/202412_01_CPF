@@ -1,4 +1,4 @@
-INSERT INTO mbw_business_audit (
+INSERT INTO MBW_BUSINESS_AUDIT (
     transaction_id, actor_id, action_type, target_type, target_id,
     reason, before_data, after_data, created_by, updated_by
 ) VALUES (

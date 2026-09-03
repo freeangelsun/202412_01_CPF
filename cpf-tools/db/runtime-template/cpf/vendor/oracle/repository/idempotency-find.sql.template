@@ -8,7 +8,7 @@ SELECT scope,
        created_at AS createdAt,
        completed_at AS completedAt,
        expires_at AS expiresAt
-FROM cpf_idempotency_record
+FROM CPF_IDEMPOTENCY_RECORD
 WHERE scope = ?
   AND idempotency_key = ?
 FETCH FIRST 1 ROW ONLY

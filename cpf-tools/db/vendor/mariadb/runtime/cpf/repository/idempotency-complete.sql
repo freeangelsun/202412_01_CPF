@@ -1,4 +1,4 @@
-UPDATE cpf_idempotency_record
+UPDATE CPF_IDEMPOTENCY_RECORD
 SET record_status = ?,
     stored_response = ?,
     retry_allowed_yn = ?,

@@ -10,5 +10,5 @@ SELECT admin_user_id,
        password_change_required_yn,
        password_expire_at,
        last_login_at
-  FROM mbw_admin_user
+  FROM MBW_ADMIN_USER
  WHERE admin_login_id = :loginId

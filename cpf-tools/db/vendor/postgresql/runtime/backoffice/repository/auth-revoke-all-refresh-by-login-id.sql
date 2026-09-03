@@ -1,1 +1,1 @@
-UPDATE mbw_refresh_token SET revoked_yn='Y', revoked_at=CURRENT_TIMESTAMP, updated_by='MBW_SECURITY_CHANGE', updated_at=CURRENT_TIMESTAMP WHERE admin_user_id IN (SELECT admin_user_id FROM mbw_admin_user WHERE admin_login_id=:loginId) AND revoked_yn='N'
+UPDATE MBW_REFRESH_TOKEN SET revoked_yn='Y', revoked_at=CURRENT_TIMESTAMP, updated_by='MBW_SECURITY_CHANGE', updated_at=CURRENT_TIMESTAMP WHERE admin_user_id IN (SELECT admin_user_id FROM MBW_ADMIN_USER WHERE admin_login_id=:loginId) AND revoked_yn='N'

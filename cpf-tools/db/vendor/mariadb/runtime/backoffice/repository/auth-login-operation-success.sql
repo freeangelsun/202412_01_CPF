@@ -1,4 +1,4 @@
-UPDATE mbw_login_operation
+UPDATE MBW_LOGIN_OPERATION
    SET operation_status = 'SUCCESS',
        result_access_token_enc = :resultAccessTokenEnc,
        result_refresh_token_enc = :resultRefreshTokenEnc,

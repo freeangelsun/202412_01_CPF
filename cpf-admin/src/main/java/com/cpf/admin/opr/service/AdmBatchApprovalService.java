@@ -55,7 +55,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
         assertIndependentApproval(approvalId, text(row, "requested_by"), command.requestUser());
         long version = number(row, "version_no");
         int changed = jdbc.update(
-                "UPDATE adm_approval_request SET approval_status='EXECUTING', version_no=version_no+1, "
+                "UPDATE ADM_APPROVAL_REQUEST SET approval_status='EXECUTING', version_no=version_no+1, "
                         + "updated_by=?, updated_at=CURRENT_TIMESTAMP WHERE approval_request_id=? "
                         + "AND approval_status='APPROVED' AND version_no=?",
                 command.requestUser(), approvalId, version);
@@ -63,7 +63,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
             throw new IllegalStateException("approval request state changed concurrently");
         }
         jdbc.update(
-                "INSERT INTO adm_approval_execution("
+                "INSERT INTO ADM_APPROVAL_EXECUTION("
                         + "approval_request_id,command_request_id,execution_status,started_at,"
                         + "recovery_required_yn,created_by,updated_by) "
                         + "VALUES(?,?,'RUNNING',CURRENT_TIMESTAMP,'N',?,?)",
@@ -95,7 +95,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
             String code,
             String message) {
         int executionChanged = jdbc.update(
-                "UPDATE adm_approval_execution SET execution_status=?,owner_result_code=?,"
+                "UPDATE ADM_APPROVAL_EXECUTION SET execution_status=?,owner_result_code=?,"
                         + "owner_result_message=?,completed_at=CURRENT_TIMESTAMP,recovery_required_yn=?,"
                         + "updated_by=?,updated_at=CURRENT_TIMESTAMP "
                         + "WHERE approval_request_id=? AND command_request_id=?",
@@ -106,7 +106,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
             throw new IllegalStateException("approval execution ledger update failed");
         }
         int approvalChanged = jdbc.update(
-                "UPDATE adm_approval_request SET approval_status=?,version_no=version_no+1,"
+                "UPDATE ADM_APPROVAL_REQUEST SET approval_status=?,version_no=version_no+1,"
                         + "updated_by=?,updated_at=CURRENT_TIMESTAMP "
                         + "WHERE approval_request_id=? AND approval_status IN ('EXECUTING','UNKNOWN','COMPLETED','FAILED')",
                 approvalStatus, operatorId, reservation.approvalRequestId());
@@ -120,7 +120,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
             return jdbc.queryForMap(
                     "SELECT approval_request_id,action_type,owner_module,owner_command,target_type,target_id,"
                             + "requested_by,command_payload_hash,approval_status,expire_at,version_no "
-                            + "FROM adm_approval_request WHERE approval_request_id=?",
+                            + "FROM ADM_APPROVAL_REQUEST WHERE approval_request_id=?",
                     approvalId);
         } catch (EmptyResultDataAccessException missing) {
             throw new IllegalArgumentException("approval request does not exist: " + approvalId, missing);
@@ -131,7 +131,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
         try {
             return jdbc.queryForMap(
                     "SELECT approval_request_id,command_request_id,execution_status,recovery_required_yn "
-                            + "FROM adm_approval_execution WHERE approval_request_id=?",
+                            + "FROM ADM_APPROVAL_EXECUTION WHERE approval_request_id=?",
                     approvalId);
         } catch (EmptyResultDataAccessException missing) {
             return null;
@@ -175,7 +175,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
     private void assertIndependentApproval(long approvalId, String requesterId, String executorId) {
         String executor = required(executorId, "executorId");
         Long count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM adm_approval_participant "
+                "SELECT COUNT(*) FROM ADM_APPROVAL_PARTICIPANT "
                         + "WHERE approval_request_id=? AND decision_status='APPROVED' "
                         + "AND operator_id=? AND operator_id<>?",
                 Long.class, approvalId, executor, requesterId);

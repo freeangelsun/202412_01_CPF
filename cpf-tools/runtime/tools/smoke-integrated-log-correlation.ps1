@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [string] $BaseUrl = 'http://127.0.0.1:8080',
@@ -9,7 +9,29 @@ param(
     [string] $AdmUsername = 'admin',
     [string] $ResultPath = '',
     [int] $TimeoutSec = 20,
-    [int] $PollSeconds = 15
+    # System6 계약상 X-System-Code 는 수신 Runtime 의 System Code 와 같아야 한다.
+    # 1-WAS 통합 Runtime 은 자신을 LOCAL 로 선언하므로 호출자가 대상 코드를 알려준다.
+    [string] $SystemCode = 'EDU',
+    [int] $PollSeconds = 15,
+
+    # --------------------------------------------------------------------------------------
+    # Probe 대상 설정 — 자주 바뀌는 값은 여기 한 곳에 모은다.
+    # 상관관계 검증에 필요한 것은 "같은 transactionId/traceId 가 File/DB/ADM 에 함께 보이는가"
+    # 이지 특정 업무의 성공 여부가 아니다. 대상 Runtime 에 실제로 존재하는
+    # @CpfOnlineTransaction 이면 된다(LoggingAspect 는 이 annotation 에만 걸린다).
+    #
+    # 기본값 : 단독 EDU Runtime
+    # 1-WAS  : EDU 는 Local Module Catalog(CpfLocalRuntimeModules)에 없다. 호출자가
+    #          MBW_AUTH_LOGIN 처럼 조립 안에 있는 거래를 지정한다.
+    # --------------------------------------------------------------------------------------
+    [string] $ProbePath = '/edu/online/member-processing',
+    [string] $ProbeOperationId = 'EDU_LOCAL_MEMBER_PROCESS',
+    # 그대로 전송할 JSON 본문. 기본값은 EDU 가 받는 JSON 문자열이다.
+    [string] $ProbeBody = '"runtime-log-correlation"',
+    # 대상 거래가 요구하는 추가 Header 를 "이름=값;이름=값" 으로 전달한다(값이 비면 새 GUID).
+    [string] $ProbeExtraHeaders = '',
+    # 자격증명 없이 상관관계만 검증할 때 업무 결과 4xx/5xx 를 허용한다.
+    [switch] $AllowNonSuccessProbe
 )
 
 # Runtime-only closure for SPECIAL-09/10. A single transaction must be visible in
@@ -70,7 +92,9 @@ function Get-CpfStableHttpFailure([string]$Method,[string]$Uri,[Exception]$Excep
 }
 function Invoke-CpfJsonGet([string]$Uri,[hashtable]$Headers) {
     try {
-        return Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -TimeoutSec $TimeoutSec -ErrorAction Stop
+        $params=@{Method='Get';Uri=$Uri;Headers=$Headers;TimeoutSec=$TimeoutSec;ErrorAction='Stop'}
+        if ($null -ne $script:admWebSession) { $params.WebSession=$script:admWebSession }
+        return Invoke-RestMethod @params
     } catch {
         throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'GET' $Uri $_.Exception),$_.Exception)
     }
@@ -82,6 +106,75 @@ function Invoke-CpfJsonPost([string]$Uri,[hashtable]$Headers,[object]$Body) {
         throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' $Uri $_.Exception),$_.Exception)
     }
 }
+$script:admHeaderSequence=0
+function New-CpfAdmHeaders([string]$OperationId) {
+    # ADM Route 도 External CPF protocol 계약을 그대로 요구한다. Authorization 만 보내면
+    # X-Transaction-Id / X-Target-Operation-Id 부재로 ECPF900002 400 이 되어 관측 API 응답이
+    # 전부 비고, 상관관계 단정이 "증적 없음" 으로 실패한다.
+    # 조회용 거래ID 는 검증 대상 거래ID 와 반드시 달라야 한다(교차 오염 방지).
+    $script:admHeaderSequence++
+    $stamp=Get-Date -Format 'yyyyMMddHHmmssfff'
+    $issuer=Get-CpfIssuerCode $SystemCode
+    return @{
+        'X-Transaction-Id'="$stamp$issuer" + 'logadm1' + $script:admHeaderSequence.ToString('0000000')
+        'X-Original-System-Code'=$issuer
+        'X-System-Code'=$SystemCode
+        'X-Caller-System-Code'=$SystemCode
+        'X-Target-System-Code'=$SystemCode
+        'X-Target-Operation-Id'=$OperationId
+        'X-Request-Type'='RUNTIME_VALIDATION'
+        'X-Client-Version'='1.0.0'
+        'X-User-Id'='runtime-validation'
+        # CpfTrustedOriginFilter 는 /adm/ 의 상태 변경 요청에 Origin/Referer 를 요구한다.
+        # 없으면 "Untrusted request origin" 403 이다. Browser 와 같은 same-origin 값을 보낸다.
+        'Origin'=("{0}://{1}" -f ([Uri]$BaseUrl).Scheme,([Uri]$BaseUrl).Authority)
+    }
+}
+$script:admWebSession=$null
+$script:admCsrfToken=$null
+function Initialize-CpfAdmCsrf([string]$BaseUrl) {
+    # ADM BFF Security Chain 은 /adm/** 에 CSRF 를 적용한다
+    # (CookieCsrfTokenRepository + CpfCsrfCookieExposureFilter). 공개 GET 으로 XSRF-TOKEN cookie 를
+    # 먼저 받지 않으면 permitAll 경로인 로그인 POST 조차 403 으로 거절된다.
+    # 인증은 HttpOnly Session Cookie 로 이어지므로 이후 조회도 같은 WebSession 을 쓴다.
+    $probe=Invoke-WebRequest -Method Get -Uri "$BaseUrl/adm/api/health" -Headers (New-CpfAdmHeaders 'getAdmHealth') `
+        -TimeoutSec $TimeoutSec -UseBasicParsing -SessionVariable session
+    $null=$probe
+    $script:admWebSession=$session
+    $cookie=$session.Cookies.GetCookies($BaseUrl) | Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
+    if ($null -eq $cookie) { throw 'ADM CSRF cookie(XSRF-TOKEN)가 발급되지 않았습니다.' }
+    $script:admCsrfToken=[string]$cookie.Value
+}
+function Invoke-CpfRawJsonPost([string]$Uri,[hashtable]$Headers,[string]$RawBody,[bool]$AllowNonSuccess) {
+    # 이미 JSON 인 본문을 그대로 보낸다. AllowNonSuccess 이면 4xx/5xx 도 예외로 만들지 않고
+    # CPF 표준 오류 본문을 그대로 돌려준다 — 오류 본문에도 transactionId 가 실려 있으므로
+    # 상관관계 추적 키는 동일하게 확정된다.
+    try {
+        $params=@{Method='Post';Uri=$Uri;Headers=$Headers;ContentType='application/json';Body=$RawBody
+            TimeoutSec=$TimeoutSec;UseBasicParsing=$true;ErrorAction='Stop'}
+        if ($AllowNonSuccess) { $params.SkipHttpErrorCheck=$true }
+        # ADM Route 는 HttpOnly Session Cookie 로 인증한다. Session 이 있으면 함께 보낸다.
+        if ($null -ne $script:admWebSession) { $params.WebSession=$script:admWebSession }
+        $response = Invoke-WebRequest @params
+        if (-not $AllowNonSuccess -and [int]$response.StatusCode -ge 400) {
+            throw "unexpected status=$([int]$response.StatusCode)"
+        }
+        try { return $response.Content | ConvertFrom-Json } catch { return $null }
+    } catch {
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' $Uri $_.Exception),$_.Exception)
+    }
+}
+function Get-CpfIssuerCode([string] $Code) {
+    # CPF 정본 거래ID 의 issuer 는 **3자리**다(CpfTransactionIds). Runtime System Code 가 3자리보다
+    # 길면 CpfSystemCodes.normalize 가 앞 3자리를 issuer 로 쓴다(LOCAL -> LOC).
+    # 그래서 X-System-Code/X-Target-System-Code(수신자 일치)와 X-Original-System-Code/거래ID issuer
+    # 는 서로 다른 값일 수 있다. 둘을 같은 값으로 보내면 1-WAS 에서 반드시 거절된다.
+    if ([string]::IsNullOrWhiteSpace($Code)) { return 'CPF' }
+    $trimmed = $Code.Trim().ToUpperInvariant()
+    if ($trimmed.Length -le 3) { return $trimmed }
+    return $trimmed.Substring(0, 3)
+}
+
 function Find-TextFiles([string[]]$Roots) {
     $files = New-Object Collections.Generic.List[IO.FileInfo]
     foreach ($candidate in $Roots) {
@@ -115,18 +208,23 @@ function Read-CpfLiveLogLines([string]$Path) {
     return @((Read-CpfLiveLogText $Path) -split "`r`n|`n|`r")
 }
 function Find-CorrelationInFiles([IO.FileInfo[]]$Files,[string]$TransactionId,[string]$TraceId) {
-    $matches = New-Object Collections.Generic.List[object]
+    # 1) $matches 는 PowerShell 자동변수다(-match 연산자 결과 Hashtable). 재사용하지 않는다.
+    # 2) 반환은 @($list) 가 아니라 .ToArray() 를 쓴다. PowerShell 7.6 에서
+    #    List[object] 에 array subexpression @() 를 적용하면
+    #    "Argument types do not match"(System.ArgumentException)로 던진다(List[string]은 정상).
+    #    실제로 상관관계 검증이 이 지점에서 끊겼다.
+    $correlated = New-Object Collections.Generic.List[object]
     foreach ($file in $Files) {
         try {
             $content = Read-CpfLiveLogText $file.FullName
             if ($content.Contains($TransactionId) -and $content.Contains($TraceId)) {
                 $matchedLines=@(Read-CpfLiveLogLines $file.FullName | Where-Object { $_.Contains($TransactionId) -and $_.Contains($TraceId) } | Select-Object -First 50)
                 $relativePath=if($file.FullName.StartsWith($Root,[StringComparison]::OrdinalIgnoreCase)){$file.FullName.Substring($Root.Length).TrimStart('\','/')}else{$file.Name}
-                [void]$matches.Add([ordered]@{ path=$file.FullName; relativePath=$relativePath; sizeBytes=$file.Length; lines=$matchedLines })
+                [void]$correlated.Add([ordered]@{ path=$file.FullName; relativePath=$relativePath; sizeBytes=$file.Length; lines=$matchedLines })
             }
         } catch { }
     }
-    return @($matches)
+    return ,$correlated.ToArray()
 }
 function Test-RawSecretLeak([IO.FileInfo[]]$Files,[string[]]$Secrets) {
     $findings = New-Object Collections.Generic.List[object]
@@ -141,7 +239,7 @@ function Test-RawSecretLeak([IO.FileInfo[]]$Files,[string[]]$Secrets) {
             } catch { }
         }
     }
-    return @($findings)
+    return ,$findings.ToArray()
 }
 function Test-ContainsSecret([string]$Text,[string[]]$Secrets) {
     foreach($secret in $Secrets){
@@ -196,19 +294,30 @@ $approvalProofKey=[Environment]::GetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_
 
 try {
     $stamp=Get-Date -Format 'yyyyMMddHHmmssfff'
-    $transactionId="${stamp}EDUlogcor10000001"
+    # X-Original-System-Code 는 transactionId 에 박힌 issuer 와 같아야 하므로 대상 Runtime
+    # System Code 를 issuer 로 쓴다(단독 EDU 실행에서는 종전과 동일).
+    $transactionId="${stamp}$(Get-CpfIssuerCode $SystemCode)logcor10000001"
     $traceId=[guid]::NewGuid().ToString('N')
     $result.transactionId=$transactionId
     $result.traceId=$traceId
     $spanId=[guid]::NewGuid().ToString('N').Substring(0,16)
     $requestHeaders=@{
         'X-Transaction-Id'=$transactionId;
-        'X-Original-System-Code'='EDU'; 'X-System-Code'='EDU'; 'X-Caller-System-Code'='EDU'; 'X-Target-System-Code'='EDU';
-        'X-Target-Operation-Id'='EDU_LOCAL_MEMBER_PROCESS';
+        'X-Original-System-Code'=(Get-CpfIssuerCode $SystemCode); 'X-System-Code'=$SystemCode; 'X-Caller-System-Code'=$SystemCode; 'X-Target-System-Code'=$SystemCode;
+        'X-Target-Operation-Id'=$ProbeOperationId;
         'X-Trace-Id'=$traceId; 'traceparent'="00-$traceId-$spanId-01"; 'X-Correlation-Id'="integrated-log-$stamp"; 'X-Request-Type'='RUNTIME_VALIDATION';
         'X-Client-Version'='1.0.0'; 'X-User-Id'='runtime-validation'
     }
-    $probe=Invoke-CpfJsonPost "$BaseUrl/edu/online/member-processing" $requestHeaders 'runtime-log-correlation'
+    # 대상 거래가 요구하는 추가 Header(Idempotency-Key 등)를 덮어쓴다.
+    foreach ($entry in ($ProbeExtraHeaders -split ';')) {
+        if ([string]::IsNullOrWhiteSpace($entry)) { continue }
+        $pair=$entry.Split('=',2); $name=$pair[0].Trim()
+        if ([string]::IsNullOrWhiteSpace($name)) { continue }
+        $value=if ($pair.Count -eq 2) { $pair[1].Trim() } else { '' }
+        if ([string]::IsNullOrWhiteSpace($value)) { $value=[guid]::NewGuid().ToString('N') }
+        $requestHeaders[$name]=$value
+    }
+    $probe=Invoke-CpfRawJsonPost "$BaseUrl$ProbePath" $requestHeaders $ProbeBody ([bool]$AllowNonSuccessProbe)
     $actualTx=[string](Get-SafeProperty $probe 'transactionId' '')
     $actualTrace=[string](Get-SafeProperty $probe 'traceId' $traceId)
     if ($actualTx -ne $transactionId) { throw "transaction header propagation mismatch. expected=$transactionId actual=$actualTx" }
@@ -217,22 +326,50 @@ try {
 
     $loginBody=@{operatorId=$AdmUsername;password=$admPassword;otpCode=$null} | ConvertTo-Json -Compress
     try {
-        $login=Invoke-RestMethod -Method Post -Uri "$BaseUrl/adm/api/auth/login" -ContentType 'application/json' -Body $loginBody -TimeoutSec $TimeoutSec -ErrorAction Stop
+        Initialize-CpfAdmCsrf $BaseUrl
+        $loginHeaders=New-CpfAdmHeaders 'admAuthLogin'
+        $loginHeaders['X-XSRF-TOKEN']=$script:admCsrfToken
+        $login=Invoke-RestMethod -Method Post -Uri "$BaseUrl/adm/api/auth/login" -Headers $loginHeaders -WebSession $script:admWebSession -ContentType 'application/json' -Body $loginBody -TimeoutSec $TimeoutSec -ErrorAction Stop
     } catch {
         throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' "$BaseUrl/adm/api/auth/login" $_.Exception),$_.Exception)
     }
+    # BFF 계약상 내부 인증 토큰은 응답 Body 에 노출되지 않는다
+    # (CpfBffCredentialResponseAdvice). 로그인 성공은 Session Cookie 발급으로 판정한다.
     $accessToken=[string](Get-SafeProperty $login 'accessToken' '')
-    if ([string]::IsNullOrWhiteSpace($accessToken)) { throw 'ADM login did not return accessToken.' }
-    $authHeaders=@{ Authorization="Bearer $accessToken" }
+    if (-not [string]::IsNullOrWhiteSpace($accessToken)) { throw 'ADM login leaked an internal credential in the body.' }
+    $sessionCookie=$script:admWebSession.Cookies.GetCookies($BaseUrl) |
+        Where-Object { $_.Name -ne 'XSRF-TOKEN' } | Select-Object -First 1
+    if ($null -eq $sessionCookie) { throw 'ADM login did not establish a BFF session cookie.' }
+
+    # ADM 최초 Bootstrap 계정은 비밀번호 변경이 강제된다. 변경 전에는 self-service 경로 외
+    # 모든 ADM API 가 403 "비밀번호를 먼저 변경해야 합니다."(AdmApiAuthFilter)로 막히므로,
+    # 관측 API 조회 전에 정본 self-service 경로로 1회 변경한다.
+    $me=Invoke-CpfJsonGet "$BaseUrl/adm/api/auth/me" (New-CpfAdmHeaders 'admAuthMe')
+    if ([bool](Get-SafeProperty $me 'passwordChangeRequired' $false)) {
+        $rotatedPassword="$admPassword" + 'R7!'
+        $rotateHeaders=New-CpfAdmHeaders 'admOperatorChangePassword'
+        $rotateHeaders['X-XSRF-TOKEN']=$script:admCsrfToken
+        $rotateBody=@{currentPassword=$admPassword;newPassword=$rotatedPassword;newPasswordConfirm=$rotatedPassword;reason='runtime-smoke mandatory password rotation'} | ConvertTo-Json -Compress
+        Invoke-CpfRawJsonPost "$BaseUrl/adm/api/operators/$AdmUsername/password" $rotateHeaders $rotateBody $false | Out-Null
+        $admPassword=$rotatedPassword
+    }
+    # 조회 호출도 System6 Header 를 갖춰야 한다. 호출마다 새 거래ID 를 쓰도록 함수로 만든다.
+    function New-AdmAuthHeaders([string]$OperationId) {
+        # BFF 계약상 Browser 채널은 Authorization Header 를 보내면 안 된다.
+        # CpfBffSessionBridgeFilter 가 Authorization 이 있으면
+        # 400 "Browser Authorization header is prohibited" 로 잘라낸다.
+        # 인증은 로그인으로 발급된 HttpOnly Session Cookie($script:admWebSession)가 운반한다.
+        return New-CpfAdmHeaders $OperationId
+    }
 
     $deadline=(Get-Date).AddSeconds([Math]::Max(1,$PollSeconds))
     $dbResponse=$null; $obs=$null; $timeline=$null; $recovery=$null
     do {
         Start-Sleep -Milliseconds 750
-        try { $dbResponse=Invoke-CpfJsonGet "$BaseUrl/adm/api/logs?transactionId=$transactionId&traceId=$traceId&limit=50" $authHeaders } catch { $dbResponse=$null }
-        try { $obs=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/transactions/$transactionId?limit=50" $authHeaders } catch { $obs=$null }
-        try { $timeline=Invoke-CpfJsonGet "$BaseUrl/adm/api/transaction-groups/$transactionId/timeline" $authHeaders } catch { $timeline=$null }
-        try { $recovery=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/file-log-recovery" $authHeaders } catch { $recovery=$null }
+        try { $dbResponse=Invoke-CpfJsonGet "$BaseUrl/adm/api/logs?transactionId=$transactionId&traceId=$traceId&limit=50" (New-AdmAuthHeaders 'admLogSearch') } catch { $dbResponse=$null }
+        try { $obs=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/transactions/$transactionId?limit=50" (New-AdmAuthHeaders 'admObservabilityTransaction') } catch { $obs=$null }
+        try { $timeline=Invoke-CpfJsonGet "$BaseUrl/adm/api/transaction-groups/$transactionId/timeline" (New-AdmAuthHeaders 'admTransactionGroupTimeline') } catch { $timeline=$null }
+        try { $recovery=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/file-log-recovery" (New-AdmAuthHeaders 'admObservabilityFileLogRecovery') } catch { $recovery=$null }
         $dbCount=Get-ArrayCount $dbResponse 'items'
         $obsCount=Get-ArrayCount $obs 'transactionLogs'
         $timelineCount=Get-ArrayCount $timeline 'items'
@@ -330,6 +467,11 @@ try {
 } catch {
     $result.status='FAIL'
     $result.error=$_.Exception.Message
+    # 원인을 다음 Runtime 주기로 미루지 않는다. 어느 지점에서 끊겼는지 증적에 남긴다.
+    $result.errorType=$_.Exception.GetType().FullName
+    $result.errorAt="$($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)"
+    $result.errorLine=[string]$_.InvocationInfo.Line
+    $result.errorStack=[string]$_.ScriptStackTrace
     Save-Result $result
     # Do not re-emit a localized PowerShell ErrorRecord. Emit a stable UTF-8/ASCII summary so
     # redirected Full Runtime logs cannot turn an OS-localized message into mojibake.

@@ -1,4 +1,4 @@
-INSERT INTO mbw_role (
+INSERT INTO MBW_ROLE (
     role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by
 ) VALUES (
     :roleCode, :roleName, :writeAllowedYn, :dataScope, :useYn, :requestUser, :requestUser

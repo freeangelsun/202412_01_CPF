@@ -47,7 +47,14 @@ def canonicalize(spec:dict,module:str,release:bool=False)->tuple[dict,list[str]]
             if not isinstance(operation,dict) or not operation.get('operationId'):
                 raise ContractError(f'operationId missing: {method.upper()} {path}')
             operation_id=str(operation['operationId'])
-            if not re.fullmatch(r'[A-Za-z][A-Za-z0-9]{5,}',operation_id):raise ContractError(f'invalid operationId={operation_id}')
+            # CPF 업무 Operation ID 정본 표기는 MBW_AUTH_LOGIN / EDU_LOCAL_MEMBER_PROCESS 처럼
+            # 밑줄을 쓴다(@CpfOnlineTransaction / X-Target-Operation-Id / Operation Catalog 동일).
+            # ADM 은 springdoc 이 method 이름에서 만든 camelCase 를 쓴다. 둘 다 정본이다.
+            # 이 규칙이 실제로 막아야 하는 것은 springdoc 이 한 @Operation 을 여러 경로에
+            # 매핑했을 때 붙이는 중복 회피 접미사(admPageAdminPage_1 / getAdmReadiness_1)다.
+            # 밑줄 전체를 금지하면 정상 업무 Operation 96건이 함께 막힌다.
+            if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{5,}',operation_id) or re.search(r'_\d+$',operation_id):
+                raise ContractError(f'invalid operationId={operation_id}')
             ids.append(operation_id)
             operation_responses=operation.setdefault('responses',{})
             successes=[code for code in operation_responses if re.fullmatch(r'2\d\d',str(code))]

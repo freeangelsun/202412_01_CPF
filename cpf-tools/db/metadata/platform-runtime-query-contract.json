@@ -910,12 +910,11 @@
           "consumer": "BackofficeBootstrapApprovalRepository",
           "usage": "ACTIVE",
           "parameters": [
-            "claimExpiresAt",
-            "claimedAt",
-            "claimOwnerId",
-            "environmentFingerprint",
             "operationId",
-            "tokenHash"
+            "claimOwnerId",
+            "leaseDurationMicros",
+            "tokenHash",
+            "environmentFingerprint"
           ]
         },
         {

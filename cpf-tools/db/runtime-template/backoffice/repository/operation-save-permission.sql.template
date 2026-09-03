@@ -1,4 +1,4 @@
-INSERT INTO mbw_permission (
+INSERT INTO MBW_PERMISSION (
     role_code, menu_code, button_code, permission_type, http_method, api_pattern,
     domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by
 ) VALUES (

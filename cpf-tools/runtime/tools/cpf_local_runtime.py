@@ -67,6 +67,10 @@ def java25()->str:
         if re.search(r'version\s+"25(?:\.|\")',cp.stdout): return str(exe)
     raise RuntimeError('Java 25 required. Set CPF_JAVA25_HOME or JAVA_HOME.')
 
+# Runtime 종료 확인용 Port probe 값입니다. 운영값을 Source 에 숨기지 않고 운영자가
+# 환경변수로 조정할 수 있게 노출합니다(NXT3 operational literal 계약).
+STOP_PORT_PROBE_SECONDS=float(os.environ.get('CPF_LOCAL_STOP_PORT_PROBE_SECONDS','0.5'))
+
 def pid_file(root:Path)->Path: return root/'build/cpf-local-runtime/local-web.pid'
 def state_file(root:Path)->Path: return root/'build/cpf-local-runtime/runtime-state.json'
 
@@ -178,9 +182,35 @@ def status(root:Path)->int:
     if pid_alive(pid): print(f'CPF_STATUS=RUNNING pid={pid}'); return 0
     print(f'CPF_STATUS=STALE pid={pid}'); return 2
 
+def force_kill(pid:int)->None:
+    """OS 별 강제 종료. Windows 는 자식까지 함께 종료한다.
+
+    Runtime 은 detached process group 으로 기동하므로 `os.kill` 이 조용히 실패할 수 있다.
+    그 경우에도 반드시 죽여야 다음 실행이 같은 Port 를 쓸 수 있다.
+    """
+    if os.name=='nt':
+        subprocess.run(['taskkill','/PID',str(pid),'/T','/F'],
+                       stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
+        return
+    try: os.kill(pid,signal.SIGKILL if hasattr(signal,'SIGKILL') else signal.SIGTERM)
+    except OSError: pass
+
 def stop(root:Path)->int:
+    """Runtime 을 정지하고 **실제로 종료되었는지 확인**한다.
+
+    이전 구현은 종료 여부를 확인하지 않고 항상 STOPPED 를 출력했다. detached 로 기동한
+    JVM 에 대한 `os.kill` 이 실패하면 프로세스가 살아남는데도 pid 파일만 지워졌고, 다음 실행이
+    `port already in use: 127.0.0.1:8080` 으로 실패했다. 고아 Runtime 을 남기고 성공을 보고하는
+    것은 fail-closed 위반이다.
+    """
     pf=pid_file(root)
-    if not pf.is_file(): print('CPF_LOCAL_RUNTIME=STOPPED already=true'); return 0
+    host=os.environ.get('CPF_LOCAL_BIND_ADDRESS','127.0.0.1')
+    port=int(os.environ.get('CPF_LOCAL_RUNTIME_PORT','8080'))
+    if not pf.is_file():
+        if port_listening(host,port,STOP_PORT_PROBE_SECONDS):
+            return fail(f'runtime pid file is missing but {host}:{port} is still serving. '
+                        'Stop the orphan process before starting a new runtime.',4)
+        print('CPF_LOCAL_RUNTIME=STOPPED already=true'); return 0
     try: pid=int(pf.read_text().strip())
     except ValueError: pid=-1
     if pid>0 and pid_alive(pid):
@@ -190,8 +220,24 @@ def stop(root:Path)->int:
             if not pid_alive(pid): break
             time.sleep(.1)
         if pid_alive(pid):
-            try: os.kill(pid,signal.SIGKILL if hasattr(signal,'SIGKILL') else signal.SIGTERM)
-            except OSError: pass
+            force_kill(pid)
+            for _ in range(50):
+                if not pid_alive(pid): break
+                time.sleep(.1)
+    if pid>0 and pid_alive(pid):
+        return fail(f'runtime process {pid} did not terminate',4)
+    # 부모만 죽고 자식이 Port 를 계속 잡는 경우가 있다. Port 가 열려 있으면 tree kill 로 승격한다.
+    for _ in range(15):
+        if not port_listening(host,port,STOP_PORT_PROBE_SECONDS): break
+        time.sleep(.2)
+    if port_listening(host,port,STOP_PORT_PROBE_SECONDS) and pid>0:
+        force_kill(pid)
+        for _ in range(25):
+            if not port_listening(host,port,STOP_PORT_PROBE_SECONDS): break
+            time.sleep(.2)
+    # 그래도 열려 있으면 다른 고아 Runtime 이 남아 있다는 뜻이다. 성공으로 보고하지 않는다.
+    if port_listening(host,port,STOP_PORT_PROBE_SECONDS):
+        return fail(f'{host}:{port} is still serving after stopping pid={pid}',4)
     pf.unlink(missing_ok=True); state_file(root).unlink(missing_ok=True)
     print(f'CPF_LOCAL_RUNTIME=STOPPED pid={pid}')
     return 0

@@ -29,7 +29,10 @@ import java.util.Map;
 // 있어도 Controller 가 조용히 사라질 수 있다. Provider(AdmIntegrationClosureConfiguration)와
 // 같은 속성 조건을 써서 활성/비활성이 항상 일치하게 한다.
 @RestController
-@ConditionalOnProperty(prefix = "cpf.adm.integration-closure", name = "enabled", havingValue = "true")
+// Harness 26.2 — ADMUI-046(CRITICAL) mandatory route. Configuration 과 같은 기본값을 쓴다.
+// 조건이 서로 다르면 Bean 은 만들어졌는데 Route 만 사라지는 상태가 된다.
+@ConditionalOnProperty(prefix = "cpf.adm.integration-closure", name = "enabled",
+        havingValue = "true", matchIfMissing = true)
 @RequestMapping("/adm/api/integration-closure")
 @Tag(name = "ADM-Integration-Closure", description = "시간·데이터 품질·Webhook 운영 조회 및 서버 승인 조치")
 @SecurityRequirement(name = "admSessionCookie")

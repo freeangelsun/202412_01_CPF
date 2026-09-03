@@ -1,1 +1,1 @@
-SELECT current_hash FROM mbw_audit_chain_lock WHERE chain_id=:id
+SELECT current_hash FROM MBW_AUDIT_CHAIN_LOCK WHERE chain_id=:id

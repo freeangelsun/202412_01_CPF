@@ -1,4 +1,4 @@
-INSERT INTO mbw_organization (
+INSERT INTO MBW_ORGANIZATION (
     organization_code, parent_organization_code, organization_name,
     organization_type, sort_order, use_yn, created_by, updated_by
 ) VALUES (

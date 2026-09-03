@@ -1,4 +1,4 @@
-UPDATE mbw_approval_document
+UPDATE MBW_APPROVAL_DOCUMENT
    SET approval_status=:status, current_step_no=:currentStep,
        version_no=version_no+1, updated_by=:operatorId,
        completed_at=CASE WHEN :completed=1 THEN CURRENT_TIMESTAMP(3) ELSE completed_at END

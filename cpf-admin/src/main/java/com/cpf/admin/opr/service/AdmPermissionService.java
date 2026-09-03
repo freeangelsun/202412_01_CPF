@@ -48,7 +48,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         try {
             return admJdbcTemplate.query("""
                     SELECT ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_role
+                    FROM ADM_ROLE
                     ORDER BY ROLE_ID
                     """, (rs, rowNum) -> new AdmRoleManagement(
                     rs.getString("ROLE_ID"),
@@ -67,7 +67,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         try {
             return admJdbcTemplate.queryForObject("""
                     SELECT ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_role
+                    FROM ADM_ROLE
                     WHERE ROLE_ID = ?
                     """, (rs, rowNum) -> new AdmRoleManagement(
                     rs.getString("ROLE_ID"),
@@ -90,7 +90,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         String roleType = CpfStrings.defaultIfBlank(request.roleType(), "BUSINESS_OPERATOR");
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
-                INSERT INTO adm_role (
+                INSERT INTO ADM_ROLE (
                     ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, CREATED_BY, UPDATED_BY
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, roleId, roleName, roleType, request.description(), ynDefaultY(request.useYn()), user, user);
@@ -102,7 +102,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         String roleType = CpfStrings.defaultIfBlank(request.roleType(), "BUSINESS_OPERATOR");
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_role
+                UPDATE ADM_ROLE
                 SET ROLE_NAME = ?,
                     ROLE_TYPE = ?,
                     DESCRIPTION = ?,
@@ -120,7 +120,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     public AdmRoleManagement updateRoleStatus(String roleId, AdmStatusUpdateRequest request) {
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_role
+                UPDATE ADM_ROLE
                 SET USE_YN = ?,
                     UPDATED_BY = ?,
                     UPDATED_AT = CURRENT_TIMESTAMP
@@ -136,7 +136,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         try {
             return admJdbcTemplate.query("""
                     SELECT MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_menu
+                    FROM ADM_MENU
                     ORDER BY SORT_ORDER, MENU_ID
                     """, (rs, rowNum) -> menuManagement(rs.getString("MENU_ID"),
                     rs.getString("PARENT_MENU_ID"),
@@ -155,7 +155,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         try {
             return admJdbcTemplate.queryForObject("""
                     SELECT MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_menu
+                    FROM ADM_MENU
                     WHERE MENU_ID = ?
                     """, (rs, rowNum) -> menuManagement(rs.getString("MENU_ID"),
                     rs.getString("PARENT_MENU_ID"),
@@ -177,7 +177,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         validateMenuParent(menuId, request.parentMenuId());
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
-                INSERT INTO adm_menu (
+                INSERT INTO ADM_MENU (
                     MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, CREATED_BY, UPDATED_BY
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -196,7 +196,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         validateMenuParent(menuId, request.parentMenuId());
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_menu
+                UPDATE ADM_MENU
                 SET PARENT_MENU_ID = ?,
                     MENU_NAME = ?,
                     MENU_PATH = ?,
@@ -222,7 +222,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     public AdmMenuManagement updateMenuStatus(String menuId, AdmStatusUpdateRequest request) {
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_menu
+                UPDATE ADM_MENU
                 SET USE_YN = ?,
                     UPDATED_BY = ?,
                     UPDATED_AT = CURRENT_TIMESTAMP
@@ -240,7 +240,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                 return admJdbcTemplate.query("""
                         SELECT BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN,
                                SORT_ORDER, USE_YN, CREATED_AT, UPDATED_AT
-                        FROM adm_button
+                        FROM ADM_BUTTON
                         WHERE MENU_ID = ?
                         ORDER BY MENU_ID, SORT_ORDER, BUTTON_ID
                         """, (rs, rowNum) -> button(rs), menuId);
@@ -248,7 +248,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             return admJdbcTemplate.query("""
                     SELECT BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN,
                            SORT_ORDER, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_button
+                    FROM ADM_BUTTON
                     ORDER BY MENU_ID, SORT_ORDER, BUTTON_ID
                     """, (rs, rowNum) -> button(rs));
         } catch (DataAccessException ex) {
@@ -261,7 +261,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             return admJdbcTemplate.queryForObject("""
                     SELECT BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN,
                            SORT_ORDER, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_button
+                    FROM ADM_BUTTON
                     WHERE BUTTON_ID = ?
                     """, (rs, rowNum) -> button(rs), buttonId);
         } catch (EmptyResultDataAccessException ex) {
@@ -275,7 +275,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         String buttonId = CpfStrings.requireText(request.buttonId(), "buttonId");
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
-                INSERT INTO adm_button (
+                INSERT INTO ADM_BUTTON (
                     BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN,
                     SORT_ORDER, USE_YN, CREATED_BY, UPDATED_BY
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -296,7 +296,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     public AdmButton updateButton(String buttonId, AdmButtonSaveRequest request) {
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_button
+                UPDATE ADM_BUTTON
                 SET MENU_ID = ?,
                     ACTION_CODE = ?,
                     BUTTON_NAME = ?,
@@ -326,7 +326,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     public AdmButton updateButtonStatus(String buttonId, AdmStatusUpdateRequest request) {
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_button
+                UPDATE ADM_BUTTON
                 SET USE_YN = ?,
                     UPDATED_BY = ?,
                     UPDATED_AT = CURRENT_TIMESTAMP
@@ -343,7 +343,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             return admJdbcTemplate.query("""
                     SELECT API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
                            MENU_ID, BUTTON_ID, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_api_permission
+                    FROM ADM_API_PERMISSION
                     ORDER BY API_GROUP_CODE, HTTP_METHOD, API_PATH, API_PERMISSION_ID
                     """, (rs, rowNum) -> apiPermission(rs.getString("API_PERMISSION_ID"),
                     rs.getString("API_GROUP_CODE"),
@@ -366,7 +366,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             return admJdbcTemplate.queryForObject("""
                     SELECT API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
                            MENU_ID, BUTTON_ID, USE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_api_permission
+                    FROM ADM_API_PERMISSION
                     WHERE API_PERMISSION_ID = ?
                     """, (rs, rowNum) -> apiPermission(rs.getString("API_PERMISSION_ID"),
                     rs.getString("API_GROUP_CODE"),
@@ -390,7 +390,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         String apiPermissionId = CpfStrings.requireText(request.apiPermissionId(), "apiPermissionId");
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
-                INSERT INTO adm_api_permission (
+                INSERT INTO ADM_API_PERMISSION (
                     API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
                     MENU_ID, BUTTON_ID, USE_YN, CREATED_BY, UPDATED_BY
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -412,7 +412,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     public AdmApiPermission updateApiPermission(String apiPermissionId, AdmApiPermissionSaveRequest request) {
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_api_permission
+                UPDATE ADM_API_PERMISSION
                 SET API_GROUP_CODE = ?,
                     HTTP_METHOD = ?,
                     API_PATH = ?,
@@ -444,7 +444,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     public AdmApiPermission updateApiPermissionStatus(String apiPermissionId, AdmStatusUpdateRequest request) {
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_api_permission
+                UPDATE ADM_API_PERMISSION
                 SET USE_YN = ?,
                     UPDATED_BY = ?,
                     UPDATED_AT = CURRENT_TIMESTAMP
@@ -462,9 +462,9 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     SELECT r.ROLE_ID, r.ROLE_NAME, a.API_PERMISSION_ID, a.API_GROUP_CODE,
                            a.HTTP_METHOD, a.API_PATH, a.API_NAME, a.PERMISSION_CODE,
                            a.MENU_ID, a.BUTTON_ID, COALESCE(ra.ALLOW_YN, 'N') AS ALLOW_YN
-                    FROM adm_role r
-                    CROSS JOIN adm_api_permission a
-                    LEFT JOIN adm_role_api_permission ra
+                    FROM ADM_ROLE r
+                    CROSS JOIN ADM_API_PERMISSION a
+                    LEFT JOIN ADM_ROLE_API_PERMISSION ra
                            ON ra.ROLE_ID = r.ROLE_ID
                           AND ra.API_PERMISSION_ID = a.API_PERMISSION_ID
                     WHERE r.USE_YN = 'Y'
@@ -480,7 +480,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         try {
             return admJdbcTemplate.queryForMap("""
                     SELECT ROLE_ID, API_PERMISSION_ID, ALLOW_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_role_api_permission
+                    FROM ADM_ROLE_API_PERMISSION
                     WHERE ROLE_ID = ?
                       AND API_PERMISSION_ID = ?
                     """, roleId, apiPermissionId);
@@ -499,19 +499,19 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         String user = requestUser(requestUser);
         String normalizedAllow = yn(allowYn);
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_role_api_permission
+                UPDATE ADM_ROLE_API_PERMISSION
                    SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                  WHERE ROLE_ID = ? AND API_PERMISSION_ID = ?
                 """, normalizedAllow, user, roleId, apiPermissionId);
         if (updated == 0) {
             try {
                 admJdbcTemplate.update("""
-                        INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
+                        INSERT INTO ADM_ROLE_API_PERMISSION (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
                         VALUES (?, ?, ?, ?, ?)
                         """, roleId, apiPermissionId, normalizedAllow, user, user);
             } catch (DuplicateKeyException race) {
                 admJdbcTemplate.update("""
-                        UPDATE adm_role_api_permission
+                        UPDATE ADM_ROLE_API_PERMISSION
                            SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                          WHERE ROLE_ID = ? AND API_PERMISSION_ID = ?
                         """, normalizedAllow, user, roleId, apiPermissionId);
@@ -527,9 +527,9 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                            COALESCE(rm.READ_YN, 'N') AS READ_YN,
                            COALESCE(rm.WRITE_YN, 'N') AS WRITE_YN,
                            COALESCE(rm.DELETE_YN, 'N') AS DELETE_YN
-                    FROM adm_role r
-                    CROSS JOIN adm_menu m
-                    LEFT JOIN adm_role_menu rm ON rm.ROLE_ID = r.ROLE_ID AND rm.MENU_ID = m.MENU_ID
+                    FROM ADM_ROLE r
+                    CROSS JOIN ADM_MENU m
+                    LEFT JOIN ADM_ROLE_MENU rm ON rm.ROLE_ID = r.ROLE_ID AND rm.MENU_ID = m.MENU_ID
                     WHERE r.USE_YN = 'Y'
                       AND m.USE_YN = 'Y'
                     ORDER BY r.ROLE_ID, m.SORT_ORDER, m.MENU_ID
@@ -545,9 +545,9 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     SELECT r.ROLE_ID, r.ROLE_NAME, b.BUTTON_ID, b.MENU_ID, b.ACTION_CODE,
                            b.BUTTON_NAME, b.HTTP_METHOD, b.API_PATTERN,
                            COALESCE(rb.ALLOW_YN, 'N') AS ALLOW_YN
-                    FROM adm_role r
-                    CROSS JOIN adm_button b
-                    LEFT JOIN adm_role_button rb ON rb.ROLE_ID = r.ROLE_ID AND rb.BUTTON_ID = b.BUTTON_ID
+                    FROM ADM_ROLE r
+                    CROSS JOIN ADM_BUTTON b
+                    LEFT JOIN ADM_ROLE_BUTTON rb ON rb.ROLE_ID = r.ROLE_ID AND rb.BUTTON_ID = b.BUTTON_ID
                     WHERE r.USE_YN = 'Y'
                       AND b.USE_YN = 'Y'
                     ORDER BY r.ROLE_ID, b.MENU_ID, b.SORT_ORDER, b.BUTTON_ID
@@ -561,7 +561,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         try {
             return admJdbcTemplate.queryForMap("""
                     SELECT ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_role_menu
+                    FROM ADM_ROLE_MENU
                     WHERE ROLE_ID = ?
                       AND MENU_ID = ?
                     """, roleId, menuId);
@@ -576,7 +576,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         try {
             return admJdbcTemplate.queryForMap("""
                     SELECT ROLE_ID, BUTTON_ID, ALLOW_YN, CREATED_AT, UPDATED_AT
-                    FROM adm_role_button
+                    FROM ADM_ROLE_BUTTON
                     WHERE ROLE_ID = ?
                       AND BUTTON_ID = ?
                     """, roleId, buttonId);
@@ -599,19 +599,19 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         String write = yn(writeYn);
         String delete = yn(deleteYn);
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_role_menu
+                UPDATE ADM_ROLE_MENU
                    SET READ_YN = ?, WRITE_YN = ?, DELETE_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                  WHERE ROLE_ID = ? AND MENU_ID = ?
                 """, read, write, delete, user, roleId, menuId);
         if (updated == 0) {
             try {
                 admJdbcTemplate.update("""
-                        INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
+                        INSERT INTO ADM_ROLE_MENU (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                         """, roleId, menuId, read, write, delete, user, user);
             } catch (DuplicateKeyException race) {
                 admJdbcTemplate.update("""
-                        UPDATE adm_role_menu
+                        UPDATE ADM_ROLE_MENU
                            SET READ_YN = ?, WRITE_YN = ?, DELETE_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                          WHERE ROLE_ID = ? AND MENU_ID = ?
                         """, read, write, delete, user, roleId, menuId);
@@ -628,19 +628,19 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
         String allow = yn(allowYn);
         int updated = admJdbcTemplate.update("""
-                UPDATE adm_role_button
+                UPDATE ADM_ROLE_BUTTON
                    SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                  WHERE ROLE_ID = ? AND BUTTON_ID = ?
                 """, allow, user, roleId, buttonId);
         if (updated == 0) {
             try {
                 admJdbcTemplate.update("""
-                        INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
+                        INSERT INTO ADM_ROLE_BUTTON (ROLE_ID, BUTTON_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
                         VALUES (?, ?, ?, ?, ?)
                         """, roleId, buttonId, allow, user, user);
             } catch (DuplicateKeyException race) {
                 admJdbcTemplate.update("""
-                        UPDATE adm_role_button
+                        UPDATE ADM_ROLE_BUTTON
                            SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                          WHERE ROLE_ID = ? AND BUTTON_ID = ?
                         """, allow, user, roleId, buttonId);
@@ -664,7 +664,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                 }
                 current = admJdbcTemplate.query("""
                                 SELECT PARENT_MENU_ID
-                                FROM adm_menu
+                                FROM ADM_MENU
                                 WHERE MENU_ID = ?
                                 """,
                         rs -> rs.next() ? rs.getString("PARENT_MENU_ID") : null,

@@ -22,7 +22,12 @@ if (verificationScope === "source" && spec["x-cpf-release-eligible"] !== false) 
 if (verificationScope === "release" && spec["x-cpf-release-eligible"] !== true) throw new Error("Runtime contract must be release-eligible");
 if (Number(spec["x-cpf-canonical-schema-version"]) !== 5) throw new Error("canonical OpenAPI schemaVersion 5 필요");
 const module = String(spec["x-cpf-product-module"] || "").toUpperCase();
-const publicPrefix = module === "ADM" ? "/adm/api/" : module === "BACKOFFICE" ? "/api/v1/backoffice/" : null;
+// CPF canonical module code 는 MBW 다(CpfSystemCodes / canonicalize-cpf-openapi.py MODULE_PREFIX).
+// Runtime 이 내보내는 문서는 MBW 이고, 아직 갱신되지 않은 tracked source 문서는 Backoffice 다.
+// 둘 다 같은 Public prefix 를 가리키므로 canonical 코드와 legacy 표기를 함께 받는다.
+const publicPrefix = module === "ADM" ? "/adm/api/"
+  : (module === "MBW" || module === "BACKOFFICE") ? "/api/v1/backoffice/"
+  : null;
 if (!publicPrefix) throw new Error(`지원하지 않는 제품 Module: ${module}`);
 const requiredErrors = ["401","403","404","409","429","500","503"];
 const methods = new Set(["get","post","put","patch","delete","head","options","trace"]);

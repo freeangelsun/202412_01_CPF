@@ -1,4 +1,4 @@
-UPDATE cpf_idempotency_record
+UPDATE CPF_IDEMPOTENCY_RECORD
 SET record_status = 'EXPIRED',
     retry_allowed_yn = 'Y',
     updated_by = 'CPF_IDEMPOTENCY_CLEANUP',
@@ -6,7 +6,7 @@ SET record_status = 'EXPIRED',
 WHERE record_status = 'PROCESSING'
   AND idempotency_seq IN (
       SELECT idempotency_seq
-      FROM cpf_idempotency_record
+      FROM CPF_IDEMPOTENCY_RECORD
       WHERE record_status = 'PROCESSING'
         AND expires_at IS NOT NULL
         AND expires_at <= ?

@@ -1,4 +1,4 @@
-UPDATE mbw_menu SET menu_name=:menuName,parent_menu_code=:parentMenuCode,module_code=:moduleCode,route_path=:routePath,icon_code=:iconCode,
+UPDATE MBW_MENU SET menu_name=:menuName,parent_menu_code=:parentMenuCode,module_code=:moduleCode,route_path=:routePath,icon_code=:iconCode,
        environment_code=:environmentCode,api_path=:apiPath,sort_order=:sortOrder,use_yn=:useYn,version_no=version_no+1,
        updated_by=:requestUser,updated_at=CURRENT_TIMESTAMP
  WHERE menu_code=:menuCode AND version_no=:expectedVersion

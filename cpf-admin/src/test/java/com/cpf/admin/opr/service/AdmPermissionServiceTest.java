@@ -41,9 +41,9 @@ class AdmPermissionServiceTest {
 
     @Test
     void updateRoleApiPermissionUsesUpdateThenInsertWithoutVendorSpecificUpsert() {
-        when(jdbc.update(contains("UPDATE adm_role_api_permission"), eq("Y"), eq("tester"), eq("ADM_VIEWER"), eq("API_LOG_READ")))
+        when(jdbc.update(contains("UPDATE ADM_ROLE_API_PERMISSION"), eq("Y"), eq("tester"), eq("ADM_VIEWER"), eq("API_LOG_READ")))
                 .thenReturn(0);
-        when(jdbc.update(contains("INSERT INTO adm_role_api_permission"),
+        when(jdbc.update(contains("INSERT INTO ADM_ROLE_API_PERMISSION"),
                 eq("ADM_VIEWER"), eq("API_LOG_READ"), eq("Y"), eq("tester"), eq("tester")))
                 .thenReturn(1);
         when(jdbc.queryForMap(anyString(), eq("ADM_VIEWER"), eq("API_LOG_READ")))
@@ -52,7 +52,7 @@ class AdmPermissionServiceTest {
         Map<String, Object> result = service.updateRoleApiPermission("ADM_VIEWER", "API_LOG_READ", "Y", "tester");
 
         assertThat(result).containsEntry("ALLOW_YN", "Y");
-        verify(jdbc).update(contains("INSERT INTO adm_role_api_permission"),
+        verify(jdbc).update(contains("INSERT INTO ADM_ROLE_API_PERMISSION"),
                 eq("ADM_VIEWER"), eq("API_LOG_READ"), eq("Y"), eq("tester"), eq("tester"));
     }
 

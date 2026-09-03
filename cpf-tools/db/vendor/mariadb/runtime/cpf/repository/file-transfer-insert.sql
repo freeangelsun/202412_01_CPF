@@ -1,4 +1,4 @@
-INSERT INTO cpf_file_transfer_history (
+INSERT INTO CPF_FILE_TRANSFER_HISTORY (
     transfer_id, transaction_id, segment_id, endpoint_code, transfer_operation,
     local_path, remote_path, checksum, file_size, duplicate_key, transfer_status,
     result_detail, completed_at, created_by, updated_by

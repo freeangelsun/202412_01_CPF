@@ -40,6 +40,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
     @PostMapping("/policies")    @Operation(operationId = "MBW_APPROVAL_POLICY_SAVE", summary = "Versioned 결재 정책 저장",
             description = "EMPLOYEE/ROLE/ORGANIZATION/ORG_MANAGER/POSITION Target과 ALL/ANY/N_OF_M 규칙을 저장합니다.")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_POLICY_SAVE", name = "Versioned 결재 정책 저장", description = "Versioned 결재 정책 저장 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> savePolicy(
             @RequestBody BackofficeApprovalPolicyService.PolicyRequest request,
@@ -50,6 +51,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
     @PostMapping("/simulate")    @Operation(operationId = "MBW_APPROVAL_POLICY_SIMULATE", summary = "결재 정책 참여자 Simulation",
             description = "상신 전에 유효 조직/Role/직급/책임자/위임을 해석하고 fail-closed 결과를 반환합니다.")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_POLICY_SIMULATE", name = "결재 정책 참여자 Simulation", description = "결재 정책 참여자 Simulation 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> simulate(
             @RequestBody SimulationRequest request) {
@@ -68,6 +70,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
 
     @PostMapping("/delegations")    @Operation(operationId = "MBW_APPROVAL_DELEGATION_SAVE", summary = "결재 위임/대결 유효기간 저장")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_DELEGATION_SAVE", name = "결재 위임/대결 유효기간 저장", description = "결재 위임/대결 유효기간 저장 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> saveDelegation(
             @RequestBody BackofficeApprovalPolicyService.DelegationRequest request,
@@ -78,6 +81,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
     @PostMapping("/submissions")    @Operation(operationId = "MBW_APPROVAL_POLICY_SUBMIT", summary = "정책 기반 결재 상신",
             description = "Policy/참여자/요청자 조직정보를 Snapshot하고 상신 멱등 키와 payload hash를 고정합니다.")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_POLICY_SUBMIT", name = "정책 기반 결재 상신", description = "정책 기반 결재 상신 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> submit(
             @RequestBody BackofficeApprovalPolicyService.SubmitRequest request,
@@ -112,6 +116,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
     @PostMapping("/{approvalId}/decisions")    @Operation(operationId = "MBW_APPROVAL_PARTICIPANT_DECISION", summary = "결재 참여자 결정",
             description = "Snapshot 참여자만 결정할 수 있으며 ALL/ANY/N_OF_M, 순차/병렬, 멱등성, 낙관적 잠금을 적용합니다.")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_PARTICIPANT_DECISION", name = "결재 참여자 결정", description = "결재 참여자 결정 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> decide(
             @PathVariable long approvalId,
@@ -122,6 +127,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
 
     @PostMapping("/submissions/{approvalId}/withdraw")    @Operation(operationId = "MBW_APPROVAL_WITHDRAW", summary = "결재 철회")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_WITHDRAW", name = "결재 철회", description = "결재 철회 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> withdraw(
             @PathVariable long approvalId,
@@ -132,6 +138,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
 
     @PostMapping("/submissions/{approvalId}/cancel")    @Operation(operationId = "MBW_APPROVAL_CANCEL", summary = "결재 취소")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_CANCEL", name = "결재 취소", description = "결재 취소 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> cancel(
             @PathVariable long approvalId,
@@ -143,6 +150,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
     @PostMapping("/submissions/{approvalId}/resubmit")    @Operation(operationId = "MBW_APPROVAL_RESUBMIT", summary = "결재 재상신",
             description = "기존 Snapshot을 재활성화하지 않고 새로운 정책/참여자 Snapshot의 새 문서를 생성합니다.")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_RESUBMIT", name = "결재 재상신", description = "결재 재상신 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> resubmit(
             @PathVariable long approvalId,
@@ -154,6 +162,7 @@ public class BackofficeApprovalPolicyController extends com.cpf.backoffice.onlin
     @PostMapping("/submissions/expire-due")    @Operation(operationId = "MBW_APPROVAL_EXPIRE_DUE", summary = "기한 경과 결재 만료 처리",
             description = "BAT Scheduler 등 외부 실행 Owner가 호출할 수 있는 멱등 만료 처리 API입니다.")
     @CpfOnlineTransaction(operationId = "MBW_APPROVAL_EXPIRE_DUE", name = "기한 경과 결재 만료 처리", description = "기한 경과 결재 만료 처리 업무 거래를 CPF 표준 계약에 따라 처리한다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> expireDue(
             @RequestParam(defaultValue = "100") int limit,

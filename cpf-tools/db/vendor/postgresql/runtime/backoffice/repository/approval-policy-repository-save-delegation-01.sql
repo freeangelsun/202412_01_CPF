@@ -1,4 +1,4 @@
-INSERT INTO mbw_approval_delegation (
+INSERT INTO MBW_APPROVAL_DELEGATION (
     delegator_employee_no, delegate_employee_no, business_domain, approval_type,
     valid_from, valid_to, reason, use_yn, created_by, updated_by
 ) VALUES (

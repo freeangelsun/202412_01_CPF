@@ -1,11 +1,11 @@
 UPDATE MBW_BOOTSTRAP_APPROVAL
    SET STATUS = 'CLAIMED', OPERATION_ID = :operationId, CLAIM_OWNER_ID = :claimOwnerId,
-       CLAIMED_AT = :claimedAt, CLAIM_EXPIRES_AT = :claimExpiresAt,
-       UPDATED_AT = :claimedAt
+       CLAIMED_AT = @UTC_NOW6@, CLAIM_EXPIRES_AT = @UTC_NOW6_PLUS_MICROS_NAMED@,
+       UPDATED_AT = @UTC_NOW6@
  WHERE TOKEN_HASH = :tokenHash
    AND ENV_FINGERPRINT = :environmentFingerprint
-   AND EXPIRES_AT > :claimedAt
+   AND EXPIRES_AT > @UTC_NOW6@
    AND (
         STATUS = 'APPROVED'
-        OR (STATUS = 'CLAIMED' AND OPERATION_ID = :operationId AND CLAIM_EXPIRES_AT <= :claimedAt)
+        OR (STATUS = 'CLAIMED' AND OPERATION_ID = :operationId AND CLAIM_EXPIRES_AT <= @UTC_NOW6@)
    )

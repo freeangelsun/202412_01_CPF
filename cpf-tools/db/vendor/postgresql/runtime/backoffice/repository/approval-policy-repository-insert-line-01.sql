@@ -1,4 +1,4 @@
-INSERT INTO mbw_approval_line (
+INSERT INTO MBW_APPROVAL_LINE (
     approval_id, step_no, approver_employee_no, step_type, target_type, target_code,
     target_name_snapshot, decision_rule, required_count, required_yn,
     decision_status, created_by, updated_by

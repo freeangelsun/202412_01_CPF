@@ -1,2 +1,2 @@
-INSERT INTO mbw_employee(employee_no,admin_user_id,organization_code,employee_name,position_code,job_title_code,manager_employee_no,employment_status,join_date,leave_date,email,mobile_no,office_phone_no,use_yn,version_no,created_by,updated_by)
+INSERT INTO MBW_EMPLOYEE(employee_no,admin_user_id,organization_code,employee_name,position_code,job_title_code,manager_employee_no,employment_status,join_date,leave_date,email,mobile_no,office_phone_no,use_yn,version_no,created_by,updated_by)
 VALUES(:employeeNo,:adminUserId,:organizationCode,:employeeName,:positionCode,:jobTitleCode,:managerEmployeeNo,:employmentStatus,:joinDate,:leaveDate,:email,:mobileNo,:officePhoneNo,:useYn,0,:requestUser,:requestUser)

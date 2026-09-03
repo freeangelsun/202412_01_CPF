@@ -559,6 +559,57 @@ batch/gateway는 `@Primary`(`batDataSource`/`batTransactionManager`/`batJdbcTemp
   (`scope=all-java-projects+jar-artifacts`). compile output 만 보던 초판은 jar 이 없는 상태에서도
   PASS 를 냈고, 그래서 같은 오류가 반복해서 되살아났다.
 
+### 26.8 Runtime 검증기는 "대상 조립에 실제로 존재하는 거래"를 구동한다
+
+Runtime smoke는 자기가 가리키는 Runtime의 **Composition**을 근거로 구동 대상을 정해야 한다.
+어떤 Runtime에서 통했던 경로를 다른 Runtime의 Base URL에 그대로 붙이면, 업무 단정에 도달하기도
+전에 "경로 없음/헤더 거절/500"으로 끝나고 원인은 검증기 밖에 있는 것처럼 보인다.
+
+판정 순서는 다음과 같다.
+
+1. 대상 Runtime의 Module Catalog를 먼저 읽는다. 1-WAS는 `CpfLocalRuntimeModules`가 정본이며
+   core / common / gateway / admin / backoffice만 조립한다. Generated Domain과 EDU는 조립하지
+   않는다(`cpf-tools/runtime/cpf-local-runtime/build.gradle`이 Root-owned optional project만
+   조립한다고 명시한다).
+2. 표준 거래 File Log는 `@CpfOnlineTransaction`(또는 `CpfDomainOperation.invoke`)에만 남는다
+   (`LoggingAspect`). 일반 Controller 호출로는 `transactions/` 파일 자체가 생기지 않는다.
+3. §26.1대로 **ADM은 Platform 기능이지 업무 Domain이 아니다.** 그래서 ADM에는
+   `@CpfOnlineTransaction`이 없는 것이 정상이며, ADM 경로로 "표준 업무 거래 로그" 증적을
+   만들려 하면 안 된다. ADM에 업무 거래를 새로 만들어 넣는 것은 §26.1 위반이다.
+4. File Log 경로의 module segment는 앱 이름이 아니라 **실행 Runtime의 module code**다
+   (`CpfLogPathPolicy.instanceRoot`). 1-WAS는 `<env>/local-runtime/<instance>/transactions/...`로
+   남는다. 검증기가 `edu` 같은 다른 module을 뒤지면 candidate 0건으로 끝난다.
+
+실제 사례: `LOCAL_FILE_LOG_STANDARD` / `LOCAL_INTEGRATED_LOG_CORRELATION`이
+`http://127.0.0.1:8080`(1-WAS)에 EDU 경로 `/edu/online/member-processing`을 호출하고 있었다.
+1-WAS에 EDU가 없으므로 항상 실패하는 잠복 결함이었고, 앞 단계가 먼저 실패해 오래 드러나지 않았다.
+
+따라서 검증기는 구동 대상(경로 / operationId / 본문 / 추가 Header / File Log module)을
+**호출자가 지정하는 파라미터**로 노출하고, Runtime별 호출 지점이 그 Runtime의 조립에 맞는 값을
+넘긴다. §27의 조립성 원칙과 같은 이유다.
+
+### 26.9 ADM Route도 External CPF protocol Header 계약을 그대로 요구한다
+
+`Authorization`만 보내는 검증기 호출은 `X-Transaction-Id` / `X-Target-Operation-Id` 부재로
+`ECPF900002` 400이 된다(`CpfHttpInboundContextAdapter.requireExternal`). health/liveness/readiness도
+예외가 아니다. 이 때문에 "이미 떠 있는 1-WAS"를 인식하지 못하고 검증기가 자기 Runtime을 다시
+기동하려다 `ADM boot jar was not found`로 끝난 사례가 있다.
+
+공개로 선언한 경로는 **모든 계층에서 같은 범위로** 공개해야 한다. `AdmApiAuthFilter`가
+GET/HEAD 3개 경로를 공개로 선언했는데 Security Chain이 그 앞에서 401로 잘라내면 그 선언은
+실현되지 않는다. 한쪽 계층만 고치면 같은 증상이 다시 나온다.
+
+### 26.10 Named parameter 이름은 Query Pack 정본이 소유한다
+
+Repository가 record 필드 이름을 그대로 `addValue`에 쓰면 Query Pack의 `:param`과 조용히
+어긋난다. 실제로 `auth-repository-insert-login-history-01`이 `:moduleId` / `:wasId`를 선언했는데
+`BackofficeAuthRepository`가 `systemCode` / `application`으로 넘겨,
+`No value supplied for the SQL parameter 'moduleId'`로 **MBW 로그인 실패가 401이 아니라
+500(ECPF990000)** 으로 나갔다. 정상 경로에서는 호출되지 않는 실패 기록 경로라 늦게 발견됐다.
+
+정본은 `cpf-tools/db/metadata/platform-runtime-query-contract.json`의 `parameters`와
+`cpf-tools/db/runtime-template/**`의 `:param`이다. Java는 그 이름을 따른다.
+
 ## 27. 사용자 대면 Shell/Command 사용성 계약 (Mandatory)
 
 사용자 Steering(2026-09-03): "1-WAS 구동 Shell을 포함해 개발자·운영자·사용자가 직접 쓰는 모든
@@ -632,3 +683,59 @@ DB 로그와 File 로그에 같은 구성이 적용되어야 한다.
 
 위 두 설정은 CPF가 제공하는 Framework/Platform 관리 기능이므로 ADM capability registry에 등록된
 **mandatory Route**로 제공한다. §26.2에 따라 조건부 Provider로 축소하지 않는다.
+
+## 29. Open Git Release 사용자 Task 계약 (Mandatory)
+
+사용자 Steering(2026-09-03): "VS Code Gradle Projects 에서 개발자가 Open Git Release 생성·검증·
+Commit·Push 절차를 쉽게 찾고 실행할 수 있도록 `70. cpf 오픈깃 릴리즈` 사용자 Task 그룹을 신설한다."
+
+Open Git Release 는 최종 사용자가 직접 수행하는 공식 lifecycle 이다. `90~99 내부` 영역으로 숨기지
+않고 §27 의 사용자 Task 체계(`00 시작` … `60 배포`)와 같은 원칙으로 `70` 에 배치한다.
+
+### 29.1 책임 경계를 Task 로 분리한다
+
+| Task | 책임 | Git Write |
+| --- | --- | --- |
+| `cpfOpenGitBuild` | 공개 Release 산출물 생성 | 없음 |
+| `cpfOpenGitVerify` | 공개 Release 검증(Binary/Sources/Javadoc/POM/SBOM/Checksum, Public API/CLI/Generator/Generated Sample, Leakage 0, Fresh Consumer) | 없음 |
+| `cpfOpenGitPrepare` | Build → Verify 순차 | **없음** |
+| `cpfOpenGitCommit` | 검증 완료 Working Tree Commit | 있음 |
+| `cpfOpenGitPush` | 검증 완료 Commit 을 remote 로 Push | 있음 |
+| `cpfOpenGitCommitAndPush` | Commit → Push 순차 | 있음 |
+
+### 29.2 Gradle 에 Release 로직을 복제하지 않는다
+
+Gradle Task 는 정본 Open Git 진입점(`cpf-tools/release/open-git/cpf_open_git.py`)을 호출하는
+**wrapper** 여야 한다. CLI / PowerShell / Gradle Task 가 서로 다른 구현을 가지면 안 된다.
+
+```
+VS Code Gradle Task → cpf-open-git.ps1 → cpf_open_git.py → 동일 Release/Verification lifecycle
+```
+
+### 29.3 Git Write 는 fail-closed 다
+
+Commit/Push 전에 다음을 모두 확인하고, 하나라도 실패하면 **중단**한다. 중간 실패를 전체 PASS 로
+처리하지 않는다.
+
+- 대상이 Development Master 가 아니라 Open Git 작업 Repository 인가
+- Open Git remote 가 정본 Repository 와 일치하는가
+- 현재 branch 가 허용 대상인가
+- Source / Release identity 확인
+- Release Build PASS / Open Git Verification PASS / Leakage = 0
+- Commit 대상 변경 파일 표시, Push 전 current SHA / branch / remote 표시
+
+또한 명시적 Git Write 승인값 `-PconfirmGitWrite=true` 가 없으면 FAIL 한다.
+
+### 29.4 자동 Git Write 를 금지한다
+
+Build / Verify / Prepare / 일반 Build·Test·Release Task / VS Code Import / IDE Sync 실행만으로
+Commit·Push 가 수행되어서는 안 된다. `cpfOpenGitPrepare` 도 **생성 + 검증까지만** 한다.
+
+### 29.5 검증은 Task 존재 확인으로 끝내지 않는다
+
+`Gradle Task 노출 → canonical script 연결 → Release 생성 → Verify → Git Write 보호 →
+잘못된 Repository/remote/branch/승인 누락 Negative Test → 정상 Commit/Push 진입 조건` 까지 확인한다.
+실제 Commit/Push 가 사용자 승인 없이 필요한 경우에는 **Git Write 를 수행하지 말고 직전
+fail-closed 경계까지** 검증한다.
+
+게이트: `cpf-tools/verification/tests/test_cpf_open_git_task_contract.py`

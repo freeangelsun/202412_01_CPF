@@ -1,2 +1,2 @@
-DELETE FROM mbw_approval_policy_step
+DELETE FROM MBW_APPROVAL_POLICY_STEP
  WHERE policy_code=:policyCode AND policy_version=:policyVersion

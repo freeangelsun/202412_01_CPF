@@ -1,4 +1,4 @@
-MERGE INTO mbw_organization target
+MERGE INTO MBW_ORGANIZATION target
 USING (
     SELECT :organizationCode organization_code, :parentOrganizationCode parent_organization_code,
            :organizationName organization_name, :organizationType organization_type,

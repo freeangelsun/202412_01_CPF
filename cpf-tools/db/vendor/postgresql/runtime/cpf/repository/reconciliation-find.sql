@@ -9,7 +9,7 @@ SELECT unknown_id AS unknownId,
        next_action AS nextAction,
        detected_at AS detectedAt,
        resolved_at AS resolvedAt
-FROM cpf_unknown_result
+FROM CPF_UNKNOWN_RESULT
 WHERE (? IS NULL OR unknown_type = ?)
   AND (? IS NULL OR unknown_status = ?)
 ORDER BY unknown_seq DESC

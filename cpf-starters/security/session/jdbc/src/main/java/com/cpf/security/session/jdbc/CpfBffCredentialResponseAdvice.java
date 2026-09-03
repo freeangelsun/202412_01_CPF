@@ -19,7 +19,19 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-/** 인증 DTO/Map의 Credential을 Browser Body에서 제거하고 암호화 Vault에 저장합니다. */
+/**
+ * 인증 DTO/Map의 Credential을 Browser Body에서 제거하고 암호화 Vault에 저장합니다.
+ *
+ * <p>{@code @ControllerAdvice} 가 반드시 필요하다. Spring MVC 는 {@code ResponseBodyAdvice} 를
+ * {@code ControllerAdviceBean.findAnnotatedBeans} 로만 수집하므로, 이 annotation 이 없으면
+ * {@code @Bean} 으로 등록만 되고 **한 번도 실행되지 않는다**. 그 상태에서는
+ * (1) accessToken/refreshToken 이 Browser 응답 Body 에 그대로 노출되고,
+ * (2) Session 에 {@code CPF_BFF_CREDENTIAL_HANDLE} 이 저장되지 않아 이후 모든 ADM API 가
+ *     인증되지 않는다. Browser 는 Authorization Header 사용이 금지되어 있으므로
+ *     ({@code CpfBffSessionBridgeFilter}) 로그인 이후 아무 것도 호출할 수 없다.
+ * 실제로 1-WAS 에서 로그인 직후 {@code POST /adm/api/log-policies/cache/refresh} 가 401 이었다.</p>
+ */
+@org.springframework.web.bind.annotation.ControllerAdvice
 public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<Object> {
     private static final Set<String> CREDENTIAL_KEYS = Set.of("accessToken", "refreshToken");
     private static final Set<String> PRINCIPAL_KEYS =

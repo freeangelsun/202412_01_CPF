@@ -207,3 +207,5 @@ SELECT 'OPS_TRANSACTION_SUBJECT' AS table_name, COUNT(*) AS present FROM informa
 SELECT 'SEC_BFF_CREDENTIAL_VAULT' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'SEC_BFF_CREDENTIAL_VAULT';
 SELECT 'SEC_JWT_KEY' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'SEC_JWT_KEY';
 SELECT 'SEC_TOKEN_AUDIT_LOG' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'SEC_TOKEN_AUDIT_LOG';
+SELECT 'SPRING_SESSION' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'SPRING_SESSION';
+SELECT 'SPRING_SESSION_ATTRIBUTES' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'SPRING_SESSION_ATTRIBUTES';

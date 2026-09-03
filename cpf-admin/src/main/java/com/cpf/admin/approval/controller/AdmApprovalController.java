@@ -37,6 +37,7 @@ public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseCont
     }
 
     @PostMapping("/policies")    @Operation(operationId="admApprovalPolicySave",summary="Versioned 위험조치 승인 정책 저장")
+    @ApiResponse(responseCode = "201", description = "정책 신규 Version 생성")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> savePolicy(@Valid @RequestBody AdmApprovalService.PolicyRequest request,
             @RequestAttribute("adm.operatorId") String operatorId){
@@ -45,6 +46,8 @@ public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseCont
 
     @PostMapping("/requests")    @Operation(operationId="admApprovalRequest",summary="위험조치 승인 요청",
             description="동적 Target을 운영자 Snapshot으로 고정하고 요청 key와 payload hash로 승인 대상 변경을 방지합니다.")
+    @ApiResponse(responseCode = "200", description = "동일 요청 key 재사용으로 기존 승인 요청 반환")
+    @ApiResponse(responseCode = "201", description = "승인 요청 생성")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> request(@Valid @RequestBody AdmApprovalService.CreateRequest request,
             @RequestAttribute("adm.operatorId") String operatorId){
@@ -57,6 +60,7 @@ public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseCont
 
     @PostMapping("/requests/{id}/decisions")    @Operation(operationId="admApprovalDecision",summary="승인/반려 결정",
             description="Snapshot 참여자, ALL/ANY/N_OF_M, 자기승인 정책, 멱등키, optimistic version을 적용합니다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> decide(@PathVariable long id,
             @Valid @RequestBody AdmApprovalService.DecisionRequest request,
@@ -66,6 +70,7 @@ public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseCont
 
     @PostMapping("/requests/{id}/reconcile")    @Operation(operationId="admApprovalReconcile",summary="UNKNOWN 승인 실행 상태 Reconcile",
             description="Owner 상태를 조회해 Side Effect를 확정하며 Mutation을 자동 재실행하지 않습니다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> reconcile(@PathVariable long id,@RequestParam @Size(min=8,max=500) String reason,
             @RequestAttribute("adm.operatorId") String operatorId){
@@ -74,6 +79,7 @@ public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseCont
 
     @PostMapping("/requests/{id}/execute")    @Operation(operationId="admApprovalExecute",summary="승인 완료 Owner Command 실행",
             description="ADM이 Owner DB를 직접 수정하지 않고 Command Port로 실행하며 UNKNOWN을 실패로 단정하지 않습니다.")
+    @ApiResponse(responseCode = "200", description = "처리 성공")
     @ApiResponse(responseCode = "422", description = "Validation failed")
     @ApiResponse(responseCode = "503", description = "Owner command unavailable")
     public ResponseEntity<Map<String,Object>> execute(@PathVariable long id,@RequestParam @Size(min=8,max=500) String reason,

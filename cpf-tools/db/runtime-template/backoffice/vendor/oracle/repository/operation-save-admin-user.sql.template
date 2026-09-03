@@ -1,4 +1,4 @@
-MERGE INTO mbw_admin_user target
+MERGE INTO MBW_ADMIN_USER target
 USING (
     SELECT :loginId admin_login_id, :adminName admin_name, :passwordHash password_hash,
            :roleCode role_code, :useYn use_yn, :lockYn lock_yn,

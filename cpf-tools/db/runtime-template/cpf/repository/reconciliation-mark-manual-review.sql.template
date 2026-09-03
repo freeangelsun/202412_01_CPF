@@ -1,4 +1,4 @@
-UPDATE cpf_unknown_result
+UPDATE CPF_UNKNOWN_RESULT
 SET unknown_status = 'MANUAL_REVIEW',
     lease_owner = NULL,
     lease_until = NULL,

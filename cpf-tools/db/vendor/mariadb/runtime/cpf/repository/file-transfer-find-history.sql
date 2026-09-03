@@ -6,7 +6,7 @@ SELECT transfer_status AS transferStatus,
        file_size AS fileSize,
        completed_at AS completedAt,
        result_detail AS resultDetail
-FROM cpf_file_transfer_history
+FROM CPF_FILE_TRANSFER_HISTORY
 WHERE (? IS NULL OR endpoint_code = ?)
   AND (? IS NULL OR created_at >= ?)
   AND (? IS NULL OR created_at <= ?)

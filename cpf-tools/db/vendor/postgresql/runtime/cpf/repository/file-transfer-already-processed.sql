@@ -1,5 +1,5 @@
 SELECT COUNT(*)
-FROM cpf_file_transfer_history
+FROM CPF_FILE_TRANSFER_HISTORY
 WHERE endpoint_code = ?
   AND duplicate_key = ?
   AND (? IS NULL OR checksum = ?)

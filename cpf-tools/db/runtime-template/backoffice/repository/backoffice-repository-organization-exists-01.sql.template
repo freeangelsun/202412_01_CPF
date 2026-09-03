@@ -1,1 +1,1 @@
-SELECT COUNT(*) FROM mbw_organization WHERE organization_code=:code
+SELECT COUNT(*) FROM MBW_ORGANIZATION WHERE organization_code=:code

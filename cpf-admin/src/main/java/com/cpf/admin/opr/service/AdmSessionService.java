@@ -155,7 +155,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
         }
         try {
             return admJdbcTemplate.update("""
-                    UPDATE adm_operator_session
+                    UPDATE ADM_OPERATOR_SESSION
                        SET REVOKED_YN = 'Y',
                            UPDATED_BY = ?,
                            UPDATED_AT = CURRENT_TIMESTAMP
@@ -183,13 +183,13 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
             String sql = operatorId != null && !operatorId.isBlank() ? """
                     SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
                            REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
-                      FROM adm_operator_session
+                      FROM ADM_OPERATOR_SESSION
                      WHERE OPERATOR_ID = ?
                      ORDER BY EXPIRE_AT DESC
                     """ : """
                     SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
                            REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
-                      FROM adm_operator_session
+                      FROM ADM_OPERATOR_SESSION
                      ORDER BY EXPIRE_AT DESC
                     """;
             Object[] args = operatorId != null && !operatorId.isBlank() ? new Object[]{operatorId.trim()} : new Object[0];
@@ -215,7 +215,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
         }
         try {
             return admJdbcTemplate.update("""
-                    UPDATE adm_operator_session
+                    UPDATE ADM_OPERATOR_SESSION
                        SET REVOKED_YN = 'Y',
                            UPDATED_BY = 'ADM',
                            UPDATED_AT = CURRENT_TIMESTAMP
@@ -236,7 +236,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
         }
         try {
             return admJdbcTemplate.update("""
-                    UPDATE adm_operator_session
+                    UPDATE ADM_OPERATOR_SESSION
                        SET REVOKED_YN = 'Y',
                            UPDATED_BY = 'ADM',
                            UPDATED_AT = CURRENT_TIMESTAMP
@@ -262,7 +262,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
     private void persistSession(AdmSession session) {
         try {
             admJdbcTemplate.update("""
-                    INSERT INTO adm_operator_session (
+                    INSERT INTO ADM_OPERATOR_SESSION (
                         SESSION_ID, TOKEN_HASH, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
                         REVOKED_YN, CREATED_BY, UPDATED_BY
                     ) VALUES (?, ?, ?, ?, ?, ?, 'N', ?, ?)
@@ -285,8 +285,8 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
             Optional<SessionRow> stored = admJdbcTemplate.query("""
                             SELECT s.OPERATOR_ID, s.ISSUED_AT, s.EXPIRE_AT,
                                    o.PASSWORD_CHANGE_REQUIRED_YN
-                              FROM adm_operator_session s
-                              JOIN adm_operator o ON o.OPERATOR_ID = s.OPERATOR_ID
+                              FROM ADM_OPERATOR_SESSION s
+                              JOIN ADM_OPERATOR o ON o.OPERATOR_ID = s.OPERATOR_ID
                              WHERE s.TOKEN_HASH = ?
                                AND s.REVOKED_YN = 'N'
                                AND s.EXPIRE_AT > CURRENT_TIMESTAMP
@@ -310,8 +310,8 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
             SessionRow row = stored.get();
             List<String> currentRoles = admJdbcTemplate.queryForList("""
                     SELECT r.ROLE_ID
-                      FROM adm_operator_role r
-                      JOIN adm_role role ON role.ROLE_ID = r.ROLE_ID
+                      FROM ADM_OPERATOR_ROLE r
+                      JOIN ADM_ROLE role ON role.ROLE_ID = r.ROLE_ID
                      WHERE r.OPERATOR_ID = ?
                        AND role.USE_YN = 'Y'
                      ORDER BY r.ROLE_ID
@@ -331,7 +331,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
     private void revokeDbSession(String token) {
         try {
             admJdbcTemplate.update("""
-                    UPDATE adm_operator_session
+                    UPDATE ADM_OPERATOR_SESSION
                        SET REVOKED_YN = 'Y',
                            UPDATED_BY = 'ADM',
                            UPDATED_AT = CURRENT_TIMESTAMP
@@ -351,15 +351,15 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
         String[] parts = externalKey.split(":", 2);
         return switch (parts[0]) {
             case "TOKEN_HASH" -> admJdbcTemplate.update("""
-                    UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                    UPDATE ADM_OPERATOR_SESSION SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
                     WHERE TOKEN_HASH=? AND REVOKED_YN='N'
                     """, parts[1]);
             case "SESSION_ID" -> admJdbcTemplate.update("""
-                    UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                    UPDATE ADM_OPERATOR_SESSION SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
                     WHERE SESSION_ID=? AND REVOKED_YN='N'
                     """, parts[1]);
             case "OPERATOR_ID" -> admJdbcTemplate.update("""
-                    UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                    UPDATE ADM_OPERATOR_SESSION SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
                     WHERE OPERATOR_ID=? AND REVOKED_YN='N'
                     """, parts[1]);
             case "CLEANUP" -> cleanupExpiredSessionsWithoutUnknown();
@@ -369,7 +369,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
 
     private int cleanupExpiredSessionsWithoutUnknown() {
         return admJdbcTemplate.update("""
-                UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                UPDATE ADM_OPERATOR_SESSION SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
                 WHERE REVOKED_YN='N' AND EXPIRE_AT <= CURRENT_TIMESTAMP
                 """);
     }

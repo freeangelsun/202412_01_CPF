@@ -1,4 +1,4 @@
-UPDATE cpf_idempotency_record
+UPDATE CPF_IDEMPOTENCY_RECORD
 SET record_status = 'PROCESSING',
     stored_response = NULL,
     retry_allowed_yn = 'N',

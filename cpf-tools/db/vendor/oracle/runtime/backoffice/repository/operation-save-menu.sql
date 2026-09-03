@@ -1,4 +1,4 @@
-MERGE INTO mbw_menu target
+MERGE INTO MBW_MENU target
 USING (
     SELECT :menuCode menu_code, :menuName menu_name, :parentMenuCode parent_menu_code,
            :moduleCode module_code, :routePath route_path, :iconCode icon_code,

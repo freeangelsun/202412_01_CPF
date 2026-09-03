@@ -1112,7 +1112,13 @@ if(-not $SkipOneWas -and $pwsh){
         $policyLogEvidence=Join-Path $integratedLogRoot 'policy'
         [IO.Directory]::CreateDirectory($fileLogEvidence)|Out-Null
         [IO.Directory]::CreateDirectory($policyLogEvidence)|Out-Null
-        Invoke-CpfStage 'LOCAL_FILE_LOG_STANDARD' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-file-log-standard-runtime.ps1','-Root',$RepoRoot,'-EducationBaseUrl','http://127.0.0.1:8080','-ResultDir',$fileLogEvidence,'-LogBasePath',$runtimeFileLogRoot,'-RequireRuntime')
+        Invoke-CpfStage 'LOCAL_FILE_LOG_STANDARD' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-file-log-standard-runtime.ps1','-Root',$RepoRoot,'-ReferenceBaseUrl','http://127.0.0.1:8080','-ResultDir',$fileLogEvidence,'-LogBasePath',$runtimeFileLogRoot,
+            # 1-WAS Local Module Catalog(CpfLocalRuntimeModules)에는 EDU 가 없다. 조립 안에 실제로
+            # 존재하는 무인증 @CpfOnlineTransaction 인 MBW_AUTH_LOGIN 으로 표준 File Log 를 검증한다.
+            '-ProbePath','/api/v1/backoffice/auth/login','-ProbeOperationId','MBW_AUTH_LOGIN',
+            '-ProbeBody','{"loginId":"cpf-file-log-probe","password":"cpf-file-log-probe"}',
+            '-ProbeExtraHeaders','Idempotency-Key=','-AllowNonSuccessProbe',
+            '-ProbeModuleCode','local-runtime','-ProbeDiagnosticPorts','8080','-RequireRuntime')
         $localSecretPrevious=@{}
         if(Test-Path -LiteralPath $DockerSecretFile -PathType Leaf){$localSecretPrevious=Import-CpfEnvFile $DockerSecretFile}
         try{
@@ -1128,7 +1134,12 @@ if(-not $SkipOneWas -and $pwsh){
                 try {
                     $secretEnv=@{CPF_ADM_SMOKE_PASSWORD=$adminPassword;CPF_ADM_APPROVAL_PROOF_KEY_BASE64=$admApprovalProofKey}
                     Invoke-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-AdmUsername','admin','-LogDir',$policyLogEvidence) $RepoRoot $secretEnv
-                    Invoke-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-integrated-log-correlation.ps1','-Root',$RepoRoot,'-BaseUrl','http://127.0.0.1:8080','-LogBasePath',$runtimeFileLogRoot,'-RuntimeLogRoot',(Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),'-FileLogResultPath',(Join-Path $fileLogEvidence 'file-log-standard-result.json'),'-LogPolicyResultPath',(Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'),'-AdmUsername','admin','-ResultPath',(Join-Path $integratedLogRoot 'integrated-log-correlation-result.json')) $RepoRoot $secretEnv
+                    Invoke-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-integrated-log-correlation.ps1','-Root',$RepoRoot,'-BaseUrl','http://127.0.0.1:8080','-LogBasePath',$runtimeFileLogRoot,'-RuntimeLogRoot',(Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),'-FileLogResultPath',(Join-Path $fileLogEvidence 'file-log-standard-result.json'),'-LogPolicyResultPath',(Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'),'-AdmUsername','admin',
+            # File Log smoke 와 같은 이유로 1-WAS 조립 안의 MBW_AUTH_LOGIN 을 쓴다.
+            '-ProbePath','/api/v1/backoffice/auth/login','-ProbeOperationId','MBW_AUTH_LOGIN',
+            '-ProbeBody','{"loginId":"cpf-file-log-probe","password":"cpf-file-log-probe"}',
+            '-ProbeExtraHeaders','Idempotency-Key=','-AllowNonSuccessProbe',
+            '-ResultPath',(Join-Path $integratedLogRoot 'integrated-log-correlation-result.json')) $RepoRoot $secretEnv
                 } finally {
                     [Environment]::SetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD',$previousAdmSmokePassword,'Process')
                     [Environment]::SetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64',$previousApprovalProofKey,'Process')
@@ -1142,7 +1153,7 @@ if(-not $SkipOneWas -and $pwsh){
     }
     if($node -and $python -and $oneWasReady){
         Invoke-CpfStage 'ADM_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','ADM','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\adm'),'-SourceIdentity',$sourceIdentity)
-        Invoke-CpfStage 'BACKOFFICE_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','BACKOFFICE','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\backoffice'),'-SourceIdentity',$sourceIdentity)
+        Invoke-CpfStage 'BACKOFFICE_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','MBW','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\backoffice'),'-SourceIdentity',$sourceIdentity)
     }elseif(-not $oneWasReady){
         Add-CpfTextResult 'ADM_RUNTIME_OPENAPI_RELEASE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; ADM runtime OpenAPI parity was not executed' 'upstream runtime start failed'
         Add-CpfTextResult 'BACKOFFICE_RUNTIME_OPENAPI_RELEASE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; BACKOFFICE runtime OpenAPI parity was not executed' 'upstream runtime start failed'

@@ -1,7 +1,10 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
     [string] $AdmUsername = "admin",
+    # 단독 ADM 실행은 ADM, 1-WAS 통합 Runtime 은 자신을 LOCAL 로 선언한다. 대상 Runtime 의
+    # System Code 를 호출자가 알려준다(System6 수신자 일치 계약).
+    [string] $SystemCode = "ADM",
     [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,
     [string] $TargetTransactionId = "ADM01TRN0010",
     [int] $StartupTimeoutSeconds = 120,
@@ -85,16 +88,78 @@ function ConvertFrom-Utf8JsonResponse {
     return $content | ConvertFrom-Json
 }
 
+function Get-CpfIssuerCode([string] $Code) {
+    # CPF 정본 거래ID 의 issuer 는 **3자리**다(CpfTransactionIds). Runtime System Code 가 3자리보다
+    # 길면 CpfSystemCodes.normalize 가 앞 3자리를 issuer 로 쓴다(LOCAL -> LOC).
+    # 그래서 X-System-Code/X-Target-System-Code(수신자 일치)와 X-Original-System-Code/거래ID issuer
+    # 는 서로 다른 값일 수 있다. 둘을 같은 값으로 보내면 1-WAS 에서 반드시 거절된다.
+    if ([string]::IsNullOrWhiteSpace($Code)) { return 'CPF' }
+    $trimmed = $Code.Trim().ToUpperInvariant()
+    if ($trimmed.Length -le 3) { return $trimmed }
+    return $trimmed.Substring(0, 3)
+}
+
 function New-SmokeHeaders {
     $script:sequence++
     $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
     return @{
-        "X-Transaction-Id" = "$timestamp" + "ADM" + "lgpol01" + $script:sequence.ToString("0000000")
+        # 거래ID 의 issuer(3자리)는 X-Original-System-Code 와 반드시 같아야 한다
+        # (CpfHttpInboundContextAdapter, ORIGINAL_SYSTEM_CODE_MISMATCH). "ADM" 을 고정으로 박으면
+        # 1-WAS(LOCAL -> LOC)에서 항상 ECPF900002 400 이 되어 health 조차 통과하지 못한다.
+        "X-Transaction-Id" = "$timestamp" + (Get-CpfIssuerCode $SystemCode) + "lgpol01" + $script:sequence.ToString("0000000")
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
         "X-Client-Version" = "runtime-smoke"
         "X-Caller-Service" = "cpf-smoke"
+        # System6 계약상 X-System-Code / X-Target-System-Code 는 수신 Runtime 의 System Code 와
+        # 같아야 한다(CpfHttpInboundContextAdapter.validateReceiverSystem). 이 헤더가 없으면
+        # /adm/api/health 조차 거절되어 "이미 떠 있는 ADM" 을 인식하지 못하고, 스스로 ADM 을
+        # 기동하려다 "ADM boot jar was not found" 로 실패한다.
+        "X-Original-System-Code" = (Get-CpfIssuerCode $SystemCode)
+        "X-System-Code" = $SystemCode
+        "X-Caller-System-Code" = $SystemCode
+        "X-Target-System-Code" = $SystemCode
+        # X-Target-Operation-Id 는 External CPF protocol 호출의 필수 Header 다
+        # (CpfHttpInboundContextAdapter.requireExternal / CpfHttpHeaderCatalog.required).
+        # 없으면 GET /adm/api/health 가 ECPF900002 400 으로 거절되어 "이미 떠 있는 1-WAS" 를
+        # 인식하지 못하고 ADM boot jar 를 다시 찾다가 실패한다. 호출별로 값을 넘길 수 있으며
+        # 기본값은 이 검증기가 가장 먼저 호출하는 readiness 거래다.
+        "X-Target-Operation-Id" = "getAdmReadiness"
     }
+}
+
+$script:admWebSession = $null
+$script:admCsrfToken = $null
+
+function Initialize-AdmCsrf {
+    # ADM BFF Security Chain 은 /adm/** 에 CSRF 를 적용한다
+    # (CookieCsrfTokenRepository + CpfCsrfCookieExposureFilter).
+    # 공개 GET 으로 XSRF-TOKEN cookie 를 먼저 받지 않으면 로그인 POST 가 403 으로 거절된다.
+    # 인증 자체도 HttpOnly Session Cookie 로 이어지므로 이후 호출은 같은 WebSession 을 쓴다.
+    param([string] $BaseUrl)
+    $probe = Invoke-WebRequest -Method Get -Uri "$BaseUrl/adm/api/health" -Headers (New-SmokeHeaders) `
+        -TimeoutSec 10 -UseBasicParsing -SessionVariable session
+    $null = $probe
+    $script:admWebSession = $session
+    $cookie = $session.Cookies.GetCookies($BaseUrl) | Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
+    if ($null -eq $cookie) { throw 'ADM CSRF cookie(XSRF-TOKEN)가 발급되지 않았습니다.' }
+    $script:admCsrfToken = [string] $cookie.Value
+    return $script:admCsrfToken
+}
+
+function Get-AdmOrigin {
+    param([string] $BaseUrl)
+    $uri = [Uri] $BaseUrl
+    return "$($uri.Scheme)://$($uri.Authority)"
+}
+
+function Add-AdmSessionParams {
+    param([hashtable] $InvokeParams, [hashtable] $Headers)
+    if ($null -ne $script:admWebSession) { $InvokeParams.WebSession = $script:admWebSession }
+    if (-not [string]::IsNullOrWhiteSpace($script:admCsrfToken)) { $Headers['X-XSRF-TOKEN'] = $script:admCsrfToken }
+    # CpfTrustedOriginFilter 는 /adm/ 의 상태 변경 요청에 Origin/Referer 를 요구하고, 없으면
+    # "Untrusted request origin" 으로 403 을 낸다. Browser 와 같은 same-origin 값을 보낸다.
+    $Headers['Origin'] = Get-AdmOrigin -BaseUrl $AdmBaseUrl
 }
 
 function Invoke-SmokeJson {
@@ -116,6 +181,7 @@ function Invoke-SmokeJson {
         Headers = $mergedHeaders
         UseBasicParsing = $true
     }
+    Add-AdmSessionParams $invokeParams $mergedHeaders
     if ($null -ne $Body) {
         $invokeParams.ContentType = "application/json;charset=UTF-8"
         $invokeParams.Body = [System.Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
@@ -142,6 +208,7 @@ function Invoke-SmokeJsonAllowHttpError {
         Headers = $mergedHeaders
         UseBasicParsing = $true
     }
+    Add-AdmSessionParams $invokeParams $mergedHeaders
     if ($null -ne $Body) {
         $invokeParams.ContentType = "application/json;charset=UTF-8"
         $invokeParams.Body = [System.Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
@@ -551,15 +618,47 @@ try {
     if ([string]::IsNullOrWhiteSpace($AdmPassword)) {
         throw "CPF_ADM_SMOKE_PASSWORD 환경변수 또는 -AdmPassword 인수가 필요합니다."
     }
+    # 로그인 POST 전에 XSRF-TOKEN 을 선취한다. 없으면 permitAll 경로여도 CSRF 로 403 이 된다.
+    Initialize-AdmCsrf -BaseUrl $AdmBaseUrl | Out-Null
     $login = Invoke-SmokeJson -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
         operatorId = $AdmUsername
         password = $AdmPassword
     }
-    if ([string]::IsNullOrWhiteSpace($login.accessToken)) {
-        throw "ADM login response does not contain accessToken."
+    # BFF 계약상 내부 인증 토큰은 응답 Body 에 노출되지 않는다
+    # (CpfBffCredentialResponseAdvice 가 accessToken/refreshToken 을 제거하고 Vault 에 저장한다).
+    # 따라서 로그인 성공은 "Body 에 토큰이 있는가"가 아니라 "Session Cookie 가 발급됐는가"로 본다.
+    if ($null -ne $login -and -not [string]::IsNullOrWhiteSpace([string]$login.accessToken)) {
+        throw "ADM login response leaked an internal credential in the body."
     }
+    $sessionCookie = $script:admWebSession.Cookies.GetCookies($AdmBaseUrl) |
+        Where-Object { $_.Name -ne 'XSRF-TOKEN' } | Select-Object -First 1
+    if ($null -eq $sessionCookie) { throw "ADM login did not establish a BFF session cookie." }
     $result.login.status = "PASSED"
-    $headers = @{ Authorization = "Bearer $($login.accessToken)" }
+
+    # ADM 최초 Bootstrap 계정은 비밀번호 변경이 강제된다.
+    # 변경 전에는 self-service 경로 외 모든 ADM API 가
+    # 403 "비밀번호를 먼저 변경해야 합니다."(AdmApiAuthFilter)로 막힌다.
+    # 검증 대상 API 를 호출하기 전에 정본 self-service 경로로 1회 변경한다.
+    $currentSession = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/auth/me" `
+        -Headers @{ "X-Target-Operation-Id" = "admAuthMe" }
+    if ([bool]$currentSession.passwordChangeRequired) {
+        $rotatedPassword = "$AdmPassword" + 'R7!'
+        Invoke-SmokeJson -Method Post -Uri "$AdmBaseUrl/adm/api/operators/$AdmUsername/password" `
+            -Headers @{ "X-Target-Operation-Id" = "admOperatorChangePassword" } `
+            -Body @{
+                currentPassword = $AdmPassword
+                newPassword = $rotatedPassword
+                newPasswordConfirm = $rotatedPassword
+                reason = "runtime-smoke mandatory password rotation"
+            } | Out-Null
+        $script:AdmPassword = $rotatedPassword
+        $result.login.passwordRotated = $true
+    }
+    # BFF 계약상 Browser 채널은 Authorization Header 를 보내면 안 된다.
+    # CpfBffSessionBridgeFilter 가 Authorization 이 있으면
+    # 400 "Browser Authorization header is prohibited" 로 잘라낸다.
+    # 인증은 로그인으로 발급된 HttpOnly Session Cookie(= $script:admWebSession)가 운반한다.
+    $headers = @{}
 
     Refresh-TargetPolicy -Headers $headers
     $baselineLogIdx = Get-LatestLogIndex -Headers $headers

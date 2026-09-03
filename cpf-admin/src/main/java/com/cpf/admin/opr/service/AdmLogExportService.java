@@ -106,7 +106,7 @@ public class AdmLogExportService extends AdmBaseService {
         String clipboardContent = null;
         if ("DOWNLOAD".equals(action)) {
             int inserted = jdbc.update("""
-                    INSERT INTO adm_log_export_artifact
+                    INSERT INTO ADM_LOG_EXPORT_ARTIFACT
                         (export_id, owner_operator_id, file_name, content_type, artifact_content,
                          content_length, created_at, expires_at, status_code)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'READY')
@@ -131,7 +131,7 @@ public class AdmLogExportService extends AdmBaseService {
         String id = required(exportId, "Export ID가 필요합니다.");
         Artifact artifact = jdbc.query("""
                 SELECT export_id, owner_operator_id, file_name, artifact_content, expires_at, status_code
-                  FROM adm_log_export_artifact
+                  FROM ADM_LOG_EXPORT_ARTIFACT
                  WHERE export_id = ?
                 """, rs -> rs.next()
                 ? new Artifact(rs.getString("export_id"), rs.getString("owner_operator_id"),
@@ -143,7 +143,7 @@ public class AdmLogExportService extends AdmBaseService {
         }
         LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
         if (!now.isBefore(artifact.expiresAt())) {
-            jdbc.update("DELETE FROM adm_log_export_artifact WHERE export_id = ?", id);
+            jdbc.update("DELETE FROM ADM_LOG_EXPORT_ARTIFACT WHERE export_id = ?", id);
             throw new CpfValidationException("Export Artifact가 만료되었습니다.");
         }
         if (!artifact.actor().equals(operator)) {
@@ -152,7 +152,7 @@ public class AdmLogExportService extends AdmBaseService {
             throw new CpfValidationException("다른 운영자의 Export Artifact에는 접근할 수 없습니다.");
         }
         int consumed = jdbc.update("""
-                UPDATE adm_log_export_artifact
+                UPDATE ADM_LOG_EXPORT_ARTIFACT
                    SET downloaded_at = CURRENT_TIMESTAMP, download_count = download_count + 1
                  WHERE export_id = ? AND status_code = 'READY' AND expires_at > CURRENT_TIMESTAMP
                 """, id);
@@ -165,7 +165,7 @@ public class AdmLogExportService extends AdmBaseService {
 
     @Scheduled(fixedDelayString = "${cpf.admin.log-export.cleanup-delay-ms:60000}")
     public void cleanupExpired() {
-        jdbc.update("DELETE FROM adm_log_export_artifact WHERE expires_at <= CURRENT_TIMESTAMP");
+        jdbc.update("DELETE FROM ADM_LOG_EXPORT_ARTIFACT WHERE expires_at <= CURRENT_TIMESTAMP");
     }
 
     private Object protect(Object value) {

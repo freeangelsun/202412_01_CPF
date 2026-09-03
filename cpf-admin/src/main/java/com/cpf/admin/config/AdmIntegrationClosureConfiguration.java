@@ -38,7 +38,14 @@ import java.util.Set;
 /** Explicit, fail-closed Spring wiring for the integration-closure operational surface. */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AdmIntegrationClosureProperties.class)
-@ConditionalOnProperty(prefix = "cpf.adm.integration-closure", name = "enabled", havingValue = "true")
+// Harness 26.2 — ADMUI-046(CRITICAL)은 mandatory ADM route다. "모듈을 Composition에 선언하는 행위"
+// 자체를 opt-in 으로 삼고, 속성은 끄기 위한 수단으로만 남긴다.
+// 이전에는 havingValue 만 있어 기본 OFF 였고, 활성화 값이 `application-adm-*.yml`(adm-* profile)에만
+// 있었다. 그래서 그 profile 을 쓰지 않는 조립 Runtime(1-WAS: local,local-integrated)에서는 8개
+// operation 이 통째로 사라져 Runtime OpenAPI 계약이 "not exported admIntegrationCryptoStatus ..."
+// 로 실패했다. 조립하는 Runtime 마다 ADM 내부 요구사항을 알아야 하는 구조는 26.1 위반이다.
+@ConditionalOnProperty(prefix = "cpf.adm.integration-closure", name = "enabled",
+        havingValue = "true", matchIfMissing = true)
 /** AdmIntegrationClosureConfiguration 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
 public class AdmIntegrationClosureConfiguration {
 
@@ -50,9 +57,9 @@ public class AdmIntegrationClosureConfiguration {
             ObjectProvider<CpfSecretProvider> secretProvider,
             Environment environment,
             AdmApprovalCapabilityNonceRepository nonceRepository) {
-        return new AdmDataQualityApprovalProofService(resolveSecret(
+        return new AdmDataQualityApprovalProofService(resolveApprovalProofKey(
                 properties.getApprovalProofKeyBase64(), properties.getApprovalProofKeyRef(),
-                secretProvider.getIfAvailable(), environment, "approval-proof-key"),
+                secretProvider.getIfAvailable(), environment),
                 nonceRepository, properties.getCorrectionApprovalTtl(), java.time.Clock.systemUTC());
     }
 
@@ -65,10 +72,14 @@ public class AdmIntegrationClosureConfiguration {
     @Bean
     @Profile({"local", "dev"})
     @ConditionalOnMissingBean(value = {CpfDataQualityOperations.class, CpfDataQualityCorrectionPort.class})
+    // 이 Bean 은 이미 @Profile({"local","dev"}) 로 좁혀져 있다. 기능을 기본 제공으로 바꾼 이상
+    // local/dev 에서는 임시 Provider 도 기본값이어야 한다. 그렇지 않으면 위 Javadoc 대로
+    // "Provider 없음"으로 Context 생성이 실패해 1-WAS 가 아예 기동하지 못한다.
+    // 고객 Provider 가 있으면 @ConditionalOnMissingBean 으로 자동 양보한다.
     @ConditionalOnProperty(
             prefix = "cpf.adm.integration-closure",
             name = "ephemeral-providers-enabled",
-            havingValue = "true")
+            havingValue = "true", matchIfMissing = true)
     InMemoryCpfDataQualityOperations cpfDataQualityOperations(AdmDataQualityApprovalProofService proofService) {
         return new InMemoryCpfDataQualityOperations(proofService::verify);
     }
@@ -85,10 +96,14 @@ public class AdmIntegrationClosureConfiguration {
     @Bean
     @Profile({"local", "dev"})
     @ConditionalOnMissingBean(CpfWebhookOperations.class)
+    // 이 Bean 은 이미 @Profile({"local","dev"}) 로 좁혀져 있다. 기능을 기본 제공으로 바꾼 이상
+    // local/dev 에서는 임시 Provider 도 기본값이어야 한다. 그렇지 않으면 위 Javadoc 대로
+    // "Provider 없음"으로 Context 생성이 실패해 1-WAS 가 아예 기동하지 못한다.
+    // 고객 Provider 가 있으면 @ConditionalOnMissingBean 으로 자동 양보한다.
     @ConditionalOnProperty(
             prefix = "cpf.adm.integration-closure",
             name = "ephemeral-providers-enabled",
-            havingValue = "true")
+            havingValue = "true", matchIfMissing = true)
     CpfWebhookOperations cpfWebhookOperations(AdmIntegrationClosureProperties properties) {
         return new InMemoryCpfWebhookOperations(
                 new CpfWebhookEndpointValidator(properties.getWebhook().getAllowedHosts()),
@@ -170,6 +185,34 @@ public class AdmIntegrationClosureConfiguration {
                 approvals,
                 objectMapper,
                 properties.getCorrectionApprovalTtl());
+    }
+
+    /** 승인 증명 키 환경변수의 canonical 이름입니다. */
+    private static final String APPROVAL_PROOF_KEY_ENV = "CPF_ADM_APPROVAL_PROOF_KEY_BASE64";
+
+    /**
+     * 승인 증명 키를 해석합니다. prod/stg 는 종전대로 secret-ref + provider 만 허용합니다.
+     *
+     * <p>기본 제공으로 전환하면서 "조립 Runtime 이 ADM 내부 secret 요구사항을 알아야 하는" 구조가
+     * 되지 않도록, 비보호 profile 에서는 canonical 환경변수를 직접 읽고 그마저 없으면 이 실행
+     * instance 에서만 유효한 임시 키를 만든다. 임시 키는 재기동 시 달라지므로 그 사이 발급된
+     * correction approval 증명은 무효가 된다 — local/dev 의 의미로는 올바른 동작이다.</p>
+     */
+    private static String resolveApprovalProofKey(
+            String rawValue, String secretRef, CpfSecretProvider provider, Environment environment) {
+        if (isProtectedProfile(environment) || (secretRef != null && !secretRef.isBlank())
+                || (rawValue != null && !rawValue.isBlank())) {
+            return resolveSecret(rawValue, secretRef, provider, environment, "approval-proof-key");
+        }
+        String fromEnvironment = environment.getProperty(APPROVAL_PROOF_KEY_ENV);
+        if (fromEnvironment != null && !fromEnvironment.isBlank()) return fromEnvironment.trim();
+        byte[] ephemeral = new byte[32];
+        new java.security.SecureRandom().nextBytes(ephemeral);
+        return Base64.getEncoder().encodeToString(ephemeral);
+    }
+
+    private static boolean isProtectedProfile(Environment environment) {
+        return Set.of(environment.getActiveProfiles()).stream().anyMatch(Set.of("prod", "stg")::contains);
     }
 
     private static String resolveSecret(

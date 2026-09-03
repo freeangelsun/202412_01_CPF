@@ -1,4 +1,4 @@
-MERGE INTO mbw_employee target
+MERGE INTO MBW_EMPLOYEE target
 USING (
     SELECT :employeeNo employee_no, :adminUserId admin_user_id, :organizationCode organization_code,
            :employeeName employee_name, :positionCode position_code, :jobTitleCode job_title_code,

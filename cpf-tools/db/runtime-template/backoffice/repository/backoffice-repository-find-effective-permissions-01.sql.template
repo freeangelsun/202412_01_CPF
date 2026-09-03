@@ -3,10 +3,10 @@ SELECT u.admin_login_id AS loginId, p.role_code AS roleCode, p.menu_code AS menu
        p.http_method AS httpMethod, p.api_pattern AS apiPattern,
        p.domain_code AS domainCode, p.environment_code AS environmentCode,
        p.data_scope AS dataScope, p.allow_yn AS allowYn
-  FROM mbw_admin_user u
-  JOIN mbw_user_role ur ON ur.admin_user_id=u.admin_user_id
-  JOIN mbw_role r ON r.role_code=ur.role_code AND r.use_yn='Y'
-  JOIN mbw_permission p ON p.role_code=ur.role_code AND p.use_yn='Y'
+  FROM MBW_ADMIN_USER u
+  JOIN MBW_USER_ROLE ur ON ur.admin_user_id=u.admin_user_id
+  JOIN MBW_ROLE r ON r.role_code=ur.role_code AND r.use_yn='Y'
+  JOIN MBW_PERMISSION p ON p.role_code=ur.role_code AND p.use_yn='Y'
  WHERE u.admin_login_id=:loginId AND u.use_yn='Y'
    AND (ur.valid_from IS NULL OR ur.valid_from<=@NOW3@)
    AND (ur.valid_to IS NULL OR ur.valid_to>@NOW3@)

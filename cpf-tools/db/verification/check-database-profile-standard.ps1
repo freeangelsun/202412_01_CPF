@@ -23,7 +23,7 @@ $targets = @()
 foreach ($key in $keys) {
     $target = ConvertTo-CpfModuleProfile $profile $key -SkipSecretResolution
     $targets += $target
-    Write-Host "$key domainName=$($target.domainName) systemCode=$($target.systemCode) moduleName=$($target.moduleName) vendor=$($target.vendor) host=$($target.host):$($target.port) db=$($target.databaseName) enabled=$($target.enabled)"
+    Write-Host "$key domainName=$($target.domainName) moduleCode=$($target.moduleCode) moduleName=$($target.moduleName) vendor=$($target.vendor) host=$($target.host):$($target.port) db=$($target.databaseName) enabled=$($target.enabled)"
     if ([string]$target.sslMode -ne "disabled") {
         throw "Local development DB Profile은 재현 가능한 명시적 sslMode=disabled여야 합니다: module=$key sslMode=$($target.sslMode)"
     }
@@ -56,9 +56,9 @@ if ($domainDuplicates.Count -gt 0) {
     throw "domainName 중복: $((($domainDuplicates | ForEach-Object Name) -join ', '))"
 }
 
-$codeDuplicates = @($targets | Group-Object systemCode | Where-Object Count -gt 1)
+$codeDuplicates = @($targets | Group-Object moduleCode | Where-Object Count -gt 1)
 if ($codeDuplicates.Count -gt 0) {
-    throw "systemCode 중복: $((($codeDuplicates | ForEach-Object Name) -join ', '))"
+    throw "moduleCode 중복: $((($codeDuplicates | ForEach-Object Name) -join ', '))"
 }
 
 $moduleDuplicates = @($targets | Group-Object moduleName | Where-Object Count -gt 1)
@@ -68,7 +68,8 @@ if ($moduleDuplicates.Count -gt 0) {
 
 # Current Platform Seed/Provision is derived only from the install profile.
 # Historical migration paths are intentionally outside this current-state gate.
-$platformSystemCodes = @($targets.systemCode | ForEach-Object {
+# Profile Module Codes 와 Canonical MODULE Codes 를 비교한다. System Registry 와 섞지 않는다.
+$platformModuleCodes = @($targets.moduleCode | ForEach-Object {
         ([string] $_).ToUpperInvariant()
     } | Sort-Object -Unique)
 $platformLogicalDatabases = @($targets | Where-Object { $_.enabled } | ForEach-Object { [string] $_.logicalDatabase } | Sort-Object -Unique)
@@ -84,8 +85,8 @@ $seedModuleCodes = @(
         ForEach-Object { $_.Groups[1].Value } |
         Sort-Object -Unique
 )
-if (@(Compare-Object $platformSystemCodes $seedModuleCodes).Count -ne 0) {
-    throw "Canonical Product Seed MODULE code가 Platform Profile과 다릅니다: profile=$($platformSystemCodes -join ',') seed=$($seedModuleCodes -join ',')"
+if (@(Compare-Object $platformModuleCodes $seedModuleCodes).Count -ne 0) {
+    throw "Canonical Product Seed MODULE code가 Platform Profile Module Code와 다릅니다: profile=$($platformModuleCodes -join ',') seed=$($seedModuleCodes -join ',')"
 }
 $seedOwnedCodes = @(
     [regex]::Matches($canonicalSeedText, "'(?:M|[SEW])([A-Z]{3})\d{4,}'") |
@@ -93,10 +94,10 @@ $seedOwnedCodes = @(
         Sort-Object -Unique
 )
 $nonPlatformSeedCodes = @($seedOwnedCodes | Where-Object {
-        $_ -notin $platformSystemCodes
+        $_ -notin $platformModuleCodes
     })
 if ($nonPlatformSeedCodes.Count -gt 0) {
-    throw "Canonical Product Seed에 Generated/비Platform SystemCode 메시지·응답이 고정되어 있습니다: $($nonPlatformSeedCodes -join ',')"
+    throw "Canonical Product Seed에 Platform Module Code 가 아닌 코드의 메시지·응답이 고정되어 있습니다: $($nonPlatformSeedCodes -join ',')"
 }
 
 $metadataCatalog = Get-Content -LiteralPath (
@@ -105,7 +106,7 @@ $metadataCatalog = Get-Content -LiteralPath (
 $metadataModuleCodes = @($metadataCatalog.codeGroups.MODULE | ForEach-Object {
         ([string] $_).ToUpperInvariant()
     } | Sort-Object -Unique)
-if (@(Compare-Object $platformSystemCodes $metadataModuleCodes).Count -ne 0) {
+if (@(Compare-Object $platformModuleCodes $metadataModuleCodes).Count -ne 0) {
     throw "Default Metadata MODULE code가 Platform Profile과 다릅니다."
 }
 
@@ -280,7 +281,7 @@ foreach ($requiredCreateDomainToken in @("DefinitionFile", "cpf-tools\runtime\cl
 
 foreach ($requiredToken in @(
     '[string[]] $DomainName',
-    '[string[]] $SystemCode',
+    '[string[]] $ModuleCode',
     '[string[]] $ModuleName',
     '[string] $SeedMode'
 )) {

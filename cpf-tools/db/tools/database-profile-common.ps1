@@ -112,7 +112,7 @@ function Assert-CpfDbUsername {
 function Assert-CpfDomainIdentity {
     param(
         [Parameter(Mandatory = $true)][string] $DomainName,
-        [Parameter(Mandatory = $true)][string] $SystemCode,
+        [Parameter(Mandatory = $true)][string] $ModuleCode,
         [Parameter(Mandatory = $true)][string] $DisplayName
     )
 
@@ -121,9 +121,10 @@ function Assert-CpfDomainIdentity {
         throw "$DisplayName.domainName 규칙 위반입니다. 소문자 readable domain name을 사용하세요: $DomainName"
     }
 
-    if ([string]::IsNullOrWhiteSpace($SystemCode) -or
-        $SystemCode -notmatch '^[A-Z]{3}$') {
-        throw "$DisplayName.systemCode 규칙 위반입니다. 정확히 3자리 대문자를 사용하세요: $SystemCode"
+    # 이 값은 Platform DB 설치 Module namespace 이며 Business SystemCode 가 아니다(Harness 30.19).
+    if ([string]::IsNullOrWhiteSpace($ModuleCode) -or
+        $ModuleCode -notmatch '^[A-Z]{3}$') {
+        throw "$DisplayName.moduleCode 규칙 위반입니다. 정확히 3자리 대문자를 사용하세요: $ModuleCode"
     }
 }
 
@@ -147,9 +148,9 @@ function ConvertTo-CpfModuleProfile {
     if ($null -eq $raw) { throw "DB Profile modules에 '$ModuleKey' 설정이 없습니다." }
 
     $domainName = ([string]$raw.domainName).Trim()
-    $systemCode = ([string]$raw.systemCode).Trim().ToUpperInvariant()
+    $moduleCode = ([string]$raw.moduleCode).Trim().ToUpperInvariant()
     $moduleName = ([string]$raw.moduleName).Trim()
-    Assert-CpfDomainIdentity $domainName $systemCode "modules.$ModuleKey"
+    Assert-CpfDomainIdentity $domainName $moduleCode "modules.$ModuleKey"
     if ([string]::IsNullOrWhiteSpace($moduleName) -or $moduleName -notmatch '^cpf-[a-z][a-z0-9-]{1,39}$') {
         throw "modules.$ModuleKey.moduleName 규칙 위반입니다: $moduleName"
     }
@@ -225,7 +226,7 @@ function ConvertTo-CpfModuleProfile {
         sourceOptional = if ($null -ne $raw.PSObject.Properties["sourceOptional"]) { [bool]$raw.sourceOptional } else { $false }
         ownerPath = if ($null -ne $raw.PSObject.Properties["ownerPath"]) { ([string]$raw.ownerPath).Trim().Replace('\','/') } else { "" }
         databaseLifecycle = $databaseLifecycle
-        systemCode = $systemCode
+        moduleCode = $moduleCode
         logicalDatabase = [string]$raw.logicalDatabase
         sharesDatabaseWith = if ($null -ne $raw.PSObject.Properties["sharesDatabaseWith"]) { ([string]$raw.sharesDatabaseWith).Trim() } else { "" }
         vendor = $vendor

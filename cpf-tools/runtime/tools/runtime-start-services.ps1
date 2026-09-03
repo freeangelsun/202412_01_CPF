@@ -145,7 +145,8 @@ foreach ($moduleKey in $databaseTargets.Keys) {
     if ($moduleKey -eq "common") {
         Add-CpfRuntimeDatabaseEnvironment -Prefix "CMN_SAMPLE" -Target $target
     } else {
-        Add-CpfRuntimeDatabaseEnvironment -Prefix ([string] $target.systemCode) -Target $target
+        # datasource 환경변수 prefix 는 DB Module namespace 다. Business System Identity 로 쓰지 않는다.
+        Add-CpfRuntimeDatabaseEnvironment -Prefix ([string] $target.moduleCode) -Target $target
     }
 }
 if ($databaseTargets.Contains("core")) {

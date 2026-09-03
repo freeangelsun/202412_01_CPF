@@ -125,15 +125,18 @@ Local과 Remote는 최소 다음이 동등해야 한다.
 | `X-Target-System-Code` | 현재 호출 대상 System | Hop마다 Framework가 확정 |
 | `X-Target-Operation-Id` | 대상 Canonical Operation ID | 호출할 Operation마다 Framework가 확정 |
 
-System과 Channel은 별도 개념이다. `originalChannel/currentChannel/callerChannel/targetChannel`을 System Header의 alias로 쓰거나 `MBR -> MEMBER` 같은 mapping을 만들지 않는다.
+System과 Channel은 **역할이 다른 개념**이다. 다만 내부 Business Domain 간 거래 hop 에서는 그 Domain 의 canonical SystemCode 값을 그대로 해당 hop 의 ChannelCode 값으로 사용하는 것이 canonical 동작이다(예: `MBR -> EXS` 에서 Caller Channel=`MBR`, Target Channel=`EXS`). 이는 두 개념의 의미가 같다는 뜻이 아니다.
+
+금지되는 것은 **의미를 바꾸는 임의 변환**이다 — `MBR -> MEMBER`, `EXS -> EXTERNAL` 같은 별도 System→Channel mapping 표를 만들거나, Domain SystemCode 를 Channel Registry 에 중복 등록하는 것. 값이 같다는 이유로 "alias 라서 금지" 로 읽지 않는다.
 
 ### 4.2 신뢰 경계와 생성
 
 - Browser/Untrusted Client는 Protected CPF Header를 작성하지 않는다. 보내더라도 제거/무시하고 trusted identity/route metadata로 재구성한다.
-- Protected Header를 생성하는 Trusted BFF/Gateway/Channel Application은 Registry/Runtime Configuration에서 **등록된 logical SystemCode**를 가져야 한다. Channel 이름을 SystemCode로 문자열 변환하거나 Header 값만으로 System identity를 신뢰하지 않는다.
-- 최초 Trusted Entry는 authenticated logical caller system identity와 target route를 기준으로 Transaction을 기동한다. Browser가 직접 시작한 사용자 요청이라도 Browser 자체를 System으로 등록하지 않는다. BFF가 소속된 logical System이 거래를 최초 기동하면 그 System이 `X-Original-System-Code`가 된다. 외부 Partner System이 인증된 호출 주체이면 해당 Partner System identity를 사용한다.
+- Protected Header를 생성하는 Trusted BFF/Gateway/Channel Application은 Registry/Runtime Configuration에서 **등록된 canonical ChannelCode**를 가져야 한다. 이들은 Platform/Channel Component이므로 **자기 Business SystemCode를 가지지 않는다**(Gateway, Channel Front). Channel 이름을 SystemCode로 문자열 변환하거나 Header 값만으로 identity를 신뢰하지 않는다.
+- 최초 Trusted Entry는 authenticated logical caller system identity와 target route를 기준으로 Transaction을 기동한다. Browser가 직접 시작한 사용자 요청이라도 Browser 자체를 System으로 등록하지 않는다. Front/Channel Application이 거래를 최초 기동하면 그 Channel의 canonical ChannelCode가 최초 Channel lineage가 되며, Channel Front에 가상 SystemCode를 부여하지 않는다. `X-Original-System-Code`는 **Business Domain 거래에서 그 거래를 최초 기동한 Business System**이 있을 때만 확정된다. 외부 Partner System이 인증된 호출 주체이면 해당 Partner System identity를 사용한다.
 - Remote outbound는 Framework가 **6개 전체**를 대상 Hop 기준으로 구성해 전송한다.
-- Receiver는 `X-System-Code == 자기 SystemCode`, `X-Target-System-Code == 자기 SystemCode`, `X-Target-Operation-Id == 실제 Handler operationId`를 Controller invocation 전에 검증한다.
+- Receiver 검증은 **업무 Domain Online Transaction에만** 적용한다. 검증 기준은 "이 JVM의 SystemCode"가 아니라 **요청이 도달한 Operation을 소유한 Domain의 canonical SystemCode**다. Same-JVM(1-WAS)에서도 `MBR` operation은 `MBR`, `EXS` operation은 `EXS` 기준으로 판정하며, JVM 하나의 identity로 합치지 않는다. 즉 `X-System-Code == Operation Owner SystemCode`, `X-Target-System-Code == Operation Owner SystemCode`, `X-Target-Operation-Id == 실제 Handler operationId`를 Controller invocation 전에 검증한다.
+- ADM(Platform Control Plane) / Gateway / Batch Control Plane 관리 API는 이 검증 대상이 아니며 Channel 계약을 따른다.
 - 필수값 누락, 형식 오류, Original 변경, Target 불일치, Handler operation mismatch가 있으면 업무 Controller를 실행하지 않는다.
 
 ### 4.3 Hop 예시
@@ -272,7 +275,7 @@ Policy Store 장애 시 유효 LKG와 `maxStale` 범위에서만 평가할 수 �
 
 Hostname 확보가 실패하거나 금지값이면 READY로 올라가지 않는다.
 
-동일 Host에서 동일 System의 Process를 2개 이상 실행할 경우 explicit instanceId가 필수다. Registry에서 active `{systemCode, instanceId}` 중복이 검출되면 READY 금지다.
+동일 Host에서 동일 System의 Process를 2개 이상 실행할 경우 explicit instanceId가 필수다. Registry에서 active `{systemCode, instanceId}` 중복이 검출되면 READY 금지다. 이 규칙은 **SystemCode를 가지는 Role**(Business Domain / Reference Runtime / Batch Runtime)에만 적용한다. ADM/Gateway/Channel Front/Batch Control Plane/1-WAS topology처럼 SystemCode가 없는 Component는 module/application·runtimeRole·instanceId로 식별하며, 이 규칙을 만족시키기 위해 가상 SystemCode를 만들지 않는다.
 
 최소 자동 관측 필드:
 

@@ -361,7 +361,8 @@ $oracleVerify=@(
 )
 foreach($module in $platformDatabaseOwners){
  $db=[string]$module.logicalDatabase
- $systemCode=([string]$module.systemCode).ToUpperInvariant()
+ # Platform DB 설치 Module Code 다(Business SystemCode 아님).
+ $moduleCode=([string]$module.moduleCode).ToUpperInvariant()
  $expected=[int]$tableCounts[$db]
  $mariaVerify+=@(
   "-- CPF_LOGICAL_DATABASE=$db"
@@ -414,7 +415,7 @@ foreach($module in $platformDatabaseOwners){
   'FROM user_tables;'
   ''
  )
- if($systemCode -eq 'CPF'){
+ if($moduleCode -eq 'CPF'){
  $mariaVerify+=@(
    "SELECT 'cpfDB.product_seed' AS check_name,"
    '       IF('
@@ -493,7 +494,7 @@ foreach($module in $platformDatabaseOwners){
    ''
   )
  }
- if($systemCode -eq 'MBW'){
+ if($moduleCode -eq 'MBW'){
   $mariaVerify+=@(
    "SELECT 'mbwDB.product_seed' AS check_name,"
    '       IF('

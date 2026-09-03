@@ -1,11 +1,26 @@
 #!/usr/bin/env python3
 """Fail-closed static/render gate for NXT2-DBVENDOR-001."""
 from __future__ import annotations
+import sys as _cpf_sys
+
+# Windows cp949 콘솔에서 한글 진단 메시지가 깨지지 않도록 자기 출력 스트림을 UTF-8 로 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    if hasattr(_cpf_stream, 'reconfigure'):
+        _cpf_stream.reconfigure(encoding='utf-8')
 import argparse, hashlib, json, re, subprocess, sys
 from pathlib import Path, PurePosixPath
 
 OFFICIAL={'mariadb','postgresql','oracle'}
 OWNER_PREFIX={'common':'CMN_','admin':'ADM_','batch':'BAT_','gateway':'GW_','security':'SEC_','platform-operations':'OPS_','cpf':'CPF_','backoffice':'MBW_'}
+
+# 외부 표준이 테이블 '이름'을 소유하는 경우의 예외다. wildcard 가 아니라 **정확한 이름 집합**이며
+# 허용 소유자까지 함께 고정한다. Spring Session JDBC 는 아래 두 이름을 고정으로 질의하므로 CPF
+# owner prefix 규칙을 적용하면 정본 스키마가 그 표준을 담을 수 없다.
+# 이름만 면제하며 소유자/역할까지 면제하지 않는다. 새 이름을 늘리려면 이 표를 명시적으로 늘려야 한다.
+EXTERNAL_STANDARD_TABLE_OWNERS={
+    'SPRING_SESSION': 'cpf',
+    'SPRING_SESSION_ATTRIBUTES': 'cpf',
+}
 
 
 def load(path:Path): return json.loads(path.read_text(encoding='utf-8-sig'))
@@ -271,7 +286,13 @@ def main():
         for k in ('currentLogicalDatabase','currentName','logicalOwner','targetDatabaseRole','targetTableName','migrationOwner','runtimeConsumer','atomicityClass'):
             if not t.get(k): fail(f'{target}: missing {k}')
         prefix=OWNER_PREFIX.get(t.get('logicalOwner'))
-        if prefix and not target.upper().startswith(prefix): fail(f'{target}: owner prefix mismatch for {t.get("logicalOwner")}')
+        upper_target=target.upper()
+        if upper_target in EXTERNAL_STANDARD_TABLE_OWNERS:
+            expected_owner=EXTERNAL_STANDARD_TABLE_OWNERS[upper_target]
+            if t.get('logicalOwner')!=expected_owner:
+                fail(f'{target}: external standard table owner must be {expected_owner}, got {t.get("logicalOwner")}')
+        elif prefix and not upper_target.startswith(prefix):
+            fail(f'{target}: owner prefix mismatch for {t.get("logicalOwner")}')
     if len(names)!=len(set(names)): fail('duplicate target table name')
     # Foreign keys may not cross physical database roles after cpfDB/mbwDB/reference consolidation.
     by_source={t.get('name'):t for t in schema['tables']}

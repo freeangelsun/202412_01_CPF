@@ -5,22 +5,7 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 MERGE INTO OPS_SYSTEM_REGISTRY tgt
-USING (SELECT 'CPF' AS system_code, 'CPF Core Platform' AS system_name, 'CPF' AS domain_code, 'Y' AS enabled_yn, 'CPF core platform system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.system_code=src.system_code)
-WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
-MERGE INTO OPS_SYSTEM_REGISTRY tgt
-USING (SELECT 'CMN' AS system_code, 'CPF Common' AS system_name, 'CMN' AS domain_code, 'Y' AS enabled_yn, 'CPF mandatory common system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.system_code=src.system_code)
-WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
-MERGE INTO OPS_SYSTEM_REGISTRY tgt
-USING (SELECT 'ADM' AS system_code, 'CPF Administration' AS system_name, 'ADM' AS domain_code, 'Y' AS enabled_yn, 'CPF administration system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.system_code=src.system_code)
-WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
-MERGE INTO OPS_SYSTEM_REGISTRY tgt
-USING (SELECT 'MBW' AS system_code, 'CPF Backoffice' AS system_name, 'MBW' AS domain_code, 'Y' AS enabled_yn, 'CPF business backoffice system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'MBW' AS system_code, 'CPF Backoffice' AS system_name, 'MBW' AS domain_code, 'Y' AS enabled_yn, 'CPF optional business backoffice domain' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.system_code=src.system_code)
 WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
@@ -30,7 +15,12 @@ ON (tgt.system_code=src.system_code)
 WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
 MERGE INTO OPS_SYSTEM_REGISTRY tgt
-USING (SELECT 'EDU' AS system_code, 'CPF Education' AS system_name, 'EDU' AS domain_code, 'Y' AS enabled_yn, 'CPF education reference system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'CEC' AS system_code, 'CPF Center-Cut' AS system_name, 'CEC' AS domain_code, 'Y' AS enabled_yn, 'CPF center-cut runtime system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.system_code=src.system_code)
+WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
+MERGE INTO OPS_SYSTEM_REGISTRY tgt
+USING (SELECT 'EDU' AS system_code, 'CPF Education' AS system_name, 'EDU' AS domain_code, 'Y' AS enabled_yn, 'CPF education reference runtime system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.system_code=src.system_code)
 WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);

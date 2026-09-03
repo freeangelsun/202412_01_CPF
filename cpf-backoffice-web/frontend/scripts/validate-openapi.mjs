@@ -29,6 +29,10 @@ const publicPrefix = module === "ADM" ? "/adm/api/"
   : (module === "MBW" || module === "BACKOFFICE") ? "/api/v1/backoffice/"
   : null;
 if (!publicPrefix) throw new Error(`지원하지 않는 제품 Module: ${module}`);
+// 인증 채널은 Module 마다 다르다(canonicalize-cpf-openapi.py 와 같은 규칙).
+// ADM 은 Same-origin HttpOnly Session(cpfSession), MBW 는 Backoffice Web/BFF Bearer(cpfBearer)다.
+// 두 Module 에 같은 scheme 을 요구하면 정본 문서가 통과할 수 없다.
+const requiredSecurityScheme = module === "ADM" ? "cpfSession" : "cpfBearer";
 const requiredErrors = ["401","403","404","409","429","500","503"];
 const methods = new Set(["get","post","put","patch","delete","head","options","trace"]);
 const ids = new Set(); let operations = 0; let publicOperations = 0;
@@ -67,7 +71,7 @@ for (const [url, pathItem] of Object.entries(spec.paths || {})) {
     if (url.startsWith(publicPrefix)) {
       publicOperations++;
       if (verificationScope === "release") {
-        if (!Array.isArray(operation.security) || !operation.security.some(value => Object.hasOwn(value,"cpfSession"))) throw new Error(`Session Security 누락: ${operation.operationId}`);
+        if (!Array.isArray(operation.security) || !operation.security.some(value => Object.hasOwn(value,requiredSecurityScheme))) throw new Error(`Security scheme 누락(${requiredSecurityScheme}): ${operation.operationId}`);
         for (const code of requiredErrors) if (!responses[code]) throw new Error(`${code} 응답 누락: ${operation.operationId}`);
       }
     }
@@ -78,7 +82,12 @@ if (Number(spec["x-cpf-openapi-operation-count"]) !== operations) throw new Erro
 if (Number(spec["x-cpf-public-operation-count"]) !== publicOperations) throw new Error("OpenAPI public operation count metadata drift");
 if (verificationScope === "release") {
   const errorSchema = spec.components?.schemas?.CpfApiError;
-  const sessionScheme = spec.components?.securitySchemes?.cpfSession;
-  if (!errorSchema || !sessionScheme || sessionScheme.in !== "cookie") throw new Error("CpfApiError/cpfSession component contract missing");
+  // ADM 은 cookie 기반 cpfSession, MBW 는 bearer 기반 cpfBearer 가 정본이다
+  // (canonicalize-cpf-openapi.py 가 Module 별로 다른 scheme 을 심는다).
+  const scheme = spec.components?.securitySchemes?.[requiredSecurityScheme];
+  const schemeShapeOk = requiredSecurityScheme === "cpfSession"
+    ? scheme?.in === "cookie"
+    : scheme?.type === "http" && String(scheme?.scheme).toLowerCase() === "bearer";
+  if (!errorSchema || !scheme || !schemeShapeOk) throw new Error(`CpfApiError/${requiredSecurityScheme} component contract missing`);
 }
 console.log(`[CPF][OPENAPI][PASS] scope=${verificationScope} module=${module} operations=${operations} public=${publicOperations}`);

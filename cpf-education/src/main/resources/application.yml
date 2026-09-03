@@ -59,7 +59,9 @@ cpf:
       # DB 없는 기본 기동을 보장하고 명시적 Sample Profile에서만 Owner 제공 Reference Fixture를 활성화합니다.
       enabled: ${CPF_CMN_SAMPLE_DB_ENABLED:false}
   # Runtime 거래 식별용 System Code입니다. CPF Platform DB의 Schema/Table Prefix는 이 값과 무관하게 Canonical 고정입니다.
-  system-code: ${CPF_SYSTEM_CODE:EDU}
+  system-code: EDU
+  # Architecture Role 정본: cpf-tools/governance/cpf-product-surface-policy.json (Harness 30.16)
+  architecture-role: REFERENCE_RUNTIME
   framework:
     module-id: EDU
     was-id: ${WAS_ID:EDUAP01}

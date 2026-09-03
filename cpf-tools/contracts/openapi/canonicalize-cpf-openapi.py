@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Canonicalize runtime OpenAPI without Git-SHA self references and enforce CPF product contracts."""
 from __future__ import annotations
+import sys as _cpf_sys
+
+# Windows cp949 콘솔에서 한글 진단 메시지가 깨지지 않도록 자기 출력 스트림을 UTF-8 로 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    if hasattr(_cpf_stream, 'reconfigure'):
+        _cpf_stream.reconfigure(encoding='utf-8')
 import argparse,hashlib,json,re,sys
 from pathlib import Path
 HTTP_METHODS={'get','post','put','patch','delete','head','options','trace'}

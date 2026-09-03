@@ -26,10 +26,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.jdbc.JdbcIndexedSessionRepository;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.session.Session;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -196,34 +193,13 @@ public class CpfServerSessionSecurityAutoConfiguration {
         return http.build();
     }
 
-    /**
-     * 서버 세션 저장소를 CPF가 소유합니다.
-     *
-     * <p>Spring Boot 4 의 의존 트리에는 session 자동설정 모듈이 포함되어 있지 않다
-     * ({@code SessionAutoConfiguration} 이 존재하지 않는다). 그래서 아무도
-     * {@link FindByIndexNameSessionRepository} 를 만들지 않고, 아래 동시 세션 제어가
-     * {@code required a bean of type 'FindByIndexNameSessionRepository' that could not be found}
-     * 로 1-WAS 기동을 실패시켰다. Boot 4 에서 사라진 자동설정은 CPF 가 소유한다(Harness §25.5) —
-     * Jackson 2 ObjectMapper 를 {@code CpfJackson2AutoConfiguration} 이 소유하는 것과 같은 이유다.</p>
-     *
-     * <p>DataSource 는 {@link #resolveSessionDataSource}로 해석한다. 1-WAS 합성에는 후보가 여럿이라
-     * 타입 주입은 기동을 깨뜨린다. 저장 테이블은 정본 스키마의 {@code SPRING_SESSION} /
-     * {@code SPRING_SESSION_ATTRIBUTES} 이며, 컬럼/인덱스는 Spring Session 표준 DDL 과 동일하다.</p>
-     *
-     * <p>벤더별 SQL 분기는 Application Source 에 두지 않는다(NXT3 DB3 계약). Spring Session 의
-     * 표준 질의는 속성의 신규/변경을 구분해 INSERT/UPDATE 를 나누므로 3개 공식 벤더에서 그대로
-     * 동작한다. 벤더 고유 구문이 필요해지면 Java 분기가 아니라 Vendor Pack 이 소유한다.</p>
-     */
-    @Bean
-    @ConditionalOnMissingBean(FindByIndexNameSessionRepository.class)
-    JdbcIndexedSessionRepository cpfJdbcIndexedSessionRepository(
-            ListableBeanFactory beanFactory,
-            ObjectProvider<DataSource> dataSources) {
-        DataSource dataSource = resolveSessionDataSource(beanFactory, dataSources);
-        return new JdbcIndexedSessionRepository(
-                new JdbcTemplate(dataSource),
-                new TransactionTemplate(new DataSourceTransactionManager(dataSource)));
-    }
+    // 서버 세션 저장소(FindByIndexNameSessionRepository)는 Boot 의 spring-boot-session-jdbc
+    // 자동설정이 소유한다. 한때 이 클래스가 JdbcIndexedSessionRepository 를 직접 만들었는데,
+    // 그것은 Boot 4 에서 session 자동설정이 **별도 모듈로 분리**된 것을 "자동설정 부재"로 오인한
+    // 결과였다. 조립 누락은 Starter 선언으로 닫는다(build.gradle 참조).
+    // 저장 테이블 SPRING_SESSION / SPRING_SESSION_ATTRIBUTES 는 CPF 정본 스키마가 소유하며
+    // Spring Session 표준 DDL 과 동일하다. Boot 의 initialize-schema 기본값은 embedded 라
+    // 공식 3개 벤더에서는 Runtime DDL 을 만들지 않는다.
 
     @Bean
     CpfBffConcurrentSessionController cpfBffConcurrentSessionController(

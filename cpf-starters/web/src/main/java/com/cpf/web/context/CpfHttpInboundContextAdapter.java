@@ -158,12 +158,22 @@ public final class CpfHttpInboundContextAdapter {
         }
     }
 
+    /**
+     * 수신자 System 정합을 검증합니다.
+     *
+     * <p>이 검증은 **업무 Domain 거래에만** 적용한다(Harness 30.16 / Product Architecture §4.2).
+     * ADM(Platform Control Plane) / Gateway / Channel Front / 1-WAS topology 는 canonical SystemCode 를
+     * 가지지 않으며, 없다는 이유로 가상 SystemCode 를 만들지 않는다. 그 Component 들의 lineage 는
+     * 정본 ChannelCode 계약이 담당하므로 System 정합 검증 대상이 아니다.</p>
+     *
+     * <p>이전 구현은 모든 수신 Runtime 에 SystemCode 존재를 강제해
+     * {@code RUNTIME_SYSTEM_UNAVAILABLE} 503 을 던졌고, 그 때문에 SystemCode 가 없어야 할
+     * Component 에 {@code ADM}/{@code GWY}/{@code LOCAL} 같은 가상 값을 만들어 넣게 되었다.</p>
+     */
     private static void validateReceiverSystem(String runtimeSystem, String inboundSystem, String targetSystem) {
         if (runtimeSystem == null) {
-            throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    CpfHttpHeaderNames.SYSTEM_CODE,
-                    "Receiver runtime System Code is required before Controller invocation.",
-                    503, "RUNTIME_SYSTEM_UNAVAILABLE");
+            // SystemCode 를 가지지 않는 Role 의 Runtime 이다. Business System 정합은 적용하지 않는다.
+            return;
         }
         if (!runtimeSystem.equals(inboundSystem)) {
             throw protocolMismatch(CpfHttpHeaderNames.SYSTEM_CODE,

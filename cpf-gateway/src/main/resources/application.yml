@@ -56,8 +56,9 @@ cpf:
         rolling: DAILY
         compress-after-days: 5
         delete-after-days: 365
-  # Runtime 거래 식별용 System Code입니다. CPF Platform DB의 Schema/Table Prefix는 이 값과 무관하게 Canonical 고정입니다.
-  system-code: ${CPF_SYSTEM_CODE:GWY}
+  # Gateway 는 Edge/Route 중계 Component 이며 Business SystemCode 를 가지지 않는다(Harness 30.16/30.20).
+  # Architecture Role 정본: cpf-tools/governance/cpf-product-surface-policy.json
+  architecture-role: GATEWAY
   data:
     persistence:
       jdbc:

@@ -3,6 +3,7 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.platform.operations.observability.internal.logging.CpfTransactionContextAnomalyMonitor;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,14 +60,17 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
     }
 
     /**
-     * {@code /readiness} 는 Infra probe 용 별칭 경로다
-     * ({@code AdmApiAuthFilter.isPublicHealthRequest} 가 공개로 선언한다).
-     * 공개 API 계약에는 없는 경로이므로 OpenAPI 문서에서는 감춘다 — 노출하면 정본 계약과
-     * Runtime 문서가 어긋나 parity 검증이 실패한다.
+     * Infra readiness probe 전용 경로입니다.
+     *
+     * <p>Kubernetes/기동 검증기가 쓰는 **운영 endpoint** 이며 공개 API 계약에는 없다
+     * (cpf-tools/runtime/tools/runtime-common.ps1, AdmApiAuthFilter.isPublicHealthRequest).
+     * 그래서 {@code @Hidden} 으로 OpenAPI 문서에서만 제외한다. Route 는 그대로 살아 있다.
+     * {@code @Operation(hidden = true)} 를 쓰면 controller coverage 검증이 operationId 부재로
+     * 실패하므로 반드시 {@code @Hidden} 을 쓴다(verify-cpf-openapi-controller-coverage.py).</p>
      */
     @GetMapping("/readiness")
-    @Operation(hidden = true)
-    public ResponseEntity<Map<String, Object>> readinessAlias() {
+    @Hidden
+    public ResponseEntity<Map<String, Object>> readinessProbe() {
         return readinessState();
     }
 

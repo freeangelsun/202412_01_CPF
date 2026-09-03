@@ -11,7 +11,12 @@ dependencies {
     compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     api 'org.springframework.boot:spring-boot-starter-jdbc'
-    api 'org.springframework.session:spring-session-jdbc'
+    // Spring Boot 4 는 session 자동설정을 spring-boot-autoconfigure 에서 분리해
+    // 별도 모듈(spring-boot-session-jdbc)로 옮겼다. 그 모듈을 선언하지 않으면
+    // FindByIndexNameSessionRepository 를 아무도 만들지 않아 동시 세션 제어가 기동에 실패한다.
+    // 이것은 capability 부재가 아니라 **의존성 조립 누락**이므로 CPF 가 Repository 를
+    // 직접 소유하지 않고 정본 Starter 를 조립한다.
+    api 'org.springframework.boot:spring-boot-starter-session-jdbc'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

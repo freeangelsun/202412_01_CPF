@@ -45,7 +45,9 @@ cpf:
         compress-after-days: 5
         delete-after-days: 365
   # Center-Cut Runner의 거래/Runtime System Code입니다. 기본값 CEC이며 Header/Trace/Registry에서 사용합니다.
-  system-code: ${CPF_SYSTEM_CODE:CEC}
+  system-code: CEC
+  # Architecture Role 정본: cpf-tools/governance/cpf-product-surface-policy.json (Harness 30.16)
+  architecture-role: BATCH_RUNTIME
   web:
     context:
       management-root-paths:

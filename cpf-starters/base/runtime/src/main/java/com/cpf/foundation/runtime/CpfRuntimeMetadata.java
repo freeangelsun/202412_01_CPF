@@ -12,7 +12,11 @@ public record CpfRuntimeMetadata(
         String systemCode, String application, String instanceId, String hostName, String hostIp) {
 
     public CpfRuntimeMetadata {
-        systemCode = required("systemCode", systemCode, 32).toUpperCase(java.util.Locale.ROOT);
+        // systemCode 는 Architecture Role 에 따라 없을 수 있다(Harness 30.16 표).
+        // ADM/Gateway/Channel Front/Batch Control Plane/1-WAS topology 는 SystemCode 를 가지지 않으며
+        // 없다는 이유로 가상 값을 만들지 않는다.
+        systemCode = optional(systemCode, 32);
+        if (systemCode != null) systemCode = systemCode.toUpperCase(java.util.Locale.ROOT);
         application = required("application", application, 128);
         instanceId = required("instanceId", instanceId, 160);
         hostName = optional(hostName, 255);
@@ -23,8 +27,9 @@ public record CpfRuntimeMetadata(
         Objects.requireNonNull(environment, "environment");
         String systemCode = CpfRuntimeSystemCode.resolve(environment);
 
-        String application = first(environment, "spring.application.name", "cpf.framework.application-id");
-        if (!hasText(application)) application = systemCode;
+        // application 이름의 fallback 으로 systemCode 를 쓰지 않는다 — Namespace 를 섞는다(Harness 30.19).
+        String application = first(environment,
+                "spring.application.name", "cpf.framework.application-id", "cpf.framework.module-id");
 
         CpfInstanceIdentity.Identity instance = CpfInstanceIdentity.current();
         return new CpfRuntimeMetadata(systemCode, application, instance.instanceId(),

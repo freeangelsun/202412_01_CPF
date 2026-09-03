@@ -4,7 +4,8 @@ param(
     [string] $ResultDir = "",
     [switch] $All,
     [string[]] $DomainName = @(),
-    [string[]] $SystemCode = @(),
+    # Platform DB 설치 Module 을 고르는 selector 다. Business SystemCode 가 아니다(Harness 30.19).
+    [string[]] $ModuleCode = @(),
     [string[]] $ModuleName = @(),
     [ValidateSet("profile", "product", "none", "all")]
     [string] $SeedMode = "profile",
@@ -77,16 +78,16 @@ foreach ($requiredKey in @($platformKeys | Where-Object { $moduleProfiles[$_].re
 }
 if ($enabledKeys.Count -eq 0) { throw "설치할 Module DB가 하나도 없습니다." }
 $coreCandidates = @($platformKeys | Where-Object {
-        $moduleProfiles[$_].required -and $moduleProfiles[$_].systemCode -eq "CPF"
+        $moduleProfiles[$_].required -and $moduleProfiles[$_].moduleCode -eq "CPF"
     })
 if ($coreCandidates.Count -ne 1) {
-    throw "Profile에는 required=true/systemCode=CPF인 Core DB가 정확히 하나 있어야 합니다."
+    throw "Profile에는 required=true/moduleCode=CPF인 canonical Core DB가 정확히 하나 있어야 합니다."
 }
 $coreKey = $coreCandidates[0]
 
-$hasSelector = $All -or $DomainName.Count -gt 0 -or $SystemCode.Count -gt 0 -or $ModuleName.Count -gt 0
-if ($All -and ($DomainName.Count -gt 0 -or $SystemCode.Count -gt 0 -or $ModuleName.Count -gt 0)) {
-    throw "-All과 DomainName/SystemCode/ModuleName 선택자는 동시에 사용할 수 없습니다."
+$hasSelector = $All -or $DomainName.Count -gt 0 -or $ModuleCode.Count -gt 0 -or $ModuleName.Count -gt 0
+if ($All -and ($DomainName.Count -gt 0 -or $ModuleCode.Count -gt 0 -or $ModuleName.Count -gt 0)) {
+    throw "-All과 DomainName/ModuleCode/ModuleName 선택자는 동시에 사용할 수 없습니다."
 }
 
 if (-not $hasSelector -or $All) {
@@ -110,19 +111,19 @@ if (-not $hasSelector -or $All) {
         foreach ($key in $matched) { [void]$selected.Add($key) }
     }
 
-    foreach ($code in $SystemCode) {
+    foreach ($code in $ModuleCode) {
         $normalized = $code.Trim().ToUpperInvariant()
         $matched = @($platformKeys | Where-Object {
-            $moduleProfiles[$_].systemCode -eq $normalized
+            $moduleProfiles[$_].moduleCode -eq $normalized
         })
         if ($matched.Count -eq 0) {
             $generatedMatch = @($generatedProfileKeys | Where-Object {
-                    $moduleProfiles[$_].systemCode -eq $normalized
+                    $moduleProfiles[$_].moduleCode -eq $normalized
                 })
             if ($generatedMatch.Count -gt 0) {
                 throw "Generated Domain은 Platform Pack으로 설치하지 않습니다. manifest 기반 initialize-generated-domain-databases.ps1를 사용하세요: $code"
             }
-            throw "알 수 없는 Platform SystemCode입니다: $code"
+            throw "알 수 없는 Platform DB Module Code입니다: $code"
         }
         foreach ($key in $matched) { [void]$selected.Add($key) }
     }
@@ -887,7 +888,7 @@ $result = [ordered]@{
             [ordered]@{
                 profileKey = $_
                 domainName = $moduleProfiles[$_].domainName
-                systemCode = $moduleProfiles[$_].systemCode
+                moduleCode = $moduleProfiles[$_].moduleCode
                 moduleName = $moduleProfiles[$_].moduleName
                 enabledInPlatformPack = $moduleProfiles[$_].enabled
                 installer = "cpf-tools/generator/tools/initialize-generated-domain-databases.ps1"
@@ -964,7 +965,7 @@ FLUSH PRIVILEGES;
                     databaseName = $t.databaseName
                     schemaName = $t.schemaName
                     domainName = $t.domainName
-                    systemCode = $t.systemCode
+                    moduleCode = $t.moduleCode
                     moduleName = $t.moduleName
                     migrationUsername = $t.migrationUsername
                     runtimeUsername = $t.runtimeUsername
@@ -1054,7 +1055,7 @@ ORDER BY table_name;
             databaseName = $t.databaseName
             schemaName = $t.schemaName
             domainName = $t.domainName
-            systemCode = $t.systemCode
+            moduleCode = $t.moduleCode
             moduleName = $t.moduleName
             expectedTableCount = $expectedTables.Count
             manifestIndexCount = if ($null -ne $manifestContract) { $manifestContract.indexCount } else { $null }
@@ -1080,10 +1081,11 @@ WHERE table_schema = '$($core.databaseName.Replace("'","''"))'
         foreach ($entry in $physicalOwnerTargets) {
             $t = $entry.target
             $schemaName = ([string]$t.databaseName).Replace("'", "''")
-            $systemCode = ([string]$t.systemCode).ToUpperInvariant().Replace("'", "''")
+            # OPS_SCHEMA_INSTALLATION.system_code 컬럼에는 설치 Module Code 가 들어간다.
+            $installModuleCode = ([string]$t.moduleCode).ToUpperInvariant().Replace("'", "''")
             $vendor = ([string]$t.vendor).ToUpperInvariant().Replace("'", "''")
-            $values += "('$schemaName', '$systemCode', '$vendor', '1.0.0-SNAPSHOT', 'CPF_PROFILE_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER')"
-            $identityPredicates += "(schema_name = '$schemaName' AND system_code = '$systemCode')"
+            $values += "('$schemaName', '$installModuleCode', '$vendor', '1.0.0-SNAPSHOT', 'CPF_PROFILE_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER')"
+            $identityPredicates += "(schema_name = '$schemaName' AND system_code = '$installModuleCode')"
         }
         $baselineSql = @"
 INSERT INTO OPS_SCHEMA_INSTALLATION (
@@ -1101,6 +1103,43 @@ ON DUPLICATE KEY UPDATE
     updated_at=CURRENT_TIMESTAMP(3);
 "@
         [void](Invoke-MariaText $core $core.migrationUsername $core.migrationPassword $baselineSql $core.databaseName)
+
+        # Generated Business Domain 의 canonical SystemCode 를 System Registry lifecycle 에 연결한다.
+        # 모든 Generated Domain 은 생성 시점부터 SystemCode 를 가지며(Harness 30.20), 그 Identity 는
+        # 정본 Inventory 에서 읽는다 — MBR/EXS 같은 코드를 여기에 하드코딩하지 않는다(Harness 30.24).
+        # Registry 는 platform DB 소유이므로 platform 설치가 등록한다. Runtime 은 검증만 한다.
+        $generatedCommon = Join-Path $Root 'cpf-tools/generator/tools/generated-domain-common.ps1'
+        if (Test-Path -LiteralPath $generatedCommon -PathType Leaf) {
+            . $generatedCommon
+            $generatedSystems = @(Get-CpfGeneratedDomainInventory -Root $Root | Where-Object {
+                [bool]$_.exists -and [string]$_.generationMode -eq 'generated' -and
+                -not [string]::IsNullOrWhiteSpace([string]$_.systemCode)
+            })
+            if ($generatedSystems.Count -gt 0) {
+                $systemValues = @($generatedSystems | ForEach-Object {
+                    $code = ([string]$_.systemCode).ToUpperInvariant().Replace("'", "''")
+                    $name = ([string]$_.domainName).Replace("'", "''")
+                    "('$code', 'Generated Domain $name', '$code', 'Y', 'Generated business domain system', 1, 'CPF_INSTALLER', 'CPF_INSTALLER')"
+                })
+                $systemRegistrySql = @"
+INSERT INTO OPS_SYSTEM_REGISTRY (
+    system_code, system_name, domain_code, enabled_yn, description,
+    policy_version, created_by, updated_by
+) VALUES
+$($systemValues -join ",`n")
+ON DUPLICATE KEY UPDATE
+    system_name=VALUES(system_name),
+    domain_code=VALUES(domain_code),
+    enabled_yn=VALUES(enabled_yn),
+    description=VALUES(description),
+    policy_version=VALUES(policy_version),
+    updated_by=VALUES(updated_by),
+    updated_at=CURRENT_TIMESTAMP;
+"@
+                [void](Invoke-MariaText $core $core.migrationUsername $core.migrationPassword $systemRegistrySql $core.databaseName)
+                Write-Host "Generated Domain System Registry 등록: $((@($generatedSystems | ForEach-Object { $_.systemCode })) -join ', ')"
+            }
+        }
         $baselineVerifySql = @"
 SELECT COUNT(*), COUNT(DISTINCT schema_name)
 FROM OPS_SCHEMA_INSTALLATION

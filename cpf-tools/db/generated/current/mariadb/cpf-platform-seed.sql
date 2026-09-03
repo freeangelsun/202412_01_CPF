@@ -4,12 +4,10 @@
 -- Role: CPF_PLATFORM_DB
 
 INSERT INTO OPS_SYSTEM_REGISTRY (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by)
-VALUES ('CPF', 'CPF Core Platform', 'CPF', 'Y', 'CPF core platform system', 1, 'SYSTEM', 'SYSTEM'),
-    ('CMN', 'CPF Common', 'CMN', 'Y', 'CPF mandatory common system', 1, 'SYSTEM', 'SYSTEM'),
-    ('ADM', 'CPF Administration', 'ADM', 'Y', 'CPF administration system', 1, 'SYSTEM', 'SYSTEM'),
-    ('MBW', 'CPF Backoffice', 'MBW', 'Y', 'CPF business backoffice system', 1, 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW', 'CPF Backoffice', 'MBW', 'Y', 'CPF optional business backoffice domain', 1, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'CPF Batch', 'BAT', 'Y', 'CPF batch runtime system', 1, 'SYSTEM', 'SYSTEM'),
-    ('EDU', 'CPF Education', 'EDU', 'Y', 'CPF education reference system', 1, 'SYSTEM', 'SYSTEM')
+    ('CEC', 'CPF Center-Cut', 'CEC', 'Y', 'CPF center-cut runtime system', 1, 'SYSTEM', 'SYSTEM'),
+    ('EDU', 'CPF Education', 'EDU', 'Y', 'CPF education reference runtime system', 1, 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE system_name=VALUES(system_name), domain_code=VALUES(domain_code), enabled_yn=VALUES(enabled_yn), description=VALUES(description), policy_version=VALUES(policy_version), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO OPS_CHANNEL_REGISTRY (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by)

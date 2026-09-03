@@ -35,7 +35,12 @@ import org.springframework.core.env.Environment;
 @EnableConfigurationProperties({CpfHeaderPolicyProperties.class, CpfWebContextProperties.class})
 public class CpfWebContextAutoConfiguration {
     @Bean @ConditionalOnMissingBean
-    CpfRuntimeIdentity cpfRuntimeIdentity(CpfRuntimeMetadata runtime) { return CpfRuntimeIdentity.from(runtime); }
+    // SystemCode 가 없는 Component(ADM/Gateway/Channel Front)는 정본 ChannelCode 로 lineage 를
+    // 구성한다. 그 선언을 Runtime Identity 에 함께 전달한다(Harness 30.11).
+    CpfRuntimeIdentity cpfRuntimeIdentity(CpfRuntimeMetadata runtime, Environment environment) {
+        return CpfRuntimeIdentity.from(runtime,
+                environment == null ? null : environment.getProperty(CpfRuntimeIdentity.CHANNEL_CODE_PROPERTY));
+    }
 
     @Bean @ConditionalOnMissingBean
     CpfHeaderPolicyRegistry cpfHeaderPolicyRegistry(CpfHeaderPolicyProperties properties) { return new CpfHeaderPolicyRegistry(properties); }

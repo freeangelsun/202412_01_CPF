@@ -40,6 +40,24 @@ class CpfBffCredentialResponseAdviceTest {
             new CpfBffCredentialResponseAdvice(vault, properties, new ObjectMapper(), concurrentSessions());
 
     @Test
+    void leavesBackofficeChannelLoginUntouchedBecauseItIsADifferentAuthBoundary() {
+        // MBW 는 Channel Front(cpf-backoffice-web)가 Bearer 로 연동하는 별개 인증 경계다.
+        // ADM BFF 자격증명 Advice 가 이 응답까지 처리하면 Session 을 만들고 Body 에서 토큰을
+        // 지워 버려 MBW 로그인이 깨진다(실제로 1-WAS 에서 500 ECPF990000 이 났다).
+        MockHttpServletRequest request =
+                new MockHttpServletRequest("POST", "/api/v1/backoffice/auth/login");
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("adminUserId", "MBW001");
+        body.put("accessToken", "mbw-access-token");
+        body.put("refreshToken", "mbw-refresh-token");
+
+        Object result = invoke(new LinkedHashMap<>(body), request);
+
+        assertThat(result).isEqualTo(body);
+        assertThat(request.getSession(false)).isNull();
+    }
+
+    @Test
     void stripsMapCredentialsRotatesSessionAndStoresOnlyOpaqueHandle() {
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/auth/login");
         request.getSession(true).setAttribute("before", "value");

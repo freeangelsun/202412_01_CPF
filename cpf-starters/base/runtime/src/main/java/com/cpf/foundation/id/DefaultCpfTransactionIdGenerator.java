@@ -1,7 +1,6 @@
 package com.cpf.foundation.id;
 
 import com.cpf.core.api.transaction.CpfTransactionIds;
-import com.cpf.foundation.context.system.CpfSystemCodes;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -55,7 +54,11 @@ public class DefaultCpfTransactionIdGenerator
         if (sequenceDigits != SEQUENCE_DIGITS) {
             throw new IllegalArgumentException("CPF 표준 transactionId sequence는 7자리로 고정입니다.");
         }
-        this.issuerCode = CpfSystemCodes.normalize(systemCode, CpfSystemCodes.CORE);
+        // 거래ID issuer 의 source 는 **최초 신뢰 거래 기동점의 canonical ChannelCode** 다
+        // (Harness 30.7). Business/Generated Domain 이 기동하면 그 Domain 의 SystemCode 값이
+        // 내부 hop ChannelCode 값이므로 같은 값이 들어온다. Platform(ADM 등)은 운영 ChannelCode 다.
+        // 여기서 축약/패딩/기본값으로 issuer 를 만들어내지 않는다 — 규격에 맞지 않으면 fail-closed.
+        this.issuerCode = requireIssuerChannelCode(systemCode);
         this.instanceToken = instanceToken(instanceId);
         this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
@@ -74,7 +77,7 @@ public class DefaultCpfTransactionIdGenerator
         LocalDateTime now = LocalDateTime.now(clock);
         long next = nextSequence(now.toLocalDate());
         String value = now.format(TIMESTAMP)
-                + CpfSystemCodes.normalize(issuerCode, this.issuerCode)
+                + (hasText(issuerCode) ? requireIssuerChannelCode(issuerCode) : this.issuerCode)
                 + instanceToken(targetInstanceId)
                 + String.format("%07d", next);
         return CpfTransactionIds.requireCanonical(value);
@@ -128,6 +131,27 @@ public class DefaultCpfTransactionIdGenerator
         }
     }
 
+
+    /**
+     * 거래ID issuer 로 쓸 canonical ChannelCode 를 검증합니다.
+     *
+     * <p>CPF 표준 거래ID 의 issuer 자리는 3자리다. 따라서 **거래를 기동할 수 있는 canonical
+     * ChannelCode 자체가 3자리 규격을 만족해야 한다**(Harness 30.7). 규격에 맞지 않는 값을
+     * 잘라내거나 채워서 issuer 를 만들지 않는다. issuer 전용 Identity Namespace 도 만들지 않는다.</p>
+     */
+    private static String requireIssuerChannelCode(String channelCode) {
+        if (!hasText(channelCode)) {
+            throw new IllegalStateException(
+                    "CPF transactionId issuer requires the canonical ChannelCode of the initiating trusted channel.");
+        }
+        String normalized = channelCode.trim().toUpperCase(java.util.Locale.ROOT);
+        if (normalized.length() != 3 || !normalized.chars().allMatch(Character::isLetterOrDigit)) {
+            throw new IllegalStateException(
+                    "CPF transactionId issuer must be a 3-character canonical ChannelCode; truncation and padding"
+                            + " are not allowed. value=" + channelCode);
+        }
+        return normalized;
+    }
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();

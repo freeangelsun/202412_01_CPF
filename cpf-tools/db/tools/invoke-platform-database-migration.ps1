@@ -492,7 +492,7 @@ function Get-CpfPlanPayload {
                     version = $_.version
                     moduleKey = $_.target.moduleKey
                     moduleName = $_.target.moduleName
-                    systemCode = $_.target.systemCode
+                    moduleCode = $_.target.moduleCode
                     logicalDatabase = $_.target.logicalDatabase
                     physicalDatabase = $_.target.databaseName
                     physicalSchema = $_.target.schemaName

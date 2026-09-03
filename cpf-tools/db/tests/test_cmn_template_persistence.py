@@ -46,7 +46,13 @@ class CmnTemplatePersistenceTest(unittest.TestCase):
         self.assertIn("FOR UPDATE", (query_root / "lock-history.sql").read_text(encoding="utf-8"))
         self.assertIn("template creator and approver must be different", source)
         self.assertIn("revision_no=?", (query_root / "approve.sql").read_text(encoding="utf-8"))
-        self.assertIn("INSERT INTO cmn_template_audit", (query_root / "insert-audit.sql").read_text(encoding="utf-8"))
+        # 정본 Query Pack 은 canonical 대문자 테이블명을 렌더링한다(Linux MariaDB 는 대소문자를
+        # 구분하고, PostgreSQL/Oracle 은 unquoted 를 각각 소문자/대문자로 접는다).
+        # 소문자를 기대하던 이 단정은 정본과 어긋나 stale contract 였다.
+        self.assertIn(
+            "INSERT INTO CMN_TEMPLATE_AUDIT",
+            (query_root / "insert-audit.sql").read_text(encoding="utf-8"),
+        )
         self.assertIn('insertAudit("SUPERSEDE"', source)
         self.assertNotIn("cmn_template_variable", source)
 

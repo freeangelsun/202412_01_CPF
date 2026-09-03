@@ -10,7 +10,7 @@ param(
     [string] $ResultPath = '',
     [int] $TimeoutSec = 20,
     # System6 계약상 X-System-Code 는 수신 Runtime 의 System Code 와 같아야 한다.
-    # 1-WAS 통합 Runtime 은 자신을 LOCAL 로 선언하므로 호출자가 대상 코드를 알려준다.
+    # 1-WAS 는 System 이 아니라 topology 다. 호출자가 대상 canonical Identity 를 알려준다.
     [string] $SystemCode = 'EDU',
     [int] $PollSeconds = 15,
 
@@ -145,6 +145,15 @@ function Initialize-CpfAdmCsrf([string]$BaseUrl) {
     if ($null -eq $cookie) { throw 'ADM CSRF cookie(XSRF-TOKEN)가 발급되지 않았습니다.' }
     $script:admCsrfToken=[string]$cookie.Value
 }
+function Get-CpfAdmCsrfToken([string]$BaseUrl) {
+    # 로그인 시 Session 회전으로 XSRF-TOKEN Cookie 가 새로 발급된다. 캐시 값을 계속 쓰면
+    # 그 다음 상태 변경 요청이 403 이 되므로 매번 현재 Cookie 를 읽는다.
+    if ($null -eq $script:admWebSession) { return $script:admCsrfToken }
+    $cookie=$script:admWebSession.Cookies.GetCookies($BaseUrl) |
+        Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
+    if ($null -ne $cookie) { $script:admCsrfToken=[string]$cookie.Value }
+    return $script:admCsrfToken
+}
 function Invoke-CpfRawJsonPost([string]$Uri,[hashtable]$Headers,[string]$RawBody,[bool]$AllowNonSuccess) {
     # 이미 JSON 인 본문을 그대로 보낸다. AllowNonSuccess 이면 4xx/5xx 도 예외로 만들지 않고
     # CPF 표준 오류 본문을 그대로 돌려준다 — 오류 본문에도 transactionId 가 실려 있으므로
@@ -165,14 +174,18 @@ function Invoke-CpfRawJsonPost([string]$Uri,[hashtable]$Headers,[string]$RawBody
     }
 }
 function Get-CpfIssuerCode([string] $Code) {
-    # CPF 정본 거래ID 의 issuer 는 **3자리**다(CpfTransactionIds). Runtime System Code 가 3자리보다
-    # 길면 CpfSystemCodes.normalize 가 앞 3자리를 issuer 로 쓴다(LOCAL -> LOC).
-    # 그래서 X-System-Code/X-Target-System-Code(수신자 일치)와 X-Original-System-Code/거래ID issuer
-    # 는 서로 다른 값일 수 있다. 둘을 같은 값으로 보내면 1-WAS 에서 반드시 거절된다.
-    if ([string]::IsNullOrWhiteSpace($Code)) { return 'CPF' }
+    # 거래ID issuer 의 source 는 **최초 신뢰 거래 기동점의 canonical ChannelCode** 다(Harness 30.7).
+    # 축약/패딩으로 issuer 를 만들지 않는다. 정본 ChannelCode 자체가 3자리 규격을 만족해야 한다.
+    # (이전 구현은 LOCAL -> LOC 처럼 SystemCode 를 잘라 issuer 를 만들었고, 그 전제였던
+    #  LOCAL SystemCode 자체가 존재하지 않는다.)
+    if ([string]::IsNullOrWhiteSpace($Code)) {
+        throw 'CPF transactionId issuer requires the canonical ChannelCode of the initiating trusted channel.'
+    }
     $trimmed = $Code.Trim().ToUpperInvariant()
-    if ($trimmed.Length -le 3) { return $trimmed }
-    return $trimmed.Substring(0, 3)
+    if ($trimmed.Length -ne 3 -or $trimmed -notmatch '^[A-Z0-9]{3}$') {
+        throw "CPF transactionId issuer must be a 3-character canonical ChannelCode; truncation is not allowed. value=$Code"
+    }
+    return $trimmed
 }
 
 function Find-TextFiles([string[]]$Roots) {
@@ -348,7 +361,7 @@ try {
     if ([bool](Get-SafeProperty $me 'passwordChangeRequired' $false)) {
         $rotatedPassword="$admPassword" + 'R7!'
         $rotateHeaders=New-CpfAdmHeaders 'admOperatorChangePassword'
-        $rotateHeaders['X-XSRF-TOKEN']=$script:admCsrfToken
+        $rotateHeaders['X-XSRF-TOKEN']=Get-CpfAdmCsrfToken $BaseUrl
         $rotateBody=@{currentPassword=$admPassword;newPassword=$rotatedPassword;newPasswordConfirm=$rotatedPassword;reason='runtime-smoke mandatory password rotation'} | ConvertTo-Json -Compress
         Invoke-CpfRawJsonPost "$BaseUrl/adm/api/operators/$AdmUsername/password" $rotateHeaders $rotateBody $false | Out-Null
         $admPassword=$rotatedPassword

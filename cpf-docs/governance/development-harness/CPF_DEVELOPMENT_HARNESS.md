@@ -739,3 +739,440 @@ Commit·Push 가 수행되어서는 안 된다. `cpfOpenGitPrepare` 도 **생성
 fail-closed 경계까지** 검증한다.
 
 게이트: `cpf-tools/verification/tests/test_cpf_open_git_task_contract.py`
+
+## 30. System Identity / Channel Identity / instanceId 계약 (Mandatory)
+
+사용자 Steering(2026-09-04)으로 확정한 정본이다. 이 장이 SystemCode·ChannelCode·instanceId·
+Same-JVM topology에 대한 유일한 정본이며, Source 주석이나 개별 Runtime 설정이 이 장과
+어긋나면 **Source가 아니라 이 장이 우선**이다.
+
+### 30.1 SystemCode는 논리 업무 Domain(또는 정본이 System Identity를 부여한 Runtime)의 식별자다
+
+정본 예: Member `MBR`, External `EXS`, Backoffice Business Domain `MBW`, 일반 Batch `BAT`,
+Center-Cut `CEC`.
+
+- SystemCode에는 **임의 Default/Fallback을 두지 않는다.** `LOCAL` / `DEFAULT` / `CPF` /
+  `UNKNOWN` 으로 누락된 System Identity를 자동 보정하지 않는다.
+- Source / Generator / Runtime Configuration에서 정본 Identity가 명확히 결정되지 않으면
+  **fail-closed** 한다. 결정 소유자는 `CpfRuntimeSystemCode.resolve` 이며 이미 값이 없으면
+  던진다 — 그 계약을 우회하는 기본값을 Runtime YAML에 두지 않는다.
+- 3자리 issuer가 필요할 때 **등록되지 않은 코드를 앞 3자리로 자르거나 `X`로 채워 만들지
+  않는다.** 축약은 서로 다른 System을 같은 issuer로 뭉개는 암묵적 fallback이다.
+
+### 30.2 SystemCode와 ChannelCode는 역할이 다르지만, 내부 Domain 거래에서는 같은 canonical 값을 쓴다
+
+역할이 같다는 뜻이 **아니다**. 다만 Business Domain 사이의 내부 거래 Hop에서는 그 Domain의
+canonical SystemCode 값을 그대로 ChannelCode 값으로 사용한다.
+
+```text
+MBR Domain → EXS Domain
+  호출 Domain SystemCode = MBR      호출 ChannelCode = MBR
+  대상 Domain SystemCode = EXS      대상 ChannelCode = EXS
+```
+
+- 별도의 System→Channel mapping 표나 중복 설정을 만들지 않는다.
+- 금지 대상은 의미를 바꾸는 **임의 변환**이다(`MBR → MEMBER`, `EXS → EXTERNAL` 등).
+- `systemCode=MBR` Domain이 내부 거래 Channel에서 `MBR`을 쓰는 것은 허용이 아니라 **canonical
+  동작**이다. "System과 Channel은 별도 개념이므로 alias로 쓰지 않는다"를 *같은 값을 쓰면 안 된다*로
+  읽지 않는다.
+
+### 30.3 Front Channel은 자기 정본 ChannelCode를 소유한다
+
+- Frontend / Channel Application에서 시작한 거래는 그 Channel의 정본 ChannelCode를 Header
+  Channel 값으로 설정한다. Front Channel을 업무 Domain SystemCode로 임의 변환하지 않는다.
+- Browser는 Protected Header를 스스로 작성하지 않는다. 신뢰 Channel/BFF 경계가 정본 Channel
+  Identity를 설정한다(`CanonicalHeaderOwnershipFilter`).
+- lineage 규칙:
+
+```text
+최초 Channel  = Front Channel의 정본 ChannelCode
+이후 내부 Hop = 각 Business Domain의 canonical SystemCode 값을 ChannelCode로 사용
+```
+
+Original / Current / Caller / Target Channel이 이 규칙으로 일관되게 유지되어야 한다.
+
+### 30.4 Gateway는 자체 Business SystemCode를 가지지 않는다
+
+Gateway는 Edge/Trust/Route 중계 Platform Component다.
+
+- `GWY` 같은 가상 SystemCode를 만들어 **거래 당사자로 삽입하지 않는다.**
+- Gateway가 가질 수 있는 것은 자기 Runtime/운영 Identity뿐이다: `instanceId`, `routeId`,
+  `routeVersion`, ingress type.
+- Gateway를 통과해도 거래의 원래 Channel/Domain lineage가 보존되어야 한다. 경유/Direct 결과가
+  달라지면 결함이다.
+
+### 30.5 1-WAS는 System이 아니라 Same-JVM topology다
+
+- `systemCode = LOCAL` 같은 가상 Identity를 만들지 않는다.
+- 같은 JVM 안에서도 각 Business Domain의 canonical SystemCode/ChannelCode를 그대로 유지한다.
+
+```text
+instanceId = was01 (하나의 실행 Instance)
+  같은 JVM 안에서 MBR → MBR, EXS → EXS, MBW → MBW Identity 유지
+```
+
+Same-JVM이라는 이유로 모든 거래 Identity를 하나로 덮어쓰지 않는다. 따라서 Operation Catalog와
+수신자 검증은 **Process의 systemCode가 아니라 그 거래를 소유한 Domain**을 기준으로 해야 한다.
+
+### 30.6 instanceId는 System/Channel과 완전히 분리된다
+
+```text
+명시 instanceId → 없으면 실제 Hostname
+```
+
+`was01`, `server-a`, hostname 등은 실행 Process/WAS Instance 식별자다. 거래 Channel/System
+Identity로 사용하지 않는다. instanceId의 Hostname fallback이 허용된다는 사실을 SystemCode의
+fallback 허용 근거로 쓰지 않는다.
+
+### 30.7 TransactionId issuer의 source는 최초 신뢰 거래 기동점의 canonical ChannelCode다
+
+사용자 확정(2026-09-04). issuer를 위한 **새 Identity 축을 만들지 않는다.** "발급 주체 기술
+metadata Identity" 같은 별도 namespace도 만들지 않는다.
+
+```text
+Front Channel 이 최초 기동      -> 그 Channel 의 canonical ChannelCode
+내부 Business/Generated Domain 이 최초 기동
+                               -> 그 Domain 의 SystemCode 값(= 내부 hop ChannelCode 값)
+ADM 운영 거래                   -> ADM 운영 ChannelCode (ADM SystemCode 를 만들지 않는다)
+```
+
+금지 사항:
+
+- `issuer == SystemCode` 또는 `issuer == X-Original-System-Code` 를 **universal 계약으로 강제**하는 것
+- issuer를 만들기 위한 substring / truncate (`LOCAL → LOC` 등)
+- blank/unknown에 대한 fallback(`CPF` 등)
+
+TransactionId issuer 규격이 3자리라면, **거래를 기동할 수 있는 canonical ChannelCode 자체가 그
+규격을 만족하도록 Product Contract에서 검증**한다. issuer 전용 Identity Namespace를 신설하지 않는다.
+
+기존 `DefaultCpfTransactionIdGenerator` 의 `issuer = normalize(systemCode)` 계열,
+`CpfSystemCodes.requireIssuerCode`, smoke 의 `Get-CpfIssuerCode` 는 이 전제에 서 있으므로 제거·재정렬
+대상이다. Generator → Inbound Validation → Log/Trace → Test 까지 함께 닫는다.
+
+### 30.8 이 장에 어긋나는 것을 발견하면 Harness부터 고친 뒤 Consumer를 일괄 정렬한다
+
+Source만 예외 처리하지 않는다. 순서는 다음과 같다.
+
+```text
+Product Contract → Harness Rule → Validator → Negative Mutation → Current Registry → Test/Runtime
+```
+
+### 30.9 재발방지 Gate(필수)
+
+- SystemCode 누락 → fail-closed
+- SystemCode default/fallback 존재 → FAIL
+- 1-WAS `LOCAL` SystemCode → FAIL
+- Gateway `GWY` Business SystemCode → FAIL
+- 임의 System→Channel mapping → FAIL
+- 내부 Domain `MBR → EXS` Same-JVM/Remote Channel lineage parity
+- Front Channel → MBR → EXS 거래 lineage
+- Gateway 경유/Direct parity
+- BAT/BAT, CEC/CEC
+- instanceId 독립성
+- TransactionId / Log / Trace / DB Timeline 동일성
+
+검증기를 현재 잘못된 Source 동작에 맞춰 완화하지 않는다.
+
+### 30.10 ADM은 Platform Control Plane이며 Business SystemCode를 가지지 않는다
+
+사용자 Steering(2026-09-04) 확정. `cpf-admin`은 Runtime/Health, Trace/Log/Observability, Config,
+Incident/Recovery, Deployment, Batch·Center-Cut·Agent 운영, Gateway/Route 운영,
+Security/Session/Permission, 운영 Audit/Approval의 **Owner**다. 고객 업무 Domain이 아니며 업무
+Transaction Owner도 아니다. `MBR` / `EXS` / `MBW` 와 같은 System으로 취급하지 않는다.
+
+금지 사항 — `ADM` 을 다음 용도로 쓰지 않는다.
+
+- ADM 자신의 systemCode (`system-code: ${CPF_SYSTEM_CODE:ADM}` 포함)
+- Business transaction issuer용 systemCode
+- `OPS_SYSTEM_REGISTRY` 의 Business/Logical System identity
+- System6 검증을 통과시키기 위한 가상 System identity
+- Runtime Registry의 systemCode 필수조건을 만족시키기 위한 placeholder
+
+SystemCode가 없다는 이유로 `CPF` / `LOCAL` / `DEFAULT` / `UNKNOWN` 을 대신 넣는 것도 금지한다.
+
+### 30.11 ADM SystemCode 부재는 ADM Channel/Module/Service Identity 삭제를 뜻하지 않는다
+
+정본 조사 결과(`cpf-tools/db/vendor/*/source/50_framework_seed_data.sql`):
+
+```text
+OPS_CHANNEL_REGISTRY : WEB(CLIENT/EXTERNAL), MOBILE(CLIENT/EXTERNAL),
+                       ADM(OPERATOR/INTERNAL, "관리자"), BATCH(SYSTEM/INTERNAL)
+```
+
+즉 **ADM 운영 ChannelCode `ADM` 은 이미 정본에 존재한다.** 운영자가 시작하는 거래의 Channel
+lineage는 이 정본 ChannelCode를 쓰며, 이를 ADM SystemCode로 변환하지 않는다.
+
+```text
+ADM SystemCode       = 없음
+ADM 운영 ChannelCode = ADM (OPS_CHANNEL_REGISTRY 정본)
+ADM Module/Service   = OPS_SERVICE / Routing / Health Registry의 Service·Module Code (유지)
+ADM instanceId       = 실행 Instance 식별자 (유지, §30.6)
+```
+
+Module / Service / Runtime / Channel / System Identity는 **각각 분리해서** 다룬다. SystemCode를
+제거한다는 이유로 Service·Module·Channel 행을 함께 지우지 않는다.
+
+### 30.12 ADM이 관리 대상의 systemCode를 소비하는 것은 정상이다
+
+System Registry 조회, Runtime 상태 조회, 거래 검색, Operation Policy, Caller/Target System
+Policy, Log/Trace Timeline 등에서 `systemCode` 필드가 나타나는 것은 **관리 대상 System의
+Identity** 이기 때문이다. 이를 근거로 ADM 자신에게 `ADM` SystemCode를 부여하지 않는다.
+반대로, 관리 대상의 `systemCode` 필드를 ADM SystemCode 제거와 함께 지우는 것도 결함이다.
+
+### 30.13 Runtime Identity 계약은 Architecture Role별로 구분한다
+
+`{systemCode, instanceId}` 를 모든 Runtime의 보편 Instance Identity로 강제하면 ADM/Gateway처럼
+SystemCode가 없는 Component에 가짜 SystemCode가 필요해진다. 따라서 **`{systemCode, instanceId}`
+규칙은 SystemCode를 가지는 Runtime에만 적용**한다(최종 통합 Steering §11).
+
+Role별 SystemCode 보유 여부는 §30.16 표가 유일한 정본이다. Runtime Identity는 다음과 같이 읽는다.
+
+| Architecture Role | Runtime Identity |
+| --- | --- |
+| `BUSINESS_DOMAIN` / `REFERENCE_RUNTIME` / `BATCH_RUNTIME` | systemCode + instanceId |
+| `PLATFORM_CONTROL_PLANE` | module/application + runtimeRole + instanceId |
+| `GATEWAY` | instanceId + routeId/routeVersion/ingress |
+| `CHANNEL_FRONT` | 정본 ChannelCode + instanceId |
+| `TOPOLOGY`(1-WAS) | instanceId. 내부 Runtime 각자의 Identity를 그대로 보존한다 |
+
+Platform Runtime은 이미 존재하는 canonical identity로 식별하며 **새 Platform Identity 축을 만들지
+않는다**. Same-JVM에 SystemCode를 가진 Runtime이 여럿 있으면 동일 `instanceId` 를 공유하면서 각자의
+logical System Runtime identity를 유지한다.
+
+```text
+MBR + instanceId=was01
+EXS + instanceId=was01
+MBW + instanceId=was01
+EDU + instanceId=was01
+```
+
+1-WAS 자체를 `LOCAL` System Registry Row로 등록하지 않는다.
+
+### 30.14 ADM Header/Context 계약
+
+ADM 관리 API나 ADM이 다른 Component를 제어하는 호출을 Runtime Test 통과 목적으로
+`X-System-Code=ADM` 으로 만들지 않는다. SystemCode가 없는 Platform Component의 Header/Context
+처리 방식은 Product Contract에서 명시적으로 정의한다. 정본이 모호하면
+`Harness/Product Contract 명확화 → Header/Context Source → Consumer → Runtime Test` 순으로 닫는다.
+Verifier/Smoke에 `ADM` SystemCode를 하드코딩해 통과시키는 것은 금지한다.
+
+### 30.15 ADM 재발방지 Gate(필수)
+
+- `cpf-admin` 에 `CPF_SYSTEM_CODE` 또는 ADM 자기 `system-code` 재도입 → FAIL
+- `ADM` 을 자기 System identity로 `OPS_SYSTEM_REGISTRY` 재등록 → FAIL
+- ADM SystemCode fallback/placeholder → FAIL
+- ADM 관리 대상의 `systemCode` 필드를 잘못 제거 → FAIL
+- ADM ChannelCode를 SystemCode와 함께 삭제/통합 → FAIL
+- Service/Module/instanceId를 SystemCode로 오인 → FAIL
+- Runtime/Smoke가 `X-System-Code=ADM` 을 하드코딩해 False Green → FAIL
+
+수정 후 검증 범위는 Compile이 아니라
+`ADM Startup → Login/Session/CSRF → Control Plane API → 대상 System 조회/제어 → Log/Trace/Audit
+→ Runtime Registry → Browser E2E → DB3 → One-WAS/분리 WAS` 까지다.
+
+### 30.16 Module Architecture Role 정본과 계약 경계 판정
+
+사용자 확정(2026-09-04, 최종 통합 Steering §23~§24). Architecture Role은 **새 Identity 축이 아니라
+기존 Module의 분류 metadata**다. 정본 위치는 `cpf-tools/governance/cpf-product-surface-policy.json`
+의 `moduleOwners[].architectureRole` 이며 정의는 같은 파일의 `architectureRoles` 가 소유한다.
+중복 정본을 새로 만들지 않는다. Role을 필요 이상으로 늘리지 않는다.
+
+| Role | 의미 | SystemCode |
+| --- | --- | --- |
+| `BUSINESS_DOMAIN` | 고객 업무 Domain (MBW / MBR / EXS / 모든 Generated Domain) | 보유 |
+| `REFERENCE_RUNTIME` | CPF 공식 Education/Reference Runtime (EDU) | 보유 |
+| `BATCH_RUNTIME` | Batch 실행 Runtime (BAT / CEC) | 보유 |
+| `PLATFORM_CONTROL_PLANE` | CPF 운영 Control Plane (ADM) | **없음** |
+| `GATEWAY` | Edge/Trust/Route 중계 | **없음** |
+| `CHANNEL_FRONT` | Front/외부 Channel Application | **없음**(정본 ChannelCode 보유) |
+| `FRAMEWORK_INTERNAL` | Framework/Starter/도구/거버넌스 자산 | **없음** |
+| `TOPOLOGY` | Same-JVM 배치 topology(1-WAS) | **없음** |
+
+계약 경계는 다음 한 가지 경로로만 판정한다.
+
+```text
+Operation → canonical Owner Component/Domain → architectureRole → 적용 Transaction Contract
+```
+
+- `BUSINESS_DOMAIN` / `REFERENCE_RUNTIME` / `BATCH_RUNTIME` 소유 Operation → **Business 거래 계약**.
+- `PLATFORM_CONTROL_PLANE` / `GATEWAY` 소유 Operation(관리 API) → Business System 계약을 강제하지
+  않는다. 정본 ChannelCode 기반 Channel 계약을 적용한다.
+- 금지: URL path 판정, Java package 추론, `OPS_SYSTEM_REGISTRY` 등록 여부 판정, 산문 `owner_scope`
+  판정, `@CpfOnlineTransaction` 에 Role 선언. Operation Catalog 등록 사실만으로 Business Domain 이라고
+  해석하지 않는다.
+- prefix 판정은 **가장 긴 prefix 우선**이다(`cpf-tools/runtime/cpf-local-runtime/` 가
+  `cpf-tools/` 보다 우선).
+
+### 30.17 EDU는 Education/Reference Runtime의 canonical SystemCode다
+
+사용자 확정(2026-09-04).
+
+- `cpf-education` 은 고객 Business Domain이 **아니다**. 그러나 CPF가 Online 20 + Batch 15의 실제
+  거래/실행 예제를 제공·검증하는 **공식 Education/Reference Runtime** 이며 그 Runtime Identity가
+  `EDU` 다.
+- `EDU` SystemCode 유지, `OPS_SYSTEM_REGISTRY` 의 `EDU` 유지, Transaction/Header/Runtime
+  Registry/Log/Trace에서 `EDU` Identity를 정상 사용한다.
+- 1-WAS에 EDU가 조립되어도 `LOCAL` 이 아니라 **EDU 자신의 Identity** 를 유지한다.
+- "Reference Runtime이므로 SystemCode가 없다" 거나 "Sample이므로 Registry에서 제외한다" 는 방향으로
+  바꾸지 않는다. EDU를 Sample-only 또는 System Identity 미확정으로 설명하는 stale 문서/Test/Fixture는
+  Current-only 원칙으로 교정·제거한다.
+
+### 30.18 OPS_SYSTEM_REGISTRY 구성 정본
+
+사용자 확정(2026-09-04, 최종 통합 Steering §21). `OPS_` 는 Operations DB의 물리 Prefix이며
+Registry에는 **실제 canonical SystemCode만** 저장한다.
+
+- 제거: `CPF`, `CMN`, `ADM`, `GWY`, `LOCAL` — System Identity가 아니다.
+- 유지: `MBW`, `EDU`, `BAT`.
+- 추가: `CEC`(Center-Cut). 누락되어 있다.
+- Generated Domain: `MBR` / `EXS` 를 하드코딩하지 않는다. **Generator/Domain lifecycle이 신규
+  Generated Domain의 canonical SystemCode를 Registry lifecycle에 연결**해야 한다.
+
+Seed 한 줄만 고치지 않는다. 정본은 `cpf-tools/db/canonical/**` 이며 벤더 파일은 파생물이다
+(`DO NOT EDIT generated seed directly`). §38 대로
+`Canonical Schema → Oracle/PostgreSQL/MariaDB → Migration → Seed → Upgrade → Rollback/Recovery →
+Runtime Query → Test/Evidence` 를 하나의 변경 단위로 닫는다. `CPF`/`CMN`/`ADM` 의 Registry 존재를
+PASS 조건으로 고정한 Test/Fixture는 **False Green** 이므로 함께 교정한다.
+
+### 30.19 DB Physical Prefix와 System Identity는 다른 Namespace다
+
+사용자 확정(2026-09-04, 최종 통합 Steering §4). 다음은 DB Schema/Table/Object의 **물리
+Namespace**이며 SystemCode가 아니다.
+
+```text
+CPF_*   CMN_*   ADM_*   GWY_*   OPS_*   BAT_*
+```
+
+- `ADM_*` 테이블 존재 ≠ `ADM` SystemCode 존재
+- `GWY_*` 테이블 존재 ≠ `GWY` SystemCode 존재
+- `BAT_*` DB Prefix 와 `BAT` SystemCode 는 **문자열만 같고 Namespace가 다르다**
+- Center-Cut은 `SystemCode = CEC` 이면서 Batch 원장을 소비하므로 `BAT_*` DB를 쓸 수 있다
+
+> 문자열 동일 ≠ Identity 동일
+
+DB Prefix / Module 이름 / Package 이름에서 SystemCode를 **추론하지 않는다**.
+
+### 30.20 SystemCode는 정본의 canonical 고정값이며 Runtime이 선택하지 않는다
+
+사용자 확정(2026-09-04). SystemCode는 Runtime이 고르는 설정값이 아니라 **정본에서 결정되는 logical
+identity** 다.
+
+- **모든 Generated Business Domain은 생성 시점부터 canonical SystemCode를 필수로 가진다.** Source of
+  Truth는 Generator input 의 `domain.systemCode` 이며, 생성물에는 **literal canonical value** 로
+  기록한다.
+- Product Runtime(EDU / MBW / BAT / CEC)의 canonical Identity는 Product Contract가 소유하며 역시
+  고정값으로 기록한다.
+- `${CPF_SYSTEM_CODE:XXX}` (default 포함)도, `${CPF_SYSTEM_CODE}` (Runtime 선택)도 **쓰지 않는다.**
+- 외부 override가 존재한다면 정본 Identity를 **바꾸는 용도가 아니라 정본값과의 일치 검증용**으로만
+  허용하고, 불일치하면 **fail-closed** 한다.
+- SystemCode를 결정할 수 없으면 Generator/Runtime 모두 fail-closed 한다.
+
+#### 30.20.1 SystemCode source 경로에 Module/Prefix/Application 이름을 쓰지 않는다
+
+`CpfRuntimeSystemCode.resolve` 가 `cpf.framework.module-id` 를 SystemCode source로 사용하는 현재
+구조는 **Namespace 위반**이다(§30.19). 다음을 SystemCode fallback으로 쓰지 않는다.
+
+```text
+Module ID      DB Prefix      Application 이름      Package 이름      Profile 이름
+```
+
+Role별 동작은 다음과 같다.
+
+- SystemCode를 가지는 Role(`BUSINESS_DOMAIN` / `REFERENCE_RUNTIME` / `BATCH_RUNTIME`) →
+  canonical source가 없으면 **FAIL**.
+- SystemCode가 없는 Role(`PLATFORM_CONTROL_PLANE` / `GATEWAY` / `CHANNEL_FRONT` /
+  `BATCH_CONTROL_PLANE` / `FRAMEWORK_INTERNAL` / `TOPOLOGY`) → **systemCode 없음을 정상 지원**한다.
+  없다는 이유로 가상 값을 만들지 않는다.
+
+### 30.21 CpfSystemCodes의 Namespace 혼합은 해체한다
+
+사용자 확정(2026-09-04, 최종 통합 Steering §6). 현재 `CpfSystemCodes` 는 Module Name / DB Prefix /
+Component Code / Business SystemCode / TransactionId issuer / Logging moduleId 책임을 한 곳에서
+처리한다. 이는 잘못된 Namespace 혼합이며 해체 대상이다.
+
+제거할 동작:
+
+```text
+core → CPF        common → CMN      admin → ADM
+gateway → GWY     reference → REF
+unknown → 앞 3자리 truncate          blank → CPF fallback
+inferFromTypeName(package/class → SystemCode)
+```
+
+Business SystemCode는 **정본에서 읽을 뿐 추론하지 않는다.**
+
+
+### 30.22 Identity Anti-pattern 과 Negative Rule
+
+이 절은 세션 이력이 아니라 **앞으로도 적용되는 현재 규칙**이다. 아래 대응은 모두 금지이며 Validator가
+차단한다. 이력·경위는 Evidence/Registry/Handover가 소유한다.
+
+| # | 증상 | 금지된 대응 | 왜 잘못인가 | canonical 판정 | 재발방지 Gate |
+| --- | --- | --- | --- | --- | --- |
+| A-1 | 수신 Runtime과 Header의 System Code가 불일치 | Runtime 이름을 앞 3자리로 잘라 issuer/Code 생성 | 축약은 서로 다른 System을 같은 값으로 뭉개는 암묵적 fallback이다 | issuer의 source는 최초 신뢰 기동점의 canonical ChannelCode(§30.7) | `test_cpf_system_identity_contract` |
+| A-2 | 검증기가 필수 Header 부재로 거절 | 검증기에 System Code 값을 하드코딩 | 잘못된 모델을 통과시키는 False Green | 해당 Component의 architectureRole이 정한 계약을 적용(§30.16) | `test_cpf_system_identity_contract` |
+| A-3 | Bean/자동설정이 없어 기동 실패 | Framework가 그 Bean을 직접 소유 | 상위 프레임워크가 **모듈을 분리**한 것을 "기능 부재"로 오인 | 의존성 조립 누락은 Starter 선언으로 닫는다 | 기동 계약 Test |
+| A-4 | 정본 검증기가 값을 거부 | 검증기 규칙을 완화 | 정본이 아니라 검증기가 outlier일 수 있다 | 정본 대조 후 outlier를 고치고 실제 결함만 차단 | 계약 Gate |
+| A-5 | 문서/계약 parity 실패 | 운영 endpoint를 삭제 | 공개 계약 미노출과 Route 부재는 다른 문제다 | 문서에서만 제외(`@Hidden`), Route는 유지 | OpenAPI coverage Gate |
+| A-6 | 소유 Domain을 알 수 없음 | Java package / URL path / Registry 등록 여부로 추론 | 구현 배치 구조는 Architecture Role 정본이 아니다 | Owner Component의 `architectureRole`로 판정, 판정 불가 시 fail-closed(§30.16) | `test_cpf_system_identity_contract` |
+| A-7 | SystemCode가 없어 실패 | `LOCAL`/`CPF`/`DEFAULT`/`UNKNOWN` 등 default 주입 | SystemCode는 Runtime이 고르는 설정값이 아니다 | 정본 canonical 고정값, 없으면 fail-closed(§30.20) | `test_cpf_system_identity_contract` |
+| A-8 | Module/DB Prefix 이름이 SystemCode와 같아 보임 | 그 값을 SystemCode로 승격 | 문자열 동일 ≠ Identity 동일(§30.19) | Module/DB namespace는 `moduleCode`로 표기하고 System namespace와 분리 | `test_cpf_system_identity_contract` |
+
+공통 Root Cause:
+
+> **Identity Namespace(SystemCode / ChannelCode / Module Code / DB Prefix / instanceId / issuer)가 서로
+> 다른 계약으로 혼재하고, Runtime을 통과시키려고 그 경계를 넘나드는 보정을 넣는 것.**
+
+판정 순서(필수):
+
+1. 실패한 Component의 **Architecture Role**과 Identity 보유 여부를 §30.16 표에서 먼저 확인한다.
+   Role이 SystemCode를 갖지 않는데 SystemCode를 요구받는다면 **계약 적용 범위가 틀린 것**이다.
+2. 값이 없어서 실패하면 **값을 만들어내지 않는다.** 축약·패딩·default·placeholder는 모두 금지다.
+3. 검증기가 막으면 **완화하기 전에 정본을 확인**한다. 정본이 모호하면 정본부터 고친다.
+4. 작업자 영역을 이유로 Finding만 남기지 않는다. Current Source와 Current Harness가 유일한 정본이다.
+
+### 30.23 UTF-8은 자식 프로세스까지 강제한다
+
+이 저장소의 표준 인코딩은 UTF-8이다. 정식 진입점(`cpf-tools/conftest.py`,
+`run-cpf-pytest.py`, 각 `.ps1`)은 이미 자기 stdout/stderr를 UTF-8로 고정한다. 그러나 Windows에서
+**ad-hoc으로 띄운 자식 프로세스**는 콘솔 기본값 cp949(ms949)를 물려받아 한글 진단 메시지가 깨진다.
+
+- 사람이든 자동화든 `python` / `pwsh` 를 임시로 실행할 때는 반드시 `PYTHONUTF8=1`,
+  `PYTHONIOENCODING=utf-8` 을 먼저 설정한다.
+- 파일 입출력은 항상 `encoding='utf-8'` 을 명시한다. 기본 인코딩에 의존하지 않는다.
+- **출력이 깨져 보이면 먼저 실행 환경을 의심한다.** 파일 바이트를 직접 확인하기 전에 "파일이
+  손상됐다"고 판단하지 않는다. 멀쩡한 정본(seed/OpenAPI 등)을 콘솔 렌더링 때문에 손상으로 오인해
+  고치는 것이 실제 위험이다.
+- 한글을 출력하는 Python 진입점은 자기 스트림을 UTF-8로 고정해야 한다
+  (`test_cpf_python_console_utf8.py` 가 강제한다).
+
+### 30.24 하드코딩 금지 — 정본은 하나이고 코드는 그것을 읽는다
+
+하드코딩은 "값을 코드에 적는 것" 전부가 아니라 **정본이 따로 있는 값을 코드가 다시 적는 것**이다.
+같은 값이 두 곳에 있으면 정본이 둘이 되고, 정본을 바꿔도 복제본이 옛 값을 지켜 조용히 어긋난다.
+
+#### 절대 금지
+
+| 대상 | 금지 예 | 올바른 방식 |
+| --- | --- | --- |
+| 환경 경로 | 절대경로, PC/사용자 이름, IDE·Gradle 캐시·Java 설치 경로, 고정 workspace 경로 | Root 상대경로, 환경변수, 정본 설정 |
+| Identity | SystemCode / ChannelCode / Module Code / Domain 이름을 코드·검증기에 직접 기재 | 정본 카탈로그·Contract에서 읽는다(§30.16, §30.20) |
+| 분류 정본 | Role 목록, "SystemCode 보유 여부", 금지 코드 목록을 검증기에 복제 | `cpf-tools/governance/cpf-product-surface-policy.json` 에서 읽는다 |
+| Registry 기대값 | 검증기가 기대 코드 목록을 직접 나열 | 실제 선언(Runtime config / Generator input)에서 유도한다 |
+| 운영값 | timeout·retry·port·pool 크기를 Source에 상수로 매설 | 설정/정책으로 노출한다(`nxt3ConfigGate` 가 차단) |
+| 비밀 | 비밀번호·키·토큰을 Source/명령행/로그에 기재 | 자식 프로세스 환경변수로만 전달 |
+| 검증기 통과용 값 | 게이트를 통과시키려고 기대값을 코드에 심기 | 정본을 고치거나 결함을 고친다 |
+
+#### 판정 기준
+
+1. **이 값의 정본이 어디인가?** 정본이 있으면 코드는 읽기만 한다.
+2. 정본이 없으면 **정본을 먼저 만든다.** 코드에 적고 나중에 정리하지 않는다.
+3. 검증기가 값을 알아야 하면 **정본에서 유도**한다. 유도할 수 없으면 그 값은 정본이 아니라
+   검증기 자체의 계약이며, 그 사실을 주석으로 남긴다.
+4. 값이 같아 보여도 **Namespace가 다르면 다른 값**이다(§30.19). 한쪽을 다른 쪽의 근거로 쓰지 않는다.
+
+#### 재발방지
+
+- 정본 복제가 발견되면 복제본을 지우고 정본 읽기로 바꾼다. 두 값을 동기화하는 코드를 만들지 않는다.
+- 새 검증기를 추가할 때 "이 목록의 정본은 어디인가"를 먼저 적는다. 답이 없으면 게이트를 만들기 전에
+  정본을 만든다.

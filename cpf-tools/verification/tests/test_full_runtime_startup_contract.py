@@ -92,10 +92,18 @@ def test_batch_roles_receive_canonical_vendor_pack_root():
     assert "pack.json" in text
 
 
-def test_one_was_declares_its_own_system_code():
-    """systemCode는 명시 선언이 정본이며 profile/application 이름으로 대체하지 않는다."""
+def test_one_was_declares_topology_role_and_no_system_code():
+    """1-WAS는 System이 아니라 Same-JVM 배치 topology다(Harness 30.5 / 30.16).
+
+    이 테스트는 이전에 ``system-code: ${CPF_SYSTEM_CODE:LOCAL}`` 존재를 PASS 조건으로 고정해
+    **존재하지 않는 LOCAL SystemCode 모델을 보호하는 False Green** 이었다. 확정 Architecture 기준으로
+    되돌린다 — 1-WAS는 자기 SystemCode를 가지지 않고 Architecture Role만 선언하며, 같은 JVM 안의
+    각 Domain은 자기 canonical Identity를 그대로 유지한다.
+    """
     text = LOCAL_RUNTIME_YML.read_text(encoding="utf-8")
-    assert "system-code: ${CPF_SYSTEM_CODE:LOCAL}" in text
+    assert "architecture-role: TOPOLOGY" in text
+    assert "system-code:" not in text
+    assert "CPF_SYSTEM_CODE" not in text
 
 
 def test_one_was_marks_platform_datasource_as_the_default_choice():

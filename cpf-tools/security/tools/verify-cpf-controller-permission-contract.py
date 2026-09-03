@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Fail-closed ADM/Backoffice controller operationId and mutation permission contract gate."""
 from __future__ import annotations
+import sys as _cpf_sys
+
+# Windows cp949 콘솔에서 한글 진단 메시지가 깨지지 않도록 자기 출력 스트림을 UTF-8 로 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    if hasattr(_cpf_stream, 'reconfigure'):
+        _cpf_stream.reconfigure(encoding='utf-8')
 import argparse,csv,json,re,sys
 from collections import Counter
 from pathlib import Path
@@ -144,7 +150,10 @@ def validate(root:Path,strict:bool)->tuple[list[dict[str,str]],list[str],list[st
     for record in records:
         label=f"{record['source']}:{record['method']} {record['http_method']} {record['path']}"
         if not record['operation_id']:errors.append(f'{label}: operationId missing')
-        elif not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{5,}',record['operation_id']):errors.append(f"{label}: invalid operationId={record['operation_id']}")
+        # 정본 표기는 MBW_AUTH_LOGIN / admApprovalPolicySave 처럼 밑줄과 camelCase 를 모두 쓴다.
+        # 막아야 하는 것은 springdoc 이 한 @Operation 을 여러 경로에 매핑했을 때 붙이는
+        # 중복 회피 접미사(admPageAdminPage_1)다. canonicalize-cpf-openapi.py 와 같은 규칙을 쓴다.
+        elif not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{5,}',record['operation_id']) or re.search(r'_\d+$',record['operation_id']):errors.append(f"{label}: invalid operationId={record['operation_id']}")
         if record['path'].startswith('/api/v1/backoffice/') and not record['path'].startswith('/api/v1/backoffice/auth/') and not backoffice_permission_mapped(root,record['http_method'],record['path']):
             errors.append(f'{label}: Backoffice permission manifest resource/action mapping missing')
         if record['mutating']=='true' and (record['http_method'],record['path']) not in PUBLIC_MUTATION_EXCEPTIONS and not permission_mapped(root,record['http_method'],record['path'],record['scope'],security_text):

@@ -66,7 +66,7 @@
         "updated_by"
       ],
       "sourceKind": "values",
-      "source": "('CPF', 'CPF Core Platform', 'CPF', 'Y', 'CPF core platform system', 1, 'SYSTEM', 'SYSTEM'),\n    ('CMN', 'CPF Common', 'CMN', 'Y', 'CPF mandatory common system', 1, 'SYSTEM', 'SYSTEM'),\n    ('ADM', 'CPF Administration', 'ADM', 'Y', 'CPF administration system', 1, 'SYSTEM', 'SYSTEM'),\n    ('MBW', 'CPF Backoffice', 'MBW', 'Y', 'CPF business backoffice system', 1, 'SYSTEM', 'SYSTEM'),\n    ('BAT', 'CPF Batch', 'BAT', 'Y', 'CPF batch runtime system', 1, 'SYSTEM', 'SYSTEM'),\n    ('EDU', 'CPF Education', 'EDU', 'Y', 'CPF education reference system', 1, 'SYSTEM', 'SYSTEM')",
+      "source": "('MBW', 'CPF Backoffice', 'MBW', 'Y', 'CPF optional business backoffice domain', 1, 'SYSTEM', 'SYSTEM'),\n    ('BAT', 'CPF Batch', 'BAT', 'Y', 'CPF batch runtime system', 1, 'SYSTEM', 'SYSTEM'),\n    ('CEC', 'CPF Center-Cut', 'CEC', 'Y', 'CPF center-cut runtime system', 1, 'SYSTEM', 'SYSTEM'),\n    ('EDU', 'CPF Education', 'EDU', 'Y', 'CPF education reference runtime system', 1, 'SYSTEM', 'SYSTEM')",
       "conflictKey": "PRIMARY",
       "conflictColumns": [
         "system_code"

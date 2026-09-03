@@ -4,7 +4,8 @@ param(
     [string] $Scope = "all",
     [switch] $All,
     [string[]] $DomainName = @(),
-    [string[]] $SystemCode = @(),
+    # Platform DB 설치 Module selector 다(Business SystemCode 아님).
+    [string[]] $ModuleCode = @(),
     [string[]] $ModuleName = @(),
     [ValidateSet("profile", "product", "none", "all")]
     [string] $SeedMode = "profile",
@@ -22,11 +23,11 @@ $generated = Join-Path $Root "cpf-tools/generator/tools/initialize-generated-dom
 
 if ($Scope -in @("platform", "all")) {
     $args = @("-NoProfile", "-File", $platform, "-Root", $Root, "-SeedMode", $SeedMode)
-    if ($All -or ($Scope -eq "all" -and $DomainName.Count -eq 0 -and $SystemCode.Count -eq 0 -and $ModuleName.Count -eq 0)) {
+    if ($All -or ($Scope -eq "all" -and $DomainName.Count -eq 0 -and $ModuleCode.Count -eq 0 -and $ModuleName.Count -eq 0)) {
         $args += "-All"
     } else {
         if ($DomainName.Count -gt 0) { $args += "-DomainName"; $args += $DomainName }
-        if ($SystemCode.Count -gt 0) { $args += "-SystemCode"; $args += $SystemCode }
+        if ($ModuleCode.Count -gt 0) { $args += "-ModuleCode"; $args += $ModuleCode }
         if ($ModuleName.Count -gt 0) { $args += "-ModuleName"; $args += $ModuleName }
     }
     if ($Apply) { $args += "-RequireRun" }
@@ -43,11 +44,11 @@ if ($Scope -in @("generated", "all")) {
         "-Root", $Root,
         "-Operation", $GeneratedOperation
     )
-    if ($All -or ($Scope -eq "all" -and $DomainName.Count -eq 0 -and $SystemCode.Count -eq 0)) {
+    if ($All -or ($Scope -eq "all" -and $DomainName.Count -eq 0 -and $ModuleCode.Count -eq 0)) {
         $args += "-All"
     } else {
         if ($DomainName.Count -gt 0) { $args += "-DomainName"; $args += $DomainName }
-        if ($SystemCode.Count -gt 0) { $args += "-SystemCode"; $args += $SystemCode }
+        if ($ModuleCode.Count -gt 0) { $args += "-ModuleCode"; $args += $ModuleCode }
     }
     if ($Apply) { $args += "-Apply" }
 

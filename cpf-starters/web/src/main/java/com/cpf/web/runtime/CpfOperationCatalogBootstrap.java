@@ -76,9 +76,14 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
             String domain=first("cpf.domain","cpf.generated-domain.domain","cpf.framework.domain"); if(domain==null) domain=runtime.systemCode();
             String name=required(tx.name(),"name");
             String description=required(tx.description(),"description");
+            // TODO(WP-IDENTITY): Operation 의 소유 Identity 는 Owner Component 의 architectureRole
+            // (cpf-tools/governance/cpf-product-surface-policy.json)로 판정해야 한다(Harness 30.16).
+            // package 추론은 Namespace 위반이라 금지되므로(Harness 30.21) 여기서 쓰지 않는다.
+            // Role 기반 판정이 Runtime 에 착지할 때까지 기존 동작을 유지한다.
+            String owningSystem=runtime.systemCode();
             String fp=fingerprint(operationId+"|"+name+"|"+description+"|"+httpMethod+"|"+path+"|"+handler.getBeanType().getName()+"|"+method.getName());
             out.add(new CpfOperationCatalogRegistry.Operation(operationId,name,description,
-                    runtime.systemCode(),domain,runtime.application(),httpMethod,path,handler.getBeanType().getName(),method.getName(),fp));
+                    owningSystem,domain,runtime.application(),httpMethod,path,handler.getBeanType().getName(),method.getName(),fp));
         }
         out.sort(Comparator.comparing(value -> value.operationId()));
         for(int i=1;i<out.size();i++) if(out.get(i-1).operationId().equals(out.get(i).operationId()))

@@ -269,6 +269,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
 
     private boolean isPublicHealthRequest(String method, String path) {
         boolean readOnly = HttpMethod.GET.matches(method) || HttpMethod.HEAD.matches(method);
+        // /readiness 는 공개 OpenAPI 계약에 없는 Infra probe 전용 경로지만 실재하는 운영
+        // endpoint 다(@Hidden). 문서 노출 여부와 공개 허용 범위는 별개다.
         return readOnly && (path.equals("/adm/api/health")
                 || path.equals("/adm/api/health/liveness")
                 || path.equals("/adm/api/health/readiness"));

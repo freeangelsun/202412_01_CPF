@@ -26,6 +26,12 @@ FULL_RUNTIME_RUNNER = "cpf-tools/verification/tools/run-cpf-local-full-validatio
 FULL_RUNTIME_CHILD_UTF8_TOKENS = ("[Console]::InputEncoding", "[Console]::OutputEncoding", "$OutputEncoding")
 
 
+def strip_powershell_comments(text: str) -> str:
+    """PowerShell 주석(<# 블록 #>, # 행)을 제거해 문서 문장이 규칙에 걸리지 않게 한다."""
+    without_block = re.sub(r"<#.*?#>", "", text, flags=re.DOTALL)
+    return re.sub(r"(?m)#.*$", "", without_block)
+
+
 def iter_product_ps1(root: Path):
     for top in PRODUCT_ROOTS:
         base = root / top
@@ -52,7 +58,9 @@ def verify(root: Path) -> dict:
             failures.append(f"MOJIBAKE_SOURCE:{rel}:{','.join(hits)}")
         has_psi = PSI_TOKEN in text
         has_start_process = START_PROCESS_TOKEN in text
-        if re.search(r"(?im)(?<![A-Za-z0-9_.-])powershell(?:\.exe)?\s+(?:-|/)", text):
+        # 실제 자식 프로세스 호출만 본다. 주석/문서 문장의 "PowerShell / Gradle Task" 같은 표현이
+        # `powershell` + 공백 + `/` 패턴에 걸려 오탐을 만들었다. 주석을 먼저 제거한다.
+        if re.search(r"(?im)(?<![A-Za-z0-9_.-])powershell(?:\.exe)?\s+(?:-|/)", strip_powershell_comments(text)):
             failures.append(f"LEGACY_POWERSHELL_CHILD:{rel}")
         if has_psi:
             process_files += 1

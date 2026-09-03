@@ -2,8 +2,8 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
     [string] $AdmUsername = "admin",
-    # 단독 ADM 실행은 ADM, 1-WAS 통합 Runtime 은 자신을 LOCAL 로 선언한다. 대상 Runtime 의
-    # System Code 를 호출자가 알려준다(System6 수신자 일치 계약).
+    # ADM 은 Platform Control Plane 이라 SystemCode 가 없다(Harness 30.10).
+    # 호출자는 ADM 운영 ChannelCode 를 넘긴다.
     [string] $SystemCode = "ADM",
     [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,
     [string] $TargetTransactionId = "ADM01TRN0010",
@@ -89,14 +89,18 @@ function ConvertFrom-Utf8JsonResponse {
 }
 
 function Get-CpfIssuerCode([string] $Code) {
-    # CPF 정본 거래ID 의 issuer 는 **3자리**다(CpfTransactionIds). Runtime System Code 가 3자리보다
-    # 길면 CpfSystemCodes.normalize 가 앞 3자리를 issuer 로 쓴다(LOCAL -> LOC).
-    # 그래서 X-System-Code/X-Target-System-Code(수신자 일치)와 X-Original-System-Code/거래ID issuer
-    # 는 서로 다른 값일 수 있다. 둘을 같은 값으로 보내면 1-WAS 에서 반드시 거절된다.
-    if ([string]::IsNullOrWhiteSpace($Code)) { return 'CPF' }
+    # 거래ID issuer 의 source 는 **최초 신뢰 거래 기동점의 canonical ChannelCode** 다(Harness 30.7).
+    # 축약/패딩으로 issuer 를 만들지 않는다. 정본 ChannelCode 자체가 3자리 규격을 만족해야 한다.
+    # (이전 구현은 LOCAL -> LOC 처럼 SystemCode 를 잘라 issuer 를 만들었고, 그 전제였던
+    #  LOCAL SystemCode 자체가 존재하지 않는다.)
+    if ([string]::IsNullOrWhiteSpace($Code)) {
+        throw 'CPF transactionId issuer requires the canonical ChannelCode of the initiating trusted channel.'
+    }
     $trimmed = $Code.Trim().ToUpperInvariant()
-    if ($trimmed.Length -le 3) { return $trimmed }
-    return $trimmed.Substring(0, 3)
+    if ($trimmed.Length -ne 3 -or $trimmed -notmatch '^[A-Z0-9]{3}$') {
+        throw "CPF transactionId issuer must be a 3-character canonical ChannelCode; truncation is not allowed. value=$Code"
+    }
+    return $trimmed
 }
 
 function New-SmokeHeaders {
@@ -105,7 +109,6 @@ function New-SmokeHeaders {
     return @{
         # 거래ID 의 issuer(3자리)는 X-Original-System-Code 와 반드시 같아야 한다
         # (CpfHttpInboundContextAdapter, ORIGINAL_SYSTEM_CODE_MISMATCH). "ADM" 을 고정으로 박으면
-        # 1-WAS(LOCAL -> LOC)에서 항상 ECPF900002 400 이 되어 health 조차 통과하지 못한다.
         "X-Transaction-Id" = "$timestamp" + (Get-CpfIssuerCode $SystemCode) + "lgpol01" + $script:sequence.ToString("0000000")
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
@@ -153,10 +156,22 @@ function Get-AdmOrigin {
     return "$($uri.Scheme)://$($uri.Authority)"
 }
 
+function Get-AdmCsrfToken {
+    # 로그인 시 Session 이 회전하면(CpfBffCredentialResponseAdvice.changeSessionId) XSRF-TOKEN Cookie 도
+    # 새로 발급된다. 캐시한 값을 계속 쓰면 그 다음 상태 변경 요청이 403 이 된다.
+    # 그래서 매 요청마다 WebSession 의 현재 Cookie 를 읽는다.
+    if ($null -eq $script:admWebSession) { return $script:admCsrfToken }
+    $cookie = $script:admWebSession.Cookies.GetCookies($AdmBaseUrl) |
+        Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
+    if ($null -ne $cookie) { $script:admCsrfToken = [string] $cookie.Value }
+    return $script:admCsrfToken
+}
+
 function Add-AdmSessionParams {
     param([hashtable] $InvokeParams, [hashtable] $Headers)
     if ($null -ne $script:admWebSession) { $InvokeParams.WebSession = $script:admWebSession }
-    if (-not [string]::IsNullOrWhiteSpace($script:admCsrfToken)) { $Headers['X-XSRF-TOKEN'] = $script:admCsrfToken }
+    $csrf = Get-AdmCsrfToken
+    if (-not [string]::IsNullOrWhiteSpace($csrf)) { $Headers['X-XSRF-TOKEN'] = $csrf }
     # CpfTrustedOriginFilter 는 /adm/ 의 상태 변경 요청에 Origin/Referer 를 요구하고, 없으면
     # "Untrusted request origin" 으로 403 을 낸다. Browser 와 같은 same-origin 값을 보낸다.
     $Headers['Origin'] = Get-AdmOrigin -BaseUrl $AdmBaseUrl

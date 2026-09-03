@@ -15,7 +15,7 @@ for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
         _cpf_stream.reconfigure(encoding='utf-8')
     except (AttributeError, ValueError):
         pass
-import argparse, json, os, re, shutil, signal, socket, subprocess, sys, time
+import argparse, json, os, re, shutil, signal, socket, subprocess, sys, time, uuid
 from pathlib import Path
 
 ALLOWED_PROFILES={'local','dev','test','stg','prod'}
@@ -69,7 +69,12 @@ def java25()->str:
 
 # Runtime 종료 확인용 Port probe 값입니다. 운영값을 Source 에 숨기지 않고 운영자가
 # 환경변수로 조정할 수 있게 노출합니다(NXT3 operational literal 계약).
+# 기동한 Runtime 의 명령행에만 존재하는 1회용 소유권 토큰 System Property 이름이다.
+# 정지 시 PID 재사용을 걸러내는 유일한 근거이므로 이름을 바꾸면 stop() 도 함께 바꿔야 한다.
+OWNERSHIP_PROPERTY='cpf.local.runtime.ownership-token'
 STOP_PORT_PROBE_SECONDS=float(os.environ.get('CPF_LOCAL_STOP_PORT_PROBE_SECONDS','0.5'))
+# 프로세스 소유권 조회(명령행 read) 대기값도 Source 에 숨기지 않고 운영자가 조정할 수 있게 노출한다.
+PROCESS_QUERY_SECONDS=float(os.environ.get('CPF_LOCAL_PROCESS_QUERY_SECONDS','20'))
 
 def pid_file(root:Path)->Path: return root/'build/cpf-local-runtime/local-web.pid'
 def state_file(root:Path)->Path: return root/'build/cpf-local-runtime/runtime-state.json'
@@ -144,12 +149,15 @@ def start(root:Path,profile:str,mode:str,skip_build:bool)->int:
     if not jars: return fail('cpf-local-runtime bootJar not found',3)
     logs=root/'build/cpf-local-runtime/logs'; logs.mkdir(parents=True,exist_ok=True); pf.parent.mkdir(parents=True,exist_ok=True)
     out=(logs/'LOCAL_WEB.out.log').open('ab',buffering=0); err=(logs/'LOCAL_WEB.err.log').open('ab',buffering=0)
-    cmd=[java,f'-Xms{xms}',f'-Xmx{xmx}',f'-XX:MaxMetaspaceSize={policy.get("runtime.jvm.maxMetaspace","256m")}',f'-XX:MaxDirectMemorySize={policy.get("runtime.jvm.maxDirectMemory","128m")}',f'-XX:ReservedCodeCacheSize={policy.get("runtime.jvm.reservedCodeCache","128m")}',f'-Xss{policy.get("runtime.jvm.threadStack","1m")}','-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-jar',str(jars[-1]),f'--spring.profiles.active=local,local-{mode}',f'--server.address={host}',f'--server.port={port}',f'--cpf.db.vendor={db_vendor}',f'--cpf.db.resource-root={db_resource_root}','--cpf.environment=local','--cpf.local.runtime.enabled=true','--cpf.local.modules.domains.enabled=true','--cpf.local.modules.domains.auto-discover=true']
+    cmd=[java,f'-Xms{xms}',f'-Xmx{xmx}',f'-XX:MaxMetaspaceSize={policy.get("runtime.jvm.maxMetaspace","256m")}',f'-XX:MaxDirectMemorySize={policy.get("runtime.jvm.maxDirectMemory","128m")}',f'-XX:ReservedCodeCacheSize={policy.get("runtime.jvm.reservedCodeCache","128m")}',f'-Xss{policy.get("runtime.jvm.threadStack","1m")}','-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8',f'-D{OWNERSHIP_PROPERTY}={ownership_token}','-jar',str(jars[-1]),f'--spring.profiles.active=local,local-{mode}',f'--server.address={host}',f'--server.port={port}',f'--cpf.db.vendor={db_vendor}',f'--cpf.db.resource-root={db_resource_root}','--cpf.environment=local','--cpf.local.runtime.enabled=true','--cpf.local.modules.domains.enabled=true','--cpf.local.modules.domains.auto-discover=true']
+    # PID 는 OS 가 재사용한다. 정지 시 '이 PID 가 정말 우리가 띄운 Runtime 인가' 를
+    # 확인할 수 있도록, 명령행에만 존재하는 1회용 소유권 토큰을 심고 state 에 함께 남긴다.
+    ownership_token=uuid.uuid4().hex
     creation=0
     if os.name=='nt': creation=getattr(subprocess,'CREATE_NEW_PROCESS_GROUP',0)|getattr(subprocess,'DETACHED_PROCESS',0)
     p=subprocess.Popen(cmd,cwd=root,env=env,stdin=subprocess.DEVNULL,stdout=out,stderr=err,start_new_session=(os.name!='nt'),creationflags=creation)
     pf.write_text(str(p.pid)+'\n',encoding='ascii')
-    state={'pid':p.pid,'host':host,'port':port,'mode':mode,'resourceProfile':profile,'xms':xms,'xmx':xmx,'startedAt':time.time(),'jar':str(jars[-1].relative_to(root))}
+    state={'pid':p.pid,'host':host,'port':port,'mode':mode,'resourceProfile':profile,'xms':xms,'xmx':xmx,'startedAt':time.time(),'jar':str(jars[-1].relative_to(root)),'ownershipToken':ownership_token}
     state_file(root).write_text(json.dumps(state,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     readiness=wait_until_ready(p,host,port,ready_timeout)
     if readiness!='READY':
@@ -182,18 +190,45 @@ def status(root:Path)->int:
     if pid_alive(pid): print(f'CPF_STATUS=RUNNING pid={pid}'); return 0
     print(f'CPF_STATUS=STALE pid={pid}'); return 2
 
-def force_kill(pid:int)->None:
+def process_command_line(pid:int)->str:
+    """대상 PID 의 명령행을 조회한다. 조회 실패는 빈 문자열로 돌려 소유권 미확인으로 취급한다."""
+    if os.name=='nt':
+        try:
+            completed=subprocess.run(
+                ['powershell','-NoProfile','-NonInteractive','-Command',
+                 f'(Get-CimInstance Win32_Process -Filter "ProcessId={int(pid)}").CommandLine'],
+                capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=PROCESS_QUERY_SECONDS,check=False)
+            return (completed.stdout or '').strip()
+        except (OSError,subprocess.SubprocessError): return ''
+    try:
+        return Path(f'/proc/{int(pid)}/cmdline').read_bytes().decode('utf-8','replace').replace(chr(0),' ').strip()
+    except OSError: return ''
+
+def owns_runtime(pid:int, ownership_token:str)->bool:
+    """이 PID 가 우리가 띄운 Runtime 인지 확인한다.
+
+    PID 는 OS 가 재사용하므로 PID 만 보고 `taskkill /T /F` 를 하면 무관한 프로세스 트리를
+    죽일 수 있다. 기동 시 명령행에 심은 1회용 토큰이 지금도 그 프로세스에 있는지 확인한다.
+    토큰이 없거나 조회에 실패하면 **소유하지 않은 것으로 간주하고 죽이지 않는다**(fail-closed).
+    """
+    if pid<=0 or not ownership_token: return False
+    return ownership_token in process_command_line(pid)
+
+def force_kill(pid:int, ownership_token:str)->bool:
     """OS 별 강제 종료. Windows 는 자식까지 함께 종료한다.
 
     Runtime 은 detached process group 으로 기동하므로 `os.kill` 이 조용히 실패할 수 있다.
-    그 경우에도 반드시 죽여야 다음 실행이 같은 Port 를 쓸 수 있다.
+    그 경우에도 반드시 죽여야 다음 실행이 같은 Port 를 쓸 수 있다. 다만 죽이기 전에
+    소유권을 확인한다 — 확인되지 않으면 아무 것도 죽이지 않고 False 를 돌린다.
     """
+    if not owns_runtime(pid,ownership_token): return False
     if os.name=='nt':
         subprocess.run(['taskkill','/PID',str(pid),'/T','/F'],
                        stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
-        return
+        return True
     try: os.kill(pid,signal.SIGKILL if hasattr(signal,'SIGKILL') else signal.SIGTERM)
     except OSError: pass
+    return True
 
 def stop(root:Path)->int:
     """Runtime 을 정지하고 **실제로 종료되었는지 확인**한다.
@@ -213,6 +248,16 @@ def stop(root:Path)->int:
         print('CPF_LOCAL_RUNTIME=STOPPED already=true'); return 0
     try: pid=int(pf.read_text().strip())
     except ValueError: pid=-1
+    # PID 재사용 대비: 기동 시 명령행에 심은 1회용 토큰으로 소유권을 먼저 확인한다.
+    # 토큰을 확인하지 못하면 SIGTERM 도 tree kill 도 하지 않는다(fail-closed).
+    ownership_token=''
+    try:
+        ownership_token=str(json.loads(state_file(root).read_text(encoding='utf-8')).get('ownershipToken') or '')
+    except (OSError,ValueError): ownership_token=''
+    owned=owns_runtime(pid,ownership_token)
+    if pid>0 and pid_alive(pid) and not owned:
+        return fail(f'runtime pid={pid} is alive but does not carry this runtime ownership token. '
+                    'Refusing to kill a possibly recycled PID. Verify the process and stop it manually.',4)
     if pid>0 and pid_alive(pid):
         try: os.kill(pid,signal.SIGTERM)
         except OSError: pass
@@ -220,7 +265,7 @@ def stop(root:Path)->int:
             if not pid_alive(pid): break
             time.sleep(.1)
         if pid_alive(pid):
-            force_kill(pid)
+            force_kill(pid,ownership_token)
             for _ in range(50):
                 if not pid_alive(pid): break
                 time.sleep(.1)
@@ -230,8 +275,8 @@ def stop(root:Path)->int:
     for _ in range(15):
         if not port_listening(host,port,STOP_PORT_PROBE_SECONDS): break
         time.sleep(.2)
-    if port_listening(host,port,STOP_PORT_PROBE_SECONDS) and pid>0:
-        force_kill(pid)
+    if port_listening(host,port,STOP_PORT_PROBE_SECONDS) and pid>0 and owned:
+        force_kill(pid,ownership_token)
         for _ in range(25):
             if not port_listening(host,port,STOP_PORT_PROBE_SECONDS): break
             time.sleep(.2)

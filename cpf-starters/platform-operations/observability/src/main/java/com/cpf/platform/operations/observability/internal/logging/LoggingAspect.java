@@ -7,7 +7,6 @@ import com.cpf.platform.operations.observability.api.logging.CpfLogLevel;
 import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegmentPort;
 import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegmentPort.SegmentScope;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
-import com.cpf.foundation.context.system.CpfSystemCodes;
 import com.cpf.core.api.error.DefaultCpfResponseCodeResolver;
 import com.cpf.core.api.error.CpfException;
 import com.cpf.core.api.error.CpfResolvedResponse;
@@ -945,21 +944,23 @@ public class LoggingAspect {
         return CpfTransactionIds.instanceToken(record.getTransactionId());
     }
 
+    /**
+     * 로그의 moduleId 를 정합니다.
+     *
+     * <p>moduleId 는 **Module Namespace 값**이며 Business SystemCode 가 아니다(Harness 30.19).
+     * 이전 구현은 SystemCode 정규화로 3자리 규격에 맞추고, 없으면
+     * package/class 이름에서 추론하고, 그래도 없으면 {@code CPF} 로 대체했다. 이는 Module /
+     * DB Prefix / SystemCode Namespace 를 뒤섞는 동작이라 제거한다. 선언된 module id 를 그대로 쓰고,
+     * 없으면 application 이름을, 그마저 없으면 미상으로 남긴다 — 가상 Identity 를 만들지 않는다.</p>
+     */
     private String resolveModuleId(ProceedingJoinPoint joinPoint) {
         String configuredModuleId = environment.getProperty("cpf.framework.module-id");
         if (hasText(configuredModuleId)) {
-            return CpfSystemCodes.normalize(configuredModuleId, CpfSystemCodes.CORE);
+            return configuredModuleId.trim();
         }
-
-        String declaringType = joinPoint.getSignature().getDeclaringTypeName();
-        String inferredModuleId = CpfSystemCodes.inferFromTypeName(declaringType);
-        if (hasText(inferredModuleId)) {
-            return inferredModuleId;
-        }
-
         String appName = environment.getProperty("spring.application.name");
         if (hasText(appName)) {
-            return CpfSystemCodes.normalize(appName, CpfSystemCodes.CORE);
+            return appName.trim();
         }
         return "N/A";
     }

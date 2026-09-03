@@ -13,89 +13,118 @@
   ],
   "moduleOwners": [
     {
-      "prefix": "cpf-core/",
-      "owner": "cpf-core",
-      "responsibility": "topology-independent technical contracts and implementations"
+      "prefix": "cpf-tools/runtime/cpf-local-runtime/",
+      "owner": "cpf-tools",
+      "responsibility": "same-JVM local runtime topology that assembles multiple runtimes; not a system",
+      "architectureRole": "TOPOLOGY"
     },
     {
-      "prefix": "cpf-admin/",
-      "owner": "cpf-admin",
-      "responsibility": "platform operations and administration"
-    },
-    {
-      "prefix": "cpf-backoffice/",
-      "owner": "cpf-backoffice",
-      "responsibility": "optional prebuilt customer business administration domain using generated-domain contracts"
-    },
-    {
-      "prefix": "cpf-backoffice-web/",
-      "owner": "cpf-backoffice-web",
-      "responsibility": "DB-less external channel/BFF reference for Backoffice business transactions"
-    },
-    {
-      "prefix": "cpf-batch/",
+      "prefix": "cpf-batch/control-plane/",
       "owner": "cpf-batch",
-      "responsibility": "batch worker scheduler and center-cut runtime"
-    },
-    {
-      "prefix": "cpf-gateway/",
-      "owner": "cpf-gateway",
-      "responsibility": "optional gateway runtime"
-    },
-    {
-      "prefix": "cpf-education/",
-      "owner": "cpf-education",
-      "responsibility": "public API and SPI education runtime"
-    },
-    {
-      "prefix": "cpf-member/",
-      "owner": "generated-domain",
-      "responsibility": "generated business domain"
-    },
-    {
-      "prefix": "cpf-external/",
-      "owner": "generated-domain",
-      "responsibility": "generated business domain"
-    },
-    {
-      "prefix": "cpf-common/",
-      "owner": "cpf-common",
-      "responsibility": "customer business common product contracts, services, policies, repositories and canonical SQL resources"
+      "responsibility": "batch operations control plane API",
+      "architectureRole": "BATCH_CONTROL_PLANE"
     },
     {
       "prefix": "cpf-starters/common/",
       "owner": "cpf-starters",
-      "responsibility": "cpf-common runtime auto-configuration, durable cache refresh wiring and provider composition"
+      "responsibility": "cpf-common runtime auto-configuration, durable cache refresh wiring and provider composition",
+      "architectureRole": "FRAMEWORK_INTERNAL"
+    },
+    {
+      "prefix": "cpf-backoffice-web/",
+      "owner": "cpf-backoffice-web",
+      "responsibility": "DB-less external channel/BFF reference for Backoffice business transactions",
+      "architectureRole": "CHANNEL_FRONT"
+    },
+    {
+      "prefix": "cpf-backoffice/",
+      "owner": "cpf-backoffice",
+      "responsibility": "optional prebuilt customer business administration domain using generated-domain contracts",
+      "architectureRole": "BUSINESS_DOMAIN"
+    },
+    {
+      "prefix": "cpf-education/",
+      "owner": "cpf-education",
+      "responsibility": "public API and SPI education runtime",
+      "architectureRole": "REFERENCE_RUNTIME"
+    },
+    {
+      "prefix": "cpf-external/",
+      "owner": "generated-domain",
+      "responsibility": "generated business domain",
+      "architectureRole": "BUSINESS_DOMAIN"
     },
     {
       "prefix": "cpf-starters/",
       "owner": "cpf-starters",
-      "responsibility": "starter and auto-configuration products"
+      "responsibility": "starter and auto-configuration products",
+      "architectureRole": "FRAMEWORK_INTERNAL"
+    },
+    {
+      "prefix": "cpf-gateway/",
+      "owner": "cpf-gateway",
+      "responsibility": "optional gateway runtime",
+      "architectureRole": "GATEWAY"
+    },
+    {
+      "prefix": "cpf-common/",
+      "owner": "cpf-common",
+      "responsibility": "customer business common product contracts, services, policies, repositories and canonical SQL resources",
+      "architectureRole": "FRAMEWORK_INTERNAL"
+    },
+    {
+      "prefix": "cpf-member/",
+      "owner": "generated-domain",
+      "responsibility": "generated business domain",
+      "architectureRole": "BUSINESS_DOMAIN"
+    },
+    {
+      "prefix": "cpf-admin/",
+      "owner": "cpf-admin",
+      "responsibility": "platform operations and administration",
+      "architectureRole": "PLATFORM_CONTROL_PLANE"
+    },
+    {
+      "prefix": "cpf-batch/",
+      "owner": "cpf-batch",
+      "responsibility": "batch worker scheduler agent and center-cut runtimes that own canonical BAT/CEC system identities",
+      "architectureRole": "BATCH_RUNTIME"
     },
     {
       "prefix": "cpf-tools/",
       "owner": "cpf-tools",
-      "responsibility": "generator database verification and release tooling"
+      "responsibility": "generator database verification and release tooling",
+      "architectureRole": "FRAMEWORK_INTERNAL"
+    },
+    {
+      "prefix": "cpf-core/",
+      "owner": "cpf-core",
+      "responsibility": "topology-independent technical contracts and implementations",
+      "architectureRole": "FRAMEWORK_INTERNAL"
     },
     {
       "prefix": "cpf-docs/",
       "owner": "cpf-docs",
-      "responsibility": "governance requirements matrices evidence and guides"
-    },
-    {
-      "prefix": "deploy/",
-      "owner": "deploy",
-      "responsibility": "deployment topology and environment assets"
+      "responsibility": "governance requirements matrices evidence and guides",
+      "architectureRole": "FRAMEWORK_INTERNAL"
     },
     {
       "prefix": ".github/",
       "owner": "repository-governance",
-      "responsibility": "CI and repository governance"
+      "responsibility": "CI and repository governance",
+      "architectureRole": "FRAMEWORK_INTERNAL"
+    },
+    {
+      "prefix": "deploy/",
+      "owner": "deploy",
+      "responsibility": "deployment topology and environment assets",
+      "architectureRole": "FRAMEWORK_INTERNAL"
     },
     {
       "prefix": "gradle/",
       "owner": "repository-build",
-      "responsibility": "Gradle wrapper and build logic"
+      "responsibility": "Gradle wrapper and build logic",
+      "architectureRole": "FRAMEWORK_INTERNAL"
     }
   ],
   "rootFiles": [
@@ -148,5 +177,56 @@
     "test_paths",
     "development_status",
     "verification_status"
-  ]
+  ],
+  "architectureRoles": {
+    "BATCH_CONTROL_PLANE": {
+      "description": "Batch 운영/제어 Control Plane. Business System 계약 강제 대상이 아니다.",
+      "hasSystemCode": false
+    },
+    "BATCH_RUNTIME": {
+      "description": "Batch 실행 Runtime(Worker/Scheduler/Agent/Center-Cut). canonical System Identity(BAT/CEC)를 가진다.",
+      "hasSystemCode": true
+    },
+    "BUSINESS_DOMAIN": {
+      "description": "고객 업무 Domain. canonical SystemCode 를 가지며 Business 거래 계약을 적용한다.",
+      "hasSystemCode": true
+    },
+    "CHANNEL_FRONT": {
+      "description": "Front/외부 Channel Application. 정본 ChannelCode 를 소유하고 SystemCode 를 가지지 않는다.",
+      "hasSystemCode": false
+    },
+    "FRAMEWORK_INTERNAL": {
+      "description": "Framework/Starter/도구/거버넌스 자산. 독립 Runtime System Identity 를 가지지 않는다.",
+      "hasSystemCode": false
+    },
+    "GATEWAY": {
+      "description": "Edge/Trust/Route 중계 Component. SystemCode 를 가지지 않는다.",
+      "hasSystemCode": false
+    },
+    "PLATFORM_CONTROL_PLANE": {
+      "description": "CPF 운영 Control Plane(ADM). SystemCode 를 가지지 않으며 운영 ChannelCode 로 lineage 를 구성한다.",
+      "hasSystemCode": false
+    },
+    "REFERENCE_RUNTIME": {
+      "description": "CPF 공식 Education/Reference Runtime(EDU). canonical SystemCode 를 가진다.",
+      "hasSystemCode": true
+    },
+    "TOPOLOGY": {
+      "description": "배치 topology(Same-JVM 1-WAS 등). System 이 아니며 SystemCode 를 가지지 않는다.",
+      "hasSystemCode": false
+    }
+  },
+  "nonSystemIdentityCodes": {
+    "codes": [
+      "CPF",
+      "CMN",
+      "ADM",
+      "GWY",
+      "OPS",
+      "LOCAL",
+      "DEFAULT",
+      "UNKNOWN"
+    ],
+    "reason": "Module Code / DB Physical Prefix / topology 이름이며 Business System Identity 가 아니다(Harness 30.19)."
+  }
 }

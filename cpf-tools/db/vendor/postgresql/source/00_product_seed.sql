@@ -9,12 +9,10 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 INSERT INTO OPS_SYSTEM_REGISTRY (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by)
-VALUES ('CPF', 'CPF Core Platform', 'CPF', 'Y', 'CPF core platform system', 1, 'SYSTEM', 'SYSTEM'),
-    ('CMN', 'CPF Common', 'CMN', 'Y', 'CPF mandatory common system', 1, 'SYSTEM', 'SYSTEM'),
-    ('ADM', 'CPF Administration', 'ADM', 'Y', 'CPF administration system', 1, 'SYSTEM', 'SYSTEM'),
-    ('MBW', 'CPF Backoffice', 'MBW', 'Y', 'CPF business backoffice system', 1, 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW', 'CPF Backoffice', 'MBW', 'Y', 'CPF optional business backoffice domain', 1, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'CPF Batch', 'BAT', 'Y', 'CPF batch runtime system', 1, 'SYSTEM', 'SYSTEM'),
-    ('EDU', 'CPF Education', 'EDU', 'Y', 'CPF education reference system', 1, 'SYSTEM', 'SYSTEM')
+    ('CEC', 'CPF Center-Cut', 'CEC', 'Y', 'CPF center-cut runtime system', 1, 'SYSTEM', 'SYSTEM'),
+    ('EDU', 'CPF Education', 'EDU', 'Y', 'CPF education reference runtime system', 1, 'SYSTEM', 'SYSTEM')
 ON CONFLICT (system_code) DO UPDATE SET system_name=EXCLUDED.system_name, domain_code=EXCLUDED.domain_code, enabled_yn=EXCLUDED.enabled_yn, description=EXCLUDED.description, policy_version=EXCLUDED.policy_version, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 INSERT INTO OPS_CHANNEL_REGISTRY (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by)
 VALUES ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),

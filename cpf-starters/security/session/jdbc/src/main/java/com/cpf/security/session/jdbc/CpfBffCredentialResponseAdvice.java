@@ -165,8 +165,23 @@ public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<
         return mapper.convertValue(sanitized, LinkedHashMap.class);
     }
 
+    /** ADM BFF Chain 이 소유하는 경로 접두사입니다. {@code CpfBffSessionBridgeFilter} 와 같은 경계입니다. */
+    private static final String ADM_BFF_PREFIX = "/adm/api/";
+
+    /**
+     * ADM BFF 의 인증 발급 경로만 대상으로 합니다.
+     *
+     * <p>경로 접미사만 보면 Backoffice(MBW)의 {@code /api/v1/backoffice/auth/login} 까지 잡힌다.
+     * MBW 는 Channel Front(cpf-backoffice-web)가 Bearer 로 연동하는 **다른 인증 경계**이며
+     * HttpOnly BFF Session 을 쓰지 않는다. 실제로 이 Advice 가 MBW 로그인 응답까지 처리하면서
+     * 1-WAS 의 {@code POST /api/v1/backoffice/auth/login} 이 500(ECPF990000)으로 실패했다.
+     * ADM 과 Backoffice Web 의 인증 경계를 같은 것으로 취급하지 않는다.</p>
+     */
     private static boolean isAuthenticationIssuePath(HttpServletRequest request) {
         String path = request.getRequestURI();
+        if (path == null || !path.startsWith(ADM_BFF_PREFIX)) {
+            return false;
+        }
         return path.endsWith("/auth/login") || path.endsWith("/auth/refresh");
     }
 

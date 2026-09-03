@@ -558,3 +558,77 @@ batch/gateway는 `@Primary`(`batDataSource`/`batTransactionManager`/`batJdbcTemp
 - `cpfVerifyIdeClasspathReady` 는 compile output 과 **jar 산출물**을 함께 검사한다
   (`scope=all-java-projects+jar-artifacts`). compile output 만 보던 초판은 jar 이 없는 상태에서도
   PASS 를 냈고, 그래서 같은 오류가 반복해서 되살아났다.
+
+## 27. 사용자 대면 Shell/Command 사용성 계약 (Mandatory)
+
+사용자 Steering(2026-09-03): "1-WAS 구동 Shell을 포함해 개발자·운영자·사용자가 직접 쓰는 모든
+Shell/명령은 조립형·가독성·수정 용이성을 기준으로 정리한다."
+
+동작 여부만 보는 검수는 이 계약을 만족하지 못한다. 사용성·가독성·유지보수성·수정 편의성까지 본다.
+
+### 27.1 실행 항목은 한 줄 주석으로 넣고 뺄 수 있어야 한다
+
+Domain / Module / 기능 단위 실행 항목은 **한 줄을 주석 처리하는 것만으로** 포함·제외할 수 있어야
+한다. 여러 곳을 동시에 고쳐야 하나를 빼는 구조는 이 계약 위반이다.
+
+### 27.2 긴 단일 명령에 모든 기능을 묶지 않는다
+
+의미 있는 실행 단계와 옵션을 분리해 **어디를 고쳐야 하는지 즉시 보이는 구조**로 만든다.
+한 줄에 전체 기동 명령을 이어 붙이면 수정 지점을 찾을 수 없다.
+
+- 사용자 진입 Shell의 한 줄은 200자를 넘지 않는다.
+- 한 줄에 `;` 로 4개 이상의 문장을 잇지 않는다.
+- 게이트: `cpf-tools/verification/tests/test_cpf_user_facing_shell_usability.py`
+
+### 27.3 자주 고치는 값은 한 곳에 모은다
+
+주요 변수, Domain 목록, Profile, Port, DB, 실행 대상처럼 자주 바뀌는 값은 파일 상단 또는
+명확히 구분된 설정 영역에 모은다.
+
+### 27.4 한글 주석으로 켜고 끄는 의미를 설명한다
+
+각 설정과 실행 단계에는 짧고 명확한 한글 주석을 단다. 무엇을 켜고 끄는지, 고치면 무엇이
+달라지는지 읽는 사람이 바로 알 수 있어야 한다.
+
+### 27.5 기본값만으로 동작해야 한다
+
+선택 기능을 넣고 빼도 전체 스크립트를 다시 쓰지 않아야 한다. 기본값 실행은 언제나 정상 동작한다.
+
+### 27.6 적용 범위
+
+1-WAS 구동 Shell뿐 아니라 Build / Test / Start / Stop / Reset / DB / Generator / Runtime /
+Validation / Open Git 관련 사용자 진입 Shell과 명령 전체에 동일 기준을 적용한다.
+
+## 28. 관측·보안 정책은 운영자가 구성한다 (Mandatory)
+
+사용자 Steering(2026-09-03): "마스킹은 임의로 하지 마라. 마스킹 항목은 ADM 사용자 설정에
+연결해 DB든 파일이든 사용자가 항목을 선택하도록 한다." / "로그 항목도 정해진 것만 남기지 말고
+사용자가 ADM에서 추가·삭제·수정할 수 있게 한다."
+
+### 28.1 마스킹 대상은 코드에 고정하지 않는다
+
+민감정보 마스킹은 **운영자가 ADM에서 선택한 항목**에만 적용한다. 값 패턴 규칙(주민번호, 전화번호,
+이메일, 장문 숫자 식별자, JWT, 개인키, Bearer 토큰 등)을 코드에 하드코딩해 무조건 적용하지 않는다.
+적용 범위는 DB 로그와 File 로그가 동일해야 한다.
+
+**실제 증상 근거**: `CpfMaskingRuntime.LONG_ACCOUNT_PATTERN`(10~19자리 숫자)이 항상 켜져 있어,
+정본 CPF 거래ID `20260903001256762BATS1JCXLU0000001` 의 앞 17자리 timestamp가 계좌번호로 오인되어
+`***6762BATS1JCXLU0000001` 로 훼손됐다. 그 결과 File/DB/ADM 통합 로그를 잇는 **상관관계 키 자체가
+사라져** Batch→Domain 응답유실 검증의 lineage 대조가 실패했다. 같은 값이 파일명·DB·ADM에는 원문으로
+남으므로 본문만 가리는 것은 보호 효과가 없고 계약만 깨뜨린다.
+
+### 28.2 CPF가 발급한 추적 식별자는 마스킹 대상이 아니다
+
+`transactionId` / `traceId` / `segmentId` 처럼 CPF가 스스로 발급한 상관관계 식별자는 사용자
+민감정보가 아니다. 운영자 선택과 무관하게 마스킹하지 않는다. 정본 규격은
+`com.cpf.core.api.transaction.CpfTransactionIds` 가 소유한다.
+
+### 28.3 로그 항목은 운영자가 추가·삭제·수정한다
+
+남길 로그 항목(필드)을 코드에 고정하지 않는다. ADM에서 항목을 추가·삭제·수정할 수 있어야 하며,
+DB 로그와 File 로그에 같은 구성이 적용되어야 한다.
+
+### 28.4 ADM Route는 필수 기능이다
+
+위 두 설정은 CPF가 제공하는 Framework/Platform 관리 기능이므로 ADM capability registry에 등록된
+**mandatory Route**로 제공한다. §26.2에 따라 조건부 Provider로 축소하지 않는다.

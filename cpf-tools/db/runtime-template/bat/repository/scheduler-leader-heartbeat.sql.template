@@ -1,8 +1,8 @@
 UPDATE BAT_SCHEDULER_LEASE
-   SET lease_until = ?,
-       last_heartbeat_at = @NOW6@,
-       updated_at = @NOW6@
+   SET lease_until = @UTC_NOW6_PLUS_MICROS_PARAM@,
+       last_heartbeat_at = @UTC_NOW6@,
+       updated_at = @UTC_NOW6@
  WHERE scheduler_key = ?
    AND owner_instance_id = ?
    AND fencing_token = ?
-   AND lease_until >= @NOW6@
+   AND lease_until >= @UTC_NOW6@

@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 """Current Source toolchain policy와 실제 host capability를 fail-closed로 비교합니다."""
+
+import sys as _cpf_sys
+
+# CPF 표준 인코딩은 UTF-8 이다. 호출자의 콘솔 코드페이지(Windows cp949 등)에 좌우되면
+# 한글 출력이 깨져 진단 메시지를 읽을 수 없다. 진입점이 스스로 출력 스트림을 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    try:
+        _cpf_stream.reconfigure(encoding='utf-8')
+    except (AttributeError, ValueError):
+        pass
 from pathlib import Path
 import argparse,json,re,shutil,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[2]

@@ -65,7 +65,9 @@ $runId=Get-Date -Format 'yyyyMMddHHmmssfff'
 $processes=@()
 $script:AgentArtifactStateMacKeyBase64=[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 $script:AgentCommandLedgerRoot=Join-Path $ResultDir 'agent-command-ledger'
-$result=[ordered]@{status='RUNNING';runId=$runId;startedAt=$started.ToString('o');kafkaUsed=$false;roles=[ordered]@{};checks=@();logs=@()}
+$script:TransactionFileLogRoot=Join-Path $ResultDir 'transaction-file-logs'
+[IO.Directory]::CreateDirectory($script:TransactionFileLogRoot)|Out-Null
+$result=[ordered]@{status='RUNNING';runId=$runId;startedAt=$started.ToString('o');kafkaUsed=$false;roles=[ordered]@{};checks=@();logs=@();transactionLineage=[ordered]@{status='NOT_EXECUTED';fileLogRoot=$script:TransactionFileLogRoot}}
 
 function Step([string]$name,[string]$status,[string]$detail='') {
     $stamp=(Get-Date).ToString('HH:mm:ss')
@@ -74,6 +76,80 @@ function Step([string]$name,[string]$status,[string]$detail='') {
 }
 function Require([bool]$condition,[string]$message) { if(-not $condition){throw $message} }
 function Json([object]$value){ $value | ConvertTo-Json -Depth 12 -Compress }
+function Get-SqlJsonRows([string]$sql) {
+    $raw=Invoke-Sql $sql
+    if([string]::IsNullOrWhiteSpace($raw)){return @()}
+    $rows=[Collections.Generic.List[object]]::new()
+    foreach($line in @($raw -split '\r?\n' | Where-Object {-not [string]::IsNullOrWhiteSpace($_)})){
+        try {$rows.Add(($line|ConvertFrom-Json -Depth 30))} catch {throw "SQL JSON evidence row is invalid: $line"}
+    }
+    return @($rows)
+}
+function Read-CpfLiveLogText([string]$Path) {
+    # 살아 있는 Runtime 이 지금도 쓰고 있는 증적 파일을 읽는다.
+    # Windows 에서 File Log Owner(CpfFileLogWriter)는 rolling 파일 핸들을 연 채 유지하는데
+    # [IO.File]::ReadAllText/ReadAllLines/ReadLines 는 FileShare.Read 로만 열기 때문에
+    # 쓰기 핸들이 살아 있으면 "다른 프로세스가 사용 중" 으로 던진다. 실제로 Batch Two-Worker
+    # 검증이 업무 단정(sampleRows/idempotencyRows/serviceCallSuccess)을 전부 통과한 뒤
+    # 이 지점에서만 실패했다. 그러므로 공유 모드를 명시해서 연다.
+    # 파일 부재/권한 오류는 그대로 예외로 남긴다 — '잠김' 만 허용하고 증적 부재는 숨기지 않는다.
+    $stream=$null;$reader=$null
+    try {
+        $stream=[IO.FileStream]::new($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,
+            ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+        $reader=[IO.StreamReader]::new($stream,[Text.UTF8Encoding]::new($false),$true)
+        return $reader.ReadToEnd()
+    } finally {
+        if($null -ne $reader){$reader.Dispose()} elseif($null -ne $stream){$stream.Dispose()}
+    }
+}
+function Read-CpfLiveLogLines([string]$Path) {
+    return @((Read-CpfLiveLogText $Path) -split "`r`n|`n|`r")
+}
+function ConvertTo-FileLogEvidenceRow([object]$Entry) {
+    # 구조화 파일 로그의 이벤트 키는 이벤트 종류마다 다르다. 예를 들어 ONLINE_TRANSACTION 에는
+    # `callerSystemCode` 는 있어도 `sourceSystemCode`/`messageCode`/`errorCode` 는 없다.
+    # StrictMode 에서 없는 속성을 그대로 읽으면 "property cannot be found" 로 던져 검증이
+    # 실제 결함이 아닌 이유로 실패한다(실제로 그렇게 한 사이클을 소모했다).
+    # 그러므로 존재하는 키만 읽고 없으면 빈 문자열로 둔다.
+    $record=$Entry.record
+    $names=@($record.PSObject.Properties.Name)
+    $read={ param([string]$Name) if($names -contains $Name){[string]$record.$Name}else{''} }
+    return [ordered]@{
+        path=$Entry.path
+        transactionId=(& $read 'transactionId')
+        traceId=(& $read 'traceId')
+        segmentId=(& $read 'segmentId')
+        parentSegmentId=(& $read 'parentSegmentId')
+        instanceId=(& $read 'instanceId')
+        # 이 이벤트의 '호출한 쪽' 정본 키는 callerSystemCode 다.
+        callerSystemCode=(& $read 'callerSystemCode')
+        systemCode=(& $read 'systemCode')
+        targetSystemCode=(& $read 'targetSystemCode')
+        operationId=(& $read 'operationId')
+        status=(& $read 'status')
+        responseCode=(& $read 'responseCode')
+        messageCode=(& $read 'messageCode')
+        # 신규 File contract가 errorCode를 쓰며, 이전 event는 failureCode만 남겼다. Evidence에는
+        # 둘을 분리해 남겨 migration/consumer drift도 판정할 수 있게 한다.
+        errorCode=(& $read 'errorCode')
+        failureCode=(& $read 'failureCode')
+        httpStatus=(& $read 'httpStatus')
+        eventType=(& $read 'eventType')
+    }
+}
+function Get-TransactionFileLogRows([string]$transactionId) {
+    $rows=[Collections.Generic.List[object]]::new()
+    foreach($file in @(Get-ChildItem -LiteralPath $script:TransactionFileLogRoot -Recurse -File -ErrorAction SilentlyContinue)){
+        foreach($line in @(Read-CpfLiveLogLines $file.FullName | Where-Object {$_ -like "*$transactionId*"})){
+            try {$record=$line|ConvertFrom-Json -Depth 30} catch {continue}
+            if([string]$record.transactionId -eq $transactionId){
+                $rows.Add([pscustomobject]@{path=$file.FullName;record=$record})
+            }
+        }
+    }
+    return @($rows)
+}
 function Resolve-Java {
     $java=Get-Command java -ErrorAction SilentlyContinue
     if(-not $java){throw 'java command not found'}
@@ -118,6 +194,22 @@ function Resolve-GeneratedDomainTarget {
     # Several valid generated Domains may coexist. The default remains deterministic without
     # coupling the harness to a customer/project name; callers can request a system code explicitly.
     return @($candidates | Sort-Object @{Expression={[string]$_.systemCode};Ascending=$true}, @{Expression={[string]$_.projectName};Ascending=$true})[0]
+}
+function Resolve-GeneratedDomainCreateOperation([object]$domain) {
+    # Batch→Domain recovery must exercise an actual generated business transaction.  The generic
+    # /ping operation is intentionally outside the business Operation Manifest/ADM policy catalog
+    # and is therefore unsuitable as a transaction/retry/duplicate-effect proof.
+    Require ([bool]$domain.sampleTransaction) ("Generated Domain lacks the standard sample transaction contract: " + [string]$domain.projectName)
+    $manifest=Join-Path $root (([string]$domain.projectName) + '\\online\\build\\generated\\cpf-operation-manifest\\META-INF\\cpf\\business-operation-manifest.json')
+    Require (Test-Path -LiteralPath $manifest -PathType Leaf) "Generated Domain business operation manifest is missing: $manifest"
+    try { $document=Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json -Depth 32 }
+    catch { throw "Generated Domain business operation manifest is invalid: $manifest :: $($_.Exception.Message)" }
+    $prefix=[regex]::Escape(([string]$domain.systemCode).Trim().ToUpperInvariant() + '_')
+    $candidates=@($document.operations | Where-Object {
+        [string]$_.httpMethod -ceq 'POST' -and [string]$_.operationId -match "^${prefix}SAMPLE_TX_CREATE$"
+    } | Sort-Object @{Expression={[string]$_.operationId};Ascending=$true})
+    Require ($candidates.Count -eq 1) ("Generated Domain requires exactly one manifest-backed Sample Create operation: " + $manifest)
+    return [pscustomobject]@{operationId=[string]$candidates[0].operationId;apiPath=[string]$candidates[0].apiPath;manifest=$manifest}
 }
 function Invoke-Sql([string]$sql,[switch]$RootUser){
     $docker=Resolve-Docker
@@ -203,6 +295,24 @@ function Start-Role([string]$name,[string]$jar,[int]$port,[hashtable]$extra,[str
         $args += "--cpf.services.$($script:TargetSystemCode).allowed-ports[0]=$DomainPort"
         $args += "--cpf.services.$($script:TargetSystemCode).allowed-ports[1]=$ResponseLossProxyPort"
     }
+    if($name -eq 'domain'){
+        # /_cpf/domain/** is a machine-only boundary.  The generated Domain must trust the
+        # verifier's actual Worker peer as BAT through the canonical, explicit peer mapping;
+        # Header6 alone must never authenticate an internal caller.  Do not use a broad CIDR or
+        # a loopback shortcut: RuntimeHostAddress is the concrete non-loopback source address
+        # used by the Worker-to-Domain route above.
+        $args += "--cpf.web.internal-peer-identities=$($script:RuntimeHostAddress)=BAT"
+        # Runtime Agent 는 자기 instance 를 OPS_SERVICE_INSTANCE 에 등록하는데, server.address 가
+        # wildcard 면 base_url 을 **hostname** 으로 만든다(CpfRuntimeControlAgentAutoConfiguration
+        # .resolveRuntimeBaseUrl). 그러면 Service Call Engine 이 그 instance 로 라우팅할 때
+        # 정본 네트워크 정책이 "Hostname은 설정된 allowDns 정책 상에 포함되지 않습니다" 로 거절하고,
+        # segment 가 IllegalArgumentException/TECHNICAL_FAILURE 로 남는다. 실제 실행에서 두 번의
+        # BAT→Domain attempt 가 이렇게 실패한 뒤 endpoint baseUrl 로 우회 성공해, 성공한 segment 에
+        # selected_instance_id 가 비는 현상이 나왔다.
+        # 정책을 느슨하게(allow-dns=true) 만들지 않고, 이 topology 가 실제로 쓰는 주소를 그대로
+        # 등록하게 한다. server.address 는 건드리지 않으므로 loopback health probe 도 그대로 동작한다.
+        $args += "--cpf.runtime.control.agent.runtime-base-url=http://$($script:RuntimeHostAddress):$DomainPort"
+    }
     foreach($k in $extra.Keys){$args += "--$k=$($extra[$k])"}
     # JDBC passwords must never enter a Java command line, process listing, or harness log.
     # Spring's canonical Batch runtime contract reads the password from this child-only environment.
@@ -215,6 +325,9 @@ function Start-Role([string]$name,[string]$jar,[int]$port,[hashtable]$extra,[str
         # 공급된다. 없으면 실행 생성이 500 으로 실패한다. 검증용 Key 는 실행마다 새로 만들고
         # 저장소에 남기지 않으며, JDBC 비밀번호와 동일하게 자식 환경에만 전달한다.
         CPF_CENTER_CUT_PARAMETER_KEY=$script:CenterCutParameterKey
+        # Keep verifier-produced structured transaction logs out of the repository's default
+        # logs/ root.  This is the one canonical CPF_LOG_ROOT consumed by the File Log owner.
+        CPF_LOG_ROOT=$script:TransactionFileLogRoot
     }
     if(-not [string]::IsNullOrWhiteSpace($domainDatasourceSystemCode)){
         # Every generated Online Domain owns a separate Spring datasource binding named from its
@@ -232,6 +345,12 @@ function Start-Role([string]$name,[string]$jar,[int]$port,[hashtable]$extra,[str
         # invoked. The key is intentionally environment-only; command-line exposure defeats it.
         $childEnvironment.CPF_AGENT_ARTIFACT_STATE_MAC_KEY_BASE64=$script:AgentArtifactStateMacKeyBase64
         $childEnvironment.CPF_AGENT_COMMAND_LEDGER_ROOT=$script:AgentCommandLedgerRoot
+    }
+    if($name -eq 'domain'){
+        # The generated Domain owns its operation policy seed.  This verifier supplies the one
+        # concrete upstream system that performs the real Batch→Domain call; it does not use ALL,
+        # mutate the policy tables, or weaken the receiver's fail-closed authorization boundary.
+        $childEnvironment.CPF_OPERATION_POLICY_SEED_ALLOWED_CALLERS='BAT'
     }
     $p=Start-Process -FilePath $script:Java -ArgumentList $args -Environment $childEnvironment -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
     $script:processes += [pscustomobject]@{Name=$name;Process=$p;Log=$log;Err=$err;Port=$port;Instance=$instance}
@@ -317,6 +436,7 @@ try {
     }
     $targetDomain=Resolve-GeneratedDomainTarget
     $script:TargetSystemCode=[string]$targetDomain.systemCode
+    $runtimeOperation=Resolve-GeneratedDomainCreateOperation $targetDomain
     $jars.domain=Resolve-Jar @("$([string]$targetDomain.projectName)/online/build/libs/*.jar") ("generated Domain " + [string]$targetDomain.systemCode)
     # Runtime Agent defaults serviceId to its canonical systemCode and endpointCode to
     # <systemCode>_API. The verifier must seed those exact identities, not a run-scoped alias.
@@ -328,14 +448,15 @@ try {
     #                "Runtime Agent endpoint가 중앙 Registry에 등록되어 있지 않습니다" 로 기동 실패한다.
     #  - operationId : CpfHttpDomainRemoteTransport 가 .endpointCode(operationId) 로 찾는 Domain Call
     #                  Endpoint. 없으면 CpfEndpointResolver 가 "CPF 서비스 endpoint가 없습니다" 로 거절한다.
-    # Domain 이름은 하드코딩하지 않고 Discovery 로 찾은 systemCode 와 실제 호출 operationId 를 쓴다.
-    $runtimeOperationId='ping'
+    # Domain 이름이나 임시 ping route를 하드코딩하지 않고, Generated Manifest가 소유한 실제
+    # 업무 Create operationId를 endpoint identity로 사용한다.
+    $runtimeOperationId=[string]$runtimeOperation.operationId
     $runtimeAgentEndpointCode="$([string]$targetDomain.systemCode)_API"
     $runtimeEndpointCode=$runtimeOperationId
     Invoke-Sql "INSERT INTO ${DatabaseName}.OPS_SERVICE(service_id,service_name,service_type,owner_module_code,description,use_yn,created_by,updated_by) VALUES('$serviceId','$([string]$targetDomain.projectName) Harness','INTERNAL','$([string]$targetDomain.systemCode)','Batch runtime generated Domain target','Y','HARNESS','HARNESS') ON DUPLICATE KEY UPDATE service_name=VALUES(service_name),service_type=VALUES(service_type),owner_module_code=VALUES(owner_module_code),description=VALUES(description),use_yn='Y',updated_by='HARNESS';" | Out-Null
     Invoke-Sql "INSERT INTO ${DatabaseName}.OPS_SERVICE_ENDPOINT(endpoint_code,service_id,endpoint_name,endpoint_type,base_url,context_path,default_timeout_ms,default_retry_count,use_yn,created_by,updated_by) VALUES('$runtimeEndpointCode','$serviceId','$([string]$targetDomain.systemCode) Runtime API','HTTP','http://$($script:RuntimeHostAddress):$DomainPort','/',$(($LeaseSeconds+15)*1000),0,'Y','HARNESS','HARNESS') ON DUPLICATE KEY UPDATE service_id=VALUES(service_id),endpoint_name=VALUES(endpoint_name),endpoint_type=VALUES(endpoint_type),base_url=VALUES(base_url),context_path=VALUES(context_path),default_timeout_ms=VALUES(default_timeout_ms),default_retry_count=VALUES(default_retry_count),use_yn='Y',updated_by='HARNESS';" | Out-Null
     Invoke-Sql "INSERT INTO ${DatabaseName}.OPS_SERVICE_ENDPOINT(endpoint_code,service_id,endpoint_name,endpoint_type,base_url,context_path,default_timeout_ms,default_retry_count,use_yn,created_by,updated_by) VALUES('$runtimeAgentEndpointCode','$serviceId','$([string]$targetDomain.systemCode) Runtime API','HTTP','http://$($script:RuntimeHostAddress):$DomainPort','/',$(($LeaseSeconds+15)*1000),0,'Y','HARNESS','HARNESS') ON DUPLICATE KEY UPDATE service_id=VALUES(service_id),endpoint_name=VALUES(endpoint_name),endpoint_type=VALUES(endpoint_type),base_url=VALUES(base_url),context_path=VALUES(context_path),default_timeout_ms=VALUES(default_timeout_ms),default_retry_count=VALUES(default_retry_count),use_yn='Y',updated_by='HARNESS';" | Out-Null
-    Step 'Generated Domain service registry pre-registration' 'PASS' "systemCode=$([string]$targetDomain.systemCode) serviceId=$serviceId"
+    Step 'Generated Domain service registry pre-registration' 'PASS' "systemCode=$([string]$targetDomain.systemCode) serviceId=$serviceId operationId=$runtimeOperationId"
 
     # Center-Cut Job 정의는 Canonical Seed Model 에서 sample seed(58_runtime_sample_seed.sql)로
     # 분류되어 있고, Verifier 소유 Runtime DB 는 product seed 만 적재한다. Domain 서비스 등록과
@@ -358,6 +479,12 @@ try {
     Start-Role 'worker-2' $jars.worker $Worker2Port @{'cpf.batch.worker.center-cut.lease-seconds'=$LeaseSeconds;'cpf.batch.worker.center-cut.heartbeat-ms'=1000} | Out-Null
     Start-Role 'domain' $jars.domain $DomainPort @{} ([string]$targetDomain.systemCode) | Out-Null
     Step 'five Batch runtimes + second worker + Generated Domain' 'PASS' "systemCode=$([string]$targetDomain.systemCode)"
+    # Domain startup synchronizes its generated business manifest and seeds the explicit BAT
+    # caller policy.  Read the actual catalog/policy rows before the scenario; never insert a
+    # verifier-owned policy row, because that would conceal a product registration defect.
+    $operationRegistration=Invoke-Sql "SELECT CONCAT_WS('|',c.operation_id,c.discovery_status,p.enabled_yn,p.all_callers_yn,COALESCE(cp.caller_system_code,'')) FROM ${DatabaseName}.OPS_OPERATION_CATALOG c JOIN ${DatabaseName}.OPS_OPERATION_POLICY p ON p.operation_id=c.operation_id LEFT JOIN ${DatabaseName}.OPS_OPERATION_CALLER_POLICY cp ON cp.operation_id=c.operation_id AND cp.caller_system_code='BAT' WHERE c.operation_id='$runtimeOperationId';"
+    Require ($operationRegistration -match ("^" + [regex]::Escape($runtimeOperationId) + "\\|ACTIVE\\|Y\\|N\\|BAT$")) "Generated Domain operation catalog/policy registration is not explicit for BAT: $operationRegistration"
+    Step 'Generated Domain manifest catalog and BAT caller policy' 'PASS' "operationId=$runtimeOperationId registration=$operationRegistration"
 
     $workerRows=RuntimeCount "bat-worker-%-$runId"
     Require ($workerRows -ge 2) "Expected >=2 worker registry rows, actual=$workerRows"
@@ -376,10 +503,21 @@ try {
     # rows and cannot manufacture UNKNOWN_RESULT.
     $responseLossProxy=Start-ResponseLossProxy
     Invoke-Sql "UPDATE ${DatabaseName}.OPS_SERVICE_ENDPOINT SET base_url='http://$($script:RuntimeHostAddress):$ResponseLossProxyPort',updated_by='HARNESS' WHERE endpoint_code='$runtimeEndpointCode' AND service_id='$serviceId';" | Out-Null
+    # Service Call Engine 은 선택된 instance 의 baseUrl 을 endpoint baseUrl 보다 **먼저** 쓴다
+    # (CpfEndpointResolver: firstText(instance.baseUrl, endpoint.baseUrl)). 그래서 endpoint 만
+    # 프록시로 바꾸면 instance 로 라우팅되는 호출이 프록시를 우회해 곧바로 성공하고,
+    # 응답유실 시나리오 자체가 성립하지 않는다(실제로 그렇게 COMPLETED 로 끝나 kill 대상이 없었다).
+    # 라우팅에 실제로 쓰이는 두 출처를 함께 프록시로 돌린다.
+    Invoke-Sql "UPDATE ${DatabaseName}.OPS_SERVICE_INSTANCE SET base_url='http://$($script:RuntimeHostAddress):$ResponseLossProxyPort',updated_by='HARNESS' WHERE service_id='$serviceId';" | Out-Null
     Step 'response-loss proxy armed' 'PASS' "upstreamDomainPort=$DomainPort proxyPort=$ResponseLossProxyPort"
 
     $businessKey="BK-$runId"
-    $parameters=[ordered]@{systemCode=[string]$targetDomain.systemCode;operationId=$runtimeOperationId;targets=@([ordered]@{businessKey=$businessKey;request=[ordered]@{message='cpf-batch-kafka-free'}})}
+    # The standard generated Sample Create command is a real DB transaction with an immutable
+    # idempotency key.  The same payload crosses the response-loss/reconcile boundary so the
+    # verifier can prove one business effect rather than merely counting successful HTTP calls.
+    $sampleKey="S-$runId"
+    $domainIdempotencyKey="IDEM-$runId"
+    $parameters=[ordered]@{systemCode=[string]$targetDomain.systemCode;operationId=$runtimeOperationId;targets=@([ordered]@{businessKey=$businessKey;request=[ordered]@{sampleKey=$sampleKey;itemName="CPF Batch Runtime $runId";idempotencyKey=$domainIdempotencyKey}})}
     $create=[ordered]@{centerCutJobId=$CenterCutJobId;idempotencyKey="CC-$runId";parameters=$parameters;parameterSchemaVersion=1;tpsLimit=10;concurrencyLimit=2;requestedBy=$BatOperatorId;reason='Kafka-free Center-Cut Domain Invocation qualification';transactionId=$null;parentSegmentId=$null}
     $execution=Invoke-Json 'POST' "http://127.0.0.1:$ControlPlanePort/api/v1/batch/center-cut/executions" $create $false
     $executionId=[string]($execution.center_cut_execution_id ?? $execution.centerCutExecutionId ?? $execution.executionId)
@@ -466,6 +604,9 @@ try {
     # The replacement Worker must call the actual Domain directly after approved reconcile.  This
     # restores the registry endpoint only; it never edits a Claim/Item/Execution row.
     Invoke-Sql "UPDATE ${DatabaseName}.OPS_SERVICE_ENDPOINT SET base_url='http://$($script:RuntimeHostAddress):$DomainPort',updated_by='HARNESS' WHERE endpoint_code='$runtimeEndpointCode' AND service_id='$serviceId';" | Out-Null
+    # instance 라우팅도 함께 되돌린다. 하나만 복구하면 reconcile 이후의 정상 호출이
+    # 여전히 프록시를 지나 재현 불가능한 지연을 다시 받는다.
+    Invoke-Sql "UPDATE ${DatabaseName}.OPS_SERVICE_INSTANCE SET base_url='http://$($script:RuntimeHostAddress):$DomainPort',updated_by='HARNESS' WHERE service_id='$serviceId';" | Out-Null
     # Do not assume a fixed sleep is enough for the surviving worker's lease-expiry scan.  Observe
     # the actual Item/Claim/Execution transition until the configured Work Unit deadline, retaining
     # the last read-only SQL snapshot as failure evidence. This preserves the required physical
@@ -504,6 +645,147 @@ try {
     } else {
         throw 'UNKNOWN_RESULT was not produced from the required physical response-loss scenario'
     }
+
+    # The initial request reaches the Domain before its response is deliberately lost.  A later
+    # reconciled takeover may invoke the same idempotency key once more, but must never create a
+    # second business row or a second idempotency ledger entry.  These are direct queries against
+    # the generated Domain's canonical table-prefix contract, not a test-only shadow table.
+    $domainPrefix=([string]$targetDomain.tablePrefix).Trim().ToUpperInvariant()
+    Require ($domainPrefix -match '^[A-Z][A-Z0-9_]{0,30}$') "Generated Domain table prefix is invalid: $domainPrefix"
+    # Generated table suffixes are canonical lower-case tokens.  Linux MariaDB
+    # keeps identifier case, so normalize only the prefix owned by the Domain
+    # contract and preserve the rendered template spelling for the suffix.
+    $sampleRows=[int](Invoke-Sql "SELECT COUNT(*) FROM ${DatabaseName}.${domainPrefix}_sample_item WHERE sample_key='$sampleKey' AND idempotency_key='$domainIdempotencyKey';")
+    $idempotencyRows=[int](Invoke-Sql "SELECT COUNT(*) FROM ${DatabaseName}.${domainPrefix}_sample_item_idem WHERE idempotency_key='$domainIdempotencyKey' AND operation_code='CREATE';")
+    Require ($sampleRows -eq 1 -and $idempotencyRows -eq 1) "Generated Domain retry produced duplicate or missing business effect: sampleRows=$sampleRows idempotencyRows=$idempotencyRows"
+    $callHistoryRows=[int](Invoke-Sql "SELECT COUNT(*) FROM ${DatabaseName}.OPS_SERVICE_CALL_HISTORY WHERE transaction_id IN (SELECT transaction_id FROM ${DatabaseName}.BAT_CENTER_CUT_ITEM WHERE center_cut_execution_id='$executionId') AND service_id='$serviceId' AND endpoint_code='$runtimeOperationId' AND call_status='SUCCESS';")
+    Require ($callHistoryRows -eq 1) "Reconciled Batch→Domain success history must contain exactly one completed caller-side record: actual=$callHistoryRows"
+    Step 'Generated Domain business effect and retry idempotency' 'PASS' "sampleRows=$sampleRows idempotencyRows=$idempotencyRows serviceCallSuccess=$callHistoryRows operationId=$runtimeOperationId"
+
+    # Select the actual business transaction created by this Center-Cut execution, then correlate
+    # its structured file log, DB summary, DB segment and transaction-lineage rows.  This is not a
+    # count-only check: every record must retain the same transaction/trace/segment lineage.
+    $businessTransactionId=[string](Invoke-Sql "SELECT transaction_id FROM ${DatabaseName}.BAT_CENTER_CUT_ITEM WHERE center_cut_execution_id='$executionId' ORDER BY center_cut_item_id LIMIT 1;")
+    Require ($businessTransactionId -match '^[0-9A-Za-z_-]{20,128}$') "Center-Cut business transaction id is missing or invalid: $businessTransactionId"
+    $summaryRows=@(Get-SqlJsonRows "SELECT JSON_OBJECT('transactionId',transaction_id,'traceId',TRACE_ID,'instanceId',INSTANCE_ID,'sourceSystemCode',CALLER_SYSTEM_CODE,'targetSystemCode',TARGET_SYSTEM_CODE,'operationId',TARGET_OPERATION_ID,'status',HTTP_STATUS,'responseCode',RESPONSE_CODE,'messageCode',MESSAGE_CODE,'errorCode',ERROR_CODE) FROM ${DatabaseName}.CPF_TRANSACTION_LOG WHERE transaction_id='$businessTransactionId' ORDER BY LOG_DATE,LOG_IDX;")
+    Require ($summaryRows.Count -gt 0) "DB transaction summary is missing for transactionId=$businessTransactionId"
+    Require (@($summaryRows|Where-Object {[string]$_.transactionId -ne $businessTransactionId}).Count -eq 0) 'DB transaction summary changed transactionId'
+    $traceIds=@($summaryRows|ForEach-Object {[string]$_.traceId}|Where-Object {-not [string]::IsNullOrWhiteSpace($_)}|Sort-Object -Unique)
+    Require ($traceIds.Count -eq 1) "DB transaction summary must have one non-empty traceId: $($traceIds -join ',')"
+    $businessTraceId=$traceIds[0]
+    $expectedDomainInstance=[string]$result.roles['domain'].instanceId
+    Require (-not [string]::IsNullOrWhiteSpace($expectedDomainInstance)) 'Generated Domain runtime instanceId is missing from harness role evidence'
+    $successfulSummaryRows=@($summaryRows|Where-Object {
+        [string]$_.sourceSystemCode -eq 'BAT' -and
+        [string]$_.targetSystemCode -eq [string]$targetDomain.systemCode -and
+        [string]$_.operationId -eq $runtimeOperationId -and
+        [string]$_.instanceId -eq $expectedDomainInstance -and
+        [string]$_.status -eq '200' -and
+        -not [string]::IsNullOrWhiteSpace([string]$_.responseCode) -and
+        -not [string]::IsNullOrWhiteSpace([string]$_.messageCode) -and
+        [string]::IsNullOrWhiteSpace([string]$_.errorCode)
+    })
+    Require ($successfulSummaryRows.Count -gt 0) 'DB transaction summary does not retain the exact BAT→Domain success identity/result/instance'
+    $successfulSummary=$successfulSummaryRows[-1]
+    # segment 의 업무 식별자는 `transaction_segment_id`(VARCHAR(120), UNIQUE)다.
+    # `segment_id` 는 BIGINT AUTO_INCREMENT 대리 PK 이므로 값이 '1' 같은 순번이고, 다른 저장소와
+    # 이어지지 않는다. 실제로 그 컬럼을 쓰면 lineage 의 segmentId(...-SEG-0002-XXXX)와 대조되어
+    # 'lineage references an orphan segment' 로 오판한다.
+    # 정본 근거: `CpfTransactionLineageRecord.fromSegment` 가 lineage.segment_id 에
+    # `TransactionSegmentRecord.getTransactionSegmentId()` 를 넣고, 제품의 정본 상관 조회인
+    # `CpfTransactionTimelineQueryFacade` 도 `transaction_segment_id AS segmentId` 로 읽는다.
+    # 파일 로그의 segmentId 도 같은 업무 식별자다. 되돌리려면 세 소비자가 모두 대리 PK 로
+    # 바뀌었다는 근거를 먼저 제시하라.
+    $segmentRows=@(Get-SqlJsonRows "SELECT JSON_OBJECT('transactionId',transaction_id,'segmentId',transaction_segment_id,'parentSegmentId',parent_segment_id,'attempt',attempt_no,'depth',call_depth,'instanceId',selected_instance_id,'sourceDomain',source_module_code,'targetDomain',target_module_code,'operation',target_operation_id,'status',status,'responseCode',downstream_http_status,'errorCode',failure_code,'errorMessage',failure_message_masked,'resultState',result_state,'sequenceNo',sequence_no,'role',transaction_role,'direction',direction,'unknownResultId',unknown_result_id) FROM ${DatabaseName}.CPF_TRANSACTION_SEGMENT WHERE transaction_id='$businessTransactionId' ORDER BY sequence_no,segment_id;")
+    Require ($segmentRows.Count -gt 0) "DB transaction segment is missing for transactionId=$businessTransactionId"
+    Require (@($segmentRows|Where-Object {[string]$_.transactionId -ne $businessTransactionId}).Count -eq 0) 'DB transaction segment changed transactionId'
+    $segmentIds=@($segmentRows|ForEach-Object {[string]$_.segmentId}|Where-Object {-not [string]::IsNullOrWhiteSpace($_)})
+    Require ($segmentIds.Count -eq @($segmentIds|Sort-Object -Unique).Count) 'Duplicate DB transaction segment detected'
+    $orphanParents=@($segmentRows|Where-Object {-not [string]::IsNullOrWhiteSpace([string]$_.parentSegmentId) -and [string]$_.parentSegmentId -notin $segmentIds})
+    Require ($orphanParents.Count -eq 0) "Orphan DB transaction segment detected: $(@($orphanParents|ForEach-Object {$_.segmentId}) -join ',')"
+    $successfulOutboundSegments=@($segmentRows|Where-Object {
+        [string]$_.sourceDomain -eq 'BAT' -and
+        [string]$_.targetDomain -eq [string]$targetDomain.systemCode -and
+        [string]$_.operation -eq $runtimeOperationId -and
+        [string]$_.instanceId -eq $expectedDomainInstance -and
+        [string]$_.status -eq 'SUCCESS' -and
+        [string]$_.responseCode -eq '200' -and
+        [int]$_.attempt -ge 1
+    })
+    # failure_message/role/direction/sequence_no 를 함께 남긴다. segment 의 failure_code 는
+    # TransactionSegmentService 가 `scope.fail(ex.getClass().getSimpleName(), ex.getMessage())` 로
+    # 기록하는데, 실제 실행에서 `IllegalArgumentException` 두 건이 남았는데도 Runtime 로그에는
+    # 스택이 없어 원인을 알 수 없었다. 메시지가 없으면 다음 실행에서도 같은 자리에서 막힌다.
+    # system_code는 callerDomain이 아니라 이 projection을 저장한 현재 처리 System이다. 이름을
+    # sourceDomain으로 잘못 내보내면 Consumer가 실제 발신자와 처리자를 혼동한다.
+    $lineageRows=@(Get-SqlJsonRows "SELECT JSON_OBJECT('transactionId',transaction_id,'segmentId',segment_id,'parentSegmentId',parent_segment_id,'attempt',attempt_no,'traceId',trace_id,'instanceId',instance_id,'workerId',worker_id,'systemDomain',system_code,'targetDomain',target_system_code,'operation',operation_id,'status',lifecycle_state,'unknownResult',unknown_yn,'reconcileState',reconcile_state) FROM ${DatabaseName}.CPF_TRANSACTION_LINEAGE WHERE transaction_id='$businessTransactionId' ORDER BY occurred_at,lineage_id;")
+    Require ($lineageRows.Count -gt 0) "DB transaction lineage is missing for transactionId=$businessTransactionId"
+    # Persist the raw, normalized projections before applying the cross-store assertions.  A
+    # failed qualification must remain diagnosable after the verifier-owned database is cleaned.
+    $fileLogRows=@(Get-TransactionFileLogRows $businessTransactionId)
+    $observedFileLogRows=@($fileLogRows|ForEach-Object {(ConvertTo-FileLogEvidenceRow $_)})
+    $result.transactionLineage=[ordered]@{
+        status='OBSERVED';transactionId=$businessTransactionId;traceId=$businessTraceId;operationId=$runtimeOperationId;expectedDomainInstance=$expectedDomainInstance
+        summary=@($summaryRows);segments=@($segmentRows);lineage=@($lineageRows);fileLog=@($observedFileLogRows)
+    }
+    # 아래 strict cross-store qualification이 실패해도 Raw Summary/Segment/Lineage/File projection을
+    # Evidence에 남긴다. 실패 원인을 count나 재현 추측으로 덮지 않고 다음 Source/Consumer 판정에
+    # 그대로 사용하기 위한 순서다.
+    Require ($successfulOutboundSegments.Count -gt 0) 'DB transaction segment does not retain the exact successful BAT→Domain selected-instance/attempt/result'
+    # Lineage 의 정본 상관관계 키는 transaction_id + segment_id 다. trace_id 는 TRACE source
+    # (CPF_TRANSACTION_LOG) 에서만 보장된다 — 다음이 정본 근거다.
+    #  - `CPF_TRANSACTION_LINEAGE.trace_id` 는 스키마상 NULL 허용이고
+    #    `CpfTransactionLineageRecord` javadoc 이 "trace 식별자, 미수집 시 null 가능" 이라고 못박는다.
+    #  - `CpfTransactionLineageRecord.fromSegment` 는 traceId 에 null 을 넣는다. 원본
+    #    `TransactionSegmentRecord` 에 traceId 필드가 없고 `CPF_TRANSACTION_SEGMENT` 에도
+    #    trace_id 컬럼이 없기 때문이다. 즉 SEGMENT projection 은 trace 를 알 수 없다.
+    #  - 제품의 정본 상관 조회인 `CpfTransactionTimelineQueryFacade` 도 SEGMENT/OUTBOX/DLQ/FILE
+    #    source 에 대해 `NULL AS traceId` 를 그대로 내보내고 TRACE source 만 실제 값을 준다.
+    # 따라서 "모든 lineage 행의 traceId 가 업무 traceId 와 같아야 한다" 는 단정은 제품 계약이
+    # 아니라 검증기의 과다 요구였다. 실제로 그 단정 때문에 SEGMENT lineage(trace_id=NULL)에서
+    # 'transactionId/traceId mismatch' 로 실패했다. transactionId 는 그대로 엄격히 보고,
+    # traceId 는 **있을 때만** 일치를 요구한다(오염된 trace 는 계속 잡힌다).
+    # 되돌리려면: SEGMENT source 가 trace_id 를 싣도록 제품 계약이 바뀌었다는 근거를 먼저 제시하라.
+    Require (@($lineageRows|Where-Object {[string]$_.transactionId -ne $businessTransactionId}).Count -eq 0) 'DB transaction lineage transactionId mismatch'
+    $conflictingTraceRows=@($lineageRows|Where-Object {
+        -not [string]::IsNullOrWhiteSpace([string]$_.traceId) -and [string]$_.traceId -ne $businessTraceId })
+    Require ($conflictingTraceRows.Count -eq 0) "DB transaction lineage carries a conflicting traceId: $(@($conflictingTraceRows|ForEach-Object {[string]$_.traceId}) -join ',')"
+    Require (@($lineageRows|Where-Object {-not [string]::IsNullOrWhiteSpace([string]$_.segmentId) -and [string]$_.segmentId -notin $segmentIds}).Count -eq 0) 'DB transaction lineage references an orphan segment'
+    $successfulOutboundLineage=@($lineageRows|Where-Object {
+        [string]$_.systemDomain -eq 'BAT' -and
+        [string]$_.targetDomain -eq [string]$targetDomain.systemCode -and
+        [string]$_.operation -eq $runtimeOperationId -and
+        [string]$_.instanceId -eq $expectedDomainInstance -and
+        [string]$_.status -eq 'SUCCESS' -and
+        [int]$_.attempt -ge 1
+    })
+    Require ($successfulOutboundLineage.Count -gt 0) 'DB transaction lineage does not retain the exact successful BAT→Domain selected instance'
+    Require ($fileLogRows.Count -gt 0) "Structured File Log is missing for transactionId=$businessTransactionId"
+    # File Log는 logging aspect가 생성한 durable transaction segment를 기록해야 한다. telemetry
+    # span이나 단순 non-empty check만으로 통과시키면 DB와 File 사이의 orphan/instance drift를 놓친다.
+    # response/message/error code도 DB Summary의 같은 성공 row와 직접 대조한다.
+    $correlatedFileRows=@($fileLogRows|Where-Object {
+        $record=$_.record
+        [string]$record.traceId -eq $businessTraceId -and
+        [string]$record.segmentId -in $segmentIds -and
+        [string]$record.callerSystemCode -eq 'BAT' -and
+        [string]$record.systemCode -eq [string]$targetDomain.systemCode -and
+        [string]$record.targetSystemCode -eq [string]$targetDomain.systemCode -and
+        [string]$record.operationId -eq $runtimeOperationId -and
+        [string]$record.instanceId -eq $expectedDomainInstance -and
+        [string]$record.status -eq 'SUCCESS' -and
+        [string]$record.httpStatus -eq [string]$successfulSummary.status -and
+        [string]$record.responseCode -eq [string]$successfulSummary.responseCode -and
+        [string]$record.messageCode -eq [string]$successfulSummary.messageCode -and
+        [string]::IsNullOrWhiteSpace([string]$record.errorCode)
+    })
+    Require ($correlatedFileRows.Count -gt 0) 'Structured File Log does not exactly correlate to DB Summary/Segment transaction/trace/result/instance'
+    $result.transactionLineage=[ordered]@{
+        status='PASS';transactionId=$businessTransactionId;traceId=$businessTraceId;operationId=$runtimeOperationId;expectedDomainInstance=$expectedDomainInstance
+        summary=@($summaryRows);segments=@($segmentRows);lineage=@($lineageRows)
+        fileLog=@($correlatedFileRows|ForEach-Object {(ConvertTo-FileLogEvidenceRow $_)})
+    }
+    Step 'Batch→Domain File/DB transaction lineage' 'PASS' "transactionId=$businessTransactionId traceId=$businessTraceId summaries=$($summaryRows.Count) segments=$($segmentRows.Count) lineage=$($lineageRows.Count) fileRows=$($correlatedFileRows.Count)"
 
     # Strong static runtime assertion: no Batch Kafka provider or retired ledger has been recreated.
     $remoteTableAfter=[int](Invoke-Sql "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DatabaseName' AND table_name='BAT_REMOTE_MESSAGE_LEDGER';")

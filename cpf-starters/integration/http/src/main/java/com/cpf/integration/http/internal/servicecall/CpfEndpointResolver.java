@@ -40,6 +40,16 @@ public class CpfEndpointResolver {
         String endpointCode = String.valueOf(endpoint.get("endpointCode"));
         Map<String, Object> policy = routingPolicyResolver.resolve(serviceId, endpointCode);
         List<Map<String, Object>> instances = instanceRegistry.findInstances(serviceId, endpointCode, null, 100);
+        // Runtime Agent registers one physical instance for the service's canonical API endpoint
+        // (for example MBR_API).  A generated Domain operation has its own logical endpoint
+        // (for example MBR_SAMPLE_TX_CREATE), so it normally has no duplicate instance row.
+        // Keep an operation-specific placement authoritative when it exists, but when it does
+        // not, route through the same service's active Runtime Agent instance.  This preserves
+        // instanceId/attempt lineage and prevents an operation endpoint's baseUrl fallback from
+        // silently bypassing the actual multi-instance registry.
+        if (instances.isEmpty()) {
+            instances = instanceRegistry.findInstances(serviceId, null, null, 100);
+        }
         Map<String, Object> instance = instanceSelector.select(instances, request.instanceId(), excludedInstanceIds).orElse(Map.of());
         String baseUrl = firstText(value(instance, "baseUrl"), value(endpoint, "baseUrl"));
         return new ServiceCallResolvedTarget(service, endpoint, instance, policy, baseUrl, value(policy, "routingMode"));

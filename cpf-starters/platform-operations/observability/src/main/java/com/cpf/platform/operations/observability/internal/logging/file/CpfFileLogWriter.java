@@ -74,6 +74,13 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
     private static final Logger log = LoggerFactory.getLogger(CpfFileLogWriter.class);
     private static final Pattern ISO_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{4}-\\d{2}-\\d{2})(?!\\d)");
     private static final Pattern BASIC_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{8})(?!\\d)");
+    // File/DB/Timeline을 같은 거래로 대조하기 위한 CPF 운영 메타데이터다. 값 안에 timestamp나
+    // 숫자 suffix가 있더라도 계좌·카드번호 규칙으로 변형하면 instance/segment correlation이 끊긴다.
+    // 민감 키 여부는 아래 isSensitiveKey에서 먼저 fail-closed로 판정하므로 이 목록은 개인정보 우회가 아니다.
+    private static final Set<String> CORRELATION_METADATA_KEYS = Set.of(
+            "transactionid", "standardexecutionid", "traceid", "spanid", "parentspanid",
+            "segmentid", "parentsegmentid", "correlationid", "executionid", "instanceid",
+            "workerid", "unknownresultid");
     private final Environment environment;
     private final Clock clock;
     private final ZoneId logZoneId;
@@ -145,8 +152,14 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
         event.put("eventType", "ONLINE_TRANSACTION");
         event.put("transactionId", record.getTransactionId());
         event.put("standardExecutionId", record.getStandardExecutionId());
-        event.put("segmentId", firstText(detail(details, "transactionSegment.id"), record.getSpanId()));
-        event.put("parentSegmentId", firstText(detail(details, "parentSegment.id"), record.getParentSpanId()));
+        // `transactionSegment.*` is supplied by LoggingAspect before its scope is closed.  The
+        // `segment.*` fallback accepts older producers, while span IDs remain telemetry-only
+        // last-resort values.  A File event must prefer the durable DB segment key so File/DB
+        // correlation never breaks merely because asynchronous publication runs after scope pop.
+        event.put("segmentId", firstText(
+                detail(details, "transactionSegment.id"), detail(details, "segment.id"), record.getSpanId()));
+        event.put("parentSegmentId", firstText(
+                detail(details, "parentSegment.id"), detail(details, "parentSegmentId"), record.getParentSpanId()));
         event.put("transactionRole", "MAIN");
         event.put("direction", "INBOUND");
         event.put("apiPath", record.getUri());
@@ -156,6 +169,12 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
         event.put("failureCode", record.getErrorCode());
         event.put("failureMessageMasked", mask(record.getErrorMessage()));
         event.put("responseCode", record.getResponseCode());
+        // File/DB/Timeline correlation consumers compare the canonical result codes, not just the
+        // HTTP status.  Keep the legacy failureCode projection above, and expose the same
+        // message/error key names as CPF_TRANSACTION_LOG so a successful business transaction
+        // and an error/rollback transaction are both directly queryable across stores.
+        event.put("messageCode", record.getMessageCode());
+        event.put("errorCode", record.getErrorCode());
         event.put("httpStatus", record.getHttpStatus());
         event.put("traceId", record.getTraceId());
         event.put("spanId", record.getSpanId());
@@ -1204,6 +1223,9 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
         if (isSensitiveKey(key)) {
             return "***";
         }
+        if (isCorrelationMetadataKey(key)) {
+            return value;
+        }
         if (value instanceof Map<?, ?> map) {
             Map<String, Object> sanitized = new LinkedHashMap<>();
             map.forEach((nestedKey, nestedValue) -> sanitized.put(String.valueOf(nestedKey), sanitizeValue(nestedKey, nestedValue)));
@@ -1241,6 +1263,17 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
                 || normalized.contains("ssn")
                 || normalized.contains("otp")
                 || normalized.contains("pin");
+    }
+
+    private boolean isCorrelationMetadataKey(Object key) {
+        if (key == null) {
+            return false;
+        }
+        String normalized = String.valueOf(key)
+                .replace("-", "")
+                .replace("_", "")
+                .toLowerCase(Locale.ROOT);
+        return CORRELATION_METADATA_KEYS.contains(normalized);
     }
 
     private String attributeText(Map<String, Object> attributes, String key, String fallback) {

@@ -9,10 +9,10 @@
     "nonTableObjectVersion": 2
   },
   "artifacts": {
-    "cpf-platform-schema.sql": "4facd7d5a1b5f2d17df29e802bdcabba39c5ab9b0f05dcca5984d25723e1881b",
+    "cpf-platform-schema.sql": "8845334b01cbfaa18a229692e15fb860c62f2f800269417b19d70e24168662ba",
     "cpf-platform-seed.sql": "f17c1b2da865593d189e9af627a626fd45bc38fd02e7774d00022a5e5558a02f",
-    "cpf-platform-verify.sql": "998b09e80988073d20f95bd5b481674dddfd9d4edcf90493ec30f568935b1ae6",
-    "cpf-platform-rollback.sql": "0741aeca3a9a3367ec4bd69f89365232790b4689846c23dddd9ee09d83dc8bb4",
+    "cpf-platform-verify.sql": "7a9d92bcc38cd9e71ce15cbd3aeba0e22159e7bc7eef2dbc8951cfa18f2e7328",
+    "cpf-platform-rollback.sql": "b1c9eccf1416a27ef490926f0ac025e269aa5d27e5d5a7e8c4ce9517b9587534",
     "backoffice-schema.sql": "a8f5e1c9f68d203058c0626a3a43e043c957a42a9f2d1124cdb4c2997334a5fe",
     "backoffice-seed.sql": "0351c73735bfac6470b0c74ea3bb53eca614db376a2241c9cfbf4ed909dfea48",
     "backoffice-verify.sql": "0175be0c0405eda43ef40e55a6a3f3942335ec443fc2ab7f96f8218e3121fcc5",

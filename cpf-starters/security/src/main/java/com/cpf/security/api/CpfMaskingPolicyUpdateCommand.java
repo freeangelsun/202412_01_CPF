@@ -17,11 +17,25 @@ public record CpfMaskingPolicyUpdateCommand(
         Set<String> sensitiveKeys,
         int maxLength,
         boolean maskBearerToken,
+        /** 운영자가 ADM에서 선택한 값 규칙입니다(Harness §28.1). */
+        Set<CpfMaskingValueRule> valueRules,
         String actor,
         String reason,
         CpfMaskingPolicyApproval approval) {
     private static final Pattern ID = Pattern.compile("[A-Za-z0-9_.:-]{8,128}");
     private static final Pattern KEY = Pattern.compile("[a-z0-9_.-]{2,64}");
+
+    /**
+     * 값 규칙 선택이 없던 기존 Consumer의 Source 호환 생성자입니다.
+     *
+     * <p>선택이 주어지지 않으면 fail-closed로 모든 값 규칙을 켠 기본 선택을 사용합니다.</p>
+     */
+    public CpfMaskingPolicyUpdateCommand(String commandId, long expectedVersion, Set<String> sensitiveKeys,
+            int maxLength, boolean maskBearerToken, String actor, String reason,
+            CpfMaskingPolicyApproval approval) {
+        this(commandId, expectedVersion, sensitiveKeys, maxLength, maskBearerToken,
+                CpfMaskingValueRule.defaults(), actor, reason, approval);
+    }
 
     public CpfMaskingPolicyUpdateCommand {
         commandId = identifier(commandId, "commandId");
@@ -37,6 +51,10 @@ public record CpfMaskingPolicyUpdateCommand(
             if (!normalized.add(value)) throw new IllegalArgumentException("duplicate sensitive key");
         }
         sensitiveKeys = Set.copyOf(normalized);
+        // 값 규칙을 비우는 것은 "아무것도 가리지 않는다"는 명시적 선택이므로 허용한다.
+        // 다만 null 은 선택 자체가 없는 상태이므로 계약 위반으로 거부한다.
+        if (valueRules == null) throw new IllegalArgumentException("valueRules is required");
+        valueRules = Set.copyOf(valueRules);
         if (maxLength < 256 || maxLength > 65_536) {
             throw new IllegalArgumentException("maxLength must be between 256 and 65536");
         }
@@ -47,7 +65,8 @@ public record CpfMaskingPolicyUpdateCommand(
     /** commandHash 작업을 CPF 표준 계약에 따라 수행한다. */
     public String commandHash() {
         String canonical = "UPDATE|" + commandId + "|" + expectedVersion + "|" + String.join(",", sensitiveKeys.stream().sorted().toList())
-                + "|" + maxLength + "|" + maskBearerToken + "|" + actor + "|" + reason;
+                + "|" + maxLength + "|" + maskBearerToken
+                + "|" + CpfMaskingValueRule.toCsv(valueRules) + "|" + actor + "|" + reason;
         return sha256(canonical);
     }
 

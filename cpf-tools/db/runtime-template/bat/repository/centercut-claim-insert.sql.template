@@ -10,5 +10,5 @@ INSERT INTO BAT_CENTER_CUT_CLAIM (
     attempt_no,
     takeover_count
 ) VALUES (
-    ?, ?, ?, ?, 'CLAIMED', 1, ?, ?, 1, 0
+    ?, ?, ?, ?, 'CLAIMED', 1, @UTC_NOW6_PLUS_MICROS_PARAM@, @UTC_NOW6@, 1, 0
 )

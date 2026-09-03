@@ -1094,7 +1094,14 @@ if(-not $SkipOneWas -and $pwsh){
         $oneWasRuntimeDbPrepared=$true
     }
     if($oneWasRuntimeDbPrepared){
-        Invoke-CpfStage 'LOCAL_ONE_WAS_START' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\start-cpf-local.ps1','-RepoRoot',$RepoRoot,'-Mode','integrated','-ResourceProfile',$ResourceProfile,'-WebOnly') $RepoRoot $oneWasRuntimeEnv
+        # `start-cpf-local.ps1` 은 `-ResourceProfile/-Mode/-SkipBuild` 만 선언한다. 여기에 있던
+        # `-RepoRoot`/`-WebOnly` 는 **어디에도 선언된 적이 없는 파라미터**였고(`git log --all -S WebOnly`
+        # 결과 이 호출부에만 존재), CmdletBinding 이 없는 param() 블록은 알 수 없는 이름을 조용히
+        # `$args` 로 흘려보내므로 무증상으로 무시되고 있었다. 즉 "웹 계층만 기동한다" 는 의도가
+        # 실제로는 한 번도 적용된 적이 없다. 1-WAS 는 `-Mode integrated` 가 정본이고 root 는
+        # 대상 스크립트가 `$PSScriptRoot` 로 스스로 확정하므로, 두 토큰을 제거해도 동작은 동일하다.
+        # 재발 차단: cpf-tools/verification/tests/test_cpf_powershell_callsite_parameters.py
+        Invoke-CpfStage 'LOCAL_ONE_WAS_START' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\start-cpf-local.ps1','-Mode','integrated','-ResourceProfile',$ResourceProfile) $RepoRoot $oneWasRuntimeEnv
     }else{
         Add-CpfTextResult 'LOCAL_ONE_WAS_START' 'FAIL' 'Verifier-owned runtime DB preparation failed; 1-WAS was not started.' 'upstream FullLocal DB preparation failed'
     }
@@ -1196,7 +1203,8 @@ if(-not $SkipOneWas -and $pwsh){
     }elseif($FullLocal -and -not $oneWasReady){
         Add-CpfTextResult 'PERFORMANCE_LIVE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; live performance probes were not executed' 'upstream runtime start failed'
     }
-    Invoke-CpfStage 'LOCAL_ONE_WAS_STOP' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\stop-cpf-local.ps1','-RepoRoot',$RepoRoot)
+    # `stop-cpf-local.ps1` 도 `-RepoRoot` 를 선언하지 않는다(위 LOCAL_ONE_WAS_START 주석 참조).
+    Invoke-CpfStage 'LOCAL_ONE_WAS_STOP' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\stop-cpf-local.ps1')
     if($FullLocal -and $oneWasRuntimeDbPrepared -and $oneWasDbProfilePath){
         Invoke-CpfStage 'LOCAL_ONE_WAS_DB_CLEANUP' $pwsh @('-NoProfile','-File','.\cpf-tools\db\verification\cleanup-cpf-local-runtime-db.ps1','-ProfilePath',$oneWasDbProfilePath,'-VerifierRunId',$runtimeRunId,'-Root',$RepoRoot) $RepoRoot @{CPF_ADMIN_PASSWORD=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process');CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD=[Environment]::GetEnvironmentVariable('CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD','Process');CPF_LOCAL_RUNTIME_DB_PASSWORD=[Environment]::GetEnvironmentVariable('CPF_LOCAL_RUNTIME_DB_PASSWORD','Process')}
     }

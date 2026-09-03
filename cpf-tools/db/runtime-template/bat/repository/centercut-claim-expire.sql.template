@@ -1,6 +1,6 @@
 UPDATE BAT_CENTER_CUT_CLAIM
    SET claim_status = 'EXPIRED',
-       released_at = @NOW6@
+       released_at = @UTC_NOW6@
  WHERE center_cut_item_id = ?
    AND claim_status IN ('CLAIMED', 'RUNNING')
-   AND lease_until < @NOW6@
+   AND lease_until < @UTC_NOW6@

@@ -93,7 +93,7 @@
       "exsDB"
     ]
   },
-  "tableCount": 231,
+  "tableCount": 235,
   "tables": [
     {
       "name": "ADM_API_PERMISSION",
@@ -26569,6 +26569,325 @@
       "targetDatabaseRole": "CPF_PLATFORM_DB",
       "targetPhysicalDatabase": "cpfDB",
       "targetTableName": "CPF_INTEGRATION_CLOSURE_AUDIT",
+      "targetTablePrefix": "CPF_",
+      "migrationOwner": "cpf",
+      "runtimeConsumer": "cpf",
+      "atomicityClass": "PLATFORM_SHARED_CONTROL",
+      "productionDefault": true
+    },
+    {
+      "name": "CPF_MASKING_POLICY_COMMAND",
+      "columns": [
+        {
+          "name": "command_id_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "명령 식별자 SHA-256(원문 미보관)"
+        },
+        {
+          "name": "command_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "명령 본문 SHA-256"
+        },
+        {
+          "name": "result_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "명령 결과 정책 버전"
+        },
+        {
+          "name": "result_sensitive_keys_csv",
+          "type": "VARCHAR(4000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 민감 키 목록(CSV)"
+        },
+        {
+          "name": "result_max_length",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 최대 길이"
+        },
+        {
+          "name": "result_mask_bearer_flag",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 Bearer 마스킹 여부"
+        },
+        {
+          "name": "result_value_rules_csv",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 값 규칙 목록(CSV)"
+        },
+        {
+          "name": "result_updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 반영 시각"
+        },
+        {
+          "name": "result_updated_by",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 반영 운영자"
+        },
+        {
+          "name": "result_reason",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 사유"
+        },
+        {
+          "name": "recorded_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "명령 기록 시각(TTL 정리 기준)"
+        }
+      ],
+      "primaryKey": [
+        "command_id_hash"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_masking_policy_command_recorded",
+          "columns": [
+            "recorded_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_masking_policy_command_bearer",
+          "expression": "result_mask_bearer_flag IN ('Y','N')"
+        }
+      ],
+      "comment": "마스킹 정책 명령 중복 제거 원장",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "cpf_masking_policy_command",
+      "logicalOwner": "cpf",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "CPF_MASKING_POLICY_COMMAND",
+      "targetTablePrefix": "CPF_",
+      "migrationOwner": "cpf",
+      "runtimeConsumer": "cpf",
+      "atomicityClass": "PLATFORM_SHARED_CONTROL",
+      "productionDefault": true
+    },
+    {
+      "name": "CPF_MASKING_POLICY_HEAD",
+      "columns": [
+        {
+          "name": "singleton_id",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "단일 head 행 식별자(항상 1)"
+        },
+        {
+          "name": "active_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 활성 마스킹 정책 버전"
+        }
+      ],
+      "primaryKey": [
+        "singleton_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "현재 활성 마스킹 정책 버전 포인터",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "cpf_masking_policy_head",
+      "logicalOwner": "cpf",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "CPF_MASKING_POLICY_HEAD",
+      "targetTablePrefix": "CPF_",
+      "migrationOwner": "cpf",
+      "runtimeConsumer": "cpf",
+      "atomicityClass": "PLATFORM_SHARED_CONTROL",
+      "productionDefault": true
+    },
+    {
+      "name": "CPF_MASKING_POLICY_SHARD",
+      "columns": [
+        {
+          "name": "shard_id",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹 정책 제어 shard 식별자(단일 shard=0)"
+        }
+      ],
+      "primaryKey": [
+        "shard_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "마스킹 정책 변경을 직렬화하는 제어 shard",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "cpf_masking_policy_shard",
+      "logicalOwner": "cpf",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "CPF_MASKING_POLICY_SHARD",
+      "targetTablePrefix": "CPF_",
+      "migrationOwner": "cpf",
+      "runtimeConsumer": "cpf",
+      "atomicityClass": "PLATFORM_SHARED_CONTROL",
+      "productionDefault": true
+    },
+    {
+      "name": "CPF_MASKING_POLICY_VERSION",
+      "columns": [
+        {
+          "name": "policy_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹 정책 버전"
+        },
+        {
+          "name": "sensitive_keys_csv",
+          "type": "VARCHAR(4000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영자가 지정한 민감 키 목록(CSV)"
+        },
+        {
+          "name": "max_length",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹 후 최대 길이"
+        },
+        {
+          "name": "mask_bearer_flag",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Bearer 토큰 마스킹 여부"
+        },
+        {
+          "name": "value_rules_csv",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영자가 선택한 값 규칙 목록(CSV)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정책 반영 시각"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정책을 변경한 운영자"
+        },
+        {
+          "name": "update_reason",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "변경 사유"
+        }
+      ],
+      "primaryKey": [
+        "policy_version"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_masking_policy_version_bearer",
+          "expression": "mask_bearer_flag IN ('Y','N')"
+        }
+      ],
+      "comment": "마스킹 정책 버전 이력",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "cpf_masking_policy_version",
+      "logicalOwner": "cpf",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "CPF_MASKING_POLICY_VERSION",
       "targetTablePrefix": "CPF_",
       "migrationOwner": "cpf",
       "runtimeConsumer": "cpf",

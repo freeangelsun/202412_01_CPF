@@ -11,10 +11,17 @@
     "DUPLICATE",
     "DEAD"
   ],
-  "entrypointCount": 914,
+  "entrypointCount": 920,
   "duplicateCount": 0,
   "deadCount": 0,
   "entries": [
+    {
+      "id": "FILE:cpf-tools/conftest.py",
+      "path": "cpf-tools/conftest.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
     {
       "id": "FILE:cpf-tools/contracts/openapi/canonicalize-cpf-openapi.py",
       "path": "cpf-tools/contracts/openapi/canonicalize-cpf-openapi.py",
@@ -102,6 +109,13 @@
     {
       "id": "FILE:cpf-tools/db/tests/test_canonical_vendor_render.py",
       "path": "cpf-tools/db/tests/test_canonical_vendor_render.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/db/tests/test_centercut_claim_db_clock.py",
+      "path": "cpf-tools/db/tests/test_centercut_claim_db_clock.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4384,6 +4398,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_live_runtime_log_read_sharing.py",
+      "path": "cpf-tools/verification/tests/test_cpf_live_runtime_log_read_sharing.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_local_validation_orchestrator.py",
       "path": "cpf-tools/verification/tests/test_cpf_local_validation_orchestrator.py",
       "kind": "PYTHON",
@@ -4398,8 +4419,22 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_openapi_runtime_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_openapi_runtime_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_optional_provider_consumer_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_optional_provider_consumer_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_powershell_callsite_parameters.py",
+      "path": "cpf-tools/verification/tests/test_cpf_powershell_callsite_parameters.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4421,6 +4456,13 @@
     {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py",
       "path": "cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_python_console_utf8.py",
+      "path": "cpf-tools/verification/tests/test_cpf_python_console_utf8.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""

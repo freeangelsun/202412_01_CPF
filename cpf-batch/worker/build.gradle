@@ -6,6 +6,10 @@ dependencies {
     implementation project(':framework:messaging')
     implementation project(':framework:data')
     implementation project(':starters:data:jdbc')
+    // Batch Worker는 실제 Domain 호출을 수행하는 Runtime이다. JDBC만 두면 DB 거래
+    // Summary/Segment/Lineage provider가 조립되지 않아 caller-side selected instance와
+    // retry/reconcile 이력이 사라진다. DB를 쓰는 필수 Batch Runtime의 정본 provider를 직접 소유한다.
+    implementation project(':starters:data:mybatis')
     implementation project(':framework:file')
  implementation project(':internal:platform-operations:runtime-control')
  implementation project(':runtime:batch:api')

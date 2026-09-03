@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """Validate split requirement master integrity and Current Registry -> Current Status projection."""
 from __future__ import annotations
+
+import sys as _cpf_sys
+
+# CPF 표준 인코딩은 UTF-8 이다. 호출자의 콘솔 코드페이지(Windows cp949 등)에 좌우되면
+# 한글 출력이 깨져 진단 메시지를 읽을 수 없다. 진입점이 스스로 출력 스트림을 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    try:
+        _cpf_stream.reconfigure(encoding='utf-8')
+    except (AttributeError, ValueError):
+        pass
 import argparse,csv,hashlib,json
 from pathlib import Path
 
@@ -42,8 +52,9 @@ def verify(root:Path)->dict:
  projection_required={'work_item_id','source_requirement_ids','priority','work_package','development_status','verification_status','runtime_status','overall_status','source_identity','devgpt_status','independent_reviewer_status','qa_status','current_action','closure_rule'}
  if registry_required-set(rf): raise GateError(f'Current Registry columns missing: {sorted(registry_required-set(rf))}')
  if projection_required-set(pf): raise GateError(f'Current Status projection columns missing: {sorted(projection_required-set(pf))}')
- # WP-R16.01/02 등록으로 Current Registry/Status 가 411 -> 413 이 되었다.
- if len(rrows)!=413 or len(prows)!=413: raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected=413')
+ # WP-R16.01/02 등록으로 411 -> 413, 2026-09-03 사용자 Steering 3건(WP-R17.01 Shell 조립성 /
+ # WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목) 등록으로 413 -> 416 이 되었다.
+ if len(rrows)!=416 or len(prows)!=416: raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected=416')
  rids=[(r.get('work_item_id') or '').strip() for r in rrows]; pids=[(r.get('work_item_id') or '').strip() for r in prows]
  if len(set(rids))!=len(rids) or len(set(pids))!=len(pids) or rids!=pids: raise GateError('Current Status work_item_id order/set differs from Current Registry')
  pmap={r['work_item_id']:r for r in prows}

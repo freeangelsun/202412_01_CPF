@@ -132,6 +132,11 @@ public class LoggingAspect {
         String userAgent = request != null ? request.getHeader("User-Agent") : null;
         String businessTransactionId = onlineExecution != null ? onlineExecution.id() : "UNKNOWN";
         String businessTransactionName = onlineExecution != null ? onlineExecution.name() : controller;
+        // Capture the parent before start() pushes the newly created child frame.
+        String parentTransactionSegmentId = firstText(
+                com.cpf.platform.operations.observability.internal.logging.segment.TransactionSegmentContext.currentSegmentId(),
+                com.cpf.platform.operations.observability.internal.logging.segment.TransactionSegmentContext
+                        .incomingParentSegmentId(transactionHeader));
         SegmentScope transactionSegment = transactionSegments.start(
                 CpfTransactionSegmentPort.Role.MAIN,
                 CpfTransactionSegmentPort.Direction.INBOUND,
@@ -140,6 +145,10 @@ public class LoggingAspect {
                 TransactionContext.targetSystemCode(),
                 uri,
                 businessTransactionName);
+        // SegmentScope.success()/fail() removes its thread-local frame.  Preserve the durable
+        // segment relationship before ending the scope so the asynchronous File Log consumer
+        // receives the very same segmentId/parentSegmentId stored in CPF_TRANSACTION_SEGMENT.
+        String transactionSegmentId = transactionSegment.transactionSegmentId();
         LogPolicyDecision logPolicy = resolveOnlineLogPolicy(businessTransactionId);
         if (!logPolicy.requestBodySave()) {
             requestBody = null;
@@ -271,7 +280,8 @@ public class LoggingAspect {
                     durationMs);
             boolean traceSampled = traceSamplingPolicy.shouldSample(
                     transactionId, businessTransactionId, moduleId, success, dynamicLogLevelRule);
-            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy, traceSampled), logPolicy);
+            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy,
+                    traceSampled, transactionSegmentId, parentTransactionSegmentId), logPolicy);
 
             return result;
         } catch (Throwable ex) {
@@ -363,7 +373,8 @@ public class LoggingAspect {
                     durationMs);
             boolean traceSampled = traceSamplingPolicy.shouldSample(
                     transactionId, businessTransactionId, moduleId, false, dynamicLogLevelRule);
-            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy, traceSampled), logPolicy);
+            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy,
+                    traceSampled, transactionSegmentId, parentTransactionSegmentId), logPolicy);
 
             throw ex;
         }
@@ -507,10 +518,18 @@ public class LoggingAspect {
             TransactionHeader transactionHeader,
             DynamicLogLevelRule dynamicLogLevelRule,
             LogPolicyDecision logPolicy,
-            boolean traceSampled) {
+            boolean traceSampled,
+            String transactionSegmentId,
+            String parentTransactionSegmentId) {
         Map<String, String> details = new LinkedHashMap<>();
         addAutomaticManagementMetadata(details, record);
         putDetail(details, "trace.sampled", traceSampled);
+        // `transactionSegment.*` is the File Log contract.  Keep `segment.id` as the
+        // compatibility projection used by existing diagnostics, but bind both to the durable
+        // database segment rather than a telemetry span or an already-popped thread-local.
+        putDetail(details, "transactionSegment.id", transactionSegmentId);
+        putDetail(details, "parentSegment.id", parentTransactionSegmentId);
+        putDetail(details, "segment.id", transactionSegmentId);
         if (!traceSampled) {
             putDetail(details, "transaction.id", record.getTransactionId());
             putDetail(details, "trace.id", record.getTraceId());
@@ -523,7 +542,6 @@ public class LoggingAspect {
         }
         putDetail(details, "transaction.id", record.getTransactionId());
         putDetail(details, "execution.id", com.cpf.core.api.context.CpfContexts.currentExecutionId());
-        putDetail(details, "segment.id", com.cpf.platform.operations.observability.internal.logging.segment.TransactionSegmentContext.currentSegmentId());
         var cpfContext = com.cpf.core.api.context.CpfContexts.current();
         putDetail(details, "execution.attempt", cpfContext == null ? 0 : cpfContext.execution().attempt());
         putDetail(details, "trace.id", record.getTraceId());

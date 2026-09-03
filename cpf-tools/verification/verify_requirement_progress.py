@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """Verify Current Development Harness work-item progress from the single Current Registry."""
 from __future__ import annotations
+
+import sys as _cpf_sys
+
+# CPF 표준 인코딩은 UTF-8 이다. 호출자의 콘솔 코드페이지(Windows cp949 등)에 좌우되면
+# 한글 출력이 깨져 진단 메시지를 읽을 수 없다. 진입점이 스스로 출력 스트림을 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    try:
+        _cpf_stream.reconfigure(encoding='utf-8')
+    except (AttributeError, ValueError):
+        pass
 import argparse,csv,json,re
 from collections import Counter
 from pathlib import Path
@@ -45,10 +55,12 @@ def main()->int:
         execution=sum(1 for r in rows if (r.get('item_role') or '').strip()=='ROOT_CAUSE_EXECUTION')
         tracking=sum(1 for r in rows if (r.get('item_role') or '').strip()!='ROOT_CAUSE_EXECUTION')
         # WP-R16.01/02(ADM mandatory Admin Route Provider Composition, Canonical Config Owner)
-        # 등록으로 Root Cause Execution 이 17 -> 19 가 되었다.
-        if (tracking,execution)!=(394,19):
-            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+19'); return 1
-        expected=413
+        # 등록으로 Root Cause Execution 이 17 -> 19 가 되었고, 2026-09-03 사용자 Steering 3건
+        # (WP-R17.01 Shell 조립성 / WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목)
+        # 등록으로 19 -> 22 가 되었다.
+        if (tracking,execution)!=(394,22):
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+22'); return 1
+        expected=416
     if len(rows)!=expected:
         print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_count={len(rows)} expected={expected}'); return 1
     result={'schema':'CPF_CURRENT_WORK_ITEM_REGISTRY_V1','rows':len(rows),'overall':dict(Counter((r.get('overall_status') or '').strip() for r in rows)),'development':dict(Counter((r.get('developer_status') or '').strip() for r in rows)),'verification':dict(Counter((r.get('verification_status') or '').strip() for r in rows))}

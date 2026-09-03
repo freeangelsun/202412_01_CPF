@@ -2,6 +2,11 @@
 function Get-CpfPythonCommand {
     $python = Get-Command python -ErrorAction SilentlyContinue
     if ($null -ne $python) { return @($python.Source) }
+    # Linux verifier images commonly publish only `python3`; retain `python`
+    # as the preferred developer-facing spelling while accepting the official
+    # POSIX Python 3 entrypoint before Windows' launcher fallback.
+    $python3 = Get-Command python3 -ErrorAction SilentlyContinue
+    if ($null -ne $python3) { return @($python3.Source) }
     $py = Get-Command py -ErrorAction SilentlyContinue
     if ($null -ne $py) { return @($py.Source, '-3') }
     throw 'Python 3 실행파일을 찾을 수 없습니다.'

@@ -2,6 +2,7 @@ package com.cpf.security.secret.internal;
 
 import com.cpf.security.api.CpfMaskingPolicyRuntimeStatus;
 import com.cpf.security.api.CpfMaskingPolicySnapshot;
+import com.cpf.security.api.CpfMaskingValueRule;
 import com.cpf.security.spi.CpfMaskingPolicyStore;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -383,18 +384,19 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
 
         @Override
         public void lockControlShard(int shardId) {
-            queryOne("SELECT shard_id FROM cpf_masking_policy_shard "
+            queryOne("SELECT shard_id FROM CPF_MASKING_POLICY_SHARD "
                     + "WHERE shard_id = ? FOR UPDATE", statement -> statement.setInt(1, shardId),
                     resultSet -> resultSet.getInt(1)).orElseThrow(
                             () -> new IllegalStateException(
-                                    "cpf_masking_policy_shard seed row is missing: " + shardId));
+                                    "CPF_MASKING_POLICY_SHARD seed row is missing: " + shardId));
         }
 
         @Override
         public Optional<CpfMaskingPolicySnapshot> current() {
             return queryOne("SELECT v.policy_version, v.sensitive_keys_csv, v.max_length, "
-                            + "v.mask_bearer_flag, v.updated_at, v.updated_by, v.update_reason "
-                            + "FROM cpf_masking_policy_head h JOIN cpf_masking_policy_version v "
+                            + "v.mask_bearer_flag, v.value_rules_csv, v.updated_at, v.updated_by, "
+                            + "v.update_reason "
+                            + "FROM CPF_MASKING_POLICY_HEAD h JOIN CPF_MASKING_POLICY_VERSION v "
                             + "ON v.policy_version = h.active_version WHERE h.singleton_id = 1",
                     statement -> { }, DataSourceAccess::mapSnapshot);
         }
@@ -402,8 +404,8 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
         @Override
         public Optional<CpfMaskingPolicySnapshot> findVersion(long version) {
             return queryOne("SELECT policy_version, sensitive_keys_csv, max_length, "
-                            + "mask_bearer_flag, updated_at, updated_by, update_reason "
-                            + "FROM cpf_masking_policy_version WHERE policy_version = ?",
+                            + "mask_bearer_flag, value_rules_csv, updated_at, updated_by, update_reason "
+                            + "FROM CPF_MASKING_POLICY_VERSION WHERE policy_version = ?",
                     statement -> statement.setLong(1, version), DataSourceAccess::mapSnapshot);
         }
 
@@ -411,11 +413,11 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
         public List<CpfMaskingPolicySnapshot> history(int limit) {
             return queryMany(
                     "SELECT policy_version, sensitive_keys_csv, max_length, mask_bearer_flag, "
-                            + "updated_at, updated_by, update_reason FROM ("
+                            + "value_rules_csv, updated_at, updated_by, update_reason FROM ("
                             + "SELECT policy_version, sensitive_keys_csv, max_length, "
-                            + "mask_bearer_flag, updated_at, updated_by, update_reason, "
+                            + "mask_bearer_flag, value_rules_csv, updated_at, updated_by, update_reason, "
                             + "ROW_NUMBER() OVER(ORDER BY policy_version DESC) cpf_rn "
-                            + "FROM cpf_masking_policy_version) cpf_page WHERE cpf_rn <= ? "
+                            + "FROM CPF_MASKING_POLICY_VERSION) cpf_page WHERE cpf_rn <= ? "
                             + "ORDER BY cpf_rn",
                     statement -> statement.setInt(1, limit), DataSourceAccess::mapSnapshot);
         }
@@ -423,8 +425,9 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
         @Override
         public Optional<CommandRow> findCommand(String commandIdHash) {
             return queryOne("SELECT command_hash, result_version, result_sensitive_keys_csv, "
-                            + "result_max_length, result_mask_bearer_flag, result_updated_at, "
-                            + "result_updated_by, result_reason FROM cpf_masking_policy_command "
+                            + "result_max_length, result_mask_bearer_flag, result_value_rules_csv, "
+                            + "result_updated_at, result_updated_by, result_reason "
+                            + "FROM CPF_MASKING_POLICY_COMMAND "
                             + "WHERE command_id_hash = ?",
                     statement -> statement.setString(1, commandIdHash),
                     resultSet -> new CommandRow(
@@ -433,7 +436,9 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
                                     resultSet.getLong("result_version"),
                                     decodeKeys(resultSet.getString("result_sensitive_keys_csv")),
                                     resultSet.getInt("result_max_length"),
-                                    resultSet.getBoolean("result_mask_bearer_flag"),
+                                    yesNo(resultSet.getString("result_mask_bearer_flag")),
+                                    CpfMaskingValueRule.parseCsv(
+                                            resultSet.getString("result_value_rules_csv")),
                                     requiredTimestamp(resultSet, "result_updated_at").toInstant(),
                                     resultSet.getString("result_updated_by"),
                                     resultSet.getString("result_reason"))));
@@ -441,39 +446,40 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
 
         @Override
         public long countVersions() {
-            return count("SELECT COUNT(*) FROM cpf_masking_policy_version");
+            return count("SELECT COUNT(*) FROM CPF_MASKING_POLICY_VERSION");
         }
 
         @Override
         public long countCommands() {
-            return count("SELECT COUNT(*) FROM cpf_masking_policy_command");
+            return count("SELECT COUNT(*) FROM CPF_MASKING_POLICY_COMMAND");
         }
 
         @Override
         public int deleteCommandsBefore(Instant cutoff) {
-            return update("DELETE FROM cpf_masking_policy_command WHERE recorded_at < ?",
+            return update("DELETE FROM CPF_MASKING_POLICY_COMMAND WHERE recorded_at < ?",
                     statement -> statement.setTimestamp(1, Timestamp.from(cutoff)));
         }
 
         @Override
         public void insertVersion(CpfMaskingPolicySnapshot snapshot) {
-            int inserted = update("INSERT INTO cpf_masking_policy_version("
+            int inserted = update("INSERT INTO CPF_MASKING_POLICY_VERSION("
                             + "policy_version, sensitive_keys_csv, max_length, mask_bearer_flag, "
-                            + "updated_at, updated_by, update_reason) VALUES(?,?,?,?,?,?,?)",
+                            + "value_rules_csv, updated_at, updated_by, update_reason) "
+                            + "VALUES(?,?,?,?,?,?,?,?)",
                     statement -> bindSnapshot(statement, snapshot, 1));
             if (inserted != 1) throw new IllegalStateException("masking policy version insert failed");
         }
 
         @Override
         public void insertHead(long activeVersion) {
-            int inserted = update("INSERT INTO cpf_masking_policy_head(singleton_id, active_version) "
+            int inserted = update("INSERT INTO CPF_MASKING_POLICY_HEAD(singleton_id, active_version) "
                             + "VALUES(1, ?)", statement -> statement.setLong(1, activeVersion));
             if (inserted != 1) throw new IllegalStateException("masking policy head insert failed");
         }
 
         @Override
         public int compareAndSetHead(long expectedVersion, long nextVersion) {
-            return update("UPDATE cpf_masking_policy_head SET active_version = ? "
+            return update("UPDATE CPF_MASKING_POLICY_HEAD SET active_version = ? "
                             + "WHERE singleton_id = 1 AND active_version = ?",
                     statement -> {
                         statement.setLong(1, nextVersion);
@@ -487,22 +493,24 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
                 String commandHash,
                 CpfMaskingPolicySnapshot snapshot,
                 Instant recordedAt) {
-            int inserted = update("INSERT INTO cpf_masking_policy_command("
+            int inserted = update("INSERT INTO CPF_MASKING_POLICY_COMMAND("
                             + "command_id_hash, command_hash, result_version, "
                             + "result_sensitive_keys_csv, result_max_length, "
-                            + "result_mask_bearer_flag, result_updated_at, result_updated_by, "
-                            + "result_reason, recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                            + "result_mask_bearer_flag, result_value_rules_csv, "
+                            + "result_updated_at, result_updated_by, "
+                            + "result_reason, recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
                     statement -> {
                         statement.setString(1, commandIdHash);
                         statement.setString(2, commandHash);
                         statement.setLong(3, snapshot.version());
                         statement.setString(4, encodeKeys(snapshot.sensitiveKeys()));
                         statement.setInt(5, snapshot.maxLength());
-                        statement.setBoolean(6, snapshot.maskBearerToken());
-                        statement.setTimestamp(7, Timestamp.from(snapshot.updatedAt()));
-                        statement.setString(8, snapshot.updatedBy());
-                        statement.setString(9, snapshot.reason());
-                        statement.setTimestamp(10, Timestamp.from(recordedAt));
+                        statement.setString(6, snapshot.maskBearerToken() ? "Y" : "N");
+                        statement.setString(7, CpfMaskingValueRule.toCsv(snapshot.valueRules()));
+                        statement.setTimestamp(8, Timestamp.from(snapshot.updatedAt()));
+                        statement.setString(9, snapshot.updatedBy());
+                        statement.setString(10, snapshot.reason());
+                        statement.setTimestamp(11, Timestamp.from(recordedAt));
                     });
             if (inserted != 1) throw new IllegalStateException("masking policy command insert failed");
         }
@@ -510,16 +518,16 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
         @Override
         public Optional<Long> oldestDeletableVersion(long activeVersion) {
             return queryOne(
-                    "SELECT policy_version FROM cpf_masking_policy_version "
+                    "SELECT policy_version FROM CPF_MASKING_POLICY_VERSION "
                             + "WHERE policy_version = (SELECT MIN(policy_version) "
-                            + "FROM cpf_masking_policy_version WHERE policy_version <> ?)",
+                            + "FROM CPF_MASKING_POLICY_VERSION WHERE policy_version <> ?)",
                     statement -> statement.setLong(1, activeVersion),
                     resultSet -> resultSet.getLong(1));
         }
 
         @Override
         public int deleteVersion(long version) {
-            return update("DELETE FROM cpf_masking_policy_version WHERE policy_version = ?",
+            return update("DELETE FROM CPF_MASKING_POLICY_VERSION WHERE policy_version = ?",
                     statement -> statement.setLong(1, version));
         }
 
@@ -598,10 +606,15 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
                     resultSet.getLong("policy_version"),
                     decodeKeys(resultSet.getString("sensitive_keys_csv")),
                     resultSet.getInt("max_length"),
-                    resultSet.getBoolean("mask_bearer_flag"),
+                    yesNo(resultSet.getString("mask_bearer_flag")),
+                    CpfMaskingValueRule.parseCsv(resultSet.getString("value_rules_csv")),
                     requiredTimestamp(resultSet, "updated_at").toInstant(),
                     resultSet.getString("updated_by"),
                     resultSet.getString("update_reason"));
+        }
+
+        private static boolean yesNo(String value) {
+            return "Y".equalsIgnoreCase(value == null ? null : value.trim());
         }
 
         private static void bindSnapshot(
@@ -610,10 +623,13 @@ public final class JdbcCpfMaskingPolicyStore implements CpfMaskingPolicyStore {
             statement.setLong(offset, snapshot.version());
             statement.setString(offset + 1, encodeKeys(snapshot.sensitiveKeys()));
             statement.setInt(offset + 2, snapshot.maxLength());
-            statement.setBoolean(offset + 3, snapshot.maskBearerToken());
-            statement.setTimestamp(offset + 4, Timestamp.from(snapshot.updatedAt()));
-            statement.setString(offset + 5, snapshot.updatedBy());
-            statement.setString(offset + 6, snapshot.reason());
+            // CHAR(1) 'Y'/'N' 은 CPF 정본 Boolean 표현이다. JDBC getBoolean 은 벤더마다
+            // 'Y' 해석이 달라 조용히 false 가 되므로 문자열로 명시해서 읽고 쓴다.
+            statement.setString(offset + 3, snapshot.maskBearerToken() ? "Y" : "N");
+            statement.setString(offset + 4, CpfMaskingValueRule.toCsv(snapshot.valueRules()));
+            statement.setTimestamp(offset + 5, Timestamp.from(snapshot.updatedAt()));
+            statement.setString(offset + 6, snapshot.updatedBy());
+            statement.setString(offset + 7, snapshot.reason());
         }
 
         private static Timestamp requiredTimestamp(ResultSet resultSet, String column)

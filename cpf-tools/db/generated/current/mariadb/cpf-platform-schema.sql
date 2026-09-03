@@ -1347,6 +1347,51 @@ CREATE TABLE CPF_INTEGRATION_CLOSURE_AUDIT (
 ) ENGINE=InnoDB;
 ALTER TABLE CPF_INTEGRATION_CLOSURE_AUDIT COMMENT = 'Integration Closure audit ledger';
 
+CREATE TABLE CPF_MASKING_POLICY_COMMAND (
+    command_id_hash CHAR(64) NOT NULL,
+    command_hash CHAR(64) NOT NULL,
+    result_version BIGINT NOT NULL,
+    result_sensitive_keys_csv VARCHAR(4000) NOT NULL,
+    result_max_length INT NOT NULL,
+    result_mask_bearer_flag CHAR(1) DEFAULT 'Y' NOT NULL,
+    result_value_rules_csv VARCHAR(1000) NOT NULL,
+    result_updated_at DATETIME(6) NOT NULL,
+    result_updated_by VARCHAR(128) NOT NULL,
+    result_reason VARCHAR(1000) NULL,
+    recorded_at DATETIME(6) NOT NULL,
+    CONSTRAINT PK_CPF_MASKING_POLICY_COMMAND PRIMARY KEY (command_id_hash),
+    CONSTRAINT ck_cpf_masking_policy_command_bearer CHECK (result_mask_bearer_flag IN ('Y','N'))
+) ENGINE=InnoDB;
+ALTER TABLE CPF_MASKING_POLICY_COMMAND COMMENT = '마스킹 정책 명령 중복 제거 원장';
+CREATE INDEX ix_cpf_masking_policy_command_recorded ON CPF_MASKING_POLICY_COMMAND (recorded_at);
+
+CREATE TABLE CPF_MASKING_POLICY_HEAD (
+    singleton_id INT NOT NULL,
+    active_version BIGINT NOT NULL,
+    CONSTRAINT PK_CPF_MASKING_POLICY_HEAD PRIMARY KEY (singleton_id)
+) ENGINE=InnoDB;
+ALTER TABLE CPF_MASKING_POLICY_HEAD COMMENT = '현재 활성 마스킹 정책 버전 포인터';
+
+CREATE TABLE CPF_MASKING_POLICY_SHARD (
+    shard_id INT NOT NULL,
+    CONSTRAINT PK_CPF_MASKING_POLICY_SHARD PRIMARY KEY (shard_id)
+) ENGINE=InnoDB;
+ALTER TABLE CPF_MASKING_POLICY_SHARD COMMENT = '마스킹 정책 변경을 직렬화하는 제어 shard';
+
+CREATE TABLE CPF_MASKING_POLICY_VERSION (
+    policy_version BIGINT NOT NULL,
+    sensitive_keys_csv VARCHAR(4000) NOT NULL,
+    max_length INT NOT NULL,
+    mask_bearer_flag CHAR(1) DEFAULT 'Y' NOT NULL,
+    value_rules_csv VARCHAR(1000) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    updated_by VARCHAR(128) NOT NULL,
+    update_reason VARCHAR(1000) NULL,
+    CONSTRAINT PK_CPF_MASKING_POLICY_VERSION PRIMARY KEY (policy_version),
+    CONSTRAINT ck_cpf_masking_policy_version_bearer CHECK (mask_bearer_flag IN ('Y','N'))
+) ENGINE=InnoDB;
+ALTER TABLE CPF_MASKING_POLICY_VERSION COMMENT = '마스킹 정책 버전 이력';
+
 CREATE TABLE CPF_NOTIFICATION_RULE (
     rule_id BIGINT AUTO_INCREMENT NOT NULL,
     event_type VARCHAR(80) NOT NULL,

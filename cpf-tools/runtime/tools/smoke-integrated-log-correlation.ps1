@@ -93,13 +93,34 @@ function Find-TextFiles([string[]]$Roots) {
     }
     return @($files)
 }
+function Read-CpfLiveLogText([string]$Path) {
+    # 이 검증기는 1-WAS 가 살아 있는 동안 그 Runtime 이 지금도 쓰고 있는 File Log 를 읽는다.
+    # Windows 에서 File Log Owner(CpfFileLogWriter)는 rolling 파일 핸들을 연 채 유지하는데
+    # [IO.File]::ReadAllText/ReadAllLines/ReadLines 는 FileShare.Read 로만 열기 때문에
+    # 쓰기 핸들이 살아 있으면 "다른 프로세스가 사용 중" 으로 던진다.
+    # 이 스크립트는 각 읽기를 try/catch 로 감싸므로 그 예외가 삼켜져 '상관관계 없음' 이라는
+    # 잘못된 FAIL 로 보고된다. 실제 결함이 아닌 파일 잠김이 원인이므로 공유 모드를 명시한다.
+    # 파일 부재/권한 오류는 그대로 예외로 남긴다 — '잠김' 만 허용하고 증적 부재는 숨기지 않는다.
+    $stream=$null;$reader=$null
+    try {
+        $stream=[IO.FileStream]::new($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,
+            ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+        $reader=[IO.StreamReader]::new($stream,[Text.UTF8Encoding]::new($false),$true)
+        return $reader.ReadToEnd()
+    } finally {
+        if($null -ne $reader){$reader.Dispose()} elseif($null -ne $stream){$stream.Dispose()}
+    }
+}
+function Read-CpfLiveLogLines([string]$Path) {
+    return @((Read-CpfLiveLogText $Path) -split "`r`n|`n|`r")
+}
 function Find-CorrelationInFiles([IO.FileInfo[]]$Files,[string]$TransactionId,[string]$TraceId) {
     $matches = New-Object Collections.Generic.List[object]
     foreach ($file in $Files) {
         try {
-            $content = [IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)
+            $content = Read-CpfLiveLogText $file.FullName
             if ($content.Contains($TransactionId) -and $content.Contains($TraceId)) {
-                $matchedLines=@([IO.File]::ReadLines($file.FullName,[Text.Encoding]::UTF8) | Where-Object { $_.Contains($TransactionId) -and $_.Contains($TraceId) } | Select-Object -First 50)
+                $matchedLines=@(Read-CpfLiveLogLines $file.FullName | Where-Object { $_.Contains($TransactionId) -and $_.Contains($TraceId) } | Select-Object -First 50)
                 $relativePath=if($file.FullName.StartsWith($Root,[StringComparison]::OrdinalIgnoreCase)){$file.FullName.Substring($Root.Length).TrimStart('\','/')}else{$file.Name}
                 [void]$matches.Add([ordered]@{ path=$file.FullName; relativePath=$relativePath; sizeBytes=$file.Length; lines=$matchedLines })
             }
@@ -113,7 +134,7 @@ function Test-RawSecretLeak([IO.FileInfo[]]$Files,[string[]]$Secrets) {
         if ([string]::IsNullOrWhiteSpace($secret) -or $secret.Length -lt 6) { continue }
         foreach ($file in $Files) {
             try {
-                $content = [IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)
+                $content = Read-CpfLiveLogText $file.FullName
                 if ($content.Contains($secret)) {
                     [void]$findings.Add([ordered]@{ path=$file.FullName.Substring($Root.Length).TrimStart('\\','/'); secretType='raw-sensitive-value' })
                 }
@@ -283,7 +304,7 @@ try {
     $fatalFiles=New-Object Collections.Generic.List[string]
     foreach($file in (Find-TextFiles @($RuntimeLogRoot))){
         try {
-            $text=[IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)
+            $text=Read-CpfLiveLogText $file.FullName
             if($fatalPatterns | Where-Object {$text.Contains($_)}){[void]$fatalFiles.Add($file.FullName.Substring($Root.Length).TrimStart('\\','/'))}
         }catch{}
     }

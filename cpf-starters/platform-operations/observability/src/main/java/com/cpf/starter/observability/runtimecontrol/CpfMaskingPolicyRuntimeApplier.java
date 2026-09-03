@@ -32,7 +32,21 @@ public final class CpfMaskingPolicyRuntimeApplier implements CpfRuntimeChangeApp
             boolean maskBearer = bool(
                     CpfRuntimePayloadReader.value(delivery.payload(), "maskBearerToken"),
                     true);
-            CpfMaskingRuntime.MaskingPolicy policy = CpfMaskingRuntime.replacePolicy(keys, maxLength, maskBearer);
+            // 운영자가 고른 값 규칙을 그대로 배포한다. 항목이 오지 않으면 현재 선택을 유지한다
+            // (null 전달 = 현재 선택 유지). 규칙을 임의로 되살리지 않는다.
+            Object rawRules = CpfRuntimePayloadReader.value(delivery.payload(), "valueRules");
+            java.util.Set<com.cpf.security.api.CpfMaskingValueRule> valueRules = null;
+            if (rawRules instanceof List<?> ruleList) {
+                LinkedHashSet<com.cpf.security.api.CpfMaskingValueRule> selected = new LinkedHashSet<>();
+                for (Object item : ruleList) {
+                    if (item != null && !String.valueOf(item).isBlank()) {
+                        selected.add(com.cpf.security.api.CpfMaskingValueRule.of(String.valueOf(item)));
+                    }
+                }
+                valueRules = selected;
+            }
+            CpfMaskingRuntime.MaskingPolicy policy =
+                    CpfMaskingRuntime.replacePolicy(keys, maxLength, maskBearer, valueRules);
             if (policy.maxLength() < 256 || !policy.sensitiveKeys().contains("password")) {
                 return CpfRuntimeApplyResult.failure("MASKING_POLICY_NOT_CONFIRMED", "마스킹 정책 fail-safe 기본값이 적용되지 않았습니다.");
             }

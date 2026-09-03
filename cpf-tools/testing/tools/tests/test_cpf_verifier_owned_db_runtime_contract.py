@@ -11,6 +11,7 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
     def setUpClass(cls):
         cls.lifecycle = (DBV / "invoke-cpf-db-verifier-owned-lifecycle.ps1").read_text(encoding="utf-8")
         cls.prepare = (DBV / "prepare-cpf-local-runtime-db.ps1").read_text(encoding="utf-8")
+        cls.generated_batch = (ROOT / "cpf-tools/generator/tools/initialize-generated-domain-databases.ps1").read_text(encoding="utf-8")
         cls.cleanup = (DBV / "cleanup-cpf-db-verifier-owned.ps1").read_text(encoding="utf-8")
         cls.cleanup_local = (DBV / "cleanup-cpf-local-runtime-db.ps1").read_text(encoding="utf-8")
         cls.bootstrap = (DBV / "prepare-cpf-local-backoffice-bootstrap.ps1").read_text(encoding="utf-8")
@@ -52,6 +53,33 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
         self.assertIn("@('core','common','admin','batch','backoffice')", self.prepare)
         self.assertIn("$isBackoffice=($key -eq 'backoffice')", self.prepare)
         self.assertNotIn("bizAdmin", self.prepare)
+
+    def test_local_runtime_db_installs_exact_current_generated_domain_inventory(self):
+        for token in (
+            "Get-CpfGeneratedDomainInventory",
+            "[string]$_.generationMode -eq 'generated'",
+            "generated-domain-runtime-profile.json",
+            "initialize-generated-domain-databases.ps1",
+            "'-ProfilePath','/workspace/result/generated-domain-runtime-profile.json'",
+            "'-ResultDir','/workspace/result/generated-domain-install'",
+            "$expectedGeneratedKeys",
+            "$actualGeneratedKeys",
+            "Generated Domain runtime DB inventory mismatch",
+            "generatedDomainInstall",
+        ):
+            self.assertIn(token, self.prepare)
+        self.assertNotIn("cpf-member", self.prepare)
+        self.assertNotIn("cpf-external", self.prepare)
+
+    def test_generated_domain_batch_installer_can_write_run_scoped_evidence(self):
+        for token in (
+            "[string] $ResultDir = ''",
+            "[string]$_.generationMode -eq 'generated'",
+            "$resultDirSpecified",
+            "'-ResultDir', (Join-Path $resultDir ([string]$item.domainName))",
+            "generated-domain-batch-result.sanitized.json",
+        ):
+            self.assertIn(token, self.generated_batch)
 
     def test_cleanup_refuses_non_verifier_targets(self):
         self.assertIn("Refusing verifier cleanup for environment", self.cleanup)

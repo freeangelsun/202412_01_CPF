@@ -248,7 +248,7 @@ def test_public_gradle_wrapper_does_not_write_into_governance():
         assert template.is_file(), f"public gradle wrapper template missing: {name}"
         text = template.read_text(encoding="utf-8")
         assert "cpf-docs/governance" not in text, f"{name} still writes into governance"
-        assert "cpf-docs\governance" not in text, f"{name} still writes into governance"
+        assert r"cpf-docs\governance" not in text, f"{name} still writes into governance"
 
 
 def test_surface_policy_projects_public_wrapper_not_development_one():

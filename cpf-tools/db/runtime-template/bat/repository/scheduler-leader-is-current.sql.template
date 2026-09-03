@@ -3,4 +3,4 @@ SELECT COUNT(*)
  WHERE scheduler_key = ?
    AND owner_instance_id = ?
    AND fencing_token = ?
-   AND lease_until >= @NOW6@
+   AND lease_until >= @UTC_NOW6@

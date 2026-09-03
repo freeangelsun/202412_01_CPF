@@ -63,7 +63,7 @@ public final class DefaultCpfMaskingPolicyManager implements CpfMaskingPolicyOpe
         if (approvalFailure != null) return approvalFailure;
         CpfMaskingPolicySnapshot next = new CpfMaskingPolicySnapshot(
                 command.expectedVersion() + 1L, command.sensitiveKeys(), command.maxLength(),
-                command.maskBearerToken(), now, command.actor(), command.reason());
+                command.maskBearerToken(), command.valueRules(), now, command.actor(), command.reason());
         return apply(command.commandId(), command.commandHash(), command.expectedVersion(),
                 command.actor(), command.reason(), command.approval(), before, next);
     }
@@ -89,7 +89,7 @@ public final class DefaultCpfMaskingPolicyManager implements CpfMaskingPolicyOpe
         }
         CpfMaskingPolicySnapshot next = new CpfMaskingPolicySnapshot(
                 command.expectedVersion() + 1L, target.sensitiveKeys(), target.maxLength(),
-                target.maskBearerToken(), now, command.actor(), command.reason());
+                target.maskBearerToken(), target.valueRules(), now, command.actor(), command.reason());
         return apply(command.commandId(), command.commandHash(), command.expectedVersion(),
                 command.actor(), command.reason(), command.approval(), before, next);
     }
@@ -145,7 +145,7 @@ public final class DefaultCpfMaskingPolicyManager implements CpfMaskingPolicyOpe
         try {
             runtimeUpdate = CpfMaskingRuntime.compareAndSetPolicy(expectedVersion,
                     next.sensitiveKeys(), next.maxLength(), next.maskBearerToken(),
-                    next.updatedAt(), commandHash);
+                    next.valueRules(), next.updatedAt(), commandHash);
         } catch (RuntimeException failure) {
             auditUnknown(commandId, commandHash, actor, approval.approver(), before, next, reason,
                     "runtime policy update failed");
@@ -232,7 +232,8 @@ public final class DefaultCpfMaskingPolicyManager implements CpfMaskingPolicyOpe
     private static CpfMaskingPolicySnapshot runtimeSnapshot() {
         CpfMaskingRuntime.MaskingPolicy policy = CpfMaskingRuntime.currentPolicy();
         return new CpfMaskingPolicySnapshot(policy.version(), policy.sensitiveKeys(), policy.maxLength(),
-                policy.maskBearerToken(), policy.updatedAt(), "SYSTEM", "runtime masking policy");
+                policy.maskBearerToken(), policy.valueRules(), policy.updatedAt(), "SYSTEM",
+                "runtime masking policy");
     }
 
     private static CpfMaskingPolicyResult result(CpfMaskingPolicyResult.Status status,

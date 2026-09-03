@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """Fail-closed requirement result/role/evidence traceability gate."""
 from __future__ import annotations
+
+import sys as _cpf_sys
+
+# CPF 표준 인코딩은 UTF-8 이다. 호출자의 콘솔 코드페이지(Windows cp949 등)에 좌우되면
+# 한글 출력이 깨져 진단 메시지를 읽을 수 없다. 진입점이 스스로 출력 스트림을 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    try:
+        _cpf_stream.reconfigure(encoding='utf-8')
+    except (AttributeError, ValueError):
+        pass
 import argparse,csv,json,re,subprocess,sys
 from pathlib import Path
 SHA=re.compile(r'^[0-9a-f]{40}$');ROLE={'완료','미완료','재개발 요청','재검수 요청','해당 없음',''};OVERALL={'부분 구현','미구현','미검증','실패','재확인 필요',''}

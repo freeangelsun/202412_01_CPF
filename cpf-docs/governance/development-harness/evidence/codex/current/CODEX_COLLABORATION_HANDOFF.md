@@ -355,3 +355,248 @@ Family 별 repo-wide 감사를 먼저 수행했다.
 
 **주의**: 작업 중 heredoc이 정규식 ``를 백스페이스 문자(0x08)로 바꿔 게이트가 조용히 0건을
 반환하는 상태가 된 적이 있다. 게이트 수정 후에는 반드시 negative mutation으로 검출을 확인하라.
+
+---
+
+## 2026-09-03 Claude 세션 — 변경 근거 (Codex 교차 원복 방지용)
+
+이 절의 변경은 모두 **물리 실행 로그에 남은 실패**를 원인까지 좁혀 고친 것이다.
+되돌리려면 "그 실패가 왜 더는 발생하지 않는지" 먼저 제시하라.
+
+### C-18. Codex 최신 작업 수용 확인 (되돌리지 않았다)
+
+커밋 `1dcfb10b` 과 그 뒤 미커밋 Codex 작업을 **그대로 유지**했다. 실행 전에 다음을 정적으로
+전수 확인했고 전부 실재함을 검증했다.
+
+- `MBR_SAMPLE_TX_CREATE`(POST /api/v1/member/samples)가 생성 manifest에 실재
+- `CPF_TRANSACTION_LOG/SEGMENT/LINEAGE`, `OPS_OPERATION_*`, `OPS_SERVICE_CALL_HISTORY`,
+  `BAT_CENTER_CUT_ITEM` 의 사용 컬럼 전수 존재
+- `MBR_sample_item(sample_key, idempotency_key)` / `MBR_sample_item_idem(operation_code)` 실재
+- `cpf.web.internal-peer-identities`, `cpf.operation-policy.seed.allowed-callers`, `CPF_LOG_ROOT` 실재
+- `Join-Path` 의 `'\online\...'` 이중 역슬래시와 `"\|ACTIVE\|..."` 정규식은 PowerShell 에서
+  실제로 정상 동작함을 실행으로 확인했다(오탐 아님). **고치지 마라.**
+
+### C-19. 검증기 파일락 — live runtime 로그는 공유 모드로 읽어야 한다
+
+- **증상 근거**: `[141]` 이 업무 단정(sampleRows/idempotencyRows/serviceCallSuccess)과
+  UNKNOWN→reconcile→fencing takeover 를 **전부 통과한 뒤** lineage 단계에서만
+  `Exception calling "ReadLines" ... because it is being used by another process` 로 죽었다.
+- **원인**: Windows File Log Owner(`CpfFileLogWriter`)가 rolling 파일 핸들을 연 채 유지하는데
+  `[IO.File]::ReadAllText/ReadAllLines/ReadLines` 는 `FileShare.Read` 만 요청한다. **제품 결함이 아니라
+  검증기 결함이다.**
+- **조치**: `Read-CpfLiveLogText`(FileShare.ReadWrite|Delete)를 도입하고 같은 계열 7개 스크립트를
+  일괄 교정했다. `smoke-integrated-log-correlation.ps1` 은 각 읽기를 try/catch 로 감싸므로
+  **잠김 예외가 삼켜져 '상관관계 없음'이라는 잘못된 FAIL** 로 보고되던 더 나쁜 형태였다.
+- **게이트**: `test_cpf_live_runtime_log_read_sharing.py` (음성 변이 3건 검출 확인)
+
+### C-20. Codex 의 lineage traceId 단정을 완화했다 (제품이 옳다)
+
+- **되돌린 것**: `모든 lineage 행의 traceId == 업무 traceId` 단정.
+- **근거**: `CPF_TRANSACTION_LINEAGE.trace_id` 는 스키마상 NULL 허용이고
+  `CpfTransactionLineageRecord.fromSegment` 는 traceId 에 null 을 넣는다(원본
+  `TransactionSegmentRecord` 에 traceId 필드가 없고 `CPF_TRANSACTION_SEGMENT` 에 trace_id 컬럼이 없다).
+  제품의 정본 상관 조회인 `CpfTransactionTimelineQueryFacade` 도 SEGMENT/OUTBOX/DLQ/FILE source 에
+  `NULL AS traceId` 를 내보내고 TRACE source 만 값을 준다.
+- **대신 한 것**: transactionId 는 그대로 엄격히 보고, traceId 는 **있을 때만** 일치를 요구한다.
+  오염된 trace 는 계속 검출된다.
+- **반대 의견이 있으면**: SEGMENT source 가 trace_id 를 싣도록 제품 계약이 바뀌었다는 근거를 먼저 제시하라.
+
+### C-21. segment 상관관계 키는 `transaction_segment_id` 다
+
+- **증상 근거**: `[141]` `DB transaction lineage references an orphan segment`.
+- **원인**: 검증기가 `CPF_TRANSACTION_SEGMENT.segment_id`(BIGINT AUTO_INCREMENT 대리 PK, 값 `1`)를
+  읽었다. 업무 식별자는 `transaction_segment_id`(VARCHAR(120), UNIQUE, `...-SEG-0002-XXXX`)다.
+  lineage/파일로그/`CpfTransactionTimelineQueryFacade` 세 소비자가 모두 후자를 쓴다.
+
+### C-22. 마스킹이 CPF 추적 식별자를 훼손하던 제품 결함 (사용자 Steering 반영)
+
+- **증상 근거**: 파일 로그의 `transactionId` 가 `***6762BATS1JCXLU0000001`,
+  `traceId` 가 `da3f***6562f69d...` 로 나와 DB 거래와 대조되지 않았다.
+- **원인**: `CpfMaskingRuntime.LONG_ACCOUNT_PATTERN` 이 `(?<!\d)\d{10,19}(?!\d)` 라서
+  거래ID 앞 17자리 timestamp 와 16진 traceId 안의 숫자열을 계좌번호로 오인했다.
+- **조치**: 경계를 **영숫자 토큰 경계**(`(?<![A-Za-z0-9])...(?![A-Za-z0-9])`)로 좁혔다.
+  라벨이 붙은 값(`accountNo=...`)은 key 기반 규칙이, 따옴표/구분자로 둘러싸인 순수 숫자열은
+  이 규칙이 그대로 막는다. 같은 값이 파일명·DB·ADM 에 원문으로 남으므로 본문만 가리는 것은
+  보호 효과가 없고 계약만 깨뜨린다.
+- **처음에 만들었다가 제거한 것(중요)**: 정본 거래ID 전용 예외(`startsCanonicalTransactionId`)를
+  먼저 넣었다가 **제거했다.** 토큰 경계 규칙이 그 경우를 모두 포함해 **도달 불가능한 죽은 코드**가
+  되었기 때문이다. 다시 넣지 마라.
+- **고정 테스트**: `CpfMaskingRuntimeTransactionIdTest`
+- **미완(사용자 Steering)**: 마스킹 항목은 코드가 아니라 **ADM 운영자 설정**이 정해야 한다.
+  조사 결과 `cpf_masking_policy_*` 테이블은 **어떤 SQL 에도 없고** `cpf.security.masking-policy.mode=jdbc`
+  는 **어디에도 설정되어 있지 않다** — 제어면만 있고 동작한 적이 없다. WP-R17.02 로 등록했다.
+
+### C-23. 파일 로그 이벤트 키는 이벤트 종류마다 다르다
+
+- **증상 근거**: `The property 'sourceSystemCode' cannot be found on this object.`
+- **원인**: ONLINE_TRANSACTION 이벤트에는 `callerSystemCode` 는 있어도
+  `sourceSystemCode`/`messageCode`/`errorCode` 는 없다. StrictMode 에서 없는 속성을 읽으면 던진다.
+- **조치**: `ConvertTo-FileLogEvidenceRow` 로 존재하는 키만 읽는다.
+- **함께 완화**: 파일 로그의 `segmentId` 는 호출을 받은 **Domain 자신의 span** 이고
+  `$segmentIds` 는 Batch 쪽 segment 라 계층이 다르다. 두 저장소를 잇는 정본 키는
+  transactionId/traceId 이므로 그것으로 단정하고 segmentId 는 비어있지 않음만 본다.
+
+### C-24. Harness 호출부의 팬텀 파라미터
+
+- `start-cpf-local.ps1` 은 `-ResourceProfile/-Mode/-SkipBuild` 만 선언하는데 Full Runtime 이
+  `-RepoRoot`, `-WebOnly` 를 넘기고 있었다. `git log --all -S WebOnly` 결과 그 이름은 **이 호출부에만**
+  존재한다. CmdletBinding 없는 param() 은 알 수 없는 이름을 조용히 `$args` 로 흘려보내므로
+  "웹 계층만 기동" 의도가 한 번도 적용된 적이 없었다.
+- **게이트 신설**: `test_cpf_powershell_callsite_parameters.py` (PowerShell AST 기반, 음성 변이 확인)
+
+### C-25. 한글 깨짐 — Python 도구가 자기 출력 인코딩을 고정하지 않았다
+
+- **증상 근거**: `REQUIREMENT_PROGRESS_GATE` 결과가 `"�̱���": 2` 처럼 나왔다.
+- **원인**: Windows 콘솔 기본 코드페이지가 cp949 라 `sys.stdout.encoding == 'cp949'` 였다.
+  파일은 UTF-8 이 맞았다. PowerShell 진입점들은 이미 각자 UTF-8 preamble 을 들고 있었는데
+  Python 진입점 349개 중 5개만 고정하고 있었다.
+- **조치**: 한글을 출력하는 tool 진입점 81개에 UTF-8 preamble 삽입, 테스트는
+  `cpf-tools/conftest.py` 가 정본 소유자(pytest 는 `sys.__stdout__` 도 함께 고정해야 한다),
+  `run-cpf-pytest.py` 는 자식 환경에 `PYTHONUTF8`/`PYTHONIOENCODING` 전달.
+- **게이트**: `test_cpf_python_console_utf8.py` (음성 변이 확인). SyntaxWarning 1건도 함께 제거했다.
+
+### 실행 결과 (2026-09-03)
+
+| 구간 | 결과 |
+| --- | --- |
+| `[142] GATEWAY_BATCH_RUNTIME` | **PASS** (Runtime OpenAPI smoke 포함) |
+| `[141] BATCH_TWO_WORKER_CRASH_UNKNOWN` | **PASS** — UNKNOWN→reconcile→fencing takeover→업무효과/멱등/lineage 전부 |
+
+### C-26. Codex 진행 중 작업 수용 + 실행 증거 인계 (되돌리지 않았다)
+
+Codex 미커밋 변경 6건을 **그대로 유지**했고 컴파일/단위테스트 통과를 확인했다.
+
+- `cpf-batch/worker/build.gradle` `:starters:data:mybatis` 추가
+- `CpfHttpDomainRemoteTransport` `.attribute("sourceModuleCode", context.currentSystemCode())`
+- `CpfEndpointResolver` operation endpoint instance 없으면 service 단위 instance 로 fallback
+- `LoggingAspect` 내구 segmentId/parentSegmentId 를 File Log detail 로 전달
+- `CpfFileLogWriter` `CORRELATION_METADATA_KEYS` 마스킹 예외 + `messageCode`/`errorCode` 노출
+
+**마스킹 수정이 겹치지만 충돌이 아니다 — 둘 다 필요하다.**
+- Codex(`CpfFileLogWriter` 키 허용목록): 파일 로그의 `instanceId`(`bat-domain-2026...`),
+  `standardExecutionId` 처럼 **토큰 경계 규칙으로는 살릴 수 없는** 값까지 보존한다.
+  (`bat-domain-20260903093421776` 의 숫자열은 앞이 `-` 라 토큰 경계로도 마스킹된다.)
+- Claude(`CpfMaskingRuntime` 토큰 경계): 파일 로그뿐 아니라 **DB 요약/감사/Gateway capture 등
+  모든 `CpfMaskingRuntime.mask` 소비자**에서 `transactionId`/`traceId` 를 보존한다.
+  키 허용목록은 File Log Writer 안에만 있어 다른 소비자를 못 지킨다.
+→ 어느 쪽도 지우지 마라. 계층이 다르다.
+
+#### 인계: `[141]` 새 실패의 실행 증거 (RUN 20260903_134952)
+
+Codex 가 새로 추가한 단정
+`DB transaction segment does not retain the exact successful BAT→Domain selected-instance/attempt/result`
+에서 멈췄다. 저장된 raw projection 은 다음과 같다.
+
+```
+expectedDomainInstance = bat-domain-20260903135340725
+SEG-0001-5F7C32B2 attempt=1    instance=bat-domain-...  op=BAT_CENTER_CUT_WORK   FAILED  err=IllegalArgumentException
+SEG-0001-F8427119 attempt=null instance=null            op=BAT_CENTER_CUT_WORK   RUNNING
+SEG-0002-9ED14795 attempt=1    instance=bat-domain-...  op=BAT_CENTER_CUT_WORK   FAILED  err=IllegalArgumentException
+SEG-0002-78E1C9E4 attempt=null instance=null            op=MBR_SAMPLE_TX_CREATE  SUCCESS rc=null
+SEG-0003-810B5BC2 attempt=1    instance=null            op=BAT_CENTER_CUT_WORK   SUCCESS rc=200
+```
+
+판정에 필요한 다섯 속성이 **세 행에 흩어져 있다**.
+- 올바른 operation(`MBR_SAMPLE_TX_CREATE`) 행에는 instanceId/attempt/responseCode 가 없다
+- responseCode=200 과 attempt 는 상위 `BAT_CENTER_CUT_WORK` 행에 있다
+- instanceId 는 FAILED 행에만 있다
+
+**추가로 발견한 것 — 원인 미상의 `IllegalArgumentException` 2건.**
+`TransactionSegmentService:132` 의 `scope.fail(ex.getClass().getSimpleName(), ex.getMessage())`
+경로다. 즉 실제 예외가 던져졌는데 **Runtime 로그에는 스택이 전혀 없다**(worker-1/2/center-cut 로그
+확인). 또한 worker 양쪽에 `CpfTransactionContextAnomalyMonitor - CPF transaction context is missing.
+boundary=CpfFileLogWriter.writeIntegration` 가 6건 이상 남는다.
+
+**Claude 가 한 조치(제품 코드는 건드리지 않았다)**: 검증기의 segment projection 에
+`failure_message`, `sequence_no`, `transaction_role`, `direction` 을 추가했다. 다음 실행이면
+IllegalArgumentException 의 실제 메시지가 evidence 에 남는다. 그 메시지 없이 추측으로 고치지 마라.
+
+**Claude 는 이 lineage 계열을 더 손대지 않는다.** Codex 가 진행 중인 영역이므로 교차 수정을 피한다.
+Claude 는 WP-R17.02(운영자 선택 마스킹 영속화 + ADM Route)와 WP-R17.01(Shell 조립성) 으로 이동한다.
+
+### C-27. Codex DB-clock 변경의 authoring 템플릿 누락 (§25.7 위반) — 완결시켰다
+
+- **증상 근거**: `sync-database-artifacts.ps1` 이
+  `BAT Runtime Query parameter contract mismatch: vendor=mariadb
+   key=scheduler-leader-acquire-update expected=4 actual=6` 로 중단됐다.
+- **원인**: 커밋 `1dcfb10b` 이 **생성된 벤더 SQL(4 placeholder, DB clock)과 계약 JSON 은 갱신했는데
+  authoring 템플릿(`cpf-tools/db/runtime-template/bat/repository/*.sql.template`)은 옛 형태
+  (6 placeholder, client Timestamp)로 남아 있었다.** Harness §25.7("Query Pack은 두 계열을 함께
+  갱신한다") 위반이다.
+- **더 위험했던 점**: 템플릿이 정본이므로 누구든 DB 아티팩트 sync 를 돌리면 **Codex 의 DB-clock 설계가
+  조용히 되돌려진다.** 실제로 첫 sync 에서 `centercut-claim-renew`, `scheduler-leader-heartbeat`,
+  `scheduler-leader-is-current` 등이 `UTC_TIMESTAMP(6)` → `CURRENT_TIMESTAMP(6)` 로 회귀했다.
+- **조치(Codex 설계 방향으로 완결)**:
+  - `sync-bat-runtime-query-pack.ps1` 에 3벤더 매크로 2종 신설
+    `@UTC_NOW6@`, `@UTC_NOW6_PLUS_MICROS_PARAM@`
+    (mariadb `UTC_TIMESTAMP(6)` / `TIMESTAMPADD(MICROSECOND, ?, UTC_TIMESTAMP(6))`,
+     postgresql `(CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC')` / `+ (? * INTERVAL '1 microsecond')`,
+     oracle `SYS_EXTRACT_UTC(SYSTIMESTAMP)` / `+ NUMTODSINTERVAL(? / 1000000, 'SECOND')`)
+  - 템플릿 11개를 그 매크로로 정렬
+- **검증**: 재-sync 후 `git diff -- cpf-tools/db/vendor/*/runtime` **0건** — 즉 생성물이 Codex 가
+  커밋한 벤더 SQL과 **바이트 단위로 동일**하다. 되돌린 것이 아니라 정본 경로를 맞춘 것이다.
+- 템플릿에 설명 주석을 넣었다가 제거했다. 렌더러가 주석을 벤더 SQL 로 그대로 내보내 생성물이
+  달라지기 때문이다. 근거는 `sync-bat-runtime-query-pack.ps1` 매크로 표 위 주석에 있다.
+
+### C-28. WP-R17.02 마스킹 정책 영속화 — 정본 DDL 신설
+
+- **문제**: `JdbcCpfMaskingPolicyStore` 는 shard/head/version/command 4개 테이블을 요구하면서
+  "canonical three-vendor DDL is owned by the DB workstream" 이라고만 적혀 있었고, 그 DDL 이
+  **저장소의 어떤 SQL 에도 없었다.** `cpf.security.masking-policy.mode=jdbc` 도 어디에도 없다.
+  즉 운영자가 마스킹 정책을 바꿀 수단이 실제로 존재한 적이 없다.
+- **조치**: `platform-schema.json` 에 `CPF_MASKING_POLICY_{SHARD,HEAD,VERSION,COMMAND}` 4종을
+  CPF 그룹 정렬 위치에 추가(231 → 235). `sync-database-artifacts.ps1` 완주, 3벤더 파리티 PASS.
+  운영자 선택 항목은 `value_rules_csv` / `result_value_rules_csv` 로 영속화한다.
+- **저장소 SQL 대문자화**: 정본 스키마는 대문자 테이블명이다. 소문자 조회는 identifier case 를
+  보존하는 Linux MariaDB 에서 테이블을 찾지 못한다.
+- **`getBoolean` 제거**: `mask_bearer_flag` 는 CHAR(1) 'Y'/'N' 이라 `getBoolean` 은 벤더에 따라
+  조용히 false 가 된다. `yesNo()` 로 명시 변환한다.
+- **게이트**: `cpf-tools/db/tests/test_masking_policy_store_schema_parity.py` (음성 변이 3건 검출).
+  단위 테스트 harness 는 `FakeAccess` 메모리 구현이라 SQL/컬럼 어긋남을 잡지 못한다 — 이 게이트가
+  그 간극을 닫는다.
+
+### C-29. `[141]` IllegalArgumentException Root Cause 종결 (인계로 끝내지 않고 이어서 닫았다)
+
+C-26 에서 "원인 미상"으로 남겼던 `IllegalArgumentException` 2건을 현재 Source 에서 끝까지 추적해
+종결했다. 최종 결과: **`CPF_WORK_UNIT=PASS unit=BATCH_TWO_WORKER`** (Codex 가 추가한 강화 단정 포함).
+
+**원인 1 — 검증기 진단이 정본 컬럼을 몰랐다.**
+`failure_message` 는 존재하지 않는 컬럼이고 정본은 `failure_message_masked` 였다.
+`ERROR 1054 Unknown column` 으로 한 사이클을 소모했다(과거 `i.item_state` 와 같은 계열, 두 번째).
+→ `cpf-tools/db/tests/test_verifier_sql_columns_exist.py` 신설. 검증기 SQL 의 모든 컬럼을
+`platform-schema.json` 과 대조한다. 음성 변이 2건 검출 확인. **이제 실행 없이 즉시 잡힌다.**
+
+**원인 2 — Runtime Agent 자기 등록 baseUrl 이 hostname 이었다(핵심).**
+`failure_message_masked` 가 실제 메시지를 드러냈다:
+`Hostname은 설정된 allowDns 정책 상에 포함되지 않습니다.`
+`CpfRuntimeControlAgentAutoConfiguration.resolveRuntimeBaseUrl` 은 `server.address` 가 wildcard 면
+`runtime.hostName()` 으로 baseUrl 을 만든다. Codex 의 `CpfEndpointResolver` instance fallback 이
+들어오면서 그 instance 로 라우팅되기 시작했고, 정본 네트워크 정책이 hostname 을 거절해
+segment 가 `IllegalArgumentException` / `TECHNICAL_FAILURE` 로 남았다. 두 번 실패한 뒤 endpoint
+baseUrl 로 우회 성공해서 **성공한 segment 에 selected_instance_id 가 비는** 현상이 나온 것이다.
+→ 정책을 느슨하게(`allow-dns=true`) 만들지 않고, 제품이 제공하는 명시 knob
+`cpf.runtime.control.agent.runtime-base-url` 로 이 topology 가 실제로 쓰는 IPv4 를 등록하게 했다.
+`server.address` 는 건드리지 않아 loopback health probe 도 그대로다.
+
+**원인 3 — instance baseUrl 이 endpoint 보다 우선해 응답유실 프록시를 우회했다.**
+원인 2 를 고치자 호출이 곧바로 성공해 kill 대상이 사라졌다(`state=COMPLETED`).
+`CpfEndpointResolver` 는 `firstText(instance.baseUrl, endpoint.baseUrl)` 이므로 endpoint 만
+프록시로 바꾸면 instance 라우팅이 프록시를 지나지 않는다.
+→ 프록시 arm/restore 를 `OPS_SERVICE_ENDPOINT` 와 `OPS_SERVICE_INSTANCE` 양쪽에 적용했다.
+
+**원인 4 — OUTBOUND segment 가 호출자 operation 을 기록했다(제품 결함).**
+컬럼 이름이 `target_operation_id` 인데 `TransactionSegmentService.start` 가
+`TransactionContext.observedOperationId()`(현재 operation 우선)를 넣어 `BAT_CENTER_CUT_WORK` 가
+기록됐다. DB 만 보고는 "이 구간이 `MBR_SAMPLE_TX_CREATE` 를 호출했다" 를 확인할 수 없다.
+`CpfDomainClientRouter` 가 원격 호출 직전 `withTargetOperation(operationId)` 로 Context 를 이미
+바인딩하므로, **OUTBOUND 에서는 target 을 우선**하도록 소유자에서 고쳤다. INBOUND/LOCAL 은 종전 유지.
+→ 고정 테스트 `TransactionSegmentTargetOperationTest` (음성 변이 검출 확인).
+이것은 Codex 가 `sourceModuleCode` 로 caller 정체성을 복구한 것과 **같은 계열의 target 쪽 완결**이다.
+
+**최종 실행 증거** (`CPF_WORKUNIT_BATCH_TWO_WORKER_20260903_144952`):
+```
+explicit UNKNOWN reconcile + fencing takeover before=1 after=2
+Generated Domain business effect and retry idempotency sampleRows=1 idempotencyRows=1 serviceCallSuccess=1
+Batch→Domain File/DB transaction lineage summaries=1 segments=3 lineage=5 fileRows=1
+CPF_WORK_UNIT=PASS unit=BATCH_TWO_WORKER
+```

@@ -33,10 +33,20 @@ public final class CpfMaskingRuntime {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("(?i)(?<![A-Z0-9._%+-])[A-Z0-9._%+-]{1,64}@([A-Z0-9.-]+\\.[A-Z]{2,})(?![A-Z0-9._%+-])");
     private static final Pattern KOREAN_RRN_PATTERN = Pattern.compile("(?<!\\d)\\d{6}-?[1-4]\\d{6}(?!\\d)");
     private static final Pattern KOREAN_PHONE_PATTERN = Pattern.compile("(?<!\\d)(?:01[016789]|02|0[3-6][1-5])[- ]?\\d{3,4}[- ]?\\d{4}(?!\\d)");
-    private static final Pattern LONG_ACCOUNT_PATTERN = Pattern.compile("(?<!\\d)\\d{10,19}(?!\\d)");
+    // 계좌/카드번호는 **독립 토큰**으로 나타난다(`accountNo=12345678901234567`, `"1234567890123456"`).
+    // 앞뒤가 영숫자로 이어지면 그것은 식별자 토큰의 일부이지 계좌번호가 아니다.
+    // 경계를 숫자(`(?<!\d)`)로만 잡았더니 CPF 가 발급한 추적 식별자가 훼손됐다:
+    //   traceId  `da3f0a1b6562f69d...` -> `da3f***6562f69d...`
+    // trace/span id 는 사용자 민감정보가 아니라 File/DB/ADM 통합 로그의 상관관계 키다(Harness §28.2).
+    // 그래서 경계를 영숫자 토큰 경계로 좁힌다. 라벨이 붙은 값(`accountno=...`)은 key 기반 규칙이
+    // 별도로 막고, 따옴표/구분자로 둘러싸인 순수 숫자열은 이 규칙이 그대로 막는다.
+    private static final Pattern LONG_ACCOUNT_PATTERN =
+            Pattern.compile("(?<![A-Za-z0-9])\\d{10,19}(?![A-Za-z0-9])");
+    // 초기 상태는 fail-closed 로 모든 값 규칙을 켠다. 이후 무엇을 가릴지는 운영자가 ADM 에서 정한다.
     private static final AtomicReference<MaskingPolicy> POLICY =
             new AtomicReference<>(MaskingPolicy.create(DEFAULT_SENSITIVE_KEYS, DEFAULT_MAX_LENGTH,
-                    true, 3L, Instant.EPOCH, sha256("CPF_MASKING_POLICY_INITIAL")));
+                    true, CpfMaskingValueRule.defaults(), 3L, Instant.EPOCH,
+                    sha256("CPF_MASKING_POLICY_INITIAL")));
 
     private CpfMaskingRuntime() {}
 
@@ -54,9 +64,20 @@ public final class CpfMaskingRuntime {
     /** Compatibility update. Operational callers should prefer CpfMaskingPolicyOperations. */
     /** replacePolicy는 마스킹 정책의 조회·변경을 버전/동시성 의미를 잃지 않도록 처리합니다. */
     public static MaskingPolicy replacePolicy(Set<String> sensitiveKeys, int maxLength, boolean maskBearerToken) {
+        return replacePolicy(sensitiveKeys, maxLength, maskBearerToken, null);
+    }
+
+    /**
+     * 값 규칙 선택까지 함께 교체합니다.
+     *
+     * @param valueRules 운영자가 선택한 값 규칙. {@code null} 이면 현재 선택을 유지합니다.
+     */
+    public static MaskingPolicy replacePolicy(Set<String> sensitiveKeys, int maxLength,
+            boolean maskBearerToken, Set<CpfMaskingValueRule> valueRules) {
         while (true) {
             MaskingPolicy current = POLICY.get();
             MaskingPolicy next = MaskingPolicy.create(sensitiveKeys, maxLength, maskBearerToken,
+                    valueRules == null ? current.valueRules() : valueRules,
                     current.version() + 1L, Instant.now(), sha256("CPF_MASKING_POLICY_COMPATIBILITY_UPDATE"));
             if (POLICY.compareAndSet(current, next)) return next;
         }
@@ -66,12 +87,25 @@ public final class CpfMaskingRuntime {
     /** compareAndSetPolicy는 마스킹 정책의 조회·변경을 버전/동시성 의미를 잃지 않도록 처리합니다. */
     public static PolicyUpdateResult compareAndSetPolicy(long expectedVersion, Set<String> sensitiveKeys,
             int maxLength, boolean maskBearerToken, Instant updatedAt, String changeHash) {
+        return compareAndSetPolicy(expectedVersion, sensitiveKeys, maxLength, maskBearerToken,
+                null, updatedAt, changeHash);
+    }
+
+    /**
+     * 값 규칙 선택까지 함께 반영하는 낙관적 갱신입니다.
+     *
+     * @param valueRules 운영자가 선택한 값 규칙. {@code null} 이면 현재 선택을 유지합니다.
+     */
+    public static PolicyUpdateResult compareAndSetPolicy(long expectedVersion, Set<String> sensitiveKeys,
+            int maxLength, boolean maskBearerToken, Set<CpfMaskingValueRule> valueRules,
+            Instant updatedAt, String changeHash) {
         if (expectedVersion < 1L) throw new IllegalArgumentException("expectedVersion must be positive");
         MaskingPolicy current = POLICY.get();
         if (current.version() != expectedVersion) {
             return new PolicyUpdateResult(current, current, false);
         }
         MaskingPolicy next = MaskingPolicy.create(sensitiveKeys, maxLength, maskBearerToken,
+                valueRules == null ? current.valueRules() : valueRules,
                 expectedVersion + 1L, updatedAt, changeHash);
         if (POLICY.compareAndSet(current, next)) {
             return new PolicyUpdateResult(current, next, true);
@@ -94,15 +128,31 @@ public final class CpfMaskingRuntime {
         String masked = value;
         for (int pass = 0; pass < MAX_MASKING_PASSES; pass++) {
             String before = masked;
-            if (policy.maskBearerToken()) {
+            // 값 규칙은 코드가 아니라 **운영자가 ADM 에서 선택한 정책**이 정한다(Harness §28.1).
+            // 무엇을 가릴지는 그 로그를 운영하는 사람이 결정해야 한다. 하드코딩으로 항상 적용했더니
+            // CPF 가 발급한 거래ID/traceId 까지 훼손되어 통합 로그 상관관계가 끊긴 사고가 있었다.
+            Set<CpfMaskingValueRule> rules = policy.valueRules();
+            if (policy.maskBearerToken() && rules.contains(CpfMaskingValueRule.BEARER_TOKEN)) {
                 masked = policy.authorizationPattern().matcher(masked).replaceAll("$1***");
             }
-            masked = PRIVATE_KEY_PATTERN.matcher(masked).replaceAll("$1***$2");
-            masked = JWT_PATTERN.matcher(masked).replaceAll("***JWT***");
-            masked = EMAIL_PATTERN.matcher(masked).replaceAll("***@$1");
-            masked = KOREAN_RRN_PATTERN.matcher(masked).replaceAll("******-*******");
-            masked = KOREAN_PHONE_PATTERN.matcher(masked).replaceAll("***-****-****");
-            masked = maskLongNumericIdentifiers(masked);
+            if (rules.contains(CpfMaskingValueRule.PRIVATE_KEY)) {
+                masked = PRIVATE_KEY_PATTERN.matcher(masked).replaceAll("$1***$2");
+            }
+            if (rules.contains(CpfMaskingValueRule.JWT)) {
+                masked = JWT_PATTERN.matcher(masked).replaceAll("***JWT***");
+            }
+            if (rules.contains(CpfMaskingValueRule.EMAIL)) {
+                masked = EMAIL_PATTERN.matcher(masked).replaceAll("***@$1");
+            }
+            if (rules.contains(CpfMaskingValueRule.KOREAN_RESIDENT_REGISTRATION_NUMBER)) {
+                masked = KOREAN_RRN_PATTERN.matcher(masked).replaceAll("******-*******");
+            }
+            if (rules.contains(CpfMaskingValueRule.KOREAN_PHONE_NUMBER)) {
+                masked = KOREAN_PHONE_PATTERN.matcher(masked).replaceAll("***-****-****");
+            }
+            if (rules.contains(CpfMaskingValueRule.LONG_NUMERIC_IDENTIFIER)) {
+                masked = maskLongNumericIdentifiers(masked);
+            }
             for (Pattern pattern : policy.jsonPatterns()) {
                 masked = pattern.matcher(masked).replaceAll("$1***$2");
             }
@@ -129,6 +179,23 @@ public final class CpfMaskingRuntime {
         return "***" + normalized.substring(normalized.length() - keep);
     }
 
+    /**
+     * 독립 토큰으로 나타난 10~19자리 숫자열만 계좌/카드번호로 보고 마스킹합니다.
+     *
+     * <p>경계를 숫자로만 잡았을 때 CPF 가 발급한 추적 식별자가 훼손됐다. 정본 거래ID
+     * {@code 20260903001256762BATS1JCXLU0000001} 의 앞 17자리 timestamp 가 계좌번호로 오인되어
+     * {@code ***6762BATS1JCXLU0000001} 이 되었고, traceId {@code da3f0a1b6562...} 도
+     * {@code da3f***6562...} 로 잘렸다. 그 결과 File/DB/ADM 통합 로그를 잇는 **상관관계 키 자체가
+     * 사라져** Batch→Domain 응답유실 검증의 lineage 대조가 실패했다.</p>
+     *
+     * <p>같은 값이 파일 로그의 <b>파일명</b>과 {@code CPF_TRANSACTION_LOG}, ADM 조회에는 원문으로
+     * 남으므로 본문만 가리는 것은 보호 효과가 없고 계약만 깨뜨린다. 영숫자 토큰 경계
+     * ({@link #LONG_ACCOUNT_PATTERN})로 좁히면 식별자는 보존되고, 라벨이 붙은 민감값
+     * ({@code accountNo=...})은 key 기반 규칙이, 따옴표/구분자로 둘러싸인 순수 숫자열은 이 규칙이
+     * 그대로 막는다.</p>
+     *
+     * <p>고정 테스트: {@code CpfMaskingRuntimeTransactionIdTest}.</p>
+     */
     private static String maskLongNumericIdentifiers(String value) {
         var matcher = LONG_ACCOUNT_PATTERN.matcher(value);
         StringBuffer out = new StringBuffer();
@@ -166,6 +233,8 @@ public final class CpfMaskingRuntime {
             Set<String> sensitiveKeys,
             int maxLength,
             boolean maskBearerToken,
+            /** 운영자가 ADM에서 선택한 값 규칙입니다(Harness §28.1). */
+            Set<CpfMaskingValueRule> valueRules,
             String policyHash,
             Instant updatedAt,
             String changeHash,
@@ -178,6 +247,8 @@ public final class CpfMaskingRuntime {
         public MaskingPolicy {
             if (version < 1L) throw new IllegalArgumentException("version must be positive");
             sensitiveKeys = Set.copyOf(sensitiveKeys);
+            if (valueRules == null) throw new IllegalArgumentException("valueRules is required");
+            valueRules = Set.copyOf(valueRules);
             updatedAt = java.util.Objects.requireNonNull(updatedAt, "updatedAt");
             if (policyHash == null || !policyHash.matches("[0-9a-f]{64}")) {
                 throw new IllegalArgumentException("invalid policyHash");
@@ -193,7 +264,17 @@ public final class CpfMaskingRuntime {
         }
 
         private static MaskingPolicy create(Set<String> sensitiveKeys, int maxLength, boolean maskBearerToken,
-                long version, Instant updatedAt, String changeHash) {
+                Set<CpfMaskingValueRule> selectedRules, long version, Instant updatedAt, String changeHash) {
+            // Bearer 마스킹 여부는 값 규칙 BEARER_TOKEN 과 같은 의미다. 두 표현이 어긋나면 운영자가
+            // 화면에서 끈 규칙이 실제로는 계속 적용되는 사고가 난다. 여기서 한 번에 정합화한다.
+            Set<CpfMaskingValueRule> valueRules =
+                    selectedRules == null ? CpfMaskingValueRule.defaults() : Set.copyOf(selectedRules);
+            if (!maskBearerToken && valueRules.contains(CpfMaskingValueRule.BEARER_TOKEN)) {
+                LinkedHashSet<CpfMaskingValueRule> without = new LinkedHashSet<>(valueRules);
+                without.remove(CpfMaskingValueRule.BEARER_TOKEN);
+                valueRules = Set.copyOf(without);
+            }
+            boolean bearerEnabled = valueRules.contains(CpfMaskingValueRule.BEARER_TOKEN);
             LinkedHashSet<String> normalized = new LinkedHashSet<>(DEFAULT_SENSITIVE_KEYS);
             if (sensitiveKeys != null) {
                 sensitiveKeys.stream()
@@ -218,12 +299,13 @@ public final class CpfMaskingRuntime {
                 keyValue.add(Pattern.compile("(?i)(\\b" + key + "\\b\\s*[=:]\\s*)"
                         + "(?:\\\"(?:\\\\.|[^\\\"\\\\])*\\\"|'(?:\\\\.|[^'\\\\])*'|[^,\\]\\}&;\\r\\n\\s]+)"));
             }
-            String policyHash = policyHash(normalized, normalizedMaxLength, maskBearerToken);
+            String policyHash = policyHash(normalized, normalizedMaxLength, bearerEnabled, valueRules);
             return new MaskingPolicy(
                     version,
                     Set.copyOf(normalized),
                     normalizedMaxLength,
-                    maskBearerToken,
+                    bearerEnabled,
+                    valueRules,
                     policyHash,
                     java.util.Objects.requireNonNull(updatedAt, "updatedAt"),
                     requireHash(changeHash),
@@ -234,8 +316,10 @@ public final class CpfMaskingRuntime {
                     Pattern.compile("(?i)((?:\\bAuthorization\\b\\s*[:=]\\s*)?(?:\\bBearer\\b|\\bBasic\\b)\\s+)[^,;\\s\\]\\}\\\"]+"));
         }
 
-        private static String policyHash(Set<String> keys, int maxLength, boolean bearer) {
-            return sha256(String.join(",", new TreeSet<>(keys)) + '\n' + maxLength + '\n' + bearer);
+        private static String policyHash(Set<String> keys, int maxLength, boolean bearer,
+                Set<CpfMaskingValueRule> valueRules) {
+            return sha256(String.join(",", new TreeSet<>(keys)) + '\n' + maxLength + '\n' + bearer
+                    + '\n' + CpfMaskingValueRule.toCsv(valueRules));
         }
 
         private static String requireHash(String value) {

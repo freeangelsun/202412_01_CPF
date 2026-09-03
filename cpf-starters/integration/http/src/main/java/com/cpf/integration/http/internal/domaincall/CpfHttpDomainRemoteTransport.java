@@ -45,15 +45,22 @@ public final class CpfHttpDomainRemoteTransport implements CpfDomainRemoteTransp
         if (serviceId == null || serviceId.isBlank()) {
             return CpfResult.technicalFailure("CPF-DOMAIN-SERVICE-ID-MISSING", systemCode + " serviceId가 없습니다.");
         }
+        // Service Call Engine also owns the caller-side Segment.  The internal HTTP headers
+        // already use this Context to state the immediate caller, but the engine cannot infer
+        // that identity from headers (they are intentionally transport-only).  Preserve the
+        // same canonical caller in its request attributes so CPF_TRANSACTION_SEGMENT records
+        // BAT -> generated Domain rather than the generic fallback "CPF".
+        var context = CpfContexts.requireCurrent();
         var headers = outboundHeaders.headers(
-                CpfContexts.requireCurrent(),
+                context,
                 CpfWebContexts.current(),
                 new CpfHttpOutboundRequest(systemCode, operationId, null, true,
                         options == null ? java.util.Map.of() : options.headers()));
         ServiceCallRequest.Builder call = ServiceCallRequest.builder(serviceId)
                 .endpointCode(operationId)
                 .httpMethod("POST")
-                .requestPath("/_cpf/domain/" + systemCode + "/" + operationId);
+                .requestPath("/_cpf/domain/" + systemCode + "/" + operationId)
+                .attribute("sourceModuleCode", context.currentSystemCode());
         headers.forEach(call::header);
         Object requestBody = request instanceof CpfDomainPayload payload
                 ? payload.values()

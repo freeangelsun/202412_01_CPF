@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [switch] $Check,
     [switch] $NoPrune
@@ -18,6 +18,9 @@ $vendors = @("mariadb", "postgresql", "oracle")
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 $vendorTokens = @{
+    # Lease/heartbeat 시각은 각 Vendor Pack 의 UTC DB clock 이 계산한다. Client JVM 의 기본
+    # timezone 이 섞이면 같은 lease 를 서로 다르게 읽어 fencing 이 깨진다. 아래 두 매크로가
+    # 그 정본 표현이며, 파라미터로는 "얼마나 오래"(마이크로초)만 넘어간다.
     mariadb = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
         "@NOW3@" = "CURRENT_TIMESTAMP(3)"
@@ -29,6 +32,8 @@ $vendorTokens = @{
         "@NOW6_MINUS_30_SECONDS@" = "DATE_SUB(CURRENT_TIMESTAMP(6), INTERVAL 30 SECOND)"
         "@NOW3_MINUS_SECONDS_PARAM@" = "DATE_SUB(CURRENT_TIMESTAMP(3), INTERVAL ? SECOND)"
         "@NOW6_PLUS_60_SECONDS@" = "DATE_ADD(CURRENT_TIMESTAMP(6), INTERVAL 60 SECOND)"
+        "@UTC_NOW6@" = "UTC_TIMESTAMP(6)"
+        "@UTC_NOW6_PLUS_MICROS_PARAM@" = "TIMESTAMPADD(MICROSECOND, ?, UTC_TIMESTAMP(6))"
     }
     postgresql = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
@@ -41,6 +46,8 @@ $vendorTokens = @{
         "@NOW6_MINUS_30_SECONDS@" = "CURRENT_TIMESTAMP(6) - INTERVAL '30 seconds'"
         "@NOW3_MINUS_SECONDS_PARAM@" = "CURRENT_TIMESTAMP(3) - (? * INTERVAL '1 second')"
         "@NOW6_PLUS_60_SECONDS@" = "CURRENT_TIMESTAMP(6) + INTERVAL '60 seconds'"
+        "@UTC_NOW6@" = "(CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC')"
+        "@UTC_NOW6_PLUS_MICROS_PARAM@" = "(CURRENT_TIMESTAMP(6) AT TIME ZONE 'UTC') + (? * INTERVAL '1 microsecond')"
     }
     oracle = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
@@ -53,6 +60,8 @@ $vendorTokens = @{
         "@NOW6_MINUS_30_SECONDS@" = "CURRENT_TIMESTAMP(6) - INTERVAL '30' SECOND"
         "@NOW3_MINUS_SECONDS_PARAM@" = "CURRENT_TIMESTAMP(3) - NUMTODSINTERVAL(?, 'SECOND')"
         "@NOW6_PLUS_60_SECONDS@" = "CURRENT_TIMESTAMP(6) + INTERVAL '60' SECOND"
+        "@UTC_NOW6@" = "SYS_EXTRACT_UTC(SYSTIMESTAMP)"
+        "@UTC_NOW6_PLUS_MICROS_PARAM@" = "SYS_EXTRACT_UTC(SYSTIMESTAMP) + NUMTODSINTERVAL(? / 1000000, 'SECOND')"
     }
 }
 

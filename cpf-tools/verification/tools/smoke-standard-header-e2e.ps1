@@ -29,6 +29,24 @@ function New-UnicodeText {
     return -join ($CodePoints | ForEach-Object { [char] $_ })
 }
 
+function Read-CpfLiveLogText {
+    param([string] $Path)
+    # 이 검증기는 mock downstream 이 살아 있는 동안 그 프로세스가 쓴 capture 파일을 읽는다.
+    # Windows 에서 쓰기 핸들이 살아 있으면 [IO.File]::ReadAllText/ReadAllLines/ReadLines 는
+    # FileShare.Read 로만 열기 때문에 "다른 프로세스가 사용 중" 으로 던진다.
+    # (같은 결함으로 Batch Two-Worker 검증이 업무 단정을 모두 통과한 뒤 이 지점에서만 실패했다.)
+    # 파일 부재/권한 오류는 그대로 예외로 남긴다 — '잠김' 만 허용하고 증적 부재는 숨기지 않는다.
+    $stream = $null; $reader = $null
+    try {
+        $stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read,
+            ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+        $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false), $true)
+        return $reader.ReadToEnd()
+    } finally {
+        if ($null -ne $reader) { $reader.Dispose() } elseif ($null -ne $stream) { $stream.Dispose() }
+    }
+}
+
 $StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
 $StatusPartial = New-UnicodeText @(0xBD80, 0xBD84, 0x20, 0xAD6C, 0xD604)
 $StatusNotImplemented = New-UnicodeText @(0xBBF8, 0xAD6C, 0xD604)
@@ -395,7 +413,7 @@ function Test-MockDownstreamCapture {
         return
     }
 
-    $captureText = [System.IO.File]::ReadAllText($mockCapturePath, [System.Text.Encoding]::UTF8)
+    $captureText = Read-CpfLiveLogText -Path $mockCapturePath
     $capture = $captureText | ConvertFrom-Json
     $result.mockDownstream.capture = $capture
     $missing = @()

@@ -49,6 +49,16 @@ def test_repository_generated_cache_policy_preserves_cpf_tools_build_product_sou
     assert hygiene.is_generated_cache_path(nested_generated)
 
 
+def test_hygiene_tool_root_inventory_excludes_only_generated_cache_directories():
+    """A gate-run bytecode cache must not turn into an unapproved CPF tool."""
+    hygiene = load_module('nxt3_hygiene_tool_root_test', NXT3 / 'verify_nxt3_hygiene.py')
+    with tempfile.TemporaryDirectory() as td:
+        tools = Path(td) / 'cpf-tools'
+        for name in ('build', 'verification', '__pycache__'):
+            (tools / name).mkdir(parents=True)
+        assert hygiene.active_tool_directories(tools) == {'build', 'verification'}
+
+
 def test_full_local_uses_external_scratch_and_external_python_environment():
     source = (ROOT / 'cpf-tools/verification/tools/run-cpf-local-full-validation.ps1').read_text(encoding='utf-8')
     assert '[IO.Path]::GetTempPath()' in source

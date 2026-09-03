@@ -15,6 +15,7 @@ param(
     [string] $DatabaseUsername = $env:CPF_DOMAIN_DB_USERNAME,
     [string] $DatabasePassword = $env:CPF_DOMAIN_DB_PASSWORD,
     [string] $ClientPath = '',
+    [string] $ResultDir = '',
     [switch] $Apply,
     [switch] $ConfirmRollback
 )
@@ -24,6 +25,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$resultDirSpecified = -not [string]::IsNullOrWhiteSpace($ResultDir)
 . (Join-Path $Root 'cpf-tools/generator/tools/generated-domain-common.ps1')
 $initializer = Join-Path $Root 'cpf-tools/generator/tools/initialize-domain-database.ps1'
 if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
@@ -37,7 +39,12 @@ if ($Operation -eq 'rollback' -and (-not $Apply -or -not $ConfirmRollback)) {
 }
 
 $catalog = @(Get-CpfGeneratedDomainInventory -Root $Root | Where-Object {
-    [bool]$_.exists -and [bool]$_.databaseEnabled
+    # Prebuilt runtime modules (for example the platform-owned MBW module) use
+    # their Platform DB Profile lifecycle.  This owner applies only canonical
+    # generated templates, so it must not install a second shadow schema for a
+    # prebuilt module that merely shares the cpf.domain.* developer contract.
+    [bool]$_.exists -and [bool]$_.databaseEnabled -and
+    [string]$_.generationMode -eq 'generated'
 })
 foreach ($item in $catalog) {
     if (@($item.forbiddenPermanentMetadata).Count -gt 0) {
@@ -89,6 +96,12 @@ foreach ($item in $selected) {
         }
     }
     if ($DatabasePort -gt 0) { $arguments += @('-DatabasePort', [string]$DatabasePort) }
+    # A verifier mounts the product Source read-only and must emit every generated
+    # SQL/result artifact under its run-scoped evidence root.  Interactive CLI
+    # callers retain the canonical default evidence owner below.
+    if ($resultDirSpecified) {
+        $arguments += @('-ResultDir', (Join-Path $resultDir ([string]$item.domainName)))
+    }
     if ($Apply) { $arguments += '-Apply' }
     if ($ConfirmRollback) { $arguments += '-ConfirmRollback' }
     & pwsh @arguments
@@ -104,7 +117,15 @@ foreach ($item in $selected) {
     }
 }
 
-$resultDir = Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/db-install/generated-domains'
+$resultDir = if ($resultDirSpecified) {
+    if ([IO.Path]::IsPathRooted($ResultDir)) {
+        [IO.Path]::GetFullPath($ResultDir)
+    } else {
+        [IO.Path]::GetFullPath((Join-Path $Root $ResultDir))
+    }
+} else {
+    Join-Path $Root 'cpf-docs/governance/development-harness/evidence/platform/current/generated/domain-generator/db-install/generated-domains'
+}
 New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 $resultPath = Join-Path $resultDir 'generated-domain-batch-result.sanitized.json'
 $result = [ordered]@{

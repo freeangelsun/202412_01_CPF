@@ -1,10 +1,10 @@
 UPDATE BAT_CENTER_CUT_CLAIM
-   SET lease_until = ?,
-       last_heartbeat_at = @NOW6@,
+   SET lease_until = @UTC_NOW6_PLUS_MICROS_PARAM@,
+       last_heartbeat_at = @UTC_NOW6@,
        claim_status = 'RUNNING'
  WHERE center_cut_item_id = ?
    AND runner_id = ?
    AND claim_token = ?
    AND fencing_token = ?
-   AND lease_until >= @NOW6@
+   AND lease_until >= @UTC_NOW6@
    AND claim_status IN ('CLAIMED', 'RUNNING')

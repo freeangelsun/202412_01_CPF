@@ -5,5 +5,5 @@ INSERT INTO BAT_SCHEDULER_LEASE (
     lease_until,
     last_heartbeat_at
 ) VALUES (
-    ?, ?, 1, ?, ?
+    ?, ?, 1, @UTC_NOW6_PLUS_MICROS_PARAM@, @UTC_NOW6@
 )

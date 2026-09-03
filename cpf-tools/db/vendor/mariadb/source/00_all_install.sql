@@ -1292,6 +1292,47 @@ CREATE TABLE IF NOT EXISTS CPF_INTEGRATION_CLOSURE_AUDIT (
     CONSTRAINT pk_CPF_INTEGRATION_CLOSURE_AUDIT PRIMARY KEY (AUDIT_ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Integration Closure audit ledger';
 
+CREATE TABLE IF NOT EXISTS CPF_MASKING_POLICY_COMMAND (
+    command_id_hash CHAR(64) NOT NULL COMMENT '명령 식별자 SHA-256(원문 미보관)',
+    command_hash CHAR(64) NOT NULL COMMENT '명령 본문 SHA-256',
+    result_version BIGINT NOT NULL COMMENT '명령 결과 정책 버전',
+    result_sensitive_keys_csv VARCHAR(4000) NOT NULL COMMENT '결과 민감 키 목록(CSV)',
+    result_max_length INT NOT NULL COMMENT '결과 최대 길이',
+    result_mask_bearer_flag CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '결과 Bearer 마스킹 여부',
+    result_value_rules_csv VARCHAR(1000) NOT NULL COMMENT '결과 값 규칙 목록(CSV)',
+    result_updated_at DATETIME(6) NOT NULL COMMENT '결과 반영 시각',
+    result_updated_by VARCHAR(128) NOT NULL COMMENT '결과 반영 운영자',
+    result_reason VARCHAR(1000) NULL COMMENT '결과 사유',
+    recorded_at DATETIME(6) NOT NULL COMMENT '명령 기록 시각(TTL 정리 기준)',
+    CONSTRAINT pk_CPF_MASKING_POLICY_COMMAND PRIMARY KEY (command_id_hash),
+    CONSTRAINT ck_cpf_masking_policy_command_bearer CHECK (result_mask_bearer_flag IN ('Y','N')),
+    INDEX ix_cpf_masking_policy_command_recorded (recorded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='마스킹 정책 명령 중복 제거 원장';
+
+CREATE TABLE IF NOT EXISTS CPF_MASKING_POLICY_HEAD (
+    singleton_id INT NOT NULL COMMENT '단일 head 행 식별자(항상 1)',
+    active_version BIGINT NOT NULL COMMENT '현재 활성 마스킹 정책 버전',
+    CONSTRAINT pk_CPF_MASKING_POLICY_HEAD PRIMARY KEY (singleton_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='현재 활성 마스킹 정책 버전 포인터';
+
+CREATE TABLE IF NOT EXISTS CPF_MASKING_POLICY_SHARD (
+    shard_id INT NOT NULL COMMENT '마스킹 정책 제어 shard 식별자(단일 shard=0)',
+    CONSTRAINT pk_CPF_MASKING_POLICY_SHARD PRIMARY KEY (shard_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='마스킹 정책 변경을 직렬화하는 제어 shard';
+
+CREATE TABLE IF NOT EXISTS CPF_MASKING_POLICY_VERSION (
+    policy_version BIGINT NOT NULL COMMENT '마스킹 정책 버전',
+    sensitive_keys_csv VARCHAR(4000) NOT NULL COMMENT '운영자가 지정한 민감 키 목록(CSV)',
+    max_length INT NOT NULL COMMENT '마스킹 후 최대 길이',
+    mask_bearer_flag CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Bearer 토큰 마스킹 여부',
+    value_rules_csv VARCHAR(1000) NOT NULL COMMENT '운영자가 선택한 값 규칙 목록(CSV)',
+    updated_at DATETIME(6) NOT NULL COMMENT '정책 반영 시각',
+    updated_by VARCHAR(128) NOT NULL COMMENT '정책을 변경한 운영자',
+    update_reason VARCHAR(1000) NULL COMMENT '변경 사유',
+    CONSTRAINT pk_CPF_MASKING_POLICY_VERSION PRIMARY KEY (policy_version),
+    CONSTRAINT ck_cpf_masking_policy_version_bearer CHECK (mask_bearer_flag IN ('Y','N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='마스킹 정책 버전 이력';
+
 CREATE TABLE IF NOT EXISTS CPF_NOTIFICATION_RULE (
     rule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 규칙 순번',
     event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',

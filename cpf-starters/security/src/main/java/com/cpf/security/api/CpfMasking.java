@@ -40,7 +40,7 @@ public final class CpfMasking {
     public static CpfMaskingPolicySnapshot runtimePolicy() {
         CpfMaskingRuntime.MaskingPolicy p = CpfMaskingRuntime.currentPolicy();
         return new CpfMaskingPolicySnapshot(p.version(), p.sensitiveKeys(), p.maxLength(), p.maskBearerToken(),
-                p.updatedAt(), "CPF_SYSTEM", "active runtime masking policy");
+                p.valueRules(), p.updatedAt(), "CPF_SYSTEM", "active runtime masking policy");
     }
 
     public static long activePolicyVersion() { return CpfMaskingRuntime.policyVersion(); }

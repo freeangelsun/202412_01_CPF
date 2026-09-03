@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """NXT3 Hygiene Gate. 파일 단위 Delete Manifest와 Garbage Sweep 결정을 강제한다."""
 from __future__ import annotations
+
+import sys as _cpf_sys
+
+# CPF 표준 인코딩은 UTF-8 이다. 호출자의 콘솔 코드페이지(Windows cp949 등)에 좌우되면
+# 한글 출력이 깨져 진단 메시지를 읽을 수 없다. 진입점이 스스로 출력 스트림을 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    try:
+        _cpf_stream.reconfigure(encoding='utf-8')
+    except (AttributeError, ValueError):
+        pass
 import argparse,csv,json
 from pathlib import Path
 PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/assets/manuals/','cpf-docs/assets/readme/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
@@ -26,6 +36,22 @@ def is_generated_cache_path(path: str) -> bool:
             continue
         return True
     return False
+
+def active_tool_directories(tools: Path) -> set[str]:
+    """Return product-owned cpf-tools roots, excluding disposable interpreter caches.
+
+    A Python entrypoint can create ``cpf-tools/__pycache__`` before the gate
+    starts.  The cache is already classified as generated above, so treating it
+    as an unapproved product tool root would make the gate fail because the
+    verifier itself ran.  Keep the root inventory on the same classification
+    contract rather than adding a second allow-list exception.
+    """
+    return {
+        path.name
+        for path in tools.iterdir()
+        if path.is_dir()
+        and not is_generated_cache_path((Path('cpf-tools') / path.name).as_posix())
+    }
 
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); a=ap.parse_args(); r=Path(a.root).resolve(); fail=[]
@@ -53,7 +79,7 @@ def main():
   if not ({'DELETE','DELETE_CANDIDATE'} & decided.get(path,set())): fail.append('delete_without_garbage_decision='+path)
  tools=r/'cpf-tools'
  if tools.exists():
-  active={p.name for p in tools.iterdir() if p.is_dir()}
+  active=active_tool_directories(tools)
   unexpected=active-(APPROVED_TOOLS|LEGACY_TOOLS)
   if unexpected: fail.append('unapproved_tools_root='+','.join(sorted(unexpected)))
   # legacy root는 실제 삭제 전 존재 가능하나 모든 파일이 manifest돼야 한다.

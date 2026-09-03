@@ -133,3 +133,11 @@ def test_generated_domain_powershell_consumers_use_unified_java_cli():
     assert "@('dev') + $processArguments" in text
     assert "@('dev', 'db-render')" in text
     assert "Environment['CPF_WORKSPACE']" in text
+
+
+def test_generated_domain_inventory_resolver_accepts_the_posix_python3_entrypoint():
+    text=(ROOT/'cpf-tools/generator/tools/generated-domain-common.ps1').read_text(encoding='utf-8-sig')
+    assert '$python = Get-Command python -ErrorAction SilentlyContinue' in text
+    assert '$python3 = Get-Command python3 -ErrorAction SilentlyContinue' in text
+    assert 'if ($null -ne $python3) { return @($python3.Source) }' in text
+    assert text.index('Get-Command python3') < text.index('Get-Command py -ErrorAction')

@@ -75,10 +75,34 @@ function New-SmokeHeaders {
     }
 }
 
+function Read-CpfLiveLogText {
+    param([string] $Path)
+    # 이 검증기는 1-WAS 가 살아 있는 동안 그 Runtime 이 지금도 쓰고 있는 File Log 를 읽는다.
+    # Windows 에서 File Log Owner(CpfFileLogWriter)는 rolling 파일 핸들을 연 채 유지하는데
+    # [IO.File]::ReadAllText/ReadAllLines/ReadLines 는 FileShare.Read 로만 열기 때문에
+    # 쓰기 핸들이 살아 있으면 "다른 프로세스가 사용 중" 으로 던진다.
+    # (같은 결함으로 Batch Two-Worker 검증이 업무 단정을 모두 통과한 뒤 이 지점에서만 실패했다.)
+    # 파일 부재/권한 오류는 그대로 예외로 남긴다 — '잠김' 만 허용하고 증적 부재는 숨기지 않는다.
+    $stream = $null; $reader = $null
+    try {
+        $stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read,
+            ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+        $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false), $true)
+        return $reader.ReadToEnd()
+    } finally {
+        if ($null -ne $reader) { $reader.Dispose() } elseif ($null -ne $stream) { $stream.Dispose() }
+    }
+}
+
+function Read-CpfLiveLogLines {
+    param([string] $Path)
+    return @((Read-CpfLiveLogText -Path $Path) -split "`r`n|`n|`r")
+}
+
 function Read-LastLine {
     param([string] $Path)
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
-    $lines = [System.IO.File]::ReadAllLines($Path, [System.Text.Encoding]::UTF8)
+    $lines = @(Read-CpfLiveLogLines -Path $Path)
     if ($lines.Count -eq 0) { return $null }
     return $lines[$lines.Count - 1]
 }
@@ -123,7 +147,7 @@ function Test-LogFile {
     $path = $null
     if (-not [string]::IsNullOrWhiteSpace($TransactionId)) {
         $path = $candidates | Where-Object {
-            [IO.File]::ReadAllText($_.FullName, [Text.Encoding]::UTF8).Contains($TransactionId)
+            (Read-CpfLiveLogText -Path $_.FullName).Contains($TransactionId)
         } | Select-Object -First 1
     }
     if ($null -eq $path) {
@@ -145,9 +169,9 @@ function Test-LogFile {
         $item.status = $(if ($Required) { $StatusFailed } else { $StatusNotVerified })
         return $item
     }
-    $content = [System.IO.File]::ReadAllText($path.FullName, [System.Text.Encoding]::UTF8)
+    $content = Read-CpfLiveLogText -Path $path.FullName
     $item.containsTransactionId = -not [string]::IsNullOrWhiteSpace($TransactionId) -and $content.Contains($TransactionId)
-    $lastLine = @([System.IO.File]::ReadAllLines($path.FullName, [System.Text.Encoding]::UTF8) | Where-Object {
+    $lastLine = @(Read-CpfLiveLogLines -Path $path.FullName | Where-Object {
         [string]::IsNullOrWhiteSpace($TransactionId) -or $_.Contains($TransactionId)
     } | Select-Object -Last 1)
     $lastLine = if ($lastLine.Count -gt 0) { $lastLine[0] } else { Read-LastLine -Path $path.FullName }

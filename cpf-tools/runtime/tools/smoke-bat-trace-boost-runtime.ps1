@@ -14,6 +14,25 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 function New-UnicodeText { param([int[]] $CodePoints) return -join ($CodePoints | ForEach-Object { [char] $_ }) }
+
+function Read-CpfLiveLogText {
+    param([string] $Path)
+    # 이 검증기는 Runtime 이 살아 있는 동안 그 Runtime 이 지금도 쓰고 있는 File Log 를 읽는다.
+    # Windows 에서 File Log Owner(CpfFileLogWriter)는 rolling 파일 핸들을 연 채 유지하는데
+    # [IO.File]::ReadAllText/ReadAllLines/ReadLines 는 FileShare.Read 로만 열기 때문에
+    # 쓰기 핸들이 살아 있으면 "다른 프로세스가 사용 중" 으로 던진다.
+    # (같은 결함으로 Batch Two-Worker 검증이 업무 단정을 모두 통과한 뒤 이 지점에서만 실패했다.)
+    # 파일 부재/권한 오류는 그대로 예외로 남긴다 — '잠김' 만 허용하고 증적 부재는 숨기지 않는다.
+    $stream = $null; $reader = $null
+    try {
+        $stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read,
+            ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+        $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false), $true)
+        return $reader.ReadToEnd()
+    } finally {
+        if ($null -ne $reader) { $reader.Dispose() } elseif ($null -ne $stream) { $stream.Dispose() }
+    }
+}
 $StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
 $StatusPartial = New-UnicodeText @(0xBD80, 0xBD84, 0x20, 0xAD6C, 0xD604)
 $StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
@@ -62,7 +81,7 @@ try {
     $result.fileLog.root = $batLogRoot.Substring($Root.Length).TrimStart('\', '/')
     $result.fileLog.path = $(if ($batLog) { $batLog.Substring($Root.Length).TrimStart('\', '/') } else { $null })
     if ($batLog -and (Test-Path -LiteralPath $batLog)) {
-        $content = [System.IO.File]::ReadAllText($batLog, [System.Text.Encoding]::UTF8)
+        $content = Read-CpfLiveLogText -Path $batLog
         $result.fileLog.containsJobName = $content.Contains("jobName")
         $result.fileLog.containsJobExecutionId = $content.Contains("jobExecutionId")
         $result.fileLog.containsTraceBoostPolicyId = $content.Contains("traceBoostPolicyId")

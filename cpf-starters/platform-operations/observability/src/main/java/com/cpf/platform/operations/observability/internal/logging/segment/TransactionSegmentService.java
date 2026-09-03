@@ -96,7 +96,16 @@ public class TransactionSegmentService {
         record.setClientId(CpfMaskingRuntime.truncate(TransactionContext.clientId(), 100));
         record.setCallerChannel(CpfMaskingRuntime.truncate(TransactionContext.callerChannel(), 100));
         record.setTargetChannel(CpfMaskingRuntime.truncate(TransactionContext.targetChannel(), 100));
-        record.setTargetOperationId(CpfMaskingRuntime.truncate(TransactionContext.observedOperationId(), 160));
+        // OUTBOUND segment 의 `target_operation_id` 는 이름 그대로 **상대에게 호출하는 operation**
+        // 이어야 한다. `observedOperationId()` 는 현재 Operation 을 먼저 보므로, Batch 가 Domain 을
+        // 호출하는 구간이 호출자 자신의 `BAT_CENTER_CUT_WORK` 로 기록됐다. 그러면 어떤 Consumer 도
+        // "이 구간이 MBR_SAMPLE_TX_CREATE 를 호출했다" 를 DB 에서 확인할 수 없다.
+        // `CpfDomainClientRouter` 가 원격 호출 직전에 `withTargetOperation(operationId)` 로 Context 를
+        // 이미 바인딩하므로, OUTBOUND 에서는 그 값을 우선한다. INBOUND/LOCAL 은 종전 의미를 유지한다.
+        String segmentTargetOperationId = direction == TransactionSegmentDirection.OUTBOUND
+                ? firstText(TransactionContext.targetOperationId(), TransactionContext.observedOperationId())
+                : TransactionContext.observedOperationId();
+        record.setTargetOperationId(CpfMaskingRuntime.truncate(segmentTargetOperationId, 160));
         record.setCreatedBy(requestUser());
         record.setUpdatedBy(record.getCreatedBy());
 

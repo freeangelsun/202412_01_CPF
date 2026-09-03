@@ -62,6 +62,10 @@ class CpfHttpDomainRemoteTransportPayloadTest {
                 .containsEntry(CpfHttpHeaderNames.CALLER_SYSTEM_CODE, "BAT")
                 .containsEntry(CpfHttpHeaderNames.TARGET_SYSTEM_CODE, "MBR")
                 .containsEntry(CpfHttpHeaderNames.TARGET_OPERATION_ID, "MBR_SAMPLE_TX_CREATE");
+        // The HTTP protocol and caller-side Service Call Segment must use one immediate
+        // caller identity.  Without this attribute the engine silently falls back to "CPF",
+        // breaking the persisted BAT -> MBR transaction lineage.
+        assertThat(call.getValue().attributes()).containsEntry("sourceModuleCode", "BAT");
         assertThat(response.values()).containsEntry("sampleKey", "member-1")
                 .containsEntry("persisted", true);
     }

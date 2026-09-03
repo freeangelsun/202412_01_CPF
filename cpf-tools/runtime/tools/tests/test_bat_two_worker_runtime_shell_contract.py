@@ -19,7 +19,7 @@ def test_two_worker_runtime_is_kafka_free_and_preserves_five_batch_roles():
 def test_runtime_uses_db_claim_lease_fencing_and_center_cut_domain_invocation():
     t=text()
     required=['BAT_CENTER_CUT_EXECUTION','BAT_CENTER_CUT_ITEM','BAT_CENTER_CUT_CLAIM','fencing_token',
-              'CPF_BAT_CENTER_CUT_JOB','systemCode=[string]$targetDomain.systemCode',"$runtimeOperationId='ping'",
+              'CPF_BAT_CENTER_CUT_JOB','systemCode=[string]$targetDomain.systemCode','Resolve-GeneratedDomainCreateOperation',
               'operationId=$runtimeOperationId',
               '/api/v1/batch/center-cut/executions','OPS_SERVICE_ENDPOINT']
     for token in required: assert token in t
@@ -60,7 +60,8 @@ def test_runtime_uses_discovered_domain_operation_endpoint_and_policy_compliant_
     t = text()
     for token in (
             '$script:TargetSystemCode=[string]$targetDomain.systemCode',
-            '$runtimeOperationId=\'ping\'',
+            '$runtimeOperation=Resolve-GeneratedDomainCreateOperation $targetDomain',
+            '$runtimeOperationId=[string]$runtimeOperation.operationId',
             '$runtimeAgentEndpointCode="$([string]$targetDomain.systemCode)_API"',
             '$runtimeEndpointCode=$runtimeOperationId',
             'bindings.$($script:TargetSystemCode).service-id=$($script:TargetSystemCode)',
@@ -70,6 +71,58 @@ def test_runtime_uses_discovered_domain_operation_endpoint_and_policy_compliant_
             'CPF Network Policy 가 loopback 을 금지하므로 비-loopback IPv4 주소가 필요합니다.'):
         assert token in t
     assert "base_url='http://127.0.0.1:$ResponseLossProxyPort'" not in t
+
+
+def test_generated_domain_explicitly_trusts_only_the_actual_batch_peer_for_machine_domain_calls():
+    """A Remote Domain route must not be made public merely to let the Batch worker recover.
+
+    The generated Domain sees the Worker at the verifier's non-loopback RuntimeHostAddress.  Its
+    narrow Domain security chain consequently needs the canonical explicit peer mapping, not an
+    unverified caller header, a broad subnet, or a global permit-all exception.
+    """
+    t = text()
+    assert "if($name -eq 'domain'){" in t
+    assert '"--cpf.web.internal-peer-identities=$($script:RuntimeHostAddress)=BAT"' in t
+    assert 'Header6 alone must never authenticate an internal caller' in t
+    assert '0.0.0.0/0=BAT' not in t
+
+
+def test_generated_domain_runtime_uses_manifest_backed_business_create_and_one_effect_contract():
+    """A true Batch recovery proof requires a policy-registered generated business operation."""
+    t = text()
+    assert 'Generated Domain business operation manifest is missing' in t
+    assert '"^${prefix}SAMPLE_TX_CREATE$"' in t
+    assert '$childEnvironment.CPF_OPERATION_POLICY_SEED_ALLOWED_CALLERS=\'BAT\'' in t
+    assert 'Generated Domain manifest catalog and BAT caller policy' in t
+    assert "request=[ordered]@{sampleKey=$sampleKey;itemName=\"CPF Batch Runtime $runId\";idempotencyKey=$domainIdempotencyKey}" in t
+    assert 'Generated Domain business effect and retry idempotency' in t
+    assert '${domainPrefix}_sample_item' in t
+    assert '${domainPrefix}_sample_item_idem' in t
+    assert 'OPS_SERVICE_CALL_HISTORY' in t
+    for token in (
+        "CPF_LOG_ROOT=$script:TransactionFileLogRoot",
+        "CPF_TRANSACTION_LOG",
+        "CPF_TRANSACTION_SEGMENT",
+        "CPF_TRANSACTION_LINEAGE",
+        "Get-TransactionFileLogRows",
+        "status='OBSERVED'",
+        "failed qualification must remain diagnosable",
+        "Duplicate DB transaction segment detected",
+        "Orphan DB transaction segment detected",
+        "exact BAT→Domain success identity/result/instance",
+        "exact successful BAT→Domain selected-instance/attempt/result",
+        "exact successful BAT→Domain selected instance",
+        "Structured File Log does not exactly correlate to DB Summary/Segment transaction/trace/result/instance",
+        "messageCode=(& $read 'messageCode')",
+        "errorCode=(& $read 'errorCode')",
+        "Batch→Domain File/DB transaction lineage",
+    ):
+        assert token in t
+    assert "request=[ordered]@{message='cpf-batch-kafka-free'}" not in t
+    assert "$runtimeOperationId='ping'" not in t
+    assert t.index("status='OBSERVED'") < t.index(
+        'DB transaction segment does not retain the exact successful BAT→Domain selected-instance/attempt/result')
+
 
 def test_runtime_fails_closed_when_the_required_unknown_path_is_not_observed():
     t=text()

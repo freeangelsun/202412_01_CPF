@@ -5,7 +5,7 @@
   "physicalSourceRoot": "cpf-tools/db/generated/current/mariadb",
   "installProfile": "cpf-tools/db/config/database-install.default.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 231,
+  "tableCount": 235,
   "tables": [
     {
       "vendor": "mariadb",
@@ -5483,6 +5483,76 @@
         "RESULT_STATE",
         "RESULT_DETAIL",
         "OCCURRED_AT"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "CPF_MASKING_POLICY_COMMAND",
+      "columns": [
+        "command_id_hash",
+        "command_hash",
+        "result_version",
+        "result_sensitive_keys_csv",
+        "result_max_length",
+        "result_mask_bearer_flag",
+        "result_value_rules_csv",
+        "result_updated_at",
+        "result_updated_by",
+        "result_reason",
+        "recorded_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_masking_policy_command_recorded",
+          "unique": false,
+          "columns": [
+            "recorded_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "CPF_MASKING_POLICY_HEAD",
+      "columns": [
+        "singleton_id",
+        "active_version"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "CPF_MASKING_POLICY_SHARD",
+      "columns": [
+        "shard_id"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "CPF_MASKING_POLICY_VERSION",
+      "columns": [
+        "policy_version",
+        "sensitive_keys_csv",
+        "max_length",
+        "mask_bearer_flag",
+        "value_rules_csv",
+        "updated_at",
+        "updated_by",
+        "update_reason"
       ],
       "indexes": [],
       "foreignKeys": []

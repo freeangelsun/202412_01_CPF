@@ -1,5 +1,7 @@
 from __future__ import annotations
 import json
+import re
+import sys
 import unittest
 from pathlib import Path
 
@@ -7,6 +9,29 @@ ROOT = Path(__file__).resolve().parents[4]
 SEED_MODEL = ROOT / "cpf-tools/db/canonical/seed-model.json"
 SOURCE_PLAN = ROOT / "cpf-tools/db/config/database-source-plan.json"
 OFFICIAL = ("mariadb", "postgresql", "oracle")
+
+
+# 기대값은 정본에서 파생시킨다. 이 파일에 SystemCode 목록을 복제하면 정본이 바뀌어도
+# 게이트가 조용히 통과한다(Harness §30.24 하드코딩 금지).
+_IDENTITY_TESTS = ROOT / "cpf-tools/verification/tests"
+if str(_IDENTITY_TESTS) not in sys.path:
+    sys.path.insert(0, str(_IDENTITY_TESTS))
+from test_cpf_system_identity_contract import (  # noqa: E402
+    _declared_system_codes_by_runtimes,
+    _non_system_identity_codes,
+)
+
+SEED_SYSTEM_CODE = re.compile(r"\(\s*'(?P<code>[A-Z0-9_]+)'\s*,")
+
+
+def canonical_system_codes() -> set[str]:
+    """SystemCode 를 가지는 Role 의 Product Runtime 이 실제로 선언한 System Identity."""
+    return _declared_system_codes_by_runtimes()
+
+
+def canonical_non_system_codes() -> set[str]:
+    """Module Code / DB Prefix / topology 이름. Business System Identity 가 아니다."""
+    return _non_system_identity_codes()
 BUNDLE_KEYS = ("productSeedFiles", "optionalSampleSeedFiles", "testSeedFiles")
 
 class SeedBundlePlanClosureTest(unittest.TestCase):
@@ -40,14 +65,33 @@ class SeedBundlePlanClosureTest(unittest.TestCase):
         self.assertEqual(1, len(statements), "canonical Product seed must have one registry owner")
         statement = statements[0]
         self.assertEqual(["system_code"], statement["conflictColumns"])
-        for system_code in ("CPF", "CMN", "ADM", "MBW", "BAT", "EDU"):
-            self.assertIn(f"('{system_code}',", statement["source"])
+
+        # OPS_SYSTEM_REGISTRY 는 **SystemCode 를 보유한 Runtime** 만 담는다.
+        # CPF/CMN/ADM/GWY 같은 non-System Identity Code 를 여기에 넣으면 가상 SystemCode 가 생겨
+        # System 을 키로 하는 거래 계약이 실체 없는 대상에 걸린다(Harness §30.10/§30.16.1).
+        # 기대값은 정본 정책에서 파생시킨다. 이 파일에 목록을 복제하면 정본이 바뀌어도
+        # 게이트가 조용히 통과한다.
+        declared = canonical_system_codes()
+        self.assertTrue(declared, "정본에서 SystemCode 보유 Runtime 을 하나도 찾지 못했다.")
+        seeded = {m.group("code") for m in SEED_SYSTEM_CODE.finditer(statement["source"])}
+        self.assertTrue(seeded, "Product seed 의 OPS_SYSTEM_REGISTRY 행을 읽지 못했다.")
+
+        unknown = sorted(seeded - declared)
+        self.assertEqual(
+            [], unknown,
+            "OPS_SYSTEM_REGISTRY 에 실체 없는 SystemCode 가 있다. 어떤 Runtime 도 선언하지 않은 "
+            f"코드는 가상 System 을 만든다: {unknown}")
+        forbidden = sorted(seeded & canonical_non_system_codes())
+        self.assertEqual(
+            [], forbidden,
+            "Module Code / DB Prefix / topology 이름은 SystemCode 가 아니다. "
+            f"OPS_SYSTEM_REGISTRY 에 등재하면 System 계약이 실체 없는 대상에 걸린다: {forbidden}")
 
         for vendor in OFFICIAL:
             generated = ROOT / f"cpf-tools/db/generated/current/{vendor}/cpf-platform-seed.sql"
             text = generated.read_text(encoding="utf-8")
             self.assertIn("OPS_SYSTEM_REGISTRY", text, str(generated))
-            for system_code in ("CPF", "CMN", "ADM", "MBW", "BAT", "EDU"):
+            for system_code in sorted(seeded):
                 self.assertIn(f"'{system_code}'", text, str(generated))
 
     def test_generated_product_bundles_contain_gateway_seed(self) -> None:

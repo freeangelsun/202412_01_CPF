@@ -1,6 +1,7 @@
 package com.cpf.local.runtime;
 
 import javax.sql.DataSource;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,9 @@ public class CpfLocalRuntimePlatformDataSourcePrimary {
     /** CPF 논리 Platform DB role의 canonical Bean 이름입니다. */
     static final String CPF_PLATFORM_DATA_SOURCE = "cpfPlatformDataSource";
 
+    /** CPF 논리 Platform DB role의 canonical TransactionManager Bean 이름입니다. */
+    static final String CPF_PLATFORM_TRANSACTION_MANAGER = "cpfPlatformTransactionManager";
+
     /** BeanFactoryPostProcessor는 조기 초기화를 피하려고 static @Bean으로 노출합니다. */
     @Bean
     static BeanFactoryPostProcessor cpfLocalRuntimePlatformDataSourcePrimary() {
@@ -35,6 +39,27 @@ public class CpfLocalRuntimePlatformDataSourcePrimary {
                 return;
             }
             beanFactory.getBeanDefinition(CPF_PLATFORM_DATA_SOURCE).setPrimary(true);
+        };
+    }
+
+    /**
+     * Platform 역할 TransactionManager도 같은 이유로 기본 선택을 밝힙니다.
+     *
+     * <p>Spring Session JDBC 자동구성처럼 단일 {@code PlatformTransactionManager}를 주입받는
+     * Starter는 후보가 여럿인 1-WAS에서 {@code Could not resolve an unique PlatformTransactionManager}
+     * 로 기동을 실패시킨다. DataSource와 마찬가지로 새 Bean을 만들지 않고 이미 등록된
+     * {@code cpfTransactionManager} 정의에만 primary를 표시한다.</p>
+     */
+    @Bean
+    static BeanFactoryPostProcessor cpfLocalRuntimePlatformTransactionManagerPrimary() {
+        return beanFactory -> {
+            if (beanFactory.getBeanNamesForType(PlatformTransactionManager.class, false, false).length <= 1) {
+                return;
+            }
+            if (!beanFactory.containsBeanDefinition(CPF_PLATFORM_TRANSACTION_MANAGER)) {
+                return;
+            }
+            beanFactory.getBeanDefinition(CPF_PLATFORM_TRANSACTION_MANAGER).setPrimary(true);
         };
     }
 }

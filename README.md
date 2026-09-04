@@ -534,4 +534,53 @@ README는 CPF 전체 제품과 주요 흐름을 빠르게 이해하는 첫 안�
 
 </details>
 
+<br><br>
+
+---
+
+<br><br>
+
+## 15. 받은 뒤 5분 안에 실행합니다
+
+Public Distribution을 받으면 별도 설치 절차 없이 `bin/`의 진입점만으로 로컬 실행까지 끝납니다.
+Windows는 `.ps1`, Linux/macOS는 `.sh`가 **같은 lifecycle**을 제공합니다.
+
+```bash
+# 1) 로컬 개발 환경을 준비합니다 (JDK/도구 확인, 로컬 DB 초기화, 실행 준비)
+bin/cpf-bootstrap.sh          # Windows: bin\cpf-bootstrap.ps1
+
+# 2) Runtime을 기동하고 상태를 확인합니다
+bin/cpf-start.sh              # Windows: bin\cpf-start.ps1
+bin/cpf-status.sh
+bin/cpf-health.sh
+
+# 3) 로그를 보고, 필요하면 재기동하거나 정지합니다
+bin/cpf-log.sh
+bin/cpf-restart.sh
+bin/cpf-stop.sh
+```
+
+`bin/cpf-bootstrap`이 끝나면 `CPF LOCAL DEVELOPMENT READY`가 출력됩니다. 이 상태에서 `cpf-education`의
+Online/Batch 예제를 그대로 실행해 보며 계약을 확인할 수 있습니다.
+
+업무 Domain을 새로 만들 때는 같은 진입점을 사용합니다. Domain은 생성 시점부터 자기 canonical
+SystemCode를 가지므로 3자리 코드를 함께 지정합니다.
+
+```bash
+bin/cpf-domain-new.sh  member MBR     # 새 업무 Domain 생성 (이름 + canonical SystemCode)
+bin/cpf-domain-sync.sh member         # 계약 변경을 생성물에 반영
+bin/cpf-build.sh                      # 빌드
+bin/cpf-test.sh                       # 테스트
+```
+
+사용 가능한 진입점 전체는 `bin/cpf-help.sh`(Windows는 `bin\cpf-help.ps1`)로 확인합니다.
+초기 상태로 되돌리려면 `bin/cpf-reset.sh --confirm`을 사용합니다. 실행 로그는 배포 트리의 `logs/`에
+실행 시각별로 남습니다.
+
+<br><br>
+
+---
+
+<br><br>
+
 CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.

@@ -134,8 +134,10 @@ System과 Channel은 **역할이 다른 개념**이다. 다만 내부 Business D
 - Browser/Untrusted Client는 Protected CPF Header를 작성하지 않는다. 보내더라도 제거/무시하고 trusted identity/route metadata로 재구성한다.
 - Protected Header를 생성하는 Trusted BFF/Gateway/Channel Application은 Registry/Runtime Configuration에서 **등록된 canonical ChannelCode**를 가져야 한다. 이들은 Platform/Channel Component이므로 **자기 Business SystemCode를 가지지 않는다**(Gateway, Channel Front). Channel 이름을 SystemCode로 문자열 변환하거나 Header 값만으로 identity를 신뢰하지 않는다.
 - 최초 Trusted Entry는 authenticated logical caller system identity와 target route를 기준으로 Transaction을 기동한다. Browser가 직접 시작한 사용자 요청이라도 Browser 자체를 System으로 등록하지 않는다. Front/Channel Application이 거래를 최초 기동하면 그 Channel의 canonical ChannelCode가 최초 Channel lineage가 되며, Channel Front에 가상 SystemCode를 부여하지 않는다. `X-Original-System-Code`는 **Business Domain 거래에서 그 거래를 최초 기동한 Business System**이 있을 때만 확정된다. 외부 Partner System이 인증된 호출 주체이면 해당 Partner System identity를 사용한다.
+- TransactionId의 3자리 issuer는 **최초 신뢰 거래를 기동한 canonical ChannelCode**다. 이것은 `X-Original-System-Code`와 별개 사실이다. Front Channel이 `WEB`으로 MBR 거래를 기동하면 issuer=`WEB`, Original System=`MBR`이 될 수 있다. 내부 Business Domain이 최초 기동하는 경우에만 그 Domain의 SystemCode 값이 내부 ChannelCode 값으로도 사용되어 두 값이 같을 수 있다. `issuer == SystemCode` 또는 `issuer == X-Original-System-Code`를 universal 검증으로 강제하거나 issuer를 truncate/default로 만들지 않는다.
 - Remote outbound는 Framework가 **6개 전체**를 대상 Hop 기준으로 구성해 전송한다.
 - Receiver 검증은 **업무 Domain Online Transaction에만** 적용한다. 검증 기준은 "이 JVM의 SystemCode"가 아니라 **요청이 도달한 Operation을 소유한 Domain의 canonical SystemCode**다. Same-JVM(1-WAS)에서도 `MBR` operation은 `MBR`, `EXS` operation은 `EXS` 기준으로 판정하며, JVM 하나의 identity로 합치지 않는다. 즉 `X-System-Code == Operation Owner SystemCode`, `X-Target-System-Code == Operation Owner SystemCode`, `X-Target-Operation-Id == 실제 Handler operationId`를 Controller invocation 전에 검증한다.
+- Same-JVM의 Owner 판정은 Generated Domain의 `META-INF/cpf/generated-domain.properties` 또는 Product Runtime의 `META-INF/cpf/runtime-component.properties`에 선언된 canonical `systemCode` / `domainCode` / `scanPackage`를 사용한다. Runtime이 package, operationId prefix, URL, module, DB prefix에서 SystemCode를 추측하지 않으며, Owner를 찾지 못한 업무 Operation은 fail-closed 한다. Operation Catalog도 Topology 이름으로 합치지 않고 이 Owner System별로 동기화한다.
 - ADM(Platform Control Plane) / Gateway / Batch Control Plane 관리 API는 이 검증 대상이 아니며 Channel 계약을 따른다.
 - 필수값 누락, 형식 오류, Original 변경, Target 불일치, Handler operation mismatch가 있으면 업무 Controller를 실행하지 않는다.
 
@@ -713,6 +715,13 @@ Business Domain Java project dependency= 0
 - Browser가 System6 Protected Header 작성
 
 BFF는 Browser session/cookie/CSRF, server-side credential propagation, outbound public client를 소유한다. Frontend의 Backend API 소비는 Generated Client가 기본이며 handwritten duplicate client를 만들지 않는다.
+
+Server Session BFF가 인증 자격증명을 처음 발급할 때에는 session fixation 방어를 위한 session-id
+회전과 **새 CSRF cookie 발급**을 하나의 응답 경계에서 완료해야 한다. 이때 session-id를 실제로
+회전하는 BFF credential-response owner가, MVC body가 쓰이기 전에 configured CSRF repository로
+새 cookie를 저장한다. Browser는 응답에서 받은 최신 cookie를 다음 state-changing 요청의 CSRF header로
+사용한다. 이전 cookie/header는 403으로 거절되어야 하며, 응답 완료 뒤 filter에서 cookie를 바꾸거나
+credential을 Browser body에 남겨 통과시키는 것은 계약 위반이다.
 
 ## 14. Gateway / External Integration / Messaging / File
 

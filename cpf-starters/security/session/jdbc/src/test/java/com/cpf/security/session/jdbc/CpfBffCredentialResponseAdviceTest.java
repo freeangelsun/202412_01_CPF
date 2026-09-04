@@ -19,6 +19,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 class CpfBffCredentialResponseAdviceTest {
     private final MemoryVault vault = new MemoryVault();
@@ -36,8 +37,9 @@ class CpfBffCredentialResponseAdviceTest {
             Duration.ofMinutes(30),
             1,
             null);
+    private final CookieCsrfTokenRepository csrfTokens = CookieCsrfTokenRepository.withHttpOnlyFalse();
     private final CpfBffCredentialResponseAdvice advice =
-            new CpfBffCredentialResponseAdvice(vault, properties, new ObjectMapper(), concurrentSessions());
+            new CpfBffCredentialResponseAdvice(vault, properties, new ObjectMapper(), concurrentSessions(), csrfTokens);
 
     @Test
     void leavesBackofficeChannelLoginUntouchedBecauseItIsADifferentAuthBoundary() {
@@ -80,6 +82,21 @@ class CpfBffCredentialResponseAdviceTest {
                 .get()
                 .extracting(value -> value.accessToken())
                 .isEqualTo("access-secret");
+    }
+
+    @Test
+    void sessionRotationReissuesCsrfCookieBeforeLoginResponseIsWritten() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/auth/login");
+        request.setCookies(new jakarta.servlet.http.Cookie("XSRF-TOKEN", "pre-login-token"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        invoke(Map.of("operatorId", "ADM001", "accessToken", "access-secret"), request, response);
+
+        assertThat(response.getHeaders("Set-Cookie"))
+                .anySatisfy(value -> {
+                    assertThat(value).contains("XSRF-TOKEN=");
+                    assertThat(value).doesNotContain("pre-login-token");
+                });
     }
 
     @Test
@@ -181,13 +198,17 @@ class CpfBffCredentialResponseAdviceTest {
     }
 
     private Object invoke(Object body, MockHttpServletRequest request) {
+        return invoke(body, request, new MockHttpServletResponse());
+    }
+
+    private Object invoke(Object body, MockHttpServletRequest request, MockHttpServletResponse response) {
         return advice.beforeBodyWrite(
                 body,
                 null,
                 MediaType.APPLICATION_JSON,
                 JacksonJsonHttpMessageConverter.class,
                 new ServletServerHttpRequest(request),
-                new ServletServerHttpResponse(new MockHttpServletResponse()));
+                new ServletServerHttpResponse(response));
     }
 
     private static CpfBffConcurrentSessionController concurrentSessions() {

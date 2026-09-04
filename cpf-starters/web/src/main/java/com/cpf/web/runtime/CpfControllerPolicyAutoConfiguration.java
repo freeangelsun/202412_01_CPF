@@ -3,6 +3,7 @@ package com.cpf.web.runtime;
 import com.cpf.web.context.CpfOperationIdResolver;
 import com.cpf.web.context.CpfRuntimeIdentity;
 import com.cpf.web.context.CpfRequestOperationResolver;
+import com.cpf.web.context.CpfOperationOwnerResolver;
 import com.cpf.foundation.execution.api.CpfOperationAccessPolicy;
 import com.cpf.foundation.execution.api.CpfOperationCatalogRegistry;
 import org.springframework.beans.factory.ObjectProvider;
@@ -29,17 +30,21 @@ public class CpfControllerPolicyAutoConfiguration {
         return new CpfControllerPolicyBeanPostProcessor(properties);
     }
     @Bean CpfOperationIdResolver cpfOperationIdResolver() { return new CpfOperationIdResolver(); }
+    @Bean CpfOperationOwnerResolver cpfOperationOwnerResolver() { return new CpfClasspathOperationOwnerResolver(); }
     @Bean CpfControllerContextInterceptor cpfControllerContextInterceptor(CpfControllerPolicyProperties properties,
             CpfOperationIdResolver operationIds, CpfRuntimeIdentity runtime, ObjectProvider<CpfOperationAccessPolicy> accessPolicies,
-            ObjectProvider<CpfRequestOperationResolver> requestOperationResolvers) {
+            ObjectProvider<CpfRequestOperationResolver> requestOperationResolvers,
+            ObjectProvider<CpfOperationOwnerResolver> operationOwnerResolvers) {
         return new CpfControllerContextInterceptor(properties, operationIds, runtime, accessPolicies.orderedStream().toList(),
-                requestOperationResolvers.orderedStream().toList());
+                requestOperationResolvers.orderedStream().toList(), operationOwnerResolvers.orderedStream().toList());
     }
 
     @Bean CpfOperationCatalogBootstrap cpfOperationCatalogBootstrap(
             @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime,
-            Environment environment, ObjectProvider<CpfOperationCatalogRegistry> registries) {
-        return new CpfOperationCatalogBootstrap(mappings, runtime, environment, registries.orderedStream().toList());
+            Environment environment, ObjectProvider<CpfOperationCatalogRegistry> registries,
+            CpfOperationOwnerResolver operationOwners) {
+        return new CpfOperationCatalogBootstrap(mappings, runtime, environment, registries.orderedStream().toList(),
+                new CpfBusinessOperationManifestVerifier(), operationOwners);
     }
 
     @Bean @ConditionalOnBean(jakarta.validation.Validator.class)

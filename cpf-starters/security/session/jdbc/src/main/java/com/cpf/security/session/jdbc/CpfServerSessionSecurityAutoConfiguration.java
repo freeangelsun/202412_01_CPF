@@ -21,6 +21,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.InvalidCsrfTokenException;
+import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
@@ -108,6 +110,11 @@ public class CpfServerSessionSecurityAutoConfiguration {
     }
 
     @Bean
+    CpfCsrfCookieExposureFilter cpfCsrfCookieExposureFilter() {
+        return new CpfCsrfCookieExposureFilter();
+    }
+
+    @Bean
     FilterRegistrationBean<CpfTrustedOriginFilter> cpfTrustedOriginFilterRegistration(
             CpfTrustedOriginFilter filter) {
         return securityChainOnly(filter);
@@ -131,6 +138,7 @@ public class CpfServerSessionSecurityAutoConfiguration {
             HttpSecurity http,
             CookieCsrfTokenRepository csrfRepository,
             CpfTrustedOriginFilter originFilter,
+            CpfCsrfCookieExposureFilter csrfCookieExposureFilter,
             CpfBffSessionBridgeFilter bridgeFilter,
             CpfBffLogoutFilter logoutFilter,
             CpfServerSessionProperties properties) throws Exception {
@@ -156,8 +164,13 @@ public class CpfServerSessionSecurityAutoConfiguration {
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                        .accessDeniedHandler((request, response, failure) ->
-                                response.sendError(HttpStatus.FORBIDDEN.value())))
+                        .accessDeniedHandler((request, response, failure) -> {
+                            // Browser client/Runtime evidence must distinguish CSRF rejection from an
+                            // authenticated authorization denial.  Do not expose token/origin values;
+                            // this fixed category is sufficient to diagnose the failed boundary.
+                            response.setHeader("X-CPF-Security-Rejection", securityRejection(failure));
+                            response.sendError(HttpStatus.FORBIDDEN.value());
+                        }))
                 // Spring Security 6 의 기본 CsrfTokenRequestHandler 는
                 // XorCsrfTokenRequestAttributeHandler 다. 이 handler 는 Header 값이 "XOR 마스킹된"
                 // 토큰이기를 기대하는데, CookieCsrfTokenRepository 는 Cookie 에 **원본** 토큰을 저장한다.
@@ -187,10 +200,27 @@ public class CpfServerSessionSecurityAutoConfiguration {
                         .permissionsPolicyHeader(policy -> policy.policy(
                                 "camera=(), microphone=(), geolocation=(), payment=()")))
                 .addFilterBefore(originFilter, CsrfFilter.class)
-                .addFilterAfter(new CpfCsrfCookieExposureFilter(), CsrfFilter.class)
+                .addFilterAfter(csrfCookieExposureFilter, CsrfFilter.class)
                 .addFilterAfter(bridgeFilter, CpfCsrfCookieExposureFilter.class)
                 .addFilterAfter(logoutFilter, CpfBffSessionBridgeFilter.class);
         return http.build();
+    }
+
+    /**
+     * 거절 사유를 조치 단위로 구분합니다.
+     *
+     * <p>"토큰이 오지 않았다"(Missing)와 "토큰이 맞지 않는다"(Invalid)는 조치가 다르다. 전자는
+     * Cookie 가 전달되지 않은 것이고 후자는 값/표현이 어긋난 것이다. 하나로 묶어 보고하면
+     * Client 설정 문제와 Token 표현 문제를 구분하지 못해 Runtime 주기를 반복하게 된다.</p>
+     */
+    private static String securityRejection(org.springframework.security.access.AccessDeniedException failure) {
+        if (failure instanceof MissingCsrfTokenException) {
+            return "CSRF_TOKEN_MISSING";
+        }
+        if (failure instanceof InvalidCsrfTokenException) {
+            return "CSRF_TOKEN_INVALID";
+        }
+        return "ACCESS_DENIED";
     }
 
     // 서버 세션 저장소(FindByIndexNameSessionRepository)는 Boot 의 spring-boot-session-jdbc
@@ -212,8 +242,9 @@ public class CpfServerSessionSecurityAutoConfiguration {
             CpfBffCredentialVault vault,
             CpfServerSessionProperties properties,
             ObjectMapper mapper,
-            CpfBffConcurrentSessionController concurrentSessions) {
-        return new CpfBffCredentialResponseAdvice(vault, properties, mapper, concurrentSessions);
+            CpfBffConcurrentSessionController concurrentSessions,
+            CookieCsrfTokenRepository csrfRepository) {
+        return new CpfBffCredentialResponseAdvice(vault, properties, mapper, concurrentSessions, csrfRepository);
     }
 
     @Bean

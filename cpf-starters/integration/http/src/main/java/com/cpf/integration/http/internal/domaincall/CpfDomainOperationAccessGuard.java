@@ -22,10 +22,28 @@ final class CpfDomainOperationAccessGuard {
                     "Target operation header does not match the resolved Domain operation.",
                     "TARGET_OPERATION_MISMATCH");
         }
-        if (!runtime.systemCode().equalsIgnoreCase(operation.systemCode())) {
+        // System6 receiver 검증의 기준은 host topology가 아니라 실제 resolved Operation owner다.
+        // 따라서 1-WAS가 자체 SystemCode를 가지지 않아도 MBR/EXS 등 Domain Operation의 Header
+        // System/Target 값은 반드시 해당 Operation의 canonical SystemCode와 일치해야 한다.
+        assertSystem(headers.getRequired(CpfHttpHeaderNames.SYSTEM_CODE), operation.systemCode(),
+                CpfHttpHeaderNames.SYSTEM_CODE, "SYSTEM_CODE_MISMATCH");
+        assertSystem(headers.getRequired(CpfHttpHeaderNames.TARGET_SYSTEM_CODE), operation.systemCode(),
+                CpfHttpHeaderNames.TARGET_SYSTEM_CODE, "TARGET_SYSTEM_CODE_MISMATCH");
+
+        // 별도 Runtime이면 그 Runtime도 자기가 호스팅하는 Domain Operation과 일치해야 한다.
+        // 1-WAS topology는 System이 아니므로 null을 가상 값으로 보정하지 않는다.
+        String runtimeSystem = runtime.systemCode();
+        if (runtimeSystem != null && !runtimeSystem.isBlank()
+                && !runtimeSystem.equalsIgnoreCase(operation.systemCode())) {
             throw rejected(CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
                     "Resolved Domain Operation does not belong to this runtime System identity.",
                     "DOMAIN_OPERATION_SYSTEM_MISMATCH");
+        }
+    }
+
+    private static void assertSystem(String actual, String expected, String header, String category) {
+        if (expected == null || expected.isBlank() || !expected.equalsIgnoreCase(actual)) {
+            throw rejected(header, "Domain Operation owner System does not match the canonical request header.", category);
         }
     }
 

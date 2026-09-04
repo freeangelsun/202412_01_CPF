@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 """Repository-wide transactionId and controller annotation/fallback gate."""
 from __future__ import annotations
+import sys as _cpf_sys
+
+# CPF 표준 인코딩은 UTF-8 이다. 호출자의 콘솔 코드페이지(Windows cp949 등)에 좌우되면
+# 한글 진단 메시지가 깨져 원인 판별을 방해한다. 진입점이 스스로 출력 스트림을 고정한다.
+for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
+    try:
+        _cpf_stream.reconfigure(encoding='utf-8')
+    except (AttributeError, ValueError):
+        pass
 import argparse,json,re,sys
 from pathlib import Path
 class GateError(RuntimeError):pass
@@ -44,13 +53,17 @@ def verify(root:Path):
        'requireExternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID)'),
    'receiver runtime system validation': ('runtime.systemCode()', 'validateReceiverSystem(runtimeSystem, inboundSystem, targetSystem)'),
    'system target receiver validation': ('SYSTEM_CODE_MISMATCH', 'TARGET_SYSTEM_CODE_MISMATCH'),
-   'transaction issuer original-system invariant': ('CpfTransactionIds.issuerCode(tx)', 'ORIGINAL_SYSTEM_CODE_MISMATCH'),
+   # issuer는 최초 신뢰 ChannelCode, Original-System은 업무 System lineage다. 둘의 universal
+   # equality는 Namespace 혼합이므로 금지한다(Harness 30.7).
+   'issuer and original-system namespace separation': ('CpfTransactionContext(',),
    # Channel remains optional policy/context metadata and cannot substitute for the six System headers.
    'optional channel context': ('inboundCurrentChannel = normalizeChannel(inboundCurrentChannel)', 'validateOptionalReceiverChannel('),
    'generated transaction fallback': ('requireGeneratedTransactionId(transactionIds.newTransactionId())',),
   }
   for label,tokens in semantic_groups.items():
    if not all(token in t for token in tokens): findings.append(f'inbound adapter semantic witness missing: {label}')
+  if 'ORIGINAL_SYSTEM_CODE_MISMATCH' in t or 'issuerCode(tx)' in t:
+   findings.append('inbound adapter must not force TransactionId issuer == X-Original-System-Code')
  if legacy:findings.append(f'legacy transaction identifier occurrences={len(legacy)}')
  # Zero annotations never proves route coverage; fallback must be present and measured.
  if routes and annotated==0 and not web_filter.is_file():findings.append('controller routes exist but no filter coverage')

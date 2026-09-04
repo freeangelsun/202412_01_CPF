@@ -49,10 +49,17 @@ public class CpfRuntimeControlAgentAutoConfiguration {
         Map<String,String> capabilities = prefixed(environment, "cpf.runtime.control.agent.capability.");
         Map<String,String> labels = prefixed(environment, "cpf.runtime.control.agent.label.");
         String environmentName = first(environment.getProperty("cpf.environment"), environment.getProperty("spring.profiles.active"));
+        // Service Identity 는 SystemCode 와 다른 축이다(Harness 30.11/30.13). ADM/Gateway/1-WAS 처럼
+        // SystemCode 가 없는 Component 도 Service/Module/instanceId 로 식별되며, 없다는 이유로
+        // 가상 SystemCode 를 만들지 않는다. 명시 service-id 가 없으면 systemCode 를 쓰고,
+        // 그것도 없으면 application(module) 이름을 쓴다.
+        String serviceIdentity = first(
+                environment.getProperty("cpf.runtime.control.agent.service-id"),
+                first(runtime.systemCode(), runtime.application()));
         return new CpfRuntimeInstanceRegistration(
                 runtime.instanceId(),
-                first(environment.getProperty("cpf.runtime.control.agent.service-id"), runtime.systemCode()),
-                first(environment.getProperty("cpf.runtime.control.agent.endpoint-code"), runtime.systemCode() + "_API"),
+                serviceIdentity,
+                first(environment.getProperty("cpf.runtime.control.agent.endpoint-code"), serviceIdentity + "_API"),
                 environmentName,
                 environment.getProperty("cpf.runtime.zone"),
                 environment.getProperty("cpf.runtime.cell"),

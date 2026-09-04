@@ -17,6 +17,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /**
@@ -41,6 +43,7 @@ public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<
     private final CpfServerSessionProperties properties;
     private final ObjectMapper mapper;
     private final CpfBffConcurrentSessionController concurrentSessions;
+    private final CsrfTokenRepository csrfTokens;
     private final Clock clock;
 
     public CpfBffCredentialResponseAdvice(
@@ -48,7 +51,7 @@ public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<
             CpfServerSessionProperties properties,
             ObjectMapper mapper,
             CpfBffConcurrentSessionController concurrentSessions) {
-        this(vault, properties, mapper, concurrentSessions, Clock.systemUTC());
+        this(vault, properties, mapper, concurrentSessions, null, Clock.systemUTC());
     }
 
     CpfBffCredentialResponseAdvice(
@@ -56,11 +59,22 @@ public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<
             CpfServerSessionProperties properties,
             ObjectMapper mapper,
             CpfBffConcurrentSessionController concurrentSessions,
+            CsrfTokenRepository csrfTokens) {
+        this(vault, properties, mapper, concurrentSessions, csrfTokens, Clock.systemUTC());
+    }
+
+    CpfBffCredentialResponseAdvice(
+            CpfBffCredentialVault vault,
+            CpfServerSessionProperties properties,
+            ObjectMapper mapper,
+            CpfBffConcurrentSessionController concurrentSessions,
+            CsrfTokenRepository csrfTokens,
             Clock clock) {
         this.vault = vault;
         this.properties = properties;
         this.mapper = mapper;
         this.concurrentSessions = concurrentSessions;
+        this.csrfTokens = csrfTokens;
         this.clock = clock;
     }
 
@@ -133,6 +147,7 @@ public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<
             } else {
                 activeHandle = vault.create(accessToken, refreshToken, accessExpiry, refreshExpiry);
                 httpRequest.changeSessionId();
+                rotateCsrfTokenAfterSessionIdChange(httpRequest, response);
                 if (previousHandle != null && !previousHandle.equals(activeHandle)) {
                     vault.revoke(previousHandle);
                 }
@@ -163,6 +178,16 @@ public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<
         CREDENTIAL_KEYS.forEach(sanitized::remove);
         sanitized.remove("sessionId");
         return mapper.convertValue(sanitized, LinkedHashMap.class);
+    }
+
+    private void rotateCsrfTokenAfterSessionIdChange(HttpServletRequest request, ServerHttpResponse response) {
+        if (csrfTokens == null || !(response instanceof ServletServerHttpResponse servletResponse)) {
+            return;
+        }
+        // This advice is the exact point that rotates the server session id.  Replacing the
+        // cookie here (before MVC writes the response) keeps the next Browser BFF write bound to
+        // the active session.  Doing it from a filter after chain completion is too late.
+        csrfTokens.saveToken(csrfTokens.generateToken(request), request, servletResponse.getServletResponse());
     }
 
     /** ADM BFF Chain 이 소유하는 경로 접두사입니다. {@code CpfBffSessionBridgeFilter} 와 같은 경계입니다. */

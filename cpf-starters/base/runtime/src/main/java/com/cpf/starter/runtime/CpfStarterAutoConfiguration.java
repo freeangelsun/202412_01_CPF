@@ -77,8 +77,17 @@ public class CpfStarterAutoConfiguration {
 
 
     @Bean @ConditionalOnMissingBean(CpfTransactionIdGenerator.class)
-    DefaultCpfTransactionIdGenerator cpfTransactionIdGenerator(Clock cpfStarterClock, CpfRuntimeMetadata runtime) {
-        return new DefaultCpfTransactionIdGenerator(runtime.systemCode(), runtime.instanceId(), cpfStarterClock);
+    DefaultCpfTransactionIdGenerator cpfTransactionIdGenerator(
+            Clock cpfStarterClock, CpfRuntimeMetadata runtime, Environment environment) {
+        // issuer 의 source 는 canonical ChannelCode 다(Harness 30.7). Business/Reference/Batch Runtime 은
+        // 자기 SystemCode 값이 곧 내부 hop ChannelCode 값이고(Harness 30.2), SystemCode 가 없는
+        // Platform/Channel Component 는 정본 ChannelCode 를 선언한다. 둘 다 없는 topology Runtime 은
+        // 스스로 거래를 기동하지 않으므로 발급 시점에 호출자가 issuer 를 넘긴다.
+        String declaredChannel = environment == null ? null : environment.getProperty("cpf.channel-code");
+        String issuerSource = declaredChannel != null && !declaredChannel.isBlank()
+                ? declaredChannel
+                : runtime.systemCode();
+        return new DefaultCpfTransactionIdGenerator(issuerSource, runtime.instanceId(), cpfStarterClock);
     }
 
     @Bean @ConditionalOnMissingBean

@@ -127,7 +127,8 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                 SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, SPAN_ID, MODULE_ID, MENU_ID,
                        BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE,
                        HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE,
-                       EXEC_USER, CHANNEL_CODE, START_TIME, END_TIME, DURATION_MS
+                       EXEC_USER, ORIGINAL_CHANNEL, CURRENT_CHANNEL, CALLER_CHANNEL, TARGET_CHANNEL,
+                       START_TIME, END_TIME, DURATION_MS
                 FROM CPF_TRANSACTION_LOG
                 WHERE 1 = 1
                 """);

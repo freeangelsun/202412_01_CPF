@@ -56,43 +56,51 @@ public final class CpfHttpInboundContextAdapter {
         String callerChannel = safe(values.get(lower(CpfHttpHeaderNames.CALLER_CHANNEL)), 16);
         String targetChannel = safe(values.get(lower(CpfHttpHeaderNames.TARGET_CHANNEL)), 16);
 
+        // SystemCode 없는 Platform/Topology Runtime은 Channel context로 거래를 시작할 수 있다.
+        // 단, 일부만 있는 System6은 허용하지 않는다. 실제 Business Operation 여부는 아직 MVC
+        // handler를 알 수 없는 Filter 경계 다음 단계에서 explicit Owner descriptor로 판정한다.
+        boolean systemlessIngress = runtimeSystem == null
+                && hasNoSystemMetadata(originalSystem, inboundSystem, callerSystem, targetSystem);
         String inboundTransactionId;
         if (effectiveTrust == CpfHttpIngressTrust.TRUSTED_INTERNAL) {
             requireInternal(rawTx, CpfHttpHeaderNames.TRANSACTION_ID);
-            requireInternal(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
-            requireInternal(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
-            requireInternal(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
-            requireInternal(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
             requireInternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID);
             inboundTransactionId = canonicalTransactionId(rawTx);
+            if (!systemlessIngress) {
+                requireInternal(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
+                requireInternal(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
+                requireInternal(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
+                requireInternal(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+                originalSystem = normalizeSystemRequired(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
+                inboundSystem = normalizeSystemRequired(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
+                callerSystem = normalizeSystemRequired(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
+                targetSystem = normalizeSystemRequired(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+                validateReceiverSystem(runtimeSystem, inboundSystem, targetSystem);
 
-            originalSystem = normalizeSystemRequired(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
-            inboundSystem = normalizeSystemRequired(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
-            callerSystem = normalizeSystemRequired(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
-            targetSystem = normalizeSystemRequired(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
-            validateReceiverSystem(runtimeSystem, inboundSystem, targetSystem);
-
-            String verifiedCallerSystem = edge == null ? null : normalizeSystem(edge.verifiedCallerSystemCode());
-            if (verifiedCallerSystem != null && !verifiedCallerSystem.equals(callerSystem)) {
-                throw trustViolation(CpfHttpHeaderNames.CALLER_SYSTEM_CODE,
-                        "X-Caller-System-Code does not match the authenticated internal caller identity.");
+                String verifiedCallerSystem = edge == null ? null : normalizeSystem(edge.verifiedCallerSystemCode());
+                if (verifiedCallerSystem != null && !verifiedCallerSystem.equals(callerSystem)) {
+                    throw trustViolation(CpfHttpHeaderNames.CALLER_SYSTEM_CODE,
+                            "X-Caller-System-Code does not match the authenticated internal caller identity.");
+                }
             }
         } else {
-            // 외부 Channel도 Canonical 6을 모두 전달한다. 값의 존재와 receiver 일치 여부는
-            // Runtime이 검증하며, Header 자체를 caller 인증의 근거로 신뢰하지 않는다.
+            // SystemCode 보유 Business Runtime은 Canonical 6을 모두 전달한다. Systemless
+            // Control Plane/Topology ingress는 System6 전부를 비워 Channel context만 전달한다.
+            // Header 자체를 caller 인증의 근거로 신뢰하지 않는다.
             requireExternal(rawTx, CpfHttpHeaderNames.TRANSACTION_ID);
-            requireExternal(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
-            requireExternal(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
-            requireExternal(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
-            requireExternal(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
             requireExternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID);
             inboundTransactionId = canonicalTransactionId(rawTx);
-
-            originalSystem = normalizeSystemRequired(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
-            inboundSystem = normalizeSystemRequired(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
-            callerSystem = normalizeSystemRequired(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
-            targetSystem = normalizeSystemRequired(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
-            validateReceiverSystem(runtimeSystem, inboundSystem, targetSystem);
+            if (!systemlessIngress) {
+                requireExternal(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
+                requireExternal(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
+                requireExternal(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
+                requireExternal(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+                originalSystem = normalizeSystemRequired(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
+                inboundSystem = normalizeSystemRequired(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
+                callerSystem = normalizeSystemRequired(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
+                targetSystem = normalizeSystemRequired(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+                validateReceiverSystem(runtimeSystem, inboundSystem, targetSystem);
+            }
         }
 
         originalChannel = normalizeChannel(originalChannel);
@@ -103,14 +111,6 @@ public final class CpfHttpInboundContextAdapter {
 
         String correlation = safe(values.get(lower(CpfHttpHeaderNames.CORRELATION_ID)), 160);
         String tx = inboundTransactionId == null ? requireGeneratedTransactionId(transactionIds.newTransactionId()) : inboundTransactionId;
-        String issuerCode = CpfTransactionIds.issuerCode(tx);
-        if (originalSystem != null && !originalSystem.equals(issuerCode)) {
-            throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE,
-                    "X-Original-System-Code must match the immutable issuer encoded in X-Transaction-Id.",
-                    400, "ORIGINAL_SYSTEM_CODE_MISMATCH");
-        }
-
         String traceparent = validatedTraceParent(values.get(lower(CpfHttpHeaderNames.TRACEPARENT)));
         String traceId = traceparent == null ? null : traceparent.substring(3, 35);
         String idempotency = safe(firstHeader(values, CpfHttpHeaderNames.IDEMPOTENCY_KEY, CpfHttpHeaderNames.IDEMPOTENCY_LEGACY), 256);
@@ -129,7 +129,7 @@ public final class CpfHttpInboundContextAdapter {
                         originalSystem, inboundSystem, callerSystem, targetSystem,
                         originalChannel, runtimeChannel, callerChannel, targetChannel,
                         Objects.requireNonNull(businessDate, "businessDate"), now,
-                        CpfContext.CpfTransactionOriginKind.HTTP, issuerCode, null),
+                        CpfContext.CpfTransactionOriginKind.HTTP, null, null),
                 new CpfContext.CpfExecutionContext(standardExecutionId, executionId, executionId, null,
                         segmentId, null, CpfContext.CpfExecutionType.API, 1, 0, now, deadline,
                         CpfContext.CpfCancellationMode.DEADLINE_ENFORCED),
@@ -156,6 +156,11 @@ public final class CpfHttpInboundContextAdapter {
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
                     header, "External CPF protocol call requires " + header + ".", 400, "EXTERNAL_HEADER_REQUIRED");
         }
+    }
+
+    private static boolean hasNoSystemMetadata(String originalSystem, String inboundSystem,
+            String callerSystem, String targetSystem) {
+        return originalSystem == null && inboundSystem == null && callerSystem == null && targetSystem == null;
     }
 
     /**

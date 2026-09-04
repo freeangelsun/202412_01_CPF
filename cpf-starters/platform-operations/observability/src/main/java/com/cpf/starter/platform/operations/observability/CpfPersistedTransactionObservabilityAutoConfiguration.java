@@ -17,6 +17,9 @@ import com.cpf.platform.operations.observability.internal.logging.fallback.Trans
 import com.cpf.platform.operations.observability.internal.logging.file.CpfAsyncFileLogWriter;
 import com.cpf.platform.operations.observability.internal.logging.file.CpfFileLogWriter;
 import com.cpf.platform.operations.observability.internal.logging.file.TransactionFileLogListener;
+import com.cpf.platform.operations.observability.internal.logging.policy.JdbcLogPolicyRepository;
+import com.cpf.platform.operations.observability.internal.logging.policy.LogPolicyCache;
+import com.cpf.platform.operations.observability.internal.logging.policy.LogPolicyRepository;
 import com.cpf.platform.operations.observability.internal.logging.policy.LogPolicyResolver;
 import com.cpf.platform.operations.observability.internal.logging.segment.CpfTransactionSegmentPortAdapter;
 import com.cpf.platform.operations.observability.internal.logging.segment.CpfTransactionTimelineQueryFacade;
@@ -27,6 +30,7 @@ import com.cpf.platform.operations.observability.spi.logging.lineage.CpfTransact
 import com.cpf.platform.operations.observability.spi.logging.segment.CpfTransactionSegmentPersistencePort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Clock;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -115,6 +119,32 @@ public class CpfPersistedTransactionObservabilityAutoConfiguration {
     @ConditionalOnMissingBean
     CpfBoundaryFailureEvidenceListener cpfBoundaryFailureEvidenceListener(TransactionLogListener listener) {
         return new CpfBoundaryFailureEvidenceListener(listener);
+    }
+
+    // DB Log Policy Runtime 조립 Owner.
+    // 이 세 Bean 이 없으면 LoggingAspect 의 정책 평가가 항상 null 이 되어 DB 로그 정책이
+    // 조용히 무시되고, ADM 의 log-policy cache refresh/clear 는 항상 400 으로 거절된다.
+    // (구현 클래스는 있는데 어디에서도 Bean 으로 만들지 않는 상태였다.)
+    // 실제 플랫폼 DB Provider 가 선택된 이 조립에서만 만든다. no-op/in-memory 대체는 만들지 않는다.
+    @Bean
+    @ConditionalOnMissingBean
+    LogPolicyRepository cpfLogPolicyRepository(
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplates,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSources) {
+        return new JdbcLogPolicyRepository(jdbcTemplates, dataSources);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    LogPolicyCache cpfLogPolicyCache(
+            LogPolicyRepository repository, Environment environment, ObjectProvider<Clock> clocks) {
+        return new LogPolicyCache(repository, environment, clocks.getIfUnique(Clock::systemUTC));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    LogPolicyResolver cpfLogPolicyResolver(LogPolicyCache cache) {
+        return new LogPolicyResolver(cache);
     }
 
     @Bean

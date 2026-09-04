@@ -970,6 +970,12 @@ Verifier/Smoke에 `ADM` SystemCode를 하드코딩해 통과시키는 것은 금
 `ADM Startup → Login/Session/CSRF → Control Plane API → 대상 System 조회/제어 → Log/Trace/Audit
 → Runtime Registry → Browser E2E → DB3 → One-WAS/분리 WAS` 까지다.
 
+ADM Server Session BFF의 Login 검증은 session-id 회전 뒤 response body가 기록되기 **전에** 새
+`XSRF-TOKEN` cookie가 발급되는지와, Browser가 최신 cookie 값으로 보낸 다음 state-changing 요청만
+통과하는지를 실제 Runtime에서 확인한다. 이전 token의 403은 보안 거절 원인을 판별할 수 있어야 한다.
+response 완료 뒤 filter에서 token을 교체하거나, stale cookie를 다시 보내는 Smoke는 False Green으로
+FAIL 처리한다.
+
 ### 30.16 Module Architecture Role 정본과 계약 경계 판정
 
 사용자 확정(2026-09-04, 최종 통합 Steering §23~§24). Architecture Role은 **새 Identity 축이 아니라
@@ -1002,6 +1008,33 @@ Operation → canonical Owner Component/Domain → architectureRole → 적용 T
   해석하지 않는다.
 - prefix 판정은 **가장 긴 prefix 우선**이다(`cpf-tools/runtime/cpf-local-runtime/` 가
   `cpf-tools/` 보다 우선).
+
+#### 30.16.1 System 을 키로 하는 계약은 SystemCode 보유 Runtime 에만 적용한다
+
+`X-System-Code` / `X-Target-System-Code` 대조, Operation Access Policy, Domain Operation 소유 대조,
+Operation Catalog 등록처럼 **target System 을 키로 삼는 계약**은 **요청 Operation의 canonical
+Owner**가 SystemCode 보유 Role(`BUSINESS_DOMAIN` / `REFERENCE_RUNTIME` / `BATCH_RUNTIME`)일 때
+적용한다. 단일 Runtime에서는 Runtime SystemCode와 Owner가 같아야 하지만, Same-JVM 1-WAS에서는
+Topology 자신이 SystemCode가 없어도 `MBR`/`EXS`/`MBW`/`EDU` Operation의 Owner SystemCode로 반드시
+검증·등록한다.
+
+SystemCode 가 없는 Component(ADM Platform Control Plane / Gateway / Channel Front /
+Batch Control Plane / 1-WAS topology **자체**)의 관리 Operation에는 그 계약을 적용하지 않는다.
+이는 1-WAS 안에 조립된 Business Domain Operation의 검증을 생략한다는 뜻이 아니다. 값이 없다는
+이유로 가상 SystemCode 를 만들거나 `NullPointerException` 으로 500 을 내지 않는다. 관리 Component의
+접근통제·lineage 는 자기 계층이 소유한다(예: ADM 은 세션/권한 Filter, Channel Front 는 정본
+ChannelCode).
+
+1-WAS의 Business Operation Owner는 `META-INF/cpf/generated-domain.properties`(Generated Domain) 또는
+`META-INF/cpf/runtime-component.properties`(Product Runtime)의 **명시 descriptor**가 소유한다. Descriptor의
+`systemCode` / `domainCode` / `scanPackage`가 정본이고, Runtime은 handler package를 이 명시 목록에서
+선택하는 데만 쓴다. Operation ID, URL, Module ID, DB Prefix, Application 이름에서 SystemCode를 새로
+추론하는 것은 금지다. 같은 handler에 더 긴 `scanPackage` descriptor가 있으면 그것이 우선이고, 같은
+길이의 서로 다른 Owner는 fail-closed 한다.
+
+새로 System 을 키로 하는 계약을 추가할 때는 **먼저 이 범위 규칙을 적용**한다. 같은 결함이
+`CpfHttpInboundContextAdapter` / `CpfControllerContextInterceptor` / `CpfDomainOperationAccessGuard` /
+`CpfOperationCatalogBootstrap` 에서 반복 발생했다.
 
 ### 30.17 EDU는 Education/Reference Runtime의 canonical SystemCode다
 

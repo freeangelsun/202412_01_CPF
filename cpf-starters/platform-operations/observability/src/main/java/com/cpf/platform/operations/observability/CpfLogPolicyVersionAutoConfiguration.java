@@ -8,6 +8,7 @@ import com.cpf.platform.operations.observability.internal.logging.audit.CpfFileL
 import com.cpf.platform.operations.observability.internal.logging.file.CpfFileLogWriter;
 import com.cpf.platform.operations.observability.internal.logging.policy.CpfLogPolicyCacheVersionApplier;
 import com.cpf.platform.operations.observability.internal.logging.policy.LogPolicyCache;
+import com.cpf.starter.platform.operations.observability.CpfPersistedTransactionObservabilityAutoConfiguration;
 import com.cpf.starter.platform.operations.observability.internal.logging.InMemoryCpfLogPolicyVersionStore;
 import com.cpf.foundation.service.logging.DefaultCpfLogPolicyVersionManager;
 import com.cpf.platform.operations.observability.spi.logging.CpfLogPolicyVersionApplier;
@@ -23,8 +24,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
-/** Explicit control-plane wiring. Disabled by default; in-memory mode is single-JVM only. */
-@AutoConfiguration
+/**
+ * Explicit control-plane wiring. Disabled by default; in-memory mode is single-JVM only.
+ *
+ * <p>LogPolicyCache / CpfFileLogWriter 는 {@link CpfPersistedTransactionObservabilityAutoConfiguration}
+ * 이 만든다. Boot 는 AutoConfiguration 을 클래스명 순으로 먼저 정렬하므로 이 클래스가 먼저 평가되면
+ * 두 {@code @ConditionalOnBean} 이 항상 false 가 되어 조용히 비활성화된다. 순서를 명시한다.</p>
+ */
+@AutoConfiguration(after = CpfPersistedTransactionObservabilityAutoConfiguration.class)
 public class CpfLogPolicyVersionAutoConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "cpf.logging.policy-version", name = "mode", havingValue = "in-memory")

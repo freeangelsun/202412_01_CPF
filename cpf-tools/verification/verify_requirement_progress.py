@@ -18,6 +18,10 @@ from pathlib import Path
 REQUIRED=("work_item_id","developer_status","verification_status","overall_status","source_identity","item_role")
 DEV_STATES={"완료","미완료","부분 구현","미구현","실패","재확인 필요","해당 없음","SOURCE_FIXED","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
 VERIFY_STATES={"완료","미완료","미검증","실패","재확인 필요","해당 없음","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
+# Current Registry 의 정본 구성: (tracking row, ROOT_CAUSE_EXECUTION row).
+# 새 Root Cause Execution 을 등록할 때만 의도적으로 올린다.
+CANONICAL_REGISTRY_SHAPE=(394,24)
+
 OVERALL_STATES={"완료","부분 구현","미구현","미검증","실패","재확인 필요","해당 없음","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
 
 def load(path:Path):
@@ -58,9 +62,13 @@ def main()->int:
         # 등록으로 Root Cause Execution 이 17 -> 19 가 되었고, 2026-09-03 사용자 Steering 3건
         # (WP-R17.01 Shell 조립성 / WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목)
         # 등록으로 19 -> 22 가 되었다.
-        if (tracking,execution)!=(394,23):
-            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected=394+23'); return 1
-        expected=417
+        # 2026-09-04 WP-IDENTITY(Identity Namespace / 거래 Header / Runtime Architecture 통합 정정)
+        # 등록으로 23 -> 24 가 되었다. 이 수는 tripwire 다. 새 Root Cause Execution 은 반드시
+        # 여기를 함께 올리게 해서 "등록 없이 늘어나는" 것을 막는다.
+        if (tracking,execution)!=CANONICAL_REGISTRY_SHAPE:
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected={CANONICAL_REGISTRY_SHAPE[0]}+{CANONICAL_REGISTRY_SHAPE[1]}'); return 1
+        # 총 row 수를 따로 적어 두면 두 상수가 어긋난다. 같은 정본에서 파생시킨다.
+        expected=sum(CANONICAL_REGISTRY_SHAPE)
     if len(rows)!=expected:
         print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_count={len(rows)} expected={expected}'); return 1
     result={'schema':'CPF_CURRENT_WORK_ITEM_REGISTRY_V1','rows':len(rows),'overall':dict(Counter((r.get('overall_status') or '').strip() for r in rows)),'development':dict(Counter((r.get('developer_status') or '').strip() for r in rows)),'verification':dict(Counter((r.get('verification_status') or '').strip() for r in rows))}

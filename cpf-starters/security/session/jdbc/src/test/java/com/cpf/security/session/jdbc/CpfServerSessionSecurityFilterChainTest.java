@@ -5,6 +5,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,7 +76,10 @@ class CpfServerSessionSecurityFilterChainTest {
     void authenticatedWriteRequiresBothAuthorityAndCsrf() throws Exception {
         var operator = user("operator").authorities(new SimpleGrantedAuthority("runtime:control"));
         mvc.perform(post("/adm/api/runtime/control").header("Origin", "http://localhost").with(operator))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                // 토큰을 아예 보내지 않은 경우다. "값이 틀림"(CSRF_TOKEN_INVALID)과 조치가 다르므로
+                // 사유를 구분해 보고한다.
+                .andExpect(header().string("X-CPF-Security-Rejection", "CSRF_TOKEN_MISSING"));
         mvc.perform(post("/adm/api/runtime/control").header("Origin", "http://localhost").with(operator).with(csrf()))
                 .andExpect(status().isOk());
     }

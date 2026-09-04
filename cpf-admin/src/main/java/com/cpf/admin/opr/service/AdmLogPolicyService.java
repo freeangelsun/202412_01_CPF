@@ -26,9 +26,11 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import java.util.HexFormat;
 import java.util.UUID;
 import java.sql.PreparedStatement;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -50,17 +52,33 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     private final ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider;
     private final CpfRuntimePolicyDistributionPort policyDistribution;
     private final Environment environment;
+    private final Clock clock;
 
     @Autowired
     public AdmLogPolicyService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider,
             @Qualifier("admRuntimePolicyDistributionPort") CpfRuntimePolicyDistributionPort policyDistribution,
-            Environment environment) {
+            Environment environment,
+            ObjectProvider<Clock> clocks) {
+        // 로그 정책의 유효구간은 Runtime(LogPolicyCache/LoggingAspect)이 평가한다.
+        // ADM 이 다른 시간 기준으로 검증하면 UTC 가 아닌 배포에서 offset 만큼 어긋나,
+        // Runtime 이 실제로 적용할 수 있는 구간을 ADM 이 거절하거나 그 반대가 된다.
+        this(cpfJdbcTemplate, logPolicyResolverProvider, policyDistribution, environment,
+                clocks == null ? Clock.systemUTC() : clocks.getIfUnique(Clock::systemUTC));
+    }
+
+    private AdmLogPolicyService(
+            JdbcTemplate cpfJdbcTemplate,
+            ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider,
+            CpfRuntimePolicyDistributionPort policyDistribution,
+            Environment environment,
+            Clock clock) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.logPolicyResolverProvider = logPolicyResolverProvider;
         this.policyDistribution = policyDistribution;
         this.environment = environment;
+        this.clock = Objects.requireNonNull(clock, "clock");
     }
 
     /** 기존 Slice Test의 Source 호환 생성자입니다. */
@@ -68,7 +86,8 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
             JdbcTemplate cpfJdbcTemplate,
             ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider,
             CpfRuntimePolicyDistributionPort policyDistribution) {
-        this(cpfJdbcTemplate, logPolicyResolverProvider, policyDistribution, new StandardEnvironment());
+        this(cpfJdbcTemplate, logPolicyResolverProvider, policyDistribution, new StandardEnvironment(),
+                Clock.systemUTC());
     }
 
     public Map<String, Object> findPolicies(String targetType, String targetId, String activeYn, int limit) {
@@ -360,8 +379,8 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                 defaultIfBlank(request.transactionId(), request.apiPath(), "*"),
                 "*");
         long ttlSeconds = request.ttlSeconds() == null || request.ttlSeconds() < 60 ? 600 : Math.min(request.ttlSeconds(), 86_400);
-        LocalDateTime startAt = LocalDateTime.now().minusSeconds(5);
-        LocalDateTime endAt = LocalDateTime.now().plusSeconds(ttlSeconds);
+        LocalDateTime startAt = LocalDateTime.now(clock).minusSeconds(5);
+        LocalDateTime endAt = LocalDateTime.now(clock).plusSeconds(ttlSeconds);
         AdmLogPolicyOverrideRequest overrideRequest = new AdmLogPolicyOverrideRequest(
                 request.policyId(),
                 "ONLINE_TRANSACTION",
@@ -597,7 +616,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         if (!request.effectiveStartAt().isBefore(request.effectiveEndAt())) {
             throw new CpfValidationException("override 적용 시작일시는 종료일시보다 이전이어야 합니다.");
         }
-        if (request.effectiveEndAt().isBefore(LocalDateTime.now())) {
+        if (request.effectiveEndAt().isBefore(LocalDateTime.now(clock))) {
             throw new CpfValidationException("override 종료일시는 현재 이후여야 합니다.");
         }
     }

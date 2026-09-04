@@ -203,6 +203,72 @@ class SystemIdentityContractTest(unittest.TestCase):
             f"{sorted(violations)}",
         )
 
+    def test_runtime_rejects_an_external_system_code_that_differs_from_canonical_source(self) -> None:
+        """외부 SystemCode 는 정본을 바꾸지 못하고 같을 때만 허용한다(Harness 30.20)."""
+        source = REPO_ROOT / (
+            "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/runtime/CpfRuntimeSystemCode.java"
+        )
+        text = io.open(source, encoding="utf-8").read()
+        self.assertIn("canonicalValue(environment", text,
+                      "Runtime 은 Environment 최상위 값만 SystemCode 정본으로 쓰면 안 됩니다.")
+        self.assertIn('"systemEnvironment"', text,
+                      "OS 환경변수는 canonical SystemCode source 가 아니라 override 로 분류해야 합니다.")
+        self.assertIn("override does not match the canonical identity", text,
+                      "SystemCode override 불일치를 fail-closed 해야 합니다.")
+        self.assertNotIn('"cpf.framework.module-id"', text,
+                         "Module ID 를 SystemCode fallback/source 로 재도입하면 안 됩니다.")
+
+    def test_transaction_issuer_is_not_forced_to_equal_original_business_system(self) -> None:
+        """issuer는 최초 trusted Channel, Original System은 업무 lineage다(Harness 30.7)."""
+        inbound = REPO_ROOT / (
+            "cpf-starters/web/src/main/java/com/cpf/web/context/CpfHttpInboundContextAdapter.java"
+        )
+        gate = REPO_ROOT / "cpf-tools/verification/tools/verify-cpf-transaction-id-standard.py"
+        inbound_text = io.open(inbound, encoding="utf-8").read()
+        gate_text = io.open(gate, encoding="utf-8").read()
+        self.assertNotIn("ORIGINAL_SYSTEM_CODE_MISMATCH", inbound_text,
+                         "issuer와 X-Original-System-Code를 universal equality로 강제하면 안 됩니다.")
+        self.assertNotIn("issuerCode(tx)", inbound_text,
+                         "Inbound adapter가 TransactionId issuer를 Original System 검증에 재사용하면 안 됩니다.")
+        self.assertIn("issuer and original-system namespace separation", gate_text,
+                      "TransactionId standard gate가 issuer/System namespace 분리를 검증해야 합니다.")
+
+    def test_adm_runtime_smokes_use_channel_not_business_system_identity(self) -> None:
+        """ADM은 Control Plane이므로 1-WAS verifier가 MBW System6을 재사용하면 안 된다."""
+        policy_smoke = REPO_ROOT / "cpf-tools/runtime/tools/smoke-log-policy-runtime.ps1"
+        correlation_smoke = REPO_ROOT / "cpf-tools/runtime/tools/smoke-integrated-log-correlation.ps1"
+        work_unit = REPO_ROOT / "cpf-tools/verification/tools/run-cpf-runtime-work-unit.ps1"
+        full_runner = REPO_ROOT / "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1"
+        policy_text = io.open(policy_smoke, encoding="utf-8-sig").read()
+        correlation_text = io.open(correlation_smoke, encoding="utf-8-sig").read()
+        work_unit_text = io.open(work_unit, encoding="utf-8-sig").read()
+        full_runner_text = io.open(full_runner, encoding="utf-8-sig").read()
+        adm_headers = correlation_text.split("function New-CpfAdmHeaders", 1)[1].split(
+            "$script:admWebSession", 1)[0]
+
+        self.assertIn("[string] $ChannelCode = \"ADM\"", policy_text)
+        self.assertIn("X-Original-Channel", policy_text)
+        self.assertNotIn('"X-System-Code" = $ChannelCode', policy_text)
+        self.assertIn('function Get-AdmCsrfCookie', policy_text)
+        self.assertIn('"{0}/adm/" -f $AdmBaseUrl.TrimEnd', policy_text)
+        self.assertIn("Select-Object -Last 1", policy_text)
+        self.assertIn("function Get-SecretFingerprint", policy_text)
+        self.assertIn("csrfFingerprint(initial=", policy_text)
+        self.assertIn("[string] $AdmChannelCode = 'ADM'", correlation_text)
+        self.assertIn("Get-CpfIssuerCode $AdmChannelCode", adm_headers)
+        self.assertIn("function Get-CpfAdmCsrfCookie", correlation_text)
+        self.assertIn("Select-Object -Last 1", correlation_text)
+        for system_header in ("X-Original-System-Code", "X-System-Code", "X-Caller-System-Code", "X-Target-System-Code"):
+            self.assertNotIn(system_header, adm_headers,
+                             f"ADM Control Plane header must not carry business System6: {system_header}")
+        self.assertIn("-ChannelCode', $admOperationalChannelCode", work_unit_text)
+        self.assertIn("-AdmChannelCode', $admOperationalChannelCode", work_unit_text)
+        self.assertIn("-ChannelCode',$admOperationalChannelCode", full_runner_text)
+        self.assertIn("-AdmChannelCode',$admOperationalChannelCode", full_runner_text)
+        for text in (work_unit_text, full_runner_text):
+            self.assertIn("CPF_ADM_SESSION_COOKIE_SECURE", text)
+            self.assertIn("CPF_ADM_ALLOWED_ORIGINS", text)
+
     def test_components_without_system_identity_do_not_declare_system_code(self) -> None:
         owners = _policy().get("moduleOwners", [])
         violations: list[str] = []

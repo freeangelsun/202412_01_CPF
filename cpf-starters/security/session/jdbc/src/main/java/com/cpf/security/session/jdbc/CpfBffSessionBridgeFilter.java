@@ -18,6 +18,8 @@ import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -34,6 +36,8 @@ public final class CpfBffSessionBridgeFilter extends OncePerRequestFilter {
             CpfBffSessionBridgeFilter.class.getName() + ".REFRESH_TOKEN";
 
     private final CpfBffCredentialVault vault;
+    private final SecurityContextRepository securityContextRepository =
+            new HttpSessionSecurityContextRepository();
 
     public CpfBffSessionBridgeFilter(CpfBffCredentialVault vault) {
         this.vault = vault;
@@ -100,6 +104,13 @@ public final class CpfBffSessionBridgeFilter extends OncePerRequestFilter {
         SecurityContext bffContext = SecurityContextHolder.createEmptyContext();
         bffContext.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal, null, List.of()));
         SecurityContextHolder.setContext(bffContext);
+        // SessionManagementFilter는 SecurityContextRepository에 Context가 없는 인증을 "신규 인증"으로 판정하고
+        // sessionFixation(changeSessionId) + CsrfAuthenticationStrategy를 재적용한다. Bridge가 매 요청 Context를
+        // Holder에만 올리면 BFF 요청마다 Session ID와 CSRF Token이 회전해 직전 응답으로 받은 토큰이 항상 무효가 된다.
+        // 따라서 BFF Session이 성립한 시점에 Context를 Session에 1회 고정한다.
+        if (!this.securityContextRepository.containsContext(request)) {
+            this.securityContextRepository.saveContext(bffContext, request, response);
+        }
         try {
             Instant now = Instant.now();
             if (path.endsWith("/auth/refresh")) {

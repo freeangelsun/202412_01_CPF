@@ -3,6 +3,7 @@ package com.cpf.web.runtime;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.foundation.execution.api.CpfOperationCatalogRegistry;
 import com.cpf.web.context.CpfRuntimeIdentity;
+import com.cpf.web.context.CpfOperationOwnerResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -10,33 +11,51 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
-import org.springframework.context.ApplicationListener;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-/** WAS READY 직전에 실제 Handler를 스캔하여 Operation Catalog를 자동 현행화합니다. */
-public final class CpfOperationCatalogBootstrap implements ApplicationListener<ApplicationReadyEvent> {
+/**
+ * 실제 Handler를 스캔하여 Operation Catalog를 자동 현행화합니다.
+ *
+ * <p>동기화는 Web Server가 Listen을 시작하기 전(singleton 초기화 완료 시점)에 끝나야 한다.
+ * ApplicationReadyEvent는 Tomcat이 이미 포트를 연 뒤에 발행되므로, 그 시점에 동기화하면
+ * 기동 직후 도착한 첫 업무 거래가 아직 비어 있는 Catalog 때문에 OPERATION_NOT_REGISTERED로
+ * 거절된다(운영 롤링 배포에서도 동일하게 재현된다). 따라서 {@link SmartInitializingSingleton}
+ * 시점에 동기화하고, 실패하면 기동 자체를 fail-closed로 중단한다.</p>
+ */
+public final class CpfOperationCatalogBootstrap implements SmartInitializingSingleton {
     private final RequestMappingHandlerMapping mappings;
     private final CpfRuntimeIdentity runtime;
     private final Environment environment;
     private final List<CpfOperationCatalogRegistry> registries;
     private final CpfBusinessOperationManifestVerifier manifestVerifier;
+    private final CpfOperationOwnerResolver operationOwners;
 
     public CpfOperationCatalogBootstrap(RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime, Environment environment,
             List<CpfOperationCatalogRegistry> registries) {
-        this(mappings, runtime, environment, registries, new CpfBusinessOperationManifestVerifier());
+        this(mappings, runtime, environment, registries, new CpfBusinessOperationManifestVerifier(),
+                new CpfClasspathOperationOwnerResolver());
     }
 
     CpfOperationCatalogBootstrap(RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime, Environment environment,
             List<CpfOperationCatalogRegistry> registries, CpfBusinessOperationManifestVerifier manifestVerifier) {
-        this.mappings=mappings; this.runtime=runtime; this.environment=environment;
-        this.registries=List.copyOf(registries); this.manifestVerifier=manifestVerifier;
+        this(mappings, runtime, environment, registries, manifestVerifier, new CpfClasspathOperationOwnerResolver());
     }
 
-    @Override public void onApplicationEvent(ApplicationReadyEvent event) {
+    CpfOperationCatalogBootstrap(RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime, Environment environment,
+            List<CpfOperationCatalogRegistry> registries, CpfBusinessOperationManifestVerifier manifestVerifier,
+            CpfOperationOwnerResolver operationOwners) {
+        this.mappings=mappings; this.runtime=runtime; this.environment=environment;
+        this.registries=List.copyOf(registries); this.manifestVerifier=manifestVerifier;
+        this.operationOwners=operationOwners;
+    }
+
+    @Override public void afterSingletonsInstantiated() {
         List<CpfOperationCatalogRegistry.Operation> operations=detect();
         boolean generatedBusinessDomain = first("cpf.generated-domain.name") != null;
         if (operations.isEmpty() && !generatedBusinessDomain) return;
@@ -51,12 +70,20 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
             if(required) throw new IllegalStateException("CPF_OPERATION_CATALOG_REGISTRY_UNAVAILABLE:"+registries.size());
             return;
         }
-        String domain=first("cpf.domain","cpf.generated-domain.domain","cpf.framework.domain");
-        if(domain==null) domain=runtime.systemCode();
-        registries.getFirst().synchronize(new CpfOperationCatalogRegistry.SyncRequest(
-                runtime.systemCode(), domain, runtime.application(), runtime.instance(),
-                first("cpf.runtime.artifact-version", "info.build.version"),
-                first("cpf.runtime.artifact-commit", "git.commit.id"), operations));
+        // 1-WAS topology는 System이 아니지만 그 안의 업무 Operation은 각 owner System으로
+        // 분리 등록한다. Topology의 null SystemCode를 이유로 Catalog 동기화를 생략하면 안 된다.
+        Map<String, List<CpfOperationCatalogRegistry.Operation>> bySystem = new LinkedHashMap<>();
+        for (CpfOperationCatalogRegistry.Operation operation : operations) {
+            bySystem.computeIfAbsent(operation.systemCode(), ignored -> new ArrayList<>()).add(operation);
+        }
+        for (Map.Entry<String, List<CpfOperationCatalogRegistry.Operation>> entry : bySystem.entrySet()) {
+            List<CpfOperationCatalogRegistry.Operation> owned = List.copyOf(entry.getValue());
+            CpfOperationCatalogRegistry.Operation first = owned.getFirst();
+            registries.getFirst().synchronize(new CpfOperationCatalogRegistry.SyncRequest(
+                    entry.getKey(), first.domainCode(), first.application(), runtime.instance(),
+                    first("cpf.runtime.artifact-version", "info.build.version"),
+                    first("cpf.runtime.artifact-commit", "git.commit.id"), owned));
+        }
     }
 
     private List<CpfOperationCatalogRegistry.Operation> detect(){
@@ -73,17 +100,21 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
                 throw new IllegalStateException("CPF_OPERATION_ID_OPENAPI_MISMATCH:"+operationId+":"+open.operationId().trim());
             String httpMethod=entry.getKey().getMethodsCondition().getMethods().stream().map(value -> value.name()).sorted().findFirst().orElse("ANY");
             String path=entry.getKey().getPatternValues().stream().sorted().findFirst().orElse("/");
-            String domain=first("cpf.domain","cpf.generated-domain.domain","cpf.framework.domain"); if(domain==null) domain=runtime.systemCode();
+            CpfOperationOwnerResolver.CpfOperationOwner owner = operationOwners == null
+                    ? null : operationOwners.resolve(handler, operationId);
+            String owningSystem = owner == null ? runtime.systemCode() : owner.systemCode();
+            if (owningSystem == null || owningSystem.isBlank()) {
+                throw new IllegalStateException("CPF_OPERATION_OWNER_UNRESOLVED:" + operationId + ":"
+                        + handler.getBeanType().getName());
+            }
+            String domain = owner == null ? first("cpf.domain","cpf.generated-domain.domain","cpf.framework.domain") : owner.domainCode();
+            if(domain==null) domain=owningSystem;
+            String application = owner == null || owner.application() == null ? runtime.application() : owner.application();
             String name=required(tx.name(),"name");
             String description=required(tx.description(),"description");
-            // TODO(WP-IDENTITY): Operation 의 소유 Identity 는 Owner Component 의 architectureRole
-            // (cpf-tools/governance/cpf-product-surface-policy.json)로 판정해야 한다(Harness 30.16).
-            // package 추론은 Namespace 위반이라 금지되므로(Harness 30.21) 여기서 쓰지 않는다.
-            // Role 기반 판정이 Runtime 에 착지할 때까지 기존 동작을 유지한다.
-            String owningSystem=runtime.systemCode();
             String fp=fingerprint(operationId+"|"+name+"|"+description+"|"+httpMethod+"|"+path+"|"+handler.getBeanType().getName()+"|"+method.getName());
             out.add(new CpfOperationCatalogRegistry.Operation(operationId,name,description,
-                    owningSystem,domain,runtime.application(),httpMethod,path,handler.getBeanType().getName(),method.getName(),fp));
+                    owningSystem,domain,application,httpMethod,path,handler.getBeanType().getName(),method.getName(),fp));
         }
         out.sort(Comparator.comparing(value -> value.operationId()));
         for(int i=1;i<out.size();i++) if(out.get(i-1).operationId().equals(out.get(i).operationId()))

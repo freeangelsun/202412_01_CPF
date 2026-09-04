@@ -49,15 +49,19 @@ class CpfHttpInboundContextAdapterTest {
     }
 
     @Test
-    void transactionIssuerMustMatchImmutableOriginalSystemBeforeController() {
+    void transactionIssuerAndOriginalSystemAreIndependentCanonicalFacts() {
         var adapter = adapter();
         var headers = externalHeaders("MBR");
         headers.put(CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, "EXS");
-        CpfHeaderValidationException error = assertThrows(CpfHeaderValidationException.class, () -> adapter.resolve(
+        var result = adapter.resolve(
                 headers, CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
                 null, null, null, "POST /members", LocalDate.of(2026, 8, 18), null,
-                new CpfRuntimeIdentity("MBR", "member", "MBR01")));
-        assertEquals("ORIGINAL_SYSTEM_CODE_MISMATCH", error.category());
+                new CpfRuntimeIdentity("MBR", "member", "MBR01"));
+
+        // TransactionId issuer(MBW)는 최초 trusted Channel이고, Original System(EXS)은
+        // 업무 System lineage다. 값이 우연히 같을 수는 있어도 universal equality가 아니다.
+        assertEquals("EXS", result.snapshot().context().originalSystemCode());
+        assertEquals("MBR", result.snapshot().context().currentSystemCode());
     }
 
     @Test
@@ -94,6 +98,38 @@ class CpfHttpInboundContextAdapterTest {
                     null, null, null, "POST /members", LocalDate.of(2026, 8, 18), null,
                     new CpfRuntimeIdentity("MBR", "member", "MBR01")), required);
         }
+    }
+
+    @Test
+    void systemlessTopologyAcceptsChannelOnlyControlPlaneIngress() {
+        var headers = new LinkedHashMap<String,String>();
+        headers.put(CpfHttpHeaderNames.TRANSACTION_ID, CANONICAL_TX);
+        headers.put(CpfHttpHeaderNames.TARGET_OPERATION_ID, "getAdmReadiness");
+        headers.put(CpfHttpHeaderNames.ORIGINAL_CHANNEL, "ADM");
+        headers.put(CpfHttpHeaderNames.CURRENT_CHANNEL, "ADM");
+        headers.put(CpfHttpHeaderNames.CALLER_CHANNEL, "ADM");
+        headers.put(CpfHttpHeaderNames.TARGET_CHANNEL, "ADM");
+
+        var result = adapter().resolve(headers, CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
+                null, null, null, "GET /adm/api/health", LocalDate.of(2026, 8, 18), null,
+                new CpfRuntimeIdentity(null, "ADM", "cpf-local-runtime", "local-1"));
+
+        assertEquals(CANONICAL_TX, result.snapshot().transaction().transactionId());
+        assertEquals(null, result.snapshot().context().currentSystemCode());
+        assertEquals("ADM", result.snapshot().context().currentChannel());
+        assertEquals("getAdmReadiness", result.snapshot().context().targetOperationId());
+    }
+
+    @Test
+    void systemlessTopologyRejectsPartialBusinessSystemMetadata() {
+        var headers = new LinkedHashMap<String,String>();
+        headers.put(CpfHttpHeaderNames.TRANSACTION_ID, CANONICAL_TX);
+        headers.put(CpfHttpHeaderNames.TARGET_OPERATION_ID, "getAdmReadiness");
+        headers.put(CpfHttpHeaderNames.SYSTEM_CODE, "MBW");
+        assertThrows(CpfHeaderValidationException.class, () -> adapter().resolve(
+                headers, CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
+                null, null, null, "GET /adm/api/health", LocalDate.of(2026, 8, 18), null,
+                new CpfRuntimeIdentity(null, "ADM", "cpf-local-runtime", "local-1")));
     }
 
     private static CpfHttpInboundContextAdapter adapter() {

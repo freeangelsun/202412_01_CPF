@@ -1005,6 +1005,14 @@ if(-not $SkipOneWas -and $pwsh){
     $admSmokePassword=$null
     $admApprovalProofKey=$null
     $backofficeSmokePassword=$null
+    # 1-WAS topology에는 SystemCode가 없다. 모든 실행 mode에서 업무/ADM smoke가
+    # 동일한 Product canonical identity를 소비하도록 DB 준비와 분리해 먼저 확정한다.
+    $mbwRuntimeYml=Join-Path $RepoRoot 'cpf-backoffice/online/src/main/resources/application.yml'
+    $oneWasBusinessSystemCode=(Select-String -LiteralPath $mbwRuntimeYml -Pattern '^\s*system-code:\s*([A-Z0-9]{3})\s*$'|Select-Object -First 1).Matches[0].Groups[1].Value
+    if([string]::IsNullOrWhiteSpace($oneWasBusinessSystemCode)){throw "업무 Domain의 canonical SystemCode를 읽지 못했습니다: $mbwRuntimeYml"}
+    $admRuntimeYml=Join-Path $RepoRoot 'cpf-admin/src/main/resources/application.yml'
+    $admOperationalChannelCode=(Select-String -LiteralPath $admRuntimeYml -Pattern '^\s*channel-code:\s*([A-Z0-9]{3})\s*$'|Select-Object -First 1).Matches[0].Groups[1].Value
+    if([string]::IsNullOrWhiteSpace($admOperationalChannelCode)){throw "ADM canonical ChannelCode를 읽지 못했습니다: $admRuntimeYml"}
     if($FullLocal){
         if($SkipDocker -or -not $dockerReady){
             Add-CpfTextResult 'LOCAL_ONE_WAS_DB_PREP' 'FAIL' 'FullLocal 1-WAS requires verifier-owned MariaDB but Docker is unavailable.' 'FullLocal runtime DB is mandatory for ADM/BACKOFFICE/DB-log closure'
@@ -1050,6 +1058,9 @@ if(-not $SkipOneWas -and $pwsh){
                             }else{
                                 $oneWasBackofficeBootstrapResult=Get-Content -LiteralPath $backofficeBootstrapResultPath -Raw -Encoding UTF8|ConvertFrom-Json
                             }
+                            # Local Full Runtime은 loopback HTTP를 사용한다. production 기본 HTTPS
+                            # cookie/Origin 정책을 그대로 두면 BFF session/CSRF consumer가 실제
+                            # 거래 전에 403으로 끊긴다. verifier-owned local transport 값만 주입한다.
                             $oneWasRuntimeEnv=@{
                                 CPF_LOG_ROOT=$runtimeFileLogRoot
                                 CPF_PASSWORD_PEPPER=$runtimePepper
@@ -1060,6 +1071,8 @@ if(-not $SkipOneWas -and $pwsh){
                                 CPF_ADM_BOOTSTRAP_OPERATOR_ID='admin'
                                 CPF_ADM_BOOTSTRAP_OPERATOR_NAME='CPF FullLocal Admin'
                                 CPF_ADM_APPROVAL_PROOF_KEY_BASE64=$admApprovalProofKey
+                                CPF_ADM_SESSION_COOKIE_SECURE='false'
+                                CPF_ADM_ALLOWED_ORIGINS='http://127.0.0.1:8080'
                                 CPF_BACKOFFICE_DATASOURCE_ENABLED='true'
                                 CPF_BACKOFFICE_BOOTSTRAP_APPROVAL_TOKEN_FILE=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.tokenFile}else{''}
                                 CPF_BACKOFFICE_BOOTSTRAP_PASSWORD_FILE=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.passwordFile}else{''}
@@ -1118,6 +1131,7 @@ if(-not $SkipOneWas -and $pwsh){
             '-ProbePath','/api/v1/backoffice/auth/login','-ProbeOperationId','MBW_AUTH_LOGIN',
             '-ProbeBody','{"loginId":"cpf-file-log-probe","password":"cpf-file-log-probe"}',
             '-ProbeExtraHeaders','Idempotency-Key=','-AllowNonSuccessProbe',
+            '-SystemCode',$oneWasBusinessSystemCode,
             '-ProbeModuleCode','local-runtime','-ProbeDiagnosticPorts','8080','-RequireRuntime')
         $localSecretPrevious=@{}
         if(Test-Path -LiteralPath $DockerSecretFile -PathType Leaf){$localSecretPrevious=Import-CpfEnvFile $DockerSecretFile}
@@ -1133,12 +1147,12 @@ if(-not $SkipOneWas -and $pwsh){
                 [Environment]::SetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64',$admApprovalProofKey,'Process')
                 try {
                     $secretEnv=@{CPF_ADM_SMOKE_PASSWORD=$adminPassword;CPF_ADM_APPROVAL_PROOF_KEY_BASE64=$admApprovalProofKey}
-                    Invoke-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-AdmUsername','admin','-LogDir',$policyLogEvidence) $RepoRoot $secretEnv
+                    Invoke-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-AdmUsername','admin','-ChannelCode',$admOperationalChannelCode,'-LogDir',$policyLogEvidence) $RepoRoot $secretEnv
                     Invoke-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-integrated-log-correlation.ps1','-Root',$RepoRoot,'-BaseUrl','http://127.0.0.1:8080','-LogBasePath',$runtimeFileLogRoot,'-RuntimeLogRoot',(Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),'-FileLogResultPath',(Join-Path $fileLogEvidence 'file-log-standard-result.json'),'-LogPolicyResultPath',(Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'),'-AdmUsername','admin',
             # File Log smoke 와 같은 이유로 1-WAS 조립 안의 MBW_AUTH_LOGIN 을 쓴다.
             '-ProbePath','/api/v1/backoffice/auth/login','-ProbeOperationId','MBW_AUTH_LOGIN',
             '-ProbeBody','{"loginId":"cpf-file-log-probe","password":"cpf-file-log-probe"}',
-            '-ProbeExtraHeaders','Idempotency-Key=','-AllowNonSuccessProbe',
+            '-ProbeExtraHeaders','Idempotency-Key=','-AllowNonSuccessProbe','-SystemCode',$oneWasBusinessSystemCode,'-AdmChannelCode',$admOperationalChannelCode,
             '-ResultPath',(Join-Path $integratedLogRoot 'integrated-log-correlation-result.json')) $RepoRoot $secretEnv
                 } finally {
                     [Environment]::SetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD',$previousAdmSmokePassword,'Process')

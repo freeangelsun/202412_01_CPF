@@ -159,6 +159,31 @@ if ([string]::IsNullOrWhiteSpace($adminPassword)) { throw 'CPF_ADMIN_PASSWORD �
 # Full Runtime 과 동일한 verifier-owned run-scoped DB 계약입니다.
 $allPassed = $true
 $runId = ([guid]::NewGuid().ToString('N').Substring(0, 12)).ToLowerInvariant()
+
+# 이전 실행이 빌드 실패나 중단으로 정리 단계에 도달하지 못하면 verifier-owned 스키마/사용자가
+# Docker 에 그대로 남는다. 실제로 실패 실행들이 스키마 8개와 사용자 16개를 쌓아 두었다.
+# 검증기는 자기 namespace(cpf_verify_<runId>_* / cpfv_<runId>_*)를 소유하므로, 실행 전에
+# **현재 실행이 아닌** 잔여물을 먼저 제거한다. 정본 명명 계약에 맞는 것만 지우고, 시스템 DB 와
+# 제품 스키마는 절대 건드리지 않는다.
+function Remove-CpfOrphanVerifierDatabases {
+    param([string] $CurrentRunId)
+    $listSql = "SELECT schema_name FROM information_schema.schemata WHERE schema_name REGEXP '^cpf_verify_[a-f0-9]{8,24}_(runtime|mbw)$';"
+    $orphanDatabases = @(& docker exec -e MYSQL_PWD -i cpf-mariadb mariadb -uroot -N -B -e $listSql 2>$null |
+        Where-Object { $_ -and ($_ -notlike "cpf_verify_${CurrentRunId}_*") })
+    $userSql = "SELECT user FROM mysql.user WHERE user REGEXP '^cpfv_[a-f0-9]{8,24}_(pr|pm|br|bm)$';"
+    $orphanUsers = @(& docker exec -e MYSQL_PWD -i cpf-mariadb mariadb -uroot -N -B -e $userSql 2>$null |
+        Where-Object { $_ -and ($_ -notlike "cpfv_${CurrentRunId}_*") })
+    if ($orphanDatabases.Count -eq 0 -and $orphanUsers.Count -eq 0) {
+        Write-Line '[PASS] VERIFIER_DB_ORPHAN_SWEEP 잔여 없음'
+        return
+    }
+    $statements = @()
+    foreach ($database in $orphanDatabases) { $statements += "DROP DATABASE IF EXISTS ``$database``;" }
+    foreach ($user in $orphanUsers) { $statements += "DROP USER IF EXISTS ``$user``@'%';" }
+    $statements += 'FLUSH PRIVILEGES;'
+    [void](& docker exec -e MYSQL_PWD -i cpf-mariadb mariadb -uroot -e ($statements -join '') 2>$null)
+    Write-Line ('[PASS] VERIFIER_DB_ORPHAN_SWEEP databases={0} users={1}' -f $orphanDatabases.Count, $orphanUsers.Count)
+}
 $dbSecret = "CpfBat!$([guid]::NewGuid().ToString('N').Substring(0,20))9a"
 $migrationSecret = "CpfBatMig!$([guid]::NewGuid().ToString('N').Substring(0,20))8b"
 $dbEvidence = Join-Path $evidenceDir 'batch-runtime-db'
@@ -198,6 +223,15 @@ if (-not $SkipBuild) {
 $profilePath = Join-Path $dbEvidence 'profile.json'
 
 $loopbackProfilePath = $null
+
+# 이전 실행 잔여물을 먼저 걷어낸다. 남겨 두면 Docker 에 테스트 스키마가 계속 쌓인다.
+$previousMysqlPassword = [Environment]::GetEnvironmentVariable('MYSQL_PWD', 'Process')
+try {
+    [Environment]::SetEnvironmentVariable('MYSQL_PWD', $rootPassword, 'Process')
+    Remove-CpfOrphanVerifierDatabases -CurrentRunId $runId
+} finally {
+    [Environment]::SetEnvironmentVariable('MYSQL_PWD', $previousMysqlPassword, 'Process')
+}
 
 $prepOk = Invoke-Unit-Stage 'RUNTIME_DB_PREP' @(
     '-NoProfile', '-File', '.\cpf-tools\db\verification\prepare-cpf-local-runtime-db.ps1',
@@ -247,7 +281,10 @@ if (-not $prepOk) {
 
             # 검증기 소유 자격증명은 매 실행마다 새로 만들고 명령줄에 남기지 않는다.
             $runtimePepper = "CpfPepper-$([guid]::NewGuid().ToString('N'))"
-            $admSmokePassword = "Adm!$([guid]::NewGuid().ToString('N').Substring(0,20))7X"
+            # Bootstrap 비밀번호와, 강제 변경 이후 모든 검증기가 사용할 비밀번호를 분리한다.
+            # 회전은 Runtime 준비 단계가 한 번만 수행한다(검증기마다 회전하면 뒤 검증기가 로그인에 실패한다).
+            $admBootstrapPassword = "Adm!$([guid]::NewGuid().ToString('N').Substring(0,20))7X"
+            $admSmokePassword = "Adm!$([guid]::NewGuid().ToString('N').Substring(0,20))9Z"
             $admApprovalProofKey = [Convert]::ToBase64String(
                 [Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
             $backofficeSmokePassword = "Backoffice!$([guid]::NewGuid().ToString('N').Substring(0,20))6Y"
@@ -272,17 +309,24 @@ if (-not $prepOk) {
             $platformUrl = "jdbc:mariadb://127.0.0.1:3306/$($runtimeDb.platformDatabase)"
             $backofficeUrl = "jdbc:mariadb://127.0.0.1:3306/$($runtimeDb.backofficeDatabase)"
 
+            $oneWasBaseUrl = 'http://127.0.0.1:8080'
+
             # Full Runtime 과 동일한 1-WAS 실행 환경이다. 값 하나라도 빠지면 같은 기동이 아니다.
+            # 검증 Runtime은 loopback HTTP를 쓰므로, production HTTPS cookie 기본값을 그대로
+            # 상속하면 session/CSRF cookie가 되돌아오지 않는다. 이 값은 verifier-owned local
+            # transport 설정이며 product 기본값/production 보안 정책을 바꾸지 않는다.
             $oneWasRuntimeEnv = @{
                 CPF_LOG_ROOT = $runtimeFileLogRoot
                 CPF_PASSWORD_PEPPER = $runtimePepper
                 CPF_ENVIRONMENT_CODE = 'local'
                 CPF_RUNTIME_INSTANCE_ID = if ($bootstrap) { [string]$bootstrap.instanceId } else { "cpf-local-$runId" }
                 CPF_ADM_BOOTSTRAP_ENABLED = 'true'
-                CPF_ADM_BOOTSTRAP_PASSWORD = $admSmokePassword
+                CPF_ADM_BOOTSTRAP_PASSWORD = $admBootstrapPassword
                 CPF_ADM_BOOTSTRAP_OPERATOR_ID = 'admin'
                 CPF_ADM_BOOTSTRAP_OPERATOR_NAME = 'CPF FullLocal Admin'
                 CPF_ADM_APPROVAL_PROOF_KEY_BASE64 = $admApprovalProofKey
+                CPF_ADM_SESSION_COOKIE_SECURE = 'false'
+                CPF_ADM_ALLOWED_ORIGINS = $oneWasBaseUrl
                 CPF_BACKOFFICE_DATASOURCE_ENABLED = 'true'
                 CPF_BACKOFFICE_BOOTSTRAP_APPROVAL_TOKEN_FILE = if ($bootstrap) { [string]$bootstrap.tokenFile } else { '' }
                 CPF_BACKOFFICE_BOOTSTRAP_PASSWORD_FILE = if ($bootstrap) { [string]$bootstrap.passwordFile } else { '' }
@@ -308,9 +352,35 @@ if (-not $prepOk) {
             # 확인한다. 검증기 소유 DB 는 product seed 만 적재하므로 그 행이 없어
             # "Runtime Agent service가 중앙 Registry에 등록되어 있지 않습니다: LOCAL" 로 기동이 실패했다.
             # Runtime 데이터 전제는 Verifier 가 만든다(Harness §25.6.2). 제품 조건을 완화하지 않는다.
-            $oneWasServiceId = 'LOCAL'
+            # Service Identity 는 SystemCode 가 아니다(Harness 30.11/30.13). 1-WAS 는 System 이 아니므로
+            # 가상 SystemCode 를 만들지 않고, Runtime 이 선언한 application 이름을 Service Identity 로 쓴다.
+            # 값을 여기 하드코딩하지 않고 Runtime 정본 설정에서 읽는다(Harness 30.24).
+            $oneWasRuntimeYml = Join-Path $RepoRoot 'cpf-tools/runtime/cpf-local-runtime/src/main/resources/application.yml'
+            $oneWasServiceId = (Select-String -LiteralPath $oneWasRuntimeYml -Pattern '^\s{4}name:\s*(\S+)\s*$' |
+                Select-Object -First 1).Matches[0].Groups[1].Value
+            if ([string]::IsNullOrWhiteSpace($oneWasServiceId)) {
+                throw "1-WAS Service Identity 를 정본 설정에서 읽지 못했습니다: $oneWasRuntimeYml"
+            }
+
+            # 이 Unit 이 구동하는 업무 거래는 MBW Domain 소유다(아래 ProbeOperationId 참조).
+            # System6 Header 와 거래ID issuer 는 그 Domain 의 canonical Identity 를 써야 한다
+            # (Harness 30.2/30.7). 값을 여기 하드코딩하지 않고 소유 Domain 의 정본 설정에서 읽는다.
+            $mbwRuntimeYml = Join-Path $RepoRoot 'cpf-backoffice/online/src/main/resources/application.yml'
+            $oneWasBusinessSystemCode = (Select-String -LiteralPath $mbwRuntimeYml -Pattern '^\s*system-code:\s*([A-Z0-9]{3})\s*$' |
+                Select-Object -First 1).Matches[0].Groups[1].Value
+            if ([string]::IsNullOrWhiteSpace($oneWasBusinessSystemCode)) {
+                throw "업무 Domain 의 canonical SystemCode 를 정본 설정에서 읽지 못했습니다: $mbwRuntimeYml"
+            }
+
+            # ADM 운영 API 는 Business SystemCode 가 아니라 정본 운영 ChannelCode 로 lineage 를 구성한다
+            # (Harness 30.11 / 30.16.1). 값을 하드코딩하지 않고 ADM 정본 설정에서 읽는다.
+            $admRuntimeYml = Join-Path $RepoRoot 'cpf-admin/src/main/resources/application.yml'
+            $admOperationalChannelCode = (Select-String -LiteralPath $admRuntimeYml -Pattern '^\s*channel-code:\s*([A-Z0-9]{3})\s*$' |
+                Select-Object -First 1).Matches[0].Groups[1].Value
+            if ([string]::IsNullOrWhiteSpace($admOperationalChannelCode)) {
+                throw "ADM 운영 ChannelCode 를 정본 설정에서 읽지 못했습니다: $admRuntimeYml"
+            }
             $oneWasEndpointCode = "${oneWasServiceId}_API"
-            $oneWasBaseUrl = 'http://127.0.0.1:8080'
             $seedSql = @(
                 "INSERT INTO ${platformDatabase}.OPS_SERVICE(service_id,service_name,service_type,owner_module_code,description,use_yn,created_by,updated_by)",
                 " VALUES('$oneWasServiceId','CPF Local 1-WAS','INTERNAL','$oneWasServiceId','Verifier-owned 1-WAS runtime service','Y','HARNESS','HARNESS')",
@@ -339,11 +409,22 @@ if (-not $prepOk) {
                         CPF_ADM_APPROVAL_PROOF_KEY_BASE64 = $admApprovalProofKey
                     }
 
+                    # ADM Bootstrap 계정의 강제 비밀번호 변경은 Runtime 당 한 번만 수행한다.
+                    # 검증기마다 회전하면 먼저 실행된 검증기가 비밀번호를 바꿔 뒤 검증기가
+                    # 검증 대상과 무관한 인증 실패로 죽는다.
+                    if (-not (Invoke-Unit-Stage 'LOCAL_ONE_WAS_ADM_BOOTSTRAP_ROTATION' @(
+                        '-NoProfile', '-File', '.\cpf-tools\runtime\tools\prepare-cpf-adm-bootstrap-rotation.ps1',
+                        '-AdmBaseUrl', 'http://127.0.0.1:8080',
+                        '-ChannelCode', $admOperationalChannelCode) @{
+                            CPF_ADM_BOOTSTRAP_SMOKE_PASSWORD = $admBootstrapPassword
+                            CPF_ADM_SMOKE_PASSWORD = $admSmokePassword
+                        })) { $allPassed = $false }
+
                     if (-not (Invoke-Unit-Stage 'LOCAL_FILE_LOG_STANDARD' @(
                         '-NoProfile', '-File', '.\cpf-tools\runtime\tools\smoke-file-log-standard-runtime.ps1',
                         '-Root', $RepoRoot, '-ReferenceBaseUrl', 'http://127.0.0.1:8080',
                         '-ResultDir', $fileLogEvidence, '-LogBasePath', $runtimeFileLogRoot,
-                        '-SystemCode', $oneWasServiceId,
+                        '-SystemCode', $oneWasBusinessSystemCode,
                         # 1-WAS Local Module Catalog(CpfLocalRuntimeModules)에는 EDU 가 없다.
                         # 조립 안에 실제로 존재하는 무인증 @CpfOnlineTransaction 인 MBW_AUTH_LOGIN 으로
                         # 표준 File Log 22개 필드를 검증한다. 자격증명 없이도 같은 필드가 남으므로
@@ -361,7 +442,14 @@ if (-not $prepOk) {
                     if (-not (Invoke-Unit-Stage 'LOCAL_DB_LOG_POLICY_RUNTIME' @(
                         '-NoProfile', '-File', '.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1',
                         '-Root', $RepoRoot, '-AdmBaseUrl', 'http://127.0.0.1:8080',
-                        '-AdmUsername', 'admin', '-SystemCode', $oneWasServiceId,
+                        '-AdmUsername', 'admin', '-ChannelCode', $admOperationalChannelCode,
+                        # DB Log Policy 는 @CpfOnlineTransaction 업무 거래에만 적용된다.
+                        # ADM 은 Control Plane 이라 업무 거래 로그를 만들지 않으므로,
+                        # File Log smoke 와 같이 1-WAS 조립 안의 MBW_AUTH_LOGIN 을 대상으로 쓴다.
+                        '-TargetTransactionId', 'MBW_AUTH_LOGIN',
+                        '-TargetSystemCode', $oneWasBusinessSystemCode,
+                        '-TargetProbePath', '/api/v1/backoffice/auth/login',
+                        '-TargetProbeBody', '{"loginId":"cpf-log-policy-probe","password":"cpf-log-policy-probe"}',
                         '-LogDir', $policyLogEvidence) $admSecretEnv)) { $allPassed = $false }
 
                     if (-not (Invoke-Unit-Stage 'LOCAL_INTEGRATED_LOG_CORRELATION' @(
@@ -371,7 +459,8 @@ if (-not $prepOk) {
                         '-RuntimeLogRoot', (Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),
                         '-FileLogResultPath', (Join-Path $fileLogEvidence 'file-log-standard-result.json'),
                         '-LogPolicyResultPath', (Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'),
-                        '-AdmUsername', 'admin', '-SystemCode', $oneWasServiceId,
+                        '-AdmUsername', 'admin', '-SystemCode', $oneWasBusinessSystemCode,
+                        '-AdmChannelCode', $admOperationalChannelCode,
                         # File Log smoke 와 같은 이유로 1-WAS 조립 안의 MBW_AUTH_LOGIN 을 쓴다.
                         '-ProbePath', '/api/v1/backoffice/auth/login',
                         '-ProbeOperationId', 'MBW_AUTH_LOGIN',

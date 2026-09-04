@@ -206,7 +206,8 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         StringBuilder sql = new StringBuilder("""
                 SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, INSTANCE_ID,
                        HOST_NAME, PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID,
-                       LOG_TYPE, REQUEST_TYPE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, HTTP_METHOD,
+                       LOG_TYPE, REQUEST_TYPE, ORIGINAL_CHANNEL, CURRENT_CHANNEL, CALLER_CHANNEL,
+                       TARGET_CHANNEL, MEMBER_NO, CUSTOMER_NO, HTTP_METHOD,
                        URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, START_TIME, END_TIME, DURATION_MS
                 FROM CPF_TRANSACTION_LOG
                 WHERE 1 = 1

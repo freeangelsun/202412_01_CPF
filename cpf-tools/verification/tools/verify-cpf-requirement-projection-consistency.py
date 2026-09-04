@@ -14,6 +14,8 @@ for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
 import argparse,csv,hashlib,json
 from pathlib import Path
 
+CANONICAL_CURRENT_ROWS=418
+
 class GateError(RuntimeError): pass
 
 def sha256(p:Path)->str:
@@ -54,7 +56,9 @@ def verify(root:Path)->dict:
  if projection_required-set(pf): raise GateError(f'Current Status projection columns missing: {sorted(projection_required-set(pf))}')
  # WP-R16.01/02 등록으로 411 -> 413, 2026-09-03 사용자 Steering 3건(WP-R17.01 Shell 조립성 /
  # WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목) 등록으로 413 -> 416 이 되었다.
- if len(rrows)!=417 or len(prows)!=417: raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected=417')
+ # 2026-09-04 WP-IDENTITY 등록으로 417 -> 418 이 되었다. 이 수는 tripwire 다.
+ if len(rrows)!=CANONICAL_CURRENT_ROWS or len(prows)!=CANONICAL_CURRENT_ROWS:
+  raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected={CANONICAL_CURRENT_ROWS}')
  rids=[(r.get('work_item_id') or '').strip() for r in rrows]; pids=[(r.get('work_item_id') or '').strip() for r in prows]
  if len(set(rids))!=len(rids) or len(set(pids))!=len(pids) or rids!=pids: raise GateError('Current Status work_item_id order/set differs from Current Registry')
  pmap={r['work_item_id']:r for r in prows}

@@ -2,6 +2,9 @@ package com.cpf.data.persistence.jdbc;
 
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,6 +26,22 @@ public class CpfJdbcRoleDataSourceAutoConfiguration {
     @ConditionalOnProperty(prefix = ROOT + "cpf-platform-db", name = "enabled", havingValue = "true")
     DataSource cpfPlatformDataSource(Environment environment) throws NamingException {
         return CpfDataSources.resolve(environment, ROOT + "cpf-platform-db");
+    }
+
+    /**
+     * CPF Platform role DataSource의 짝이 되는 TransactionManager입니다.
+     *
+     * <p>역할 DataSource만 있고 TransactionManager가 없으면, 단일
+     * {@code PlatformTransactionManager}를 요구하는 Starter 자동구성(Spring Session JDBC 등)이
+     * 후보를 찾지 못하거나 여러 후보 중에서 고르지 못해 기동이 실패한다. Platform 운영 데이터의
+     * 정본은 CPF Platform 스키마이므로 그 역할의 TransactionManager를 함께 제공한다.</p>
+     */
+    @Bean("cpfPlatformTransactionManager")
+    @ConditionalOnMissingBean(name = "cpfPlatformTransactionManager")
+    @ConditionalOnProperty(prefix = ROOT + "cpf-platform-db", name = "enabled", havingValue = "true")
+    PlatformTransactionManager cpfPlatformTransactionManager(
+            @Qualifier("cpfPlatformDataSource") DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 
     @Bean("cpfCustomerBusinessDataSource")

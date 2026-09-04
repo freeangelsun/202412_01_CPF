@@ -38,7 +38,7 @@ public final class CpfGlobalExceptionHandler {
                 fallback,
                 LocaleContextHolder.getLocale(),
                 error.getMessageArguments());
-        boundarySignal(error.getClass().getSimpleName(), resolved.responseCode());
+        boundarySignal(error.getClass().getSimpleName(), resolved.responseCode(), error);
         return ResponseEntity.status(CpfHttpErrorMapper.status(resolved.category()))
                 .body(new CpfHttpErrorResponse(
                         resolved.responseCode(),
@@ -86,6 +86,15 @@ public final class CpfGlobalExceptionHandler {
                 fallback.statusCode(), fallback, LocaleContextHolder.getLocale(), Map.of());
         // Raw exception message/SQL/secret는 boundary log에 기록하지 않습니다.
         boundarySignal(error.getClass().getSimpleName(), resolved.responseCode());
+        // 예상하지 못한 오류는 **원인 지점을 남겨야 고칠 수 있다.** 외부 응답에는 어떤 내부 정보도
+        // 넣지 않지만, 서버 로그에는 stack 을 남긴다. 이것이 없으면 500 이 나도 어느 코드에서
+        // 났는지 알 수 없어 Runtime 주기를 반복하며 추측해야 한다.
+        // message 는 이미 boundarySignal 이 sanitize 한 type/code 만 쓰고, 여기서는 stack 만 넘긴다.
+        log.error("CPF_WEB_UNEXPECTED_ERROR type={} transactionId={} executionId={}",
+                safe(error.getClass().getName()),
+                safe(CpfContexts.currentTransactionId()),
+                safe(CpfContexts.currentExecutionId()),
+                error);
         return ResponseEntity.status(CpfHttpErrorMapper.status(resolved.category()))
                 .body(new CpfHttpErrorResponse(
                         resolved.responseCode(),
@@ -130,8 +139,26 @@ public final class CpfGlobalExceptionHandler {
     }
 
     private void boundarySignal(String type, String code) {
-        log.warn("CPF_WEB_ERROR type={} code={} transactionId={} executionId={}",
-                safe(type), safe(code), safe(CpfContexts.currentTransactionId()), safe(CpfContexts.currentExecutionId()));
+        boundarySignal(type, code, null);
+    }
+
+    // 4xx 는 외부 응답 message 가 Catalog 문구로 치환되므로, origin 이 없으면 어떤 코드가 왜
+    // 거절했는지 서버 로그로도 알 수 없다. 실제로 ADM 400(ECPF010004)의 원인을 찾기 위해
+    // Runtime 주기를 반복해야 했다. 값(=사용자 입력)이 아니라 **던진 위치**만 남긴다.
+    private void boundarySignal(String type, String code, Throwable error) {
+        log.warn("CPF_WEB_ERROR type={} code={} origin={} transactionId={} executionId={}",
+                safe(type), safe(code), safe(originOf(error)),
+                safe(CpfContexts.currentTransactionId()), safe(CpfContexts.currentExecutionId()));
+    }
+
+    private static String originOf(Throwable error) {
+        if (error == null) return null;
+        for (StackTraceElement frame : error.getStackTrace()) {
+            if (frame.getClassName().startsWith("com.cpf.")) {
+                return frame.getClassName() + "." + frame.getMethodName() + ":" + frame.getLineNumber();
+            }
+        }
+        return null;
     }
 
     private String safe(String value) {

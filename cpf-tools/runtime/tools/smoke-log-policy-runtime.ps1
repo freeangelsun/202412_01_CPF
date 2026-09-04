@@ -3,10 +3,22 @@
     [string] $AdmBaseUrl = "http://localhost:8090",
     [string] $AdmUsername = "admin",
     # ADM 은 Platform Control Plane 이라 SystemCode 가 없다(Harness 30.10).
-    # 호출자는 ADM 운영 ChannelCode 를 넘긴다.
-    [string] $SystemCode = "ADM",
+    # 이 값은 ADM 운영 ChannelCode 이며 거래ID issuer 의 source 다(정본: OPS_CHANNEL_REGISTRY 의 ADM).
+    # 기존 호출자의 -SystemCode 는 호환을 위해 alias 로만 수용한다. ADM SystemCode 로 해석하지 않는다.
+    [Alias('SystemCode')]
+    [string] $ChannelCode = "ADM",
     [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,
-    [string] $TargetTransactionId = "ADM01TRN0010",
+    # 검증 대상 업무 거래. DB Log Policy 는 @CpfOnlineTransaction 이 붙은 **업무 거래**에만
+    # 적용된다. ADM 은 Platform Control Plane 이라 업무 거래 로그를 만들지 않으므로
+    # ADM API 를 대상 거래로 쓰면 DB 로그가 영원히 생기지 않는다(존재하지 않는 거래ID로는
+    # 정책 on/off 차이를 관측할 수 없다).
+    [string] $TargetTransactionId = "MBW_AUTH_LOGIN",
+    [string] $TargetProbeMethod = "Post",
+    [string] $TargetProbePath = "/api/v1/backoffice/auth/login",
+    [string] $TargetProbeBody = '{"loginId":"cpf-log-policy-probe","password":"cpf-log-policy-probe"}',
+    # 대상 업무 거래를 소유한 Business SystemCode(1-WAS 조립에서는 MBW).
+    [string] $TargetSystemCode = "MBW",
+    [string] $TargetProbeExtraHeaders = "Idempotency-Key=",
     [int] $StartupTimeoutSeconds = 120,
     [int] $ShutdownTimeoutSeconds = 90,
     [string] $LogDir = "",
@@ -106,26 +118,25 @@ function Get-CpfIssuerCode([string] $Code) {
 function New-SmokeHeaders {
     $script:sequence++
     $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
+    # 이 검증기는 ADM(Platform Control Plane) 운영 API 를 호출한다. ADM 은 Business SystemCode 를
+    # 가지지 않으므로 System 계열 Header 를 보내지 않고 **정본 운영 ChannelCode 계약**을 쓴다
+    # (Harness 30.10 / 30.11 / 30.16.1). 거래ID issuer 도 그 ChannelCode 다(Harness 30.7).
+    # Business System 헤더를 ADM 경로에 실어 통과시키는 것은 금지된 False Green 이다(Harness 30.14).
+    $channel = $ChannelCode.Trim().ToUpperInvariant()
     return @{
-        # 거래ID 의 issuer(3자리)는 X-Original-System-Code 와 반드시 같아야 한다
-        # (CpfHttpInboundContextAdapter, ORIGINAL_SYSTEM_CODE_MISMATCH). "ADM" 을 고정으로 박으면
-        "X-Transaction-Id" = "$timestamp" + (Get-CpfIssuerCode $SystemCode) + "lgpol01" + $script:sequence.ToString("0000000")
+        "X-Transaction-Id" = "$timestamp" + (Get-CpfIssuerCode $channel) + "lgpol01" + $script:sequence.ToString("0000000")
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
         "X-Client-Version" = "runtime-smoke"
         "X-Caller-Service" = "cpf-smoke"
-        # System6 계약상 X-System-Code / X-Target-System-Code 는 수신 Runtime 의 System Code 와
-        # 같아야 한다(CpfHttpInboundContextAdapter.validateReceiverSystem). 이 헤더가 없으면
-        # /adm/api/health 조차 거절되어 "이미 떠 있는 ADM" 을 인식하지 못하고, 스스로 ADM 을
-        # 기동하려다 "ADM boot jar was not found" 로 실패한다.
-        "X-Original-System-Code" = (Get-CpfIssuerCode $SystemCode)
-        "X-System-Code" = $SystemCode
-        "X-Caller-System-Code" = $SystemCode
-        "X-Target-System-Code" = $SystemCode
+        "X-Original-Channel" = $channel
+        "X-Current-Channel" = $channel
+        "X-Caller-Channel" = $channel
+        "X-Target-Channel" = $channel
         # X-Target-Operation-Id 는 External CPF protocol 호출의 필수 Header 다
         # (CpfHttpInboundContextAdapter.requireExternal / CpfHttpHeaderCatalog.required).
-        # 없으면 GET /adm/api/health 가 ECPF900002 400 으로 거절되어 "이미 떠 있는 1-WAS" 를
-        # 인식하지 못하고 ADM boot jar 를 다시 찾다가 실패한다. 호출별로 값을 넘길 수 있으며
+        # 값은 호출 대상 Controller 의 정본 operationId 여야 한다. 검증기가 아무 거래 ID나
+        # 실어 보내면 Runtime 이 실제로 그 계약을 지키는지 검증하지 못한다(False Green).
         # 기본값은 이 검증기가 가장 먼저 호출하는 readiness 거래다.
         "X-Target-Operation-Id" = "getAdmReadiness"
     }
@@ -133,6 +144,41 @@ function New-SmokeHeaders {
 
 $script:admWebSession = $null
 $script:admCsrfToken = $null
+$script:admCsrfInitialFingerprint = '(없음)'
+$script:admCsrfCurrentFingerprint = '(없음)'
+
+function Merge-OperationHeaders {
+    # 호출자가 넘긴 Header 를 보존하면서 대상 Controller 의 정본 operationId 를 싣는다.
+    param([hashtable] $Headers, [string] $OperationId)
+    $merged = @{}
+    if ($null -ne $Headers) { foreach ($key in $Headers.Keys) { $merged[$key] = $Headers[$key] } }
+    $merged['X-Target-Operation-Id'] = $OperationId
+    return $merged
+}
+
+function Get-SecretFingerprint {
+    param([string] $Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return '(없음)' }
+    $hash = [Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($Value))
+    return [Convert]::ToHexString($hash).Substring(0, 12).ToLowerInvariant()
+}
+
+function Get-AdmCsrfCookie {
+    # CookiePath=/adm 이므로 root URI가 아니라 실제 BFF path로 선택한다. Login 응답에서
+    # 같은 이름의 Cookie가 회전될 수 있으므로 마지막(가장 최근) Cookie를 사용한다.
+    if ($null -eq $script:admWebSession) { return $null }
+    $uri = [Uri] ("{0}/adm/" -f $AdmBaseUrl.TrimEnd('/'))
+    return @($script:admWebSession.Cookies.GetCookies($uri) |
+        Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -Last 1)[0]
+}
+
+function Get-AdmCookieDiagnostics {
+    if ($null -eq $script:admWebSession) { return '(세션없음)' }
+    $uri = [Uri] ("{0}/adm/" -f $AdmBaseUrl.TrimEnd('/'))
+    return (@($script:admWebSession.Cookies.GetCookies($uri) | ForEach-Object {
+        "{0}(path={1},secure={2},httpOnly={3},valueLength={4})" -f $_.Name,$_.Path,$_.Secure,$_.HttpOnly,$_.Value.Length
+    }) -join ',')
+}
 
 function Initialize-AdmCsrf {
     # ADM BFF Security Chain 은 /adm/** 에 CSRF 를 적용한다
@@ -144,9 +190,11 @@ function Initialize-AdmCsrf {
         -TimeoutSec 10 -UseBasicParsing -SessionVariable session
     $null = $probe
     $script:admWebSession = $session
-    $cookie = $session.Cookies.GetCookies($BaseUrl) | Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
+    $cookie = Get-AdmCsrfCookie
     if ($null -eq $cookie) { throw 'ADM CSRF cookie(XSRF-TOKEN)가 발급되지 않았습니다.' }
     $script:admCsrfToken = [string] $cookie.Value
+    $script:admCsrfInitialFingerprint = Get-SecretFingerprint $script:admCsrfToken
+    $script:admCsrfCurrentFingerprint = $script:admCsrfInitialFingerprint
     return $script:admCsrfToken
 }
 
@@ -161,15 +209,25 @@ function Get-AdmCsrfToken {
     # 새로 발급된다. 캐시한 값을 계속 쓰면 그 다음 상태 변경 요청이 403 이 된다.
     # 그래서 매 요청마다 WebSession 의 현재 Cookie 를 읽는다.
     if ($null -eq $script:admWebSession) { return $script:admCsrfToken }
-    $cookie = $script:admWebSession.Cookies.GetCookies($AdmBaseUrl) |
-        Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
-    if ($null -ne $cookie) { $script:admCsrfToken = [string] $cookie.Value }
+    $cookie = Get-AdmCsrfCookie
+    if ($null -ne $cookie) {
+        $script:admCsrfToken = [string] $cookie.Value
+        $script:admCsrfCurrentFingerprint = Get-SecretFingerprint $script:admCsrfToken
+    }
     return $script:admCsrfToken
 }
 
 function Add-AdmSessionParams {
     param([hashtable] $InvokeParams, [hashtable] $Headers)
-    if ($null -ne $script:admWebSession) { $InvokeParams.WebSession = $script:admWebSession }
+    if ($null -ne $script:admWebSession) {
+        $InvokeParams.WebSession = $script:admWebSession
+        # Cookie 전달을 PowerShell Cookie jar 동작에만 맡기지 않는다. 실제로 jar 에는 XSRF-TOKEN 이
+        # 있는데 서버는 받지 못해 CSRF_TOKEN_MISSING(= 서버가 토큰을 새로 생성) 으로 거절됐다.
+        # 브라우저와 동일하게 Cookie Header 를 명시해 전송을 결정적으로 만든다.
+        $cookiePairs = @($script:admWebSession.Cookies.GetCookies($AdmBaseUrl) |
+            ForEach-Object { "$($_.Name)=$($_.Value)" })
+        if ($cookiePairs.Count -gt 0) { $Headers['Cookie'] = ($cookiePairs -join '; ') }
+    }
     $csrf = Get-AdmCsrfToken
     if (-not [string]::IsNullOrWhiteSpace($csrf)) { $Headers['X-XSRF-TOKEN'] = $csrf }
     # CpfTrustedOriginFilter 는 /adm/ 의 상태 변경 요청에 Origin/Referer 를 요구하고, 없으면
@@ -201,7 +259,41 @@ function Invoke-SmokeJson {
         $invokeParams.ContentType = "application/json;charset=UTF-8"
         $invokeParams.Body = [System.Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
     }
-    ConvertFrom-Utf8JsonResponse (Invoke-WebRequest @invokeParams)
+    try {
+        ConvertFrom-Utf8JsonResponse (Invoke-WebRequest @invokeParams)
+    } catch {
+        # 403/401 은 원인이 CSRF / Origin / 권한 중 무엇인지 본문만으로는 구분되지 않는다.
+        # 다음 Runtime 주기를 기다리지 않도록 실제로 보낸 보호 Header 상태를 함께 남긴다.
+        $sent = @()
+        foreach ($name in @('X-XSRF-TOKEN','Origin','X-Target-Operation-Id','X-System-Code')) {
+            if ($mergedHeaders.ContainsKey($name)) {
+                $value = [string] $mergedHeaders[$name]
+                $shown = if ($name -eq 'X-XSRF-TOKEN' -and $value.Length -gt 8) { $value.Substring(0,8) + '...' } else { $value }
+                $sent += "$name=$shown"
+            } else { $sent += "$name=(없음)" }
+        }
+        $cookieNames = Get-AdmCookieDiagnostics
+        $securityRejection = '(없음)'
+        try {
+            $response = $_.Exception.Response
+            if ($null -ne $response) {
+                $values = @($response.Headers.GetValues('X-CPF-Security-Rejection'))
+                if ($values.Count -gt 0) { $securityRejection = [string]$values[0] }
+            }
+        } catch { }
+        $sentFingerprint = Get-SecretFingerprint ([string]$mergedHeaders['X-XSRF-TOKEN'])
+        # 4xx 의 실제 원인(code/message)은 응답 본문에만 있다. 본문을 남기지 않으면
+        # 다음 Runtime 주기까지 원인 판별이 미뤄진다(400 CpfValidationException 을 그렇게 놓쳤다).
+        $responseBody = ''
+        try {
+            $errorDetails = $_.ErrorDetails
+            if ($null -ne $errorDetails -and -not [string]::IsNullOrWhiteSpace([string]$errorDetails.Message)) {
+                $responseBody = [string] $errorDetails.Message
+            }
+        } catch { }
+        if ($responseBody.Length -gt 600) { $responseBody = $responseBody.Substring(0,600) + '...' }
+        throw "$($_.Exception.Message) | uri=$Uri securityRejection=$securityRejection csrfFingerprint(initial=$script:admCsrfInitialFingerprint,current=$script:admCsrfCurrentFingerprint,sent=$sentFingerprint) sentHeaders=[$($sent -join '; ')] cookies=[$cookieNames] body=$responseBody"
+    }
 }
 
 function Invoke-SmokeJsonAllowHttpError {
@@ -239,15 +331,21 @@ function Invoke-SmokeJsonAllowHttpError {
         if ($null -eq $webResponse) {
             throw
         }
-        $stream = $webResponse.GetResponseStream()
+        # PowerShell 7 의 Invoke-WebRequest 는 System.Net.Http.HttpResponseMessage 를 준다.
+        # 구버전의 HttpWebResponse.GetResponseStream() 을 호출하면 InvalidOperation 으로 죽어
+        # 검증 대상이 아니라 검증기 자신이 실패한다. 본문은 ErrorDetails 로 읽는다.
         $content = ""
-        if ($null -ne $stream) {
-            $reader = [System.IO.StreamReader]::new($stream, [System.Text.Encoding]::UTF8, $true)
-            try {
-                $content = $reader.ReadToEnd()
-            } finally {
-                $reader.Dispose()
-                $stream.Dispose()
+        try { $content = [string] $_.ErrorDetails.Message } catch { }
+        if ([string]::IsNullOrWhiteSpace($content) -and $webResponse.PSObject.Methods["GetResponseStream"]) {
+            $stream = $webResponse.GetResponseStream()
+            if ($null -ne $stream) {
+                $reader = [System.IO.StreamReader]::new($stream, [System.Text.Encoding]::UTF8, $true)
+                try {
+                    $content = $reader.ReadToEnd()
+                } finally {
+                    $reader.Dispose()
+                    $stream.Dispose()
+                }
             }
         }
         $body = $null
@@ -339,7 +437,7 @@ function Get-LatestLogIndex {
     $logs = Invoke-SmokeJson `
         -Method Get `
         -Uri "$AdmBaseUrl/adm/api/logs?businessTransactionId=$TargetTransactionId&limit=1" `
-        -Headers $Headers
+        -Headers (Merge-OperationHeaders $Headers 'admLogFindLogs')
     if ($logs.available -eq $false) {
         throw "ADM log API is not available. message=$($logs.message)"
     }
@@ -405,11 +503,30 @@ function Get-LogDetail {
         [hashtable] $Headers,
         [long] $LogIdx
     )
-    $detail = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/logs/$LogIdx" -Headers $Headers
+    $detail = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/logs/$LogIdx" -Headers (Merge-OperationHeaders $Headers 'admLogGetLogDetail')
     if ($detail.available -eq $false) {
         throw "ADM log detail API is not available. logIdx=$LogIdx message=$($detail.message)"
     }
     return $detail.item
+}
+
+function Get-LogDetailEntries {
+    # ADM 상세 조회는 detail 목록을 formattedDetails(detailKey/raw) 로 돌려준다.
+    # 예전 이름(details/DETAIL_KEY)만 보면 항상 빈 목록이 되어 "정책이 기록되지 않았다"고
+    # 오판한다. 두 형태를 모두 받아들인다.
+    param([object] $LogDetail)
+    if ($null -eq $LogDetail) { return @() }
+    $entries = @()
+    foreach ($name in @("formattedDetails", "details")) {
+        $property = $LogDetail.PSObject.Properties[$name]
+        if ($null -ne $property -and $null -ne $property.Value) { $entries += @($property.Value) }
+    }
+    return $entries
+}
+
+function Get-DetailEntryKey {
+    param([object] $Entry)
+    return [string](Get-Value -Object $Entry -Names @("detailKey", "DETAIL_KEY", "detail_key"))
 }
 
 function Test-DetailKeyExists {
@@ -417,10 +534,8 @@ function Test-DetailKeyExists {
         [object] $LogDetail,
         [string] $DetailKey
     )
-    $details = @($LogDetail.details)
-    foreach ($detail in $details) {
-        $key = Get-Value -Object $detail -Names @("DETAIL_KEY", "detailKey", "detail_key")
-        if ($DetailKey.Equals([string] $key, [System.StringComparison]::OrdinalIgnoreCase)) {
+    foreach ($entry in (Get-LogDetailEntries -LogDetail $LogDetail)) {
+        if ($DetailKey.Equals((Get-DetailEntryKey -Entry $entry), [System.StringComparison]::OrdinalIgnoreCase)) {
             return $true
         }
     }
@@ -432,11 +547,9 @@ function Get-DetailValue {
         [object] $LogDetail,
         [string] $DetailKey
     )
-    $details = @($LogDetail.details)
-    foreach ($detail in $details) {
-        $key = Get-Value -Object $detail -Names @("DETAIL_KEY", "detailKey", "detail_key")
-        if ($DetailKey.Equals([string] $key, [System.StringComparison]::OrdinalIgnoreCase)) {
-            return Get-Value -Object $detail -Names @("DETAIL_VALUE", "detailValue", "detail_value")
+    foreach ($entry in (Get-LogDetailEntries -LogDetail $LogDetail)) {
+        if ($DetailKey.Equals((Get-DetailEntryKey -Entry $entry), [System.StringComparison]::OrdinalIgnoreCase)) {
+            return Get-Value -Object $entry -Names @("raw", "DETAIL_VALUE", "detailValue", "detail_value")
         }
     }
     return $null
@@ -460,7 +573,11 @@ function Assert-DetailValueEquals {
     )
     $value = Get-DetailValue -LogDetail $LogDetail -DetailKey $DetailKey
     if ($null -eq $value -or -not $ExpectedValue.Equals([string] $value, [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "Unexpected detail value. key=$DetailKey expected=$ExpectedValue actual=$value"
+        # "값이 다르다"와 "키 자체가 없다"는 원인이 전혀 다르다. 실제 detail 키 목록을 함께 남긴다.
+        $available = @(Get-LogDetailEntries -LogDetail $LogDetail | ForEach-Object {
+            Get-DetailEntryKey -Entry $_
+        } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object)
+        throw "Unexpected detail value. key=$DetailKey expected=$ExpectedValue actual=$value availableKeys=[$($available -join ', ')]"
     }
 }
 
@@ -487,20 +604,66 @@ function Refresh-PolicyDecision {
     Invoke-SmokeJson `
         -Method Post `
         -Uri "$AdmBaseUrl/adm/api/log-policies/cache/refresh?targetType=$TargetType&targetId=$TargetId&reason=$encodedReason" `
-        -Headers $Headers
+        -Headers (Merge-OperationHeaders $Headers 'admLogPolicyRefreshCache')
+}
+
+function New-TargetTransactionHeaders {
+    # 대상은 업무 거래다. ADM 운영 Channel Header 가 아니라 **소유 Business System 의
+    # System6 Header** 를 실어야 한다(Harness 30.16.1). ADM 경로에 Business System Header 를
+    # 싣거나 그 반대로 하는 것은 금지된 False Green 이다.
+    $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
+    $issuer = Get-CpfIssuerCode $TargetSystemCode
+    $script:sequence++
+    $headers = @{
+        "X-Transaction-Id" = "$timestamp$issuer" + "lgpolt" + $script:sequence.ToString("00000000")
+        "X-Original-System-Code" = $issuer
+        "X-System-Code" = $TargetSystemCode
+        "X-Caller-System-Code" = $TargetSystemCode
+        "X-Target-System-Code" = $TargetSystemCode
+        "X-Target-Operation-Id" = $TargetTransactionId
+        "X-Trace-Id" = [guid]::NewGuid().ToString("N")
+        "X-Request-Type" = "RUNTIME_VALIDATION"
+        "X-Client-Version" = "runtime-smoke"
+    }
+    foreach ($entry in ($TargetProbeExtraHeaders -split ';')) {
+        if ([string]::IsNullOrWhiteSpace($entry)) { continue }
+        $pair = $entry.Split('=', 2)
+        $name = $pair[0].Trim()
+        if ([string]::IsNullOrWhiteSpace($name)) { continue }
+        $value = if ($pair.Count -eq 2) { $pair[1].Trim() } else { '' }
+        if ([string]::IsNullOrWhiteSpace($value)) { $value = [guid]::NewGuid().ToString('N') }
+        $headers[$name] = $value
+    }
+    return $headers
 }
 
 function Invoke-TargetTransaction {
+    # 업무 결과(예: 401)는 검증에 지장이 없다. DB 로그가 남는지가 관측 대상이다.
     param([hashtable] $Headers)
-    Invoke-SmokeJson `
-        -Method Get `
-        -Uri "$AdmBaseUrl/adm/api/transactions?activeYn=Y&limit=1" `
-        -Headers $Headers | Out-Null
+    $null = $Headers
+    $params = @{
+        Method = $TargetProbeMethod
+        Uri = "$AdmBaseUrl$TargetProbePath"
+        Headers = (New-TargetTransactionHeaders)
+        ContentType = "application/json;charset=UTF-8"
+        TimeoutSec = 20
+        UseBasicParsing = $true
+        SkipHttpErrorCheck = $true
+    }
+    if (-not [string]::IsNullOrWhiteSpace($TargetProbeBody)) {
+        $params.Body = [System.Text.Encoding]::UTF8.GetBytes($TargetProbeBody)
+    }
+    $response = Invoke-WebRequest @params
+    if ([int] $response.StatusCode -ge 500) {
+        throw "target business transaction returned a server error. status=$([int]$response.StatusCode) body=$([string]$response.Content)"
+    }
 }
 
 function Refresh-TargetPolicy {
+    # 정책 재평가 결과를 버리지 않는다. 이 값이 곧 Runtime 이 실제로 적용할 결정이며,
+    # 결과를 버리면 "정책이 반영됐는가"와 "로그가 남았는가"를 구분할 수 없다.
     param([hashtable] $Headers)
-    Refresh-PolicyDecision -Headers $Headers -TargetType "ONLINE_TRANSACTION" -TargetId $TargetTransactionId | Out-Null
+    return Refresh-PolicyDecision -Headers $Headers -TargetType "ONLINE_TRANSACTION" -TargetId $TargetTransactionId
 }
 
 function Get-LogIndexFromItem {
@@ -524,6 +687,14 @@ function Get-OverrideIdFromResponse {
     return [long] $overrideIdValue
 }
 
+function Get-CaptureMode {
+    # Y/N 플래그를 정본 CaptureMode 로 옮긴다. N 은 항상 NONE(수집 안 함)이다.
+    param([string] $Flag, [string] $EnabledMode)
+    if ([string]::IsNullOrWhiteSpace($Flag)) { return $null }
+    if ($Flag.Trim().ToUpperInvariant() -eq "Y") { return $EnabledMode }
+    return "NONE"
+}
+
 function Create-LogPolicyOverride {
     param(
         [hashtable] $Headers,
@@ -536,12 +707,16 @@ function Create-LogPolicyOverride {
         [int] $StartOffsetMinutes = -5,
         [int] $EndOffsetMinutes = 15
     )
-    $start = (Get-Date).AddMinutes($StartOffsetMinutes).ToString("yyyy-MM-ddTHH:mm:ss")
-    $end = (Get-Date).AddMinutes($EndOffsetMinutes).ToString("yyyy-MM-ddTHH:mm:ss")
+    # 유효구간은 Runtime 이 정책을 평가할 때 쓰는 시간 기준과 같아야 한다. CPF Runtime 은
+    # LogPolicyCache/LoggingAspect 모두 Clock.systemUTC() 를 기본으로 쓰며 LocalDateTime 을
+    # 그 zone 의 wall-clock 으로 저장·비교한다. 검증기가 로컬 시각을 보내면 UTC 와의
+    # offset 만큼 구간이 미래로 밀려 override 가 절대 매칭되지 않는다(KST 는 +9시간).
+    $start = [DateTime]::UtcNow.AddMinutes($StartOffsetMinutes).ToString("yyyy-MM-ddTHH:mm:ss")
+    $end = [DateTime]::UtcNow.AddMinutes($EndOffsetMinutes).ToString("yyyy-MM-ddTHH:mm:ss")
     Invoke-SmokeJson `
         -Method Post `
         -Uri "$AdmBaseUrl/adm/api/log-policies/overrides" `
-        -Headers $Headers `
+        -Headers (Merge-OperationHeaders $Headers 'admLogPolicyCreateOverride') `
         -Body @{
             targetType = "ONLINE_TRANSACTION"
             targetId = $TargetId
@@ -551,10 +726,24 @@ function Create-LogPolicyOverride {
             requestBodyLogYn = $RequestBodyLogYn
             responseBodyLogYn = $ResponseBodyLogYn
             errorStackLogYn = $ErrorStackLogYn
+            # Runtime 의 정책 결정은 *_capture_mode 로 계산된다
+            # (LogPolicyDecision.errorStackSave() 등은 captureMode != NONE 으로 판정하고,
+            #  JdbcLogPolicyRepository 는 *_log_yn 컬럼을 읽지 않는다).
+            # 검증기가 legacy *_log_yn 만 보내면 실제로는 아무 것도 바꾸지 못한 채
+            # "정책을 걸었다"고 착각하게 된다. 정본 필드를 함께 보낸다.
+            # BODY 영역이 허용하는 모드는 NONE/METADATA_ONLY/ALLOWLIST_FIELDS/MASKED_BODY/
+            # ENCRYPTED_BODY 뿐이다(LogCaptureMode.validateFor). STACK 전용 FULL_MASKED 를
+            # 쓰면 ADM 이 400 으로 거절한다. 본문을 남기는 모드는 MASKED_BODY 다.
+            requestBodyCaptureMode = (Get-CaptureMode $RequestBodyLogYn "MASKED_BODY")
+            responseBodyCaptureMode = (Get-CaptureMode $ResponseBodyLogYn "MASKED_BODY")
+            errorStackCaptureMode = (Get-CaptureMode $ErrorStackLogYn "SUMMARY")
             effectiveStartAt = $start
             effectiveEndAt = $end
-            approvedBy = "runtime-smoke"
-            requestUser = "runtime-smoke"
+            # requestUser/approvedBy 는 보내지 않는다. 정본 계약상 요청자는 서버 Context
+            # (adm.operatorId)로 확정된다. 본문에 운영자 식별자를 실으면
+            # AdmVerifiedActorRequestBodyAdvice 가 "인증 주체와 일치"를 요구하고,
+            # AdmLogPolicyService.createOverride 는 "요청자 != 승인자"를 요구하므로
+            # 두 계약이 동시에 성립할 수 없어 어떤 값을 넣어도 400 이 된다.
             reason = $Reason
         }
 }
@@ -580,7 +769,7 @@ function Disable-Override {
     Invoke-SmokeJson `
         -Method Patch `
         -Uri "$AdmBaseUrl/adm/api/log-policies/overrides/$OverrideId/disable?reason=$encodedReason" `
-        -Headers $Headers | Out-Null
+        -Headers (Merge-OperationHeaders $Headers 'admLogPolicyDisableOverride') | Out-Null
 }
 
 $startedProcess = $null
@@ -650,24 +839,14 @@ try {
     if ($null -eq $sessionCookie) { throw "ADM login did not establish a BFF session cookie." }
     $result.login.status = "PASSED"
 
-    # ADM 최초 Bootstrap 계정은 비밀번호 변경이 강제된다.
-    # 변경 전에는 self-service 경로 외 모든 ADM API 가
-    # 403 "비밀번호를 먼저 변경해야 합니다."(AdmApiAuthFilter)로 막힌다.
-    # 검증 대상 API 를 호출하기 전에 정본 self-service 경로로 1회 변경한다.
+    # ADM Bootstrap 계정의 강제 비밀번호 변경은 Runtime 준비 단계가 한 번만 수행한다
+    # (prepare-cpf-adm-bootstrap-rotation.ps1). 검증기마다 회전하면 먼저 실행된 검증기가
+    # 비밀번호를 바꿔 뒤 검증기가 검증 대상과 무관한 인증 실패로 죽는다.
+    # 여기서는 회전이 실제로 적용됐는지만 확인한다.
     $currentSession = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/auth/me" `
         -Headers @{ "X-Target-Operation-Id" = "admAuthMe" }
     if ([bool]$currentSession.passwordChangeRequired) {
-        $rotatedPassword = "$AdmPassword" + 'R7!'
-        Invoke-SmokeJson -Method Post -Uri "$AdmBaseUrl/adm/api/operators/$AdmUsername/password" `
-            -Headers @{ "X-Target-Operation-Id" = "admOperatorChangePassword" } `
-            -Body @{
-                currentPassword = $AdmPassword
-                newPassword = $rotatedPassword
-                newPasswordConfirm = $rotatedPassword
-                reason = "runtime-smoke mandatory password rotation"
-            } | Out-Null
-        $script:AdmPassword = $rotatedPassword
-        $result.login.passwordRotated = $true
+        throw 'ADM 운영자에 강제 비밀번호 변경이 남아 있습니다. Runtime 준비 단계의 회전이 적용되지 않았습니다.'
     }
     # BFF 계약상 Browser 채널은 Authorization Header 를 보내면 안 된다.
     # CpfBffSessionBridgeFilter 가 Authorization 이 있으면
@@ -675,13 +854,19 @@ try {
     # 인증은 로그인으로 발급된 HttpOnly Session Cookie(= $script:admWebSession)가 운반한다.
     $headers = @{}
 
-    Refresh-TargetPolicy -Headers $headers
+    $baselineDecision = Refresh-TargetPolicy -Headers $headers
+    $result.baseline.resolvedSource = [string] $baselineDecision.resolvedSource
+    $result.baseline.dbLogEnabledYn = [string] $baselineDecision.dbLogEnabledYn
     $baselineLogIdx = Get-LatestLogIndex -Headers $headers
     $result.baseline.latestLogIdx = $baselineLogIdx
 
     $override = Create-DbLogOffOverride -Headers $headers
     $overrideId = Get-OverrideIdFromResponse -Response $override
-    Refresh-TargetPolicy -Headers $headers
+    $disabledDecision = Refresh-TargetPolicy -Headers $headers
+    # 정책 반영 실패와 정책 미준수는 원인이 다르다. 먼저 "Runtime 이 무엇으로 결정했는가"를 확인한다.
+    if ([string]$disabledDecision.dbLogEnabledYn -ne "N") {
+        throw "log policy override was not applied to the runtime decision. targetId=$TargetTransactionId dbLogEnabledYn=$($disabledDecision.dbLogEnabledYn) resolvedSource=$($disabledDecision.resolvedSource) overrideId=$($disabledDecision.overrideId) policyId=$($disabledDecision.policyId)"
+    }
     Invoke-TargetTransaction -Headers $headers
     Start-Sleep -Seconds 3
     $afterDisabledLogIdx = Get-LatestLogIndex -Headers $headers
@@ -695,7 +880,7 @@ try {
 
     Disable-Override -Headers $headers -OverrideId $overrideId
     $overrideId = $null
-    Refresh-TargetPolicy -Headers $headers
+    $null = Refresh-TargetPolicy -Headers $headers
     Invoke-TargetTransaction -Headers $headers
     $enabledDeadline = (Get-Date).AddSeconds(15)
     $afterEnabledLogIdx = $afterDisabledLogIdx
@@ -713,7 +898,10 @@ try {
     $result.dbLogEnabled.beforeLogIdx = $afterDisabledLogIdx
     $result.dbLogEnabled.afterLogIdx = $afterEnabledLogIdx
 
-    $policyApiTransactionId = "ADM03LGP0014"
+    # 상세 정책(요청/응답 Body, Error Stack)도 업무 거래에서만 관측된다. ADM 은 Platform
+    # Control Plane 이라 자신의 API 호출을 업무 거래 로그로 남기지 않으므로, ADM 거래ID 를
+    # 대상으로 두면 영원히 로그를 기다리게 된다.
+    $policyApiTransactionId = $TargetTransactionId
     if ($runAllPolicyChecks -or $CheckRequestBodyPolicy -or $CheckResponseBodyPolicy -or $CheckErrorStackPolicy) {
         $controlOverride = Create-LogPolicyOverride `
             -Headers $headers `
@@ -749,7 +937,10 @@ try {
             $bodyProbeOverrideId = Get-OverrideIdFromResponse -Response $bodyProbeOverride
             $cleanupOverrideIds.Add($bodyProbeOverrideId) | Out-Null
 
-            $bodyLogItem = Wait-NewLogItem -Headers $headers -BusinessTransactionId $policyApiTransactionId -AfterLogIdx $bodyBaseline -LogType "SUCCESS"
+            # 무관한 대상의 override 가 이 대상의 결정에 새어 들어오지 않아야 한다.
+            # 관측 대상 로그는 업무 거래를 직접 호출해서 만든다.
+            Invoke-TargetTransaction -Headers $headers
+            $bodyLogItem = Wait-NewLogItem -Headers $headers -BusinessTransactionId $policyApiTransactionId -AfterLogIdx $bodyBaseline
             $bodyLogIdx = Get-LogIndexFromItem $bodyLogItem
             $bodyLogDetail = Get-LogDetail -Headers $headers -LogIdx $bodyLogIdx
             Assert-DetailValueEquals -LogDetail $bodyLogDetail -DetailKey "logPolicy.resolvedSource" -ExpectedValue "ADM_OVERRIDE"
@@ -775,7 +966,7 @@ try {
             $errorResponse = Invoke-SmokeJsonAllowHttpError `
                 -Method Post `
                 -Uri "$AdmBaseUrl/adm/api/log-policies/overrides" `
-                -Headers $headers `
+                -Headers (Merge-OperationHeaders $headers 'admLogPolicyCreateOverride') `
                 -Body @{
                     targetType = "ONLINE_TRANSACTION"
                     targetId = "CPF_SMOKE_INVALID_TARGET"
@@ -785,16 +976,20 @@ try {
                     requestBodyLogYn = "N"
                     responseBodyLogYn = "N"
                     errorStackLogYn = "N"
-                    effectiveStartAt = (Get-Date).AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ss")
+                    effectiveStartAt = [DateTime]::UtcNow.AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ss")
                     effectiveEndAt = $null
-                    approvedBy = "runtime-smoke"
-                    requestUser = "runtime-smoke"
+                    # 이 호출은 "잘못된 대상" 검증이 거절 사유여야 한다. 본문에 운영자
+                    # 식별자를 실으면 actor/직무분리 검증이 먼저 걸려 의도한 검증이 아닌
+                    # 이유로 통과하는 False Green 이 된다.
                     reason = "runtime-smoke-invalid-error-stack"
                 }
             if ($errorResponse.statusCode -lt 400) {
                 throw "Invalid override request did not return an HTTP error. statusCode=$($errorResponse.statusCode)"
             }
 
+            # Error Stack 정책은 실패한 **업무 거래** 로그에서 관측한다. 위 ADM 호출은
+            # "잘못된 override 요청을 ADM 이 거절하는가"를 검증할 뿐 업무 거래 로그를 만들지 않는다.
+            Invoke-TargetTransaction -Headers $headers
             $errorLogItem = Wait-NewLogItem -Headers $headers -BusinessTransactionId $policyApiTransactionId -AfterLogIdx $errorBaseline -LogType "FAILURE"
             $errorLogIdx = Get-LogIndexFromItem $errorLogItem
             $errorLogDetail = Get-LogDetail -Headers $headers -LogIdx $errorLogIdx
@@ -1065,7 +1260,7 @@ try {
             }
         }
         try {
-            Refresh-TargetPolicy -Headers $headers
+            $null = Refresh-TargetPolicy -Headers $headers
         } catch {
             $result.cleanup.refreshTargetPolicy = "FAILED: $($_.Exception.Message)"
         }

@@ -57,8 +57,12 @@ public class DefaultCpfTransactionIdGenerator
         // 거래ID issuer 의 source 는 **최초 신뢰 거래 기동점의 canonical ChannelCode** 다
         // (Harness 30.7). Business/Generated Domain 이 기동하면 그 Domain 의 SystemCode 값이
         // 내부 hop ChannelCode 값이므로 같은 값이 들어온다. Platform(ADM 등)은 운영 ChannelCode 다.
-        // 여기서 축약/패딩/기본값으로 issuer 를 만들어내지 않는다 — 규격에 맞지 않으면 fail-closed.
-        this.issuerCode = requireIssuerChannelCode(systemCode);
+        //
+        // 기동 시점에는 이 값이 없을 수 있다. 1-WAS 는 System 도 Channel 도 아닌 배치 topology 라
+        // 자기 Identity 를 가지지 않으며(Harness 30.5), 그 안의 각 Domain 이 자기 Identity 로 거래를
+        // 기동한다. 따라서 issuer 는 **거래를 실제로 발급하는 시점**에 확정하고, 그때 확정할 수
+        // 없으면 fail-closed 한다. 축약/패딩/기본값으로 만들어내지 않는다.
+        this.issuerCode = hasText(systemCode) ? requireIssuerChannelCode(systemCode) : null;
         this.instanceToken = instanceToken(instanceId);
         this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
@@ -77,7 +81,7 @@ public class DefaultCpfTransactionIdGenerator
         LocalDateTime now = LocalDateTime.now(clock);
         long next = nextSequence(now.toLocalDate());
         String value = now.format(TIMESTAMP)
-                + (hasText(issuerCode) ? requireIssuerChannelCode(issuerCode) : this.issuerCode)
+                + resolveIssuer(issuerCode)
                 + instanceToken(targetInstanceId)
                 + String.format("%07d", next);
         return CpfTransactionIds.requireCanonical(value);
@@ -131,6 +135,21 @@ public class DefaultCpfTransactionIdGenerator
         }
     }
 
+
+    /**
+     * 거래를 발급하는 시점에 issuer 를 확정합니다.
+     *
+     * <p>호출자가 넘긴 canonical ChannelCode 를 우선하고, 없으면 이 Runtime 이 기동 시 확정한 값을
+     * 쓴다. 둘 다 없으면 이 Runtime 은 스스로 거래를 기동할 Identity 가 없다는 뜻이므로 fail-closed
+     * 한다(Harness 30.7). 값을 만들어내지 않는다.</p>
+     */
+    private String resolveIssuer(String issuerCode) {
+        if (hasText(issuerCode)) return requireIssuerChannelCode(issuerCode);
+        if (hasText(this.issuerCode)) return this.issuerCode;
+        throw new IllegalStateException(
+                "CPF transactionId issuer is unresolved. This runtime has no canonical ChannelCode of its own"
+                        + " (for example a same-JVM topology), so the initiating channel must supply one.");
+    }
 
     /**
      * 거래ID issuer 로 쓸 canonical ChannelCode 를 검증합니다.

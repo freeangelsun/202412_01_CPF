@@ -1,11 +1,15 @@
 package com.cpf.web.runtime;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
+import com.cpf.foundation.execution.api.CpfOperationCatalogRegistry;
+import com.cpf.web.context.CpfOperationOwnerResolver;
 import com.cpf.web.context.CpfRuntimeIdentity;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -23,7 +27,7 @@ class CpfOperationCatalogBootstrapTest {
         RequestMappingHandlerMapping mappings = mock(RequestMappingHandlerMapping.class);
         when(mappings.getHandlerMethods()).thenReturn(Map.of());
 
-        assertThatCode(() -> bootstrap(mappings).onApplicationEvent(null)).doesNotThrowAnyException();
+        assertThatCode(() -> bootstrap(mappings).afterSingletonsInstantiated()).doesNotThrowAnyException();
     }
 
     @Test
@@ -35,9 +39,34 @@ class CpfOperationCatalogBootstrapTest {
                 .build();
         when(mappings.getHandlerMethods()).thenReturn(Map.of(route, new HandlerMethod(new BusinessController(), method)));
 
-        assertThatThrownBy(() -> bootstrap(mappings).onApplicationEvent(null))
+        assertThatThrownBy(() -> bootstrap(mappings).afterSingletonsInstantiated())
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("CPF_OPERATION_CATALOG_REGISTRY_UNAVAILABLE:0");
+    }
+
+    @Test
+    void sameJvmTopologySynchronizesARealBusinessOwnerInsteadOfSkippingTheCatalog() throws Exception {
+        RequestMappingHandlerMapping mappings = mock(RequestMappingHandlerMapping.class);
+        Method method = BusinessController.class.getDeclaredMethod("read");
+        RequestMappingInfo route = RequestMappingInfo.paths("/business")
+                .methods(org.springframework.web.bind.annotation.RequestMethod.GET)
+                .build();
+        when(mappings.getHandlerMethods()).thenReturn(Map.of(route, new HandlerMethod(new BusinessController(), method)));
+        CpfOperationCatalogRegistry registry = mock(CpfOperationCatalogRegistry.class);
+        CpfOperationOwnerResolver owner = (handler, operation) ->
+                new CpfOperationOwnerResolver.CpfOperationOwner("MBR", "member", "cpf-member-online", "test");
+        MockEnvironment environment = new MockEnvironment().withProperty("cpf.operation-catalog.manifest-required", "false");
+        CpfOperationCatalogBootstrap bootstrap = new CpfOperationCatalogBootstrap(mappings,
+                new CpfRuntimeIdentity(null, "DEV", "cpf-local-runtime", "one-was-1"), environment, List.of(registry),
+                new CpfBusinessOperationManifestVerifier(), owner);
+
+        bootstrap.afterSingletonsInstantiated();
+
+        org.mockito.ArgumentCaptor<CpfOperationCatalogRegistry.SyncRequest> request = org.mockito.ArgumentCaptor
+                .forClass(CpfOperationCatalogRegistry.SyncRequest.class);
+        verify(registry).synchronize(request.capture());
+        assertThat(request.getValue().systemCode()).isEqualTo("MBR");
+        assertThat(request.getValue().operations()).hasSize(1);
     }
 
     private static CpfOperationCatalogBootstrap bootstrap(RequestMappingHandlerMapping mappings) {

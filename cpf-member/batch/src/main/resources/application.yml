@@ -12,9 +12,11 @@ spring:
 cpf:
   generated-domain:
     name: member
-    # 거래 식별용 System Code입니다. DB 물리 Prefix는 Generator/Canonical DB 계약으로 고정됩니다.
+    # 이 Domain 의 canonical SystemCode 입니다. Generator input 의 domain.systemCode 를
+    # literal 로 기록합니다. Runtime 이 고르는 설정값이 아니며 환경변수 default 를 두지
+    # 않습니다(Harness 30.20). DB 물리 Prefix 는 별개 Namespace 입니다(Harness 30.19).
     system-code: MBR
-    # Architecture Role 정본: cpf-tools/governance/cpf-product-surface-policy.json (Harness 30.16)
+    # Architecture Role 정본: cpf-tools/governance/cpf-product-surface-policy.json
     architecture-role: BUSINESS_DOMAIN
     database-role: CUSTOMER_BUSINESS_DB
     table-prefix: MBR

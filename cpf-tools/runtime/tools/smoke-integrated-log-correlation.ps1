@@ -9,9 +9,13 @@ param(
     [string] $AdmUsername = 'admin',
     [string] $ResultPath = '',
     [int] $TimeoutSec = 20,
-    # System6 계약상 X-System-Code 는 수신 Runtime 의 System Code 와 같아야 한다.
+    # 업무 Probe의 System6은 실제 업무 Operation Owner가 소유한다.
     # 1-WAS 는 System 이 아니라 topology 다. 호출자가 대상 canonical Identity 를 알려준다.
     [string] $SystemCode = 'EDU',
+    # ADM은 Business SystemCode가 없는 Platform Control Plane이다. ADM 호출의 issuer와
+    # Channel context는 이 canonical ChannelCode에서만 나온다. -AdmSystemCode는 호환 alias다.
+    [Alias('AdmSystemCode')]
+    [string] $AdmChannelCode = 'ADM',
     [int] $PollSeconds = 15,
 
     # --------------------------------------------------------------------------------------
@@ -81,14 +85,23 @@ function Read-JsonIfPresent([string]$Path) {
     if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
     try { return (Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json) } catch { return $null }
 }
-function Get-CpfStableHttpFailure([string]$Method,[string]$Uri,[Exception]$Exception) {
+function Get-CpfStableHttpFailure([string]$Method,[string]$Uri,[Exception]$Exception,[string]$ResponseBody='') {
     $status='NA'
+    $securityRejection='(없음)'
     try {
         if($null -ne $Exception.Response -and $null -ne $Exception.Response.StatusCode){$status=[string][int]$Exception.Response.StatusCode}
+        if($null -ne $Exception.Response){
+            $values=@($Exception.Response.Headers.GetValues('X-CPF-Security-Rejection'))
+            if($values.Count -gt 0){$securityRejection=[string]$values[0]}
+        }
     } catch { }
     $type=$Exception.GetType().FullName
     $innerType=if($null -ne $Exception.InnerException){$Exception.InnerException.GetType().FullName}else{'NA'}
-    return "CPF_HTTP_FAILURE method=$Method uri=$Uri status=$status type=$type innerType=$innerType"
+    # 4xx 의 실제 원인(code/message)은 응답 본문에만 있다. 본문 없이는 원인 판별이
+    # 다음 Runtime 주기로 미뤄진다.
+    $body=$ResponseBody
+    if ($body.Length -gt 600) { $body=$body.Substring(0,600) + '...' }
+    return "CPF_HTTP_FAILURE method=$Method uri=$Uri status=$status securityRejection=$securityRejection type=$type innerType=$innerType body=$body"
 }
 function Invoke-CpfJsonGet([string]$Uri,[hashtable]$Headers) {
     try {
@@ -96,31 +109,31 @@ function Invoke-CpfJsonGet([string]$Uri,[hashtable]$Headers) {
         if ($null -ne $script:admWebSession) { $params.WebSession=$script:admWebSession }
         return Invoke-RestMethod @params
     } catch {
-        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'GET' $Uri $_.Exception),$_.Exception)
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'GET' $Uri $_.Exception ([string]$_.ErrorDetails.Message)),$_.Exception)
     }
 }
 function Invoke-CpfJsonPost([string]$Uri,[hashtable]$Headers,[object]$Body) {
     try {
         return Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -ContentType 'application/json' -Body ($Body | ConvertTo-Json -Compress) -TimeoutSec $TimeoutSec -ErrorAction Stop
     } catch {
-        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' $Uri $_.Exception),$_.Exception)
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' $Uri $_.Exception ([string]$_.ErrorDetails.Message)),$_.Exception)
     }
 }
 $script:admHeaderSequence=0
 function New-CpfAdmHeaders([string]$OperationId) {
-    # ADM Route 도 External CPF protocol 계약을 그대로 요구한다. Authorization 만 보내면
-    # X-Transaction-Id / X-Target-Operation-Id 부재로 ECPF900002 400 이 되어 관측 API 응답이
-    # 전부 비고, 상관관계 단정이 "증적 없음" 으로 실패한다.
+    # ADM은 Platform Control Plane이므로 Business System6을 보낼 수 없다. Authorization만
+    # 보내면 X-Transaction-Id / X-Target-Operation-Id 부재로 거절되므로, canonical ADM
+    # Channel context와 operation header만 보낸다. 조회용 거래ID는 Probe 거래와 분리한다.
     # 조회용 거래ID 는 검증 대상 거래ID 와 반드시 달라야 한다(교차 오염 방지).
     $script:admHeaderSequence++
     $stamp=Get-Date -Format 'yyyyMMddHHmmssfff'
-    $issuer=Get-CpfIssuerCode $SystemCode
+    $issuer=Get-CpfIssuerCode $AdmChannelCode
     return @{
         'X-Transaction-Id'="$stamp$issuer" + 'logadm1' + $script:admHeaderSequence.ToString('0000000')
-        'X-Original-System-Code'=$issuer
-        'X-System-Code'=$SystemCode
-        'X-Caller-System-Code'=$SystemCode
-        'X-Target-System-Code'=$SystemCode
+        'X-Original-Channel'=$issuer
+        'X-Current-Channel'=$issuer
+        'X-Caller-Channel'=$issuer
+        'X-Target-Channel'=$issuer
         'X-Target-Operation-Id'=$OperationId
         'X-Request-Type'='RUNTIME_VALIDATION'
         'X-Client-Version'='1.0.0'
@@ -132,16 +145,24 @@ function New-CpfAdmHeaders([string]$OperationId) {
 }
 $script:admWebSession=$null
 $script:admCsrfToken=$null
+function Get-CpfAdmCsrfCookie([string]$BaseUrl) {
+    # CookiePath=/adm 의 실제 Browser BFF 경로에서 선택한다. Login 세션 회전으로 같은 이름의
+    # Cookie가 갱신될 때는 마지막(가장 최근) 값을 Header에 반영해야 한다.
+    if ($null -eq $script:admWebSession) { return $null }
+    $uri=[Uri]("{0}/adm/" -f $BaseUrl.TrimEnd('/'))
+    return @($script:admWebSession.Cookies.GetCookies($uri) |
+        Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -Last 1)[0]
+}
 function Initialize-CpfAdmCsrf([string]$BaseUrl) {
     # ADM BFF Security Chain 은 /adm/** 에 CSRF 를 적용한다
     # (CookieCsrfTokenRepository + CpfCsrfCookieExposureFilter). 공개 GET 으로 XSRF-TOKEN cookie 를
     # 먼저 받지 않으면 permitAll 경로인 로그인 POST 조차 403 으로 거절된다.
     # 인증은 HttpOnly Session Cookie 로 이어지므로 이후 조회도 같은 WebSession 을 쓴다.
-    $probe=Invoke-WebRequest -Method Get -Uri "$BaseUrl/adm/api/health" -Headers (New-CpfAdmHeaders 'getAdmHealth') `
+    $probe=Invoke-WebRequest -Method Get -Uri "$BaseUrl/adm/api/health" -Headers (New-CpfAdmHeaders 'getAdmReadiness') `
         -TimeoutSec $TimeoutSec -UseBasicParsing -SessionVariable session
     $null=$probe
     $script:admWebSession=$session
-    $cookie=$session.Cookies.GetCookies($BaseUrl) | Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
+    $cookie=Get-CpfAdmCsrfCookie $BaseUrl
     if ($null -eq $cookie) { throw 'ADM CSRF cookie(XSRF-TOKEN)가 발급되지 않았습니다.' }
     $script:admCsrfToken=[string]$cookie.Value
 }
@@ -149,8 +170,7 @@ function Get-CpfAdmCsrfToken([string]$BaseUrl) {
     # 로그인 시 Session 회전으로 XSRF-TOKEN Cookie 가 새로 발급된다. 캐시 값을 계속 쓰면
     # 그 다음 상태 변경 요청이 403 이 되므로 매번 현재 Cookie 를 읽는다.
     if ($null -eq $script:admWebSession) { return $script:admCsrfToken }
-    $cookie=$script:admWebSession.Cookies.GetCookies($BaseUrl) |
-        Where-Object { $_.Name -eq 'XSRF-TOKEN' } | Select-Object -First 1
+    $cookie=Get-CpfAdmCsrfCookie $BaseUrl
     if ($null -ne $cookie) { $script:admCsrfToken=[string]$cookie.Value }
     return $script:admCsrfToken
 }
@@ -170,7 +190,7 @@ function Invoke-CpfRawJsonPost([string]$Uri,[hashtable]$Headers,[string]$RawBody
         }
         try { return $response.Content | ConvertFrom-Json } catch { return $null }
     } catch {
-        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' $Uri $_.Exception),$_.Exception)
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' $Uri $_.Exception ([string]$_.ErrorDetails.Message)),$_.Exception)
     }
 }
 function Get-CpfIssuerCode([string] $Code) {
@@ -344,7 +364,7 @@ try {
         $loginHeaders['X-XSRF-TOKEN']=$script:admCsrfToken
         $login=Invoke-RestMethod -Method Post -Uri "$BaseUrl/adm/api/auth/login" -Headers $loginHeaders -WebSession $script:admWebSession -ContentType 'application/json' -Body $loginBody -TimeoutSec $TimeoutSec -ErrorAction Stop
     } catch {
-        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' "$BaseUrl/adm/api/auth/login" $_.Exception),$_.Exception)
+        throw [InvalidOperationException]::new((Get-CpfStableHttpFailure 'POST' "$BaseUrl/adm/api/auth/login" $_.Exception ([string]$_.ErrorDetails.Message)),$_.Exception)
     }
     # BFF 계약상 내부 인증 토큰은 응답 Body 에 노출되지 않는다
     # (CpfBffCredentialResponseAdvice). 로그인 성공은 Session Cookie 발급으로 판정한다.
@@ -354,17 +374,13 @@ try {
         Where-Object { $_.Name -ne 'XSRF-TOKEN' } | Select-Object -First 1
     if ($null -eq $sessionCookie) { throw 'ADM login did not establish a BFF session cookie.' }
 
-    # ADM 최초 Bootstrap 계정은 비밀번호 변경이 강제된다. 변경 전에는 self-service 경로 외
-    # 모든 ADM API 가 403 "비밀번호를 먼저 변경해야 합니다."(AdmApiAuthFilter)로 막히므로,
-    # 관측 API 조회 전에 정본 self-service 경로로 1회 변경한다.
+    # ADM Bootstrap 계정의 강제 비밀번호 변경은 Runtime 준비 단계가 한 번만 수행한다
+    # (prepare-cpf-adm-bootstrap-rotation.ps1). 검증기마다 회전하면 먼저 실행된 검증기가
+    # 비밀번호를 바꿔 뒤 검증기가 검증 대상과 무관한 인증 실패로 죽는다.
+    # 여기서는 회전이 실제로 적용됐는지만 확인한다.
     $me=Invoke-CpfJsonGet "$BaseUrl/adm/api/auth/me" (New-CpfAdmHeaders 'admAuthMe')
     if ([bool](Get-SafeProperty $me 'passwordChangeRequired' $false)) {
-        $rotatedPassword="$admPassword" + 'R7!'
-        $rotateHeaders=New-CpfAdmHeaders 'admOperatorChangePassword'
-        $rotateHeaders['X-XSRF-TOKEN']=Get-CpfAdmCsrfToken $BaseUrl
-        $rotateBody=@{currentPassword=$admPassword;newPassword=$rotatedPassword;newPasswordConfirm=$rotatedPassword;reason='runtime-smoke mandatory password rotation'} | ConvertTo-Json -Compress
-        Invoke-CpfRawJsonPost "$BaseUrl/adm/api/operators/$AdmUsername/password" $rotateHeaders $rotateBody $false | Out-Null
-        $admPassword=$rotatedPassword
+        throw [InvalidOperationException]::new('ADM 운영자에 강제 비밀번호 변경이 남아 있습니다. Runtime 준비 단계의 회전이 적용되지 않았습니다.')
     }
     # 조회 호출도 System6 Header 를 갖춰야 한다. 호출마다 새 거래ID 를 쓰도록 함수로 만든다.
     function New-AdmAuthHeaders([string]$OperationId) {
@@ -379,10 +395,10 @@ try {
     $dbResponse=$null; $obs=$null; $timeline=$null; $recovery=$null
     do {
         Start-Sleep -Milliseconds 750
-        try { $dbResponse=Invoke-CpfJsonGet "$BaseUrl/adm/api/logs?transactionId=$transactionId&traceId=$traceId&limit=50" (New-AdmAuthHeaders 'admLogSearch') } catch { $dbResponse=$null }
-        try { $obs=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/transactions/$transactionId?limit=50" (New-AdmAuthHeaders 'admObservabilityTransaction') } catch { $obs=$null }
-        try { $timeline=Invoke-CpfJsonGet "$BaseUrl/adm/api/transaction-groups/$transactionId/timeline" (New-AdmAuthHeaders 'admTransactionGroupTimeline') } catch { $timeline=$null }
-        try { $recovery=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/file-log-recovery" (New-AdmAuthHeaders 'admObservabilityFileLogRecovery') } catch { $recovery=$null }
+        try { $dbResponse=Invoke-CpfJsonGet "$BaseUrl/adm/api/logs?transactionId=$transactionId&traceId=$traceId&limit=50" (New-AdmAuthHeaders 'admLogFindLogs') } catch { $dbResponse=$null }
+        try { $obs=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/transactions/${transactionId}?limit=50" (New-AdmAuthHeaders 'traceAdmByTransactionId') } catch { $obs=$null }
+        try { $timeline=Invoke-CpfJsonGet "$BaseUrl/adm/api/transaction-groups/$transactionId/timeline" (New-AdmAuthHeaders 'admTransactionGroupFindTimeline') } catch { $timeline=$null }
+        try { $recovery=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/file-log-recovery" (New-AdmAuthHeaders 'getAdmFileLogRecoveryStatus') } catch { $recovery=$null }
         $dbCount=Get-ArrayCount $dbResponse 'items'
         $obsCount=Get-ArrayCount $obs 'transactionLogs'
         $timelineCount=Get-ArrayCount $timeline 'items'

@@ -47,14 +47,16 @@ if ($admSeed -match '(?is)INSERT\s+INTO\s+adm_operator\b') {
 if ($operatorSource -match '(?i)(default|initial|bootstrap).{0,40}password\s*=\s*"[^"$]{6,}"') {
     $failures.Add("$operatorServicePath fixed bootstrap password literal is not allowed")
 }
-if ($bootstrapSource -notmatch 'properties\.isEnabled\(\)' `
-        -or $bootstrapSource -notmatch 'properties\.getPassword\(\)' `
-        -or $bootstrapSource -notmatch 'allowProd') {
-    $failures.Add("$bootstrapPath bootstrap must require enabled, external password, and production approval")
+if ($bootstrapSource -notmatch 'PASSWORD_ENV' `
+        -or $bootstrapSource -notmatch 'hasAnyOperator\(\)' `
+        -or $bootstrapSource -notmatch 'INITIAL_OPERATOR_BOOTSTRAP' `
+        -or $bootstrapSource -match 'allowProd|isEnabled\(|getPassword\(|getActiveProfiles\(') {
+    $failures.Add("$bootstrapPath must use the same one-time initial-operator contract for every profile")
 }
-if ($admConfig -notmatch 'enabled:\s*\$\{CPF_ADM_BOOTSTRAP_ENABLED:false\}' `
-        -or $admConfig -notmatch 'password:\s*\$\{CPF_ADM_BOOTSTRAP_PASSWORD:\}') {
-    $failures.Add("$admConfig ADM bootstrap must be disabled by default and have no password default")
+if ($admConfig -match '(?m)^\s*(enabled|allow-prod|password):\s*\$\{CPF_ADM_BOOTSTRAP' `
+        -or $admConfig -notmatch 'operator-id:\s*\$\{CPF_ADM_BOOTSTRAP_OPERATOR_ID:\}' `
+        -or $admConfig -notmatch 'operator-name:\s*\$\{CPF_ADM_BOOTSTRAP_OPERATOR_NAME:\}') {
+    $failures.Add("$admConfig ADM bootstrap must have no profile switch/password binding or fixed operator default")
 }
 
 if ($failures.Count -gt 0) {

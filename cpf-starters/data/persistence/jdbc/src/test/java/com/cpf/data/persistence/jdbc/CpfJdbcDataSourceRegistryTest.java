@@ -35,4 +35,31 @@ class CpfJdbcDataSourceRegistryTest {
 
         assertThat(registry.require(CpfDatabaseRole.CPF_PLATFORM_DB)).isSameAs(platform);
     }
+
+    @Test
+    void resolvesDeclaredGeneratedDomainRoleFromDomainDataSource() {
+        DefaultListableBeanFactory beans = new DefaultListableBeanFactory();
+        DataSource domain = mock(DataSource.class);
+        beans.registerSingleton("cpfDomainDataSource", domain);
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.generated-domain.database-role", "CUSTOMER_BUSINESS_DB");
+
+        CpfJdbcDataSourceRegistry registry = new CpfJdbcDataSourceRegistry(beans, environment);
+
+        assertThat(registry.require(CpfDatabaseRole.CUSTOMER_BUSINESS_DB)).isSameAs(domain);
+    }
+
+    @Test
+    void neverResolvesRoleTheDomainDidNotDeclare() {
+        DefaultListableBeanFactory beans = new DefaultListableBeanFactory();
+        beans.registerSingleton("cpfDomainDataSource", mock(DataSource.class));
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.generated-domain.database-role", "CUSTOMER_BUSINESS_DB");
+
+        CpfJdbcDataSourceRegistry registry = new CpfJdbcDataSourceRegistry(beans, environment);
+
+        assertThatThrownBy(() -> registry.require(CpfDatabaseRole.CPF_PLATFORM_DB))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("CPF DataSource role is not mapped");
+    }
 }

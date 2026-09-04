@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import hashlib, json, os, subprocess, sys, tempfile, unittest
+import hashlib, json, os, shutil, subprocess, sys, tempfile, unittest
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[4]
@@ -91,7 +91,7 @@ class GeneratorSetupSyncContractTest(unittest.TestCase):
             legacy[1].write_text('{}\n',encoding='utf-8',newline='\n')
 
             default=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
-            self.assertEqual(0,default.returncode,default.stderr)
+            self.assertNotEqual(0,default.returncode)
             default_result=json.loads(default.stdout)
             self.assertEqual('VERIFICATION_PENDING_DELETE',default_result['status'])
             self.assertEqual(['cpf-domain.yaml','cpf-generator.lock.json'],default_result['results'][0]['deleteCandidates'])
@@ -107,5 +107,89 @@ class GeneratorSetupSyncContractTest(unittest.TestCase):
             repeated=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
             self.assertEqual(0,repeated.returncode,repeated.stderr)
             self.assertEqual('PASS',json.loads(repeated.stdout)['status'])
+
+    def test_template_adoption_requires_explicit_approval_and_git_clean_generated_output(self):
+        git=shutil.which('git')
+        if not git:
+            self.skipTest('Git is required for template-adoption provenance validation')
+        with tempfile.TemporaryDirectory(prefix='cpf-template-adoption-') as temporary:
+            workspace=Path(temporary)/'workspace'; workspace.mkdir()
+            state=Path(temporary)/'state'
+            process_env={**os.environ,'CPF_GENERATOR_RESOURCE_ROOT':str(ROOT),'CPF_GENERATOR_WORK_ROOT':str(state)}
+            base=[sys.executable,str(CLI),'--root',str(workspace),'domain']
+            created=subprocess.run(
+                base+['create','--name','adopt','--system-code','ADP','--business-feature','work'],
+                cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+            self.assertEqual(0,created.returncode,created.stderr)
+            build=workspace/'cpf-adopt/build.gradle'
+            current=build.read_text(encoding='utf-8')
+            build.write_text(current+'// historical generated template\n',encoding='utf-8',newline='\n')
+            for command in ([git,'init'],[git,'config','user.email','cpf-test@example.invalid'],
+                            [git,'config','user.name','CPF Test'],[git,'add','cpf-adopt'],
+                            [git,'commit','-m','historical generated template']):
+                completed=subprocess.run(command,cwd=workspace,capture_output=True,text=True,encoding='utf-8',errors='replace')
+                self.assertEqual(0,completed.returncode,completed.stdout+completed.stderr)
+            (state/'verification/cpf-adopt/generation-state.json').unlink()
+
+            pending=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+            self.assertNotEqual(0,pending.returncode)
+            self.assertEqual('VERIFICATION_PENDING_TEMPLATE_ADOPTION',json.loads(pending.stdout)['status'])
+            adopted=subprocess.run(base+['sync','--approve-template-adoption'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+            self.assertEqual(0,adopted.returncode,adopted.stderr)
+            result=json.loads(adopted.stdout)
+            self.assertEqual('PASS',result['status'])
+            self.assertTrue(result['approvedTemplateAdoption'])
+            self.assertEqual(current,build.read_text(encoding='utf-8'))
+            self.assertTrue((state/'verification/cpf-adopt/generation-state.json').is_file())
+
+    def test_sync_reconciles_only_generated_source_that_already_equals_current_template(self):
+        """Old transient hash must not reject an already-current generated file.
+
+        This is deliberately not an overwrite path: the state is made stale, while the
+        generated build remains byte-identical to the current engine template. A different
+        user edit below must still fail closed.
+        """
+        state_root=self.stage/'state'
+        process_env={**os.environ,'CPF_GENERATOR_RESOURCE_ROOT':str(ROOT),'CPF_GENERATOR_WORK_ROOT':str(state_root)}
+        workspace=self.stage/'template-equivalent-workspace'; workspace.mkdir()
+        base=[sys.executable,str(CLI),'--root',str(workspace),'domain']
+        created=subprocess.run(
+            base+['create','--name','equivalent','--system-code','EQV','--business-feature','work'],
+            cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+        self.assertEqual(0,created.returncode,created.stderr)
+        build=workspace/'cpf-equivalent/build.gradle'
+        current=build.read_bytes()
+        state_file=state_root/'verification/cpf-equivalent/generation-state.json'
+        state=json.loads(state_file.read_text(encoding='utf-8'))
+        for row in state['expectedFiles']:
+            if row['path']=='build.gradle': row['sha256']='0'*64
+        state_file.write_text(json.dumps(state,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+
+        reconciled=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+        self.assertEqual(0,reconciled.returncode,reconciled.stderr)
+        result=json.loads(reconciled.stdout)['results'][0]
+        self.assertEqual(['build.gradle'],result['templateEquivalentStateReconciled'])
+        self.assertEqual(current,build.read_bytes())
+
+        build.write_bytes(current+b'// actual user edit\n')
+        rejected=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+        self.assertNotEqual(0,rejected.returncode)
+        self.assertIn('사용자 수정 Generated 파일',rejected.stderr+rejected.stdout)
+
+    def test_sync_treats_windows_crlf_checkout_as_the_same_generated_text(self):
+        """Git autocrlf must not turn a canonical Generated file into a false user edit."""
+        state_root=self.stage/'crlf-state'
+        process_env={**os.environ,'CPF_GENERATOR_RESOURCE_ROOT':str(ROOT),'CPF_GENERATOR_WORK_ROOT':str(state_root)}
+        workspace=self.stage/'crlf-workspace'; workspace.mkdir()
+        base=[sys.executable,str(CLI),'--root',str(workspace),'domain']
+        created=subprocess.run(
+            base+['create','--name','crlf','--system-code','CRL','--business-feature','work'],
+            cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+        self.assertEqual(0,created.returncode,created.stderr)
+        build=workspace/'cpf-crlf/build.gradle'
+        build.write_text(build.read_text(encoding='utf-8'),encoding='utf-8',newline='\r\n')
+        synced=subprocess.run(base+['sync'],cwd=ROOT,capture_output=True,text=True,encoding='utf-8',errors='replace',env=process_env)
+        self.assertEqual(0,synced.returncode,synced.stderr)
+        self.assertEqual('PASS',json.loads(synced.stdout)['status'])
 
 if __name__=='__main__': unittest.main()

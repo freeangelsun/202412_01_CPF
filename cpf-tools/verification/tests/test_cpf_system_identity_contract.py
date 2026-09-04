@@ -54,6 +54,12 @@ ENV_DEFAULT = re.compile(r"\$\{CPF_SYSTEM_CODE(?::(?P<default>[^}]*))?\}")
 # 1-WAS 는 System 이 아니다(Harness 30.5).
 SAME_JVM_TOPOLOGY_ROOTS = ("cpf-tools/runtime/cpf-local-runtime/",)
 
+# `cpf-release/`는 Open Git Fresh Consumer의 local-generated delivery artifact다. 그 안의
+# application.yml은 현재 Private Product Source가 아니며, Source Identity/Runtime System Registry
+# 정본을 재정의할 수 없다. 이를 Source scan에 섞으면 이전 Release에 포함된 generated domain이
+# 현재 Domain 0개/삭제 상태에서도 Registry seed를 요구하는 false failure를 만든다.
+GENERATED_DELIVERY_ROOTS = ("cpf-release/",)
+
 
 def _policy() -> dict:
     return json.loads(io.open(POLICY, encoding="utf-8").read())
@@ -76,7 +82,8 @@ def _declared_system_codes() -> list[tuple[str, str]]:
     found: list[tuple[str, str]] = []
     for path in REPO_ROOT.rglob("application*.y*ml"):
         relative = path.relative_to(REPO_ROOT).as_posix()
-        if "/build/" in f"/{relative}" or "/bin/" in f"/{relative}":
+        if ("/build/" in f"/{relative}" or "/bin/" in f"/{relative}"
+                or relative.startswith(GENERATED_DELIVERY_ROOTS)):
             continue
         text = io.open(path, encoding="utf-8").read()
         for match in SYSTEM_CODE_LINE.finditer(text):
@@ -89,7 +96,8 @@ def _runtime_configs() -> list[tuple[str, str | None, str | None]]:
     found: list[tuple[str, str | None, str | None]] = []
     for path in REPO_ROOT.rglob("application.yml"):
         relative = path.relative_to(REPO_ROOT).as_posix()
-        if "/build/" in f"/{relative}" or "/bin/" in f"/{relative}":
+        if ("/build/" in f"/{relative}" or "/bin/" in f"/{relative}"
+                or relative.startswith(GENERATED_DELIVERY_ROOTS)):
             continue
         text = io.open(path, encoding="utf-8").read()
         role = ROLE_LINE.search(text)

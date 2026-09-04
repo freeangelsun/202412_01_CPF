@@ -152,107 +152,191 @@
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/SOURCE_IDENTITY.log",
       "sha256": "dac71e81c66d8bfde59474e63da62360086d1853e44424ed746d332ccd6d7ef6",
-      "purpose": "SOURCE_IDENTITY.log"
+      "purpose": "SOURCE_IDENTITY.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/CURRENTIZE_SOURCE_IDENTITY.log",
       "sha256": "e7315b0eb65ed4c0075d994554fb38d025ac0df2a824752f119d5399c0e038b6",
-      "purpose": "CURRENTIZE_SOURCE_IDENTITY.log"
+      "purpose": "CURRENTIZE_SOURCE_IDENTITY.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/VERIFICATION_PART1.log",
       "sha256": "25ef636cfae4d365e74faaaa4376428ffa78060e9b0ee207a290003d76a56be6",
-      "purpose": "VERIFICATION_PART1.log"
+      "purpose": "VERIFICATION_PART1.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/VERIFICATION_PART2.log",
       "sha256": "8e27e63e83442ae28287d597525dafd98f2be894c19c2d7442e69e6b43cead09",
-      "purpose": "VERIFICATION_PART2.log"
+      "purpose": "VERIFICATION_PART2.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/VERIFICATION_PART3A.log",
       "sha256": "4c1b70cf2ca17fd246945a9b8a4fb4297dbd6a6e3d1b0eb3b0aac4d76b1a690c",
-      "purpose": "VERIFICATION_PART3A.log"
+      "purpose": "VERIFICATION_PART3A.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/VERIFICATION_PART3B.log",
       "sha256": "7f00063305b8e4afca684d3a2fec80704bd1d4a06b7f4348ece5c48f69d5cf7d",
-      "purpose": "VERIFICATION_PART3B.log"
+      "purpose": "VERIFICATION_PART3B.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/AFFECTED_FINAL_REGRESSION.log",
       "sha256": "b52c51941949b4b6f2f0d2cd29fb9810cfc3b83977e5bc5bec9b9d2772e3fe52",
-      "purpose": "AFFECTED_FINAL_REGRESSION.log"
+      "purpose": "AFFECTED_FINAL_REGRESSION.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/TOOLCHAIN_FINAL.log",
       "sha256": "51bd4c1535d90ac198727014df50d4c54285b5b39f23b9ed5bc7ab0779edbb58",
-      "purpose": "TOOLCHAIN_FINAL.log"
+      "purpose": "TOOLCHAIN_FINAL.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/GENERATOR_FINAL.log",
       "sha256": "1bb30e99979f8412ab1c9890bbd741f2752d8c12b2438ebf1fce6666d8e263e4",
-      "purpose": "GENERATOR_FINAL.log"
+      "purpose": "GENERATOR_FINAL.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/HARNESS_FINAL_GATE.log",
       "sha256": "061477fd337c7e90b514df08b0d4c924014243f4c9f5d43b431dd91ae46aa057",
-      "purpose": "HARNESS_FINAL_GATE.log"
+      "purpose": "HARNESS_FINAL_GATE.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/HARNESS_FINAL_GATE_COMPLETE.log",
       "sha256": "061477fd337c7e90b514df08b0d4c924014243f4c9f5d43b431dd91ae46aa057",
-      "purpose": "HARNESS_FINAL_GATE_COMPLETE.log"
+      "purpose": "HARNESS_FINAL_GATE_COMPLETE.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/HARNESS_NEGATIVE_FINAL.log",
       "sha256": "a6823ae789be927446ad2aeb394985a9fa7ea7df4b1b0cce4379fc23a534d558",
-      "purpose": "HARNESS_NEGATIVE_FINAL.log"
+      "purpose": "HARNESS_NEGATIVE_FINAL.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/HARNESS_NEGATIVE_STRENGTH_FINAL.log",
       "sha256": "90440e9865d018e79b33af350b6e682166217077c0adce5769967ae0f1076c9a",
-      "purpose": "HARNESS_NEGATIVE_STRENGTH_FINAL.log"
+      "purpose": "HARNESS_NEGATIVE_STRENGTH_FINAL.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/DETAILED_REVIEW_FINAL.log",
       "sha256": "772987876912ffac6777d7bbad838b585d86eec4d64438fccaecc6aecead9478",
-      "purpose": "DETAILED_REVIEW_FINAL.log"
+      "purpose": "DETAILED_REVIEW_FINAL.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/CLEAN_SOURCE_CURRENT.log",
       "sha256": "6f1ce7f649f2e7479159a29b534226716c4fd4a9fef1467f36dd7119cd6fc408",
-      "purpose": "CLEAN_SOURCE_CURRENT.log"
+      "purpose": "CLEAN_SOURCE_CURRENT.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/CURRENT_FINAL_CURRENT_REGISTRY.log",
       "sha256": "9fc7b6a952c87cd60e99357374fea6030710808f4f34eebba6a9f39023e9e5cf",
-      "purpose": "CURRENT_FINAL_CURRENT_REGISTRY.log"
+      "purpose": "CURRENT_FINAL_CURRENT_REGISTRY.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/DEVELOPMENT_FINAL_GATE_ATTEMPT.log",
       "sha256": "c7da2845d80cd2b85b3811972b0bf66cead110b10160369d90e81b5b6c854744",
-      "purpose": "DEVELOPMENT_FINAL_GATE_ATTEMPT.log"
+      "purpose": "DEVELOPMENT_FINAL_GATE_ATTEMPT.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/EVIDENCE_SEMANTICS_FINAL.log",
       "sha256": "41e7d2272a227f68e6abd5a834b6b17545734e908c71c4e094b39569b12e705c",
-      "purpose": "EVIDENCE_SEMANTICS_FINAL.log"
+      "purpose": "EVIDENCE_SEMANTICS_FINAL.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/REQUIREMENT_PROGRESS_CURRENT.log",
       "sha256": "589069968806a434165259a305239841985843cdeb74a45fb49a2ab05ae2ca4d",
-      "purpose": "REQUIREMENT_PROGRESS_CURRENT.log"
+      "purpose": "REQUIREMENT_PROGRESS_CURRENT.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/REQUIREMENT_PROJECTION_CURRENT.log",
       "sha256": "1ecef7c9fca9a911661302edcd67e56effcdb4a76a9e531c2f53a26d4b7007a5",
-      "purpose": "REQUIREMENT_PROJECTION_CURRENT.log"
+      "purpose": "REQUIREMENT_PROJECTION_CURRENT.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/SESSION_MERGE_CURRENT.log",
       "sha256": "ad5ba6c8ce97d92542208bf0521596e9fbfb46309fd5500934554c967e94058d",
-      "purpose": "SESSION_MERGE_CURRENT.log"
+      "purpose": "SESSION_MERGE_CURRENT.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/SOURCE_IDENTITY.json",
@@ -267,7 +351,11 @@
     {
       "path": "cpf-docs/governance/development-harness/evidence/devgpt/current/sessions/20260830_devgpt_toolchain_release_finalization/TOOLCHAIN_GENERATOR_FINAL.log",
       "sha256": "85d8ef94d0bff5d350937660258fe4c514b4b30d68daf8b08c43d4e773a407e4",
-      "purpose": "TOOLCHAIN_GENERATOR_FINAL.log"
+      "purpose": "TOOLCHAIN_GENERATOR_FINAL.log",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     }
   ],
   "gitWriteExecuted": false,

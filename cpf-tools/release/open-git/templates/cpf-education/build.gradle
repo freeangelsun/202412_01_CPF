@@ -52,6 +52,10 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly jdbcDriverByVendor[dbVendor]
+    // Gradle 9 / JUnit Platform 6 는 Test Executor 에 launcher 를 자동 주입하지 않고,
+    // spring-boot-starter-webmvc-test 는 launcher 를 전이 제공하지 않는다. 직접 선언하지 않으면
+    // Test 가 실패하는 것이 아니라 Executor 자체가 'Failed to load JUnit Platform' 으로 기동하지 못한다.
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.withType(Test).configureEach {

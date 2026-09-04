@@ -85,7 +85,9 @@ BEGIN
       JOIN pg_class t ON t.oid = c.conrelid
       JOIN pg_namespace n ON n.oid = t.relnamespace
      WHERE n.nspname = current_schema()
-       AND LOWER(t.relname || '.' || c.conname || '.' || c.contype) IN (LOWER('@CPF_TABLE_PREFIX@_sample_item.PK_@CPF_TABLE_PREFIX@_sample_item.p'), LOWER('@CPF_TABLE_PREFIX@_sample_item.uk_@CPF_TABLE_PREFIX@_sample_item_key.u'), LOWER('@CPF_TABLE_PREFIX@_sample_item.ck_@CPF_TABLE_PREFIX@_sample_item_status.c'), LOWER('@CPF_TABLE_PREFIX@_sample_item.ck_@CPF_TABLE_PREFIX@_sample_item_deleted.c'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.PK_@CPF_TABLE_PREFIX@_sample_item_idem.p'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.fk_@CPF_TABLE_PREFIX@_sample_idem_item.f'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.ck_@CPF_TABLE_PREFIX@_sample_idem_op.c'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.ck_@CPF_TABLE_PREFIX@_sample_idem_deleted.c'));
+       -- pg_constraint.contype 은 "char" 타입이라 text 와의 || 연산자가 모호하다
+       -- (operator is not unique: text || "char"). 명시적으로 text 로 캐스팅한다.
+       AND LOWER(t.relname || '.' || c.conname || '.' || c.contype::text) IN (LOWER('@CPF_TABLE_PREFIX@_sample_item.PK_@CPF_TABLE_PREFIX@_sample_item.p'), LOWER('@CPF_TABLE_PREFIX@_sample_item.uk_@CPF_TABLE_PREFIX@_sample_item_key.u'), LOWER('@CPF_TABLE_PREFIX@_sample_item.ck_@CPF_TABLE_PREFIX@_sample_item_status.c'), LOWER('@CPF_TABLE_PREFIX@_sample_item.ck_@CPF_TABLE_PREFIX@_sample_item_deleted.c'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.PK_@CPF_TABLE_PREFIX@_sample_item_idem.p'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.fk_@CPF_TABLE_PREFIX@_sample_idem_item.f'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.ck_@CPF_TABLE_PREFIX@_sample_idem_op.c'), LOWER('@CPF_TABLE_PREFIX@_sample_item_idem.ck_@CPF_TABLE_PREFIX@_sample_idem_deleted.c'));
     IF v_actual <> 8 OR v_matched <> 8 THEN
         RAISE EXCEPTION 'CPF generated domain constraint contract mismatch';
     END IF;

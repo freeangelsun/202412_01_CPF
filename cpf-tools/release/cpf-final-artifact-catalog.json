@@ -498,7 +498,7 @@
       "artifactId": "cpf-generator-cli",
       "ownerPath": "cpf-tools/generator/distribution",
       "kind": "developer-tooling",
-      "producer": "build-cpf-generator-binary.py + CI classifier aggregation",
+      "producer": "build-cpf-generator-binary.py native host build + validated Windows/Linux classifier aggregation (CI or Windows Docker Linux/amd64)",
       "outputPattern": "<public-release-root>/binary-repository/com/cpf/tooling/cpf-generator-cli/<version>/**",
       "requiredAttestations": [
         "sha256",

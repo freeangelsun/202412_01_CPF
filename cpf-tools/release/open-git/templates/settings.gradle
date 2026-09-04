@@ -7,13 +7,16 @@ pluginManagement {
 
 rootProject.name = 'cpf-open-git-developer-workspace'
 
-def cpfManagedGradleRoot = new File(gradle.gradleUserHomeDir, "cpf/work/gradle/${rootProject.name}").canonicalFile
-gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')
-if (!providers.gradleProperty('cpfManagedGradleRoot').isPresent()) {
-    def propagatedProjectProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
-    propagatedProjectProperties.put('cpfManagedGradleRoot', cpfManagedGradleRoot.absolutePath)
-    gradle.startParameter.setProjectProperties(propagatedProjectProperties)
-}
+// Gradle project cache 위치는 공식 launcher(gradlew/gradlew.bat)가 이미 정한다.
+// (--project-cache-dir 과 -PcpfManagedGradleRoot 를 build/cpf-gradle 아래로 넘긴다.)
+//
+// 증상 근거: 여기서 그 값을 다시 덮어쓰면 stale-output registry 가 두 곳에 생기고, 서로를
+// 등록되지 않은 산출물로 보고 지운다. 그래서 공개 Golden Path 의 `cpf bootstrap`(cpfVerify)이
+// 한 번 걸러 한 번씩 실패했다. 실패 모습은 compileJava 는 UP-TO-DATE 인데 build/classes 가
+// 사라진 상태여서 "package ... does not exist" 로 나타난다.
+//
+// 되돌리면 재발할 증상: 공개 사용자가 같은 명령을 두 번 실행하는 것만으로 자기 코드와 무관한
+// 컴파일 오류를 만난다.
 
 def domainRows = []
 def seenNames = new LinkedHashSet<String>()

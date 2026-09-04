@@ -48,6 +48,15 @@ def main() -> int:
         # canonical Source Identity 가 generated 로 분류하는 Harness platform 산출물(Gradle
         # project-cache 등)도 제품 Source 가 아니다.
         if rel.as_posix().startswith(GENERATED_EVIDENCE_PREFIX): continue
+        # node_modules 는 package.json 을 가진 프로젝트에서 npm 이 만드는 **빌드 산출물**이다.
+        # ADM production frontend bundle 은 이 의존성으로 만들어져 bootJar 에 실리므로,
+        # 이것을 가비지로 세면 "제품을 한 번 빌드했다"는 이유만으로 Gate 가 항상 실패한다
+        # (build/ 를 제외하는 이유와 같다). 선언된 npm 프로젝트 아래에서만 제외하고,
+        # package.json 이 없는 곳의 node_modules 는 계속 가비지로 본다.
+        if 'node_modules' in rel.parts:
+            i = rel.parts.index('node_modules')
+            owner = root.joinpath(*rel.parts[:i]) if i else root
+            if (owner/'package.json').is_file(): continue
         if p.is_dir():
             if p.name in GARBAGE_DIRS: fail.append(f'garbage directory: {rel.as_posix()}')
             try:

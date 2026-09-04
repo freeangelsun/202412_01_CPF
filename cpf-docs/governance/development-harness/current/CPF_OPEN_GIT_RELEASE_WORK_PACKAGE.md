@@ -63,6 +63,7 @@ Release 담당자 Canonical 명령:
 ```text
 cpf release open-git
 cpf release open-git check --profile binary
+cpf release open-git consumer-runtime
 cpf release open-git status
 cpf release open-git build --profile source
 ```
@@ -94,6 +95,7 @@ cpf reset
 → cpf-release 신규 생성
 → Private Release Gate
 → Raw Binary Publication
+→ Generator native matrix (Windows host: native windows-x64 + Docker Linux/amd64 linux-x64; checksum/manifest validation)
 → Open Git Artifact Policy 적용
 → Final Binary Repository 검증
 → Default-Deny Open Git Source Projection
@@ -132,6 +134,7 @@ Release Tool은 `git add`/index staging/commit/push를 수행하지 않는다. `
 17. Fresh checkout은 Private Source, Private 경로, `mavenLocal()` 및 기존 CPF cache 없이 별도 Gradle/Maven cache에서 검증한다.
 18. Fresh checkout에서 setup → bootstrap → 기존 Domain build/test → 신규 Domain 생성/sync/bootstrap → compile/test → Runtime/Health/대표 호출 → stop을 끝까지 실행한다.
 19. Java/Docker/Binary Repository/CPF Version/Domain identity/필수 옵션/DB/Build/Test/bootstrap 재실행/reset 승인/unknown command 실패경로를 실제 실행한다.
+20. Binary Release의 `cpf-generator-cli`는 `windows-x64`와 `linux-x64` native executable을 각각 실제 해당 OS runtime에서 생성하고 checksum/manifest를 검증한다. Windows 기본 명령은 Docker Linux/amd64를 사용해 누락된 Linux artifact를 fresh 생성하며 OS classifier의 이름 변경·대체·mock은 FAIL이다.
 20. EDU/Backoffice/Generated Domain 대표 Consumer는 공개 Binary만으로 compile/run한다.
 21. 필수 명령·Runtime·Health·실패경로 중 하나라도 미검증 또는 실패면 전체 Release는 READY가 아니다.
 

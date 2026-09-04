@@ -181,6 +181,10 @@ Evidence 없는 CLOSED/PASS, 여러 Work Item의 일괄 완료, 일괄 SKIP, 과
 - Domain 이름을 Gradle Source 에 하드코딩하지 않는다. `cpf.domain.contractVersion=1` 계약과
   `settings.gradle` / 실제 module 디렉터리로만 발견한다.
 - 생성하면 Build/Test/Run/개별 Task/ALL/DEV 에 자동 포함되고, 삭제하면 자동으로 빠져야 한다.
+- transient `generation-state`가 이전 template hash를 가졌더라도 실제 Generated 파일이 current
+  Generator template과 canonical LF text 기준으로 동일하면 source overwrite 없이 state만 재결속할 수 있다.
+  Windows Git CRLF checkout은 같은 text로 정규화한다. 내용이 한 글자라도 다르면 사용자 수정으로
+  fail-closed 하며, template-equivalent state reconcile을 사용자 수정 overwrite의 예외로 확대하면 FAIL이다.
   사람이 Gradle Source 를 고쳐야 하면 계약 위반이다.
 - Capability 기준으로만 투영한다. `batch` 를 선언하지 않은 Domain 에 Batch Task 를 만들지 않는다.
 - Domain 0개도 정상 상태다.
@@ -224,6 +228,9 @@ Release 로 인정하지 않는다.
   넣지 않는다. `artifactId + immutable public version + 승인된 classifier` 로만 결정한다.
 - 동일 Source + 동일 Public Version 을 Fresh Release 하면 상대경로와 파일명이 같아야 한다.
 - Validator 는 Public Tree 에서 SNAPSHOT/timestamp/build sequence 파일명을 발견하면 FAIL 한다.
+- Fresh Consumer의 `config/cpf-workspace.properties`에 적힌 `cpf.version`이 Runtime/Gradle의
+  유일한 version 정본이다. 상위 Shell의 `CPF_VERSION`은 동일 값인지 검증할 수만 있으며,
+  다른 값으로 public version을 바꾸려 하면 bootstrap은 즉시 FAIL 해야 한다.
 
 ### 24.3 Bundled Public Binary Repository
 
@@ -640,6 +647,11 @@ Domain / Module / 기능 단위 실행 항목은 **한 줄을 주석 처리하�
 
 각 설정과 실행 단계에는 짧고 명확한 한글 주석을 단다. 무엇을 켜고 끄는지, 고치면 무엇이
 달라지는지 읽는 사람이 바로 알 수 있어야 한다.
+
+단, Windows `cmd.exe`가 파싱하는 `.bat`는 UTF-8 한글 `rem` 주석의 일부를 명령으로 오인할 수
+있으므로 **실행 파일 본문과 주석을 ASCII-safe로 유지**한다. 같은 한글 설명은 README 또는
+PowerShell launcher에 둔다. code page 변경으로 이 예외를 우회하지 않으며, public `.bat`의
+non-ASCII 재유입은 regression test에서 FAIL해야 한다.
 
 ### 27.5 기본값만으로 동작해야 한다
 
@@ -1209,3 +1221,265 @@ Business SystemCode는 **정본에서 읽을 뿐 추론하지 않는다.**
 - 정본 복제가 발견되면 복제본을 지우고 정본 읽기로 바꾼다. 두 값을 동기화하는 코드를 만들지 않는다.
 - 새 검증기를 추가할 때 "이 목록의 정본은 어디인가"를 먼저 적는다. 답이 없으면 게이트를 만들기 전에
   정본을 만든다.
+
+---
+
+## 31. Evidence 영속성 계약 (Mandatory)
+
+### 31.1 Manifest가 참조하는 증적은 저장소가 실을 수 있는 경로에만 둔다
+
+Session Manifest / Change Manifest 가 참조하는 Mandatory Evidence 는 **승인된 canonical Evidence
+root** 에 영속 저장한다. 저장이 차단되는 경로(예: 전역 제외 패턴에 걸리는 확장자, 임시 디렉터리,
+runtime 작업 디렉터리)를 참조하면 fresh clone 에서 그 증적은 항상 존재하지 않는다.
+
+증적이 없는 Manifest 는 "그 검증을 수행했다"는 주장만 남기고 근거를 남기지 않는다. 이는 검증
+기록이 아니라 서술이다.
+
+### 31.2 Manifest 생성 시 참조 파일의 존재와 hash를 함께 검증한다
+
+Manifest 를 쓰는 시점에 참조 파일의 존재 여부와 hash 를 확인한다. 나중에 확인하는 구조는
+이미 늦다. 파일이 없으면 Manifest 를 완성하지 않는다.
+
+### 31.3 증적 부재는 PASS가 아니라 명시적 NOT_AVAILABLE이다
+
+참조한 증적이 존재하지 않으면 기본은 fail-closed 다. 부재를 인정하려면 각 참조 항목에 다음을
+모두 명시한다.
+
+| 필드 | 의미 |
+| --- | --- |
+| `evidence_status` | `NOT_AVAILABLE` |
+| `reason` | 왜 남아 있지 않은지의 사실 근거 |
+| `reproducibility` | `UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY` 또는 `REPRODUCIBLE` |
+| `acceptanceInheritance` | `NOT_INHERITED` |
+
+**NOT_AVAILABLE 은 PASS 가 아니다.** 그 증적에 의존하던 과거 PASS/완료 판정은 현재 Acceptance
+근거로 승계되지 않는다. 현재 Mandatory Work Item 에 여전히 필요한 검증이면 Current Source
+Identity 에서 Fresh 재실행하여 새 Evidence 로 닫는다.
+
+항목을 **삭제해서** 원래 증적 요구가 없었던 것처럼 만드는 것도 금지한다. 요구는 남기고 상태를
+정확히 기록한다.
+
+### 31.4 Cleanup은 Manifest 참조를 먼저 검사한다
+
+Evidence 파일이 정리 대상이 되면 어떤 Manifest 가 그 파일을 참조 중인지 먼저 검사하고, 참조가
+있으면 삭제를 차단한다. 참조를 남긴 채 파일만 지우면 위 §31.3 상태가 사후에 만들어진다.
+
+### 31.5 Negative Mutation
+
+- Manifest 가 참조하는 증적 파일을 지우면 게이트가 FAIL 해야 한다.
+- `evidence_status=NOT_AVAILABLE` 만 적고 `reason`/`reproducibility`/`acceptanceInheritance` 를
+  갖추지 않은 선언은 FAIL 해야 한다.
+- 저장이 차단되는 경로를 참조하는 살아 있는 증적은 FAIL 해야 한다.
+
+### 31.6 Anti-pattern
+
+| 코드 | 안티패턴 | 실제 증상 |
+| --- | --- | --- |
+| E-1 | Evidence 예외 규칙이 이동/삭제된 옛 경로를 계속 가리킨다 | 예외가 아무 것도 매치하지 않아 전역 제외만 살아남고, 증적이 저장소에 하나도 실리지 않는다 |
+| E-2 | Manifest 는 증적을 참조하는데 그 확장자가 전역 제외 대상이다 | fresh clone 마다 동일한 증적 부재가 재발한다 |
+| E-3 | 증적이 없다는 이유로 참조 항목을 지운다 | 검증 요구 자체가 사라져 이후 누구도 그 검증이 필요했다는 사실을 모른다 |
+| E-4 | 증적 없이 과거 PASS 를 현재 Acceptance 로 승계한다 | 근거 없는 완료가 최종 판정까지 전파된다 |
+
+---
+
+## 32. 공개 배포본 Consumer 실행 계약 (Mandatory)
+
+### 32.1 배포는 실행까지가 계약이다
+
+Binary Repository 와 Generator 가 PASS 해도 처음 사용하는 고객이 화면을 열지 못하면 Release 가
+아니다. 공개 Repository 하나만 Fresh Clone 해서 공식 bootstrap 경로로 prerequisite 를 준비하고,
+공개 lifecycle launcher 만으로 운영 콘솔과 업무 채널을 실제로 기동할 수 있어야 한다.
+
+다음이면 FAIL 이다.
+
+- 사용자가 frontend 디렉터리에서 npm 명령을 직접 쳐야 화면이 나온다.
+- 내부 Gradle project path, Development Master script, private source 를 알아야 실행된다.
+- Runtime 은 뜨는데 production frontend bundle 이 실행물에 없어 화면이 없다.
+
+### 32.2 Consumer 실행 표면
+
+| 대상 | 성격 | 공급 방식 |
+| --- | --- | --- |
+| 운영 콘솔(ADM) | Platform Control Plane | Binary Repository 의 실행물 |
+| 업무 Domain(MBW) | Business Domain | 공개 Source |
+| Backoffice Web | **MBW 의 Channel Front** (ADM 아님) | 공개 Source |
+
+Backoffice Web 은 ADM 과 역할·위치가 다르다. 반드시 MBW 와 함께 Consumer E2E 로 검증한다.
+
+### 32.3 Target 해석은 공급 방식이 정한다
+
+공개 checkout 은 내부 tooling 경로를 포함하지 않으므로 Runtime Target Catalog 를 공개 위치로
+투영한다. Target 존재 판정은 provision 이 정한다.
+
+- `provision: source` — 그 Component 의 Source 가 checkout 에 있어야 한다.
+- `provision: binary` — 실행물이 Binary Repository 에 있어야 한다. **Source 디렉터리 존재로
+  판정하지 않는다.** 그렇게 하면 Binary 로만 배포되는 Runtime 이 공개 배포본에서 영구히
+  보이지 않는다(jar 는 있는데 실행 진입점이 끊긴다).
+
+### 32.3.1 Local DB 재실행은 Runtime credential까지 수렴시킨다
+
+공개 Consumer의 `bootstrap → runtime start`는 local Docker volume이 이미 존재하는 경우에도
+성립해야 한다. bootstrap이 만든 local-only secret과 DB에 남아 있는 migration/runtime account의
+credential이 다르면, schema 단계가 PASS여도 실제 JVM의 TCP JDBC 연결은 실패한다.
+
+- local 관리 대상 Vendor(PostgreSQL/MariaDB/Oracle)는 `CREATE USER/ROLE IF NOT EXISTS`만으로
+  끝내지 않고, 각 bootstrap에서 canonical local secret으로 migration/runtime credential을
+  명시적으로 reconcile한다.
+- 이는 local generated secret과 `cpf-public-*` container에만 적용한다. external/non-local DB는
+  credential을 추측·변경하지 않고 explicit configuration이 없으면 fail-closed 한다.
+- Consumer Runtime Gate는 bootstrap PASS 뒤 실제 Binary/Source Runtime JDBC 연결까지 확인한다.
+  DB container health, schema insert, Unix-socket probe만으로 JDBC Runtime PASS를 대체하지 않는다.
+
+Negative mutation: PostgreSQL `ALTER ROLE`, MariaDB `ALTER USER`, Oracle `ALTER USER` 중 하나라도
+제거한 구현은 local volume 재사용 후 Runtime authentication failure를 재발시키므로 FAIL이다.
+
+### 32.4 문서도 실행 계약의 일부다
+
+README 는 Windows/Linux 진입점, 기본/변경 가능 Port, Profile, 초기 운영자 credential 절차,
+기동 URL 을 **그대로 복사해 실행할 수 있는 수준**으로 담는다. 초기 비밀번호는 파일이나 셸
+히스토리에 남기지 않는 방식으로 안내한다.
+
+게이트는 이 내용을 Runtime Target Catalog 에서 파생해 확인한다. 문서에 목록을 복제하지 않는다.
+
+### 32.5 Negative Mutation
+
+- 공개 Catalog 를 지우면 FAIL 해야 한다(사용자가 어떤 Target 도 해석하지 못한다).
+- Binary Runtime 의 실행물을 지우면 FAIL 해야 한다.
+- Channel Front Source 를 지우면 FAIL 해야 한다.
+
+### 32.6 Anti-pattern
+
+| 코드 | 안티패턴 | 실제 증상 |
+| --- | --- | --- |
+| C-1 | 구조 검증만 하고 실행을 확인하지 않는다 | Binary/Generator 는 PASS 인데 사용자는 아무것도 띄우지 못한다 |
+| C-2 | Source 존재로 Binary Runtime 의 가용성을 판정한다 | 실행물이 있는데 Target 이 안 보인다 |
+| C-3 | 화면 번들을 빌드에 연결하지 않는다 | Runtime 은 뜨고 API 는 되는데 화면이 없다 |
+| C-4 | Channel Front 를 Control Plane 과 같은 것으로 취급한다 | 개발/운영이 잘못된 대상(포트·권한)을 바라본다 |
+| C-5 | 선택 Component 라는 이유로 배포에서 빼고 게이트는 통과시킨다 | 배포본에 업무 채널이 통째로 없다 |
+
+---
+
+## 33. 공개 배포본 Build/Runtime Surface 경계 (Mandatory)
+
+### 33.1 Build 권한은 Source 를 공개하는 Surface 에만 있다
+
+Open Git Public Distribution 에서 Build/Test Capability 는 **Public Source Development Surface**
+에만 허용한다. ADM / Gateway / Framework Internal / Batch Internal 처럼 Product Contract 상
+Binary-only 인 Platform Component 는 공개 Consumer 가 **실행·구성·검증할 수 있으나**, 그
+Component 의 Source / Module Build / Test / Publication Task 는 Public Release 에 존재해서는 안 된다.
+
+| Surface | 공급 | 허용 Capability |
+| --- | --- | --- |
+| `PUBLIC_SOURCE_DEVELOPMENT` | Source | BUILD / TEST / VERIFY / RUN / STATUS / STOP / CONFIGURE |
+| `PUBLIC_BINARY_RUNTIME` | 검증된 Binary | RUN / STATUS / STOP / CONFIGURE / VERIFY_RUNTIME |
+| `PUBLIC_DOCUMENTATION` | 문서 Allowlist | 없음(Component graph 아님) |
+| `PRIVATE_INTERNAL` | 비공개 | 없음 |
+
+정본은 `cpf-tools/governance/cpf-product-surface-policy.json` 의 `publicDistributionSurfaces` 와
+각 `moduleOwners[].publicDistributionSurface` 다. 새 Component 가 분류를 선언하지 않으면
+**Release Gate 가 fail-closed** 한다. 분류 없이 공개 Build Surface 로 새어 들어갈 수 없다.
+
+이 분류는 새 Identity 축이 아니다. `architectureRole`(역할), SystemCode(Identity)와 별개의
+**Public Distribution metadata** 다.
+
+### 33.2 내부 그룹으로 숨기는 것은 충족이 아니다
+
+Binary-only Component 의 Task 를 `90. 내부 빌드` 같은 그룹으로 재분류하는 것만으로는 Public
+Boundary 를 충족한 것으로 보지 않는다. 해당 **private project / task / source graph 자체가**
+Public Release 에 없어야 한다.
+
+검사 대상은 파일 경로만이 아니다. Gradle Included Build, Gradle Project path, Gradle Task 이름,
+publication metadata, CLI capability, script entrypoint 를 포함한다. private source 가 없어도
+`:apps:admin:build` 같은 graph 가 공개되면 Architecture Leakage 로 FAIL 한다.
+
+### 33.3 cpfBuildAll / cpfTestAll 의 의미
+
+공개 트리의 `cpfBuildAll` / `cpfTestAll` / `cpfVerifyAll` 은 **CPF Framework 전체를 Source 에서
+다시 Build 한다는 뜻이 아니다.** 현재 Public Workspace 에 포함된 **Public Source Development
+Surface 전체**를 의미한다. dependency 가 ADM / Gateway / Batch internal / Framework private
+implementation 으로 확장되면 FAIL 한다.
+
+`cpfVerifyAll` 이 Binary Component 를 검증할 수는 있으나 방법은 binary presence / manifest·checksum /
+public API / config contract / runnable / health / runtime E2E 여야 한다. **Source compile 호출은 금지**한다.
+
+### 33.4 Publisher Task 는 Development Master 전용
+
+`cpfOpenGit*`(Build/Verify/Status/Prepare/Commit/Push/CommitAndPush)는 공개 Release 를 만드는
+Publisher-side Task 다. 공개 Consumer 에게 제공하지 않는다. 공개 사용자가 또 다른 공개 Release 를
+생성하거나 공식 공개 Repository 에 publish 하는 구조를 만들지 않는다.
+
+### 33.5 ADM 과 Channel Front 를 같은 정책으로 묶지 않는다
+
+"웹 화면이 있다"는 공통점만으로 배포/Build 정책을 동일하게 만들지 않는다.
+
+- ADM = CPF Platform Control Plane = Binary-only Runtime
+- Backoffice Web = 고객 MBW Channel Front = 공개 Customer Development Surface 가능
+- MBW = Business Domain (SystemCode MBW)
+
+ADM 화면을 실행하려고 사용자가 ADM Source 를 compile 하거나 frontend 를 직접 빌드해야 하는
+구조는 Public Product Boundary 위반이다. ADM production backend/frontend 는 Release 에서 이미
+검증된 Runtime Artifact 로 공급한다. Gateway 도 같다.
+
+### 33.6 Negative Mutation
+
+- 공개 트리에 Binary-only Component 의 Source Root 가 생기면 FAIL
+- 공개 `settings.gradle` 에 그 Component 의 `includeBuild`/project 항목이 생기면 FAIL
+- 공개 `build.gradle` 에 `cpfOpenGit*` Task 가 생기면 FAIL
+- moduleOwner 가 `publicDistributionSurface` 를 선언하지 않으면 FAIL
+
+### 33.7 Anti-pattern
+
+| 코드 | 안티패턴 | 실제 증상 |
+| --- | --- | --- |
+| B-1 | 내부 Component Task 를 내부 그룹으로 옮기고 "숨겼다"고 종료 | graph 는 그대로 공개되어 Boundary 가 깨진다 |
+| B-2 | 공개 여부를 경로 금지 규칙의 부수효과에 의존 | 새 Component 가 분류 없이 공개 Build 대상이 된다 |
+| B-3 | `All` 이라는 이름 때문에 Framework 전체 Build 로 해석 | 사용자가 내부 구현을 빌드하려 하고 실패한다 |
+| B-4 | 화면이 있다는 이유로 ADM 과 Channel Front 를 같은 정책으로 취급 | Control Plane Source 가 공개되거나 Channel Front 가 불필요하게 잠긴다 |
+| B-5 | Publisher Task 를 공개 배포본에 포함 | 공개 사용자가 공식 Release 를 재생성/publish 할 수 있게 된다 |
+
+---
+
+## 34. 동일 Profile Initial Operator Bootstrap 계약 (Mandatory)
+
+### 34.1 하나의 Product/Security 계약
+
+CPF의 `local/dev/stg/test/prod` Profile은 서로 다른 제품이 아니다. 인증, 승인, 감사, 최초 운영자
+생성, credential lifecycle의 **의미**를 Profile에 따라 바꾸지 않는다. Profile은 DB vendor/endpoint,
+port, resource, observability destination, secret reference/value만 바꿀 수 있다.
+
+Fresh 환경의 Initial Operator Bootstrap은 `cpf bootstrap` Golden Path의 one-time 단계다. 최초 운영자가
+없을 때 strong secret ENV를 소비해 계정을 만들고 durable audit을 남긴 뒤 capability를 끝낸다. 재실행은
+기존 credential을 덮어쓰지 않으며, Bootstrap 완료 뒤의 일반 운영자 변경은 모든 Profile에서 maker/checker
+approval-token contract로만 수행한다.
+
+### 34.2 Canonical Owner와 Secret 경계
+
+- Product owner: `CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md` §12.1
+- Machine-readable owner: `cpf-tools/governance/cpf-product-surface-policy.json`의
+  `initialOperatorBootstrapContract`
+- MBW initial secret: `CPF_MBW_BOOTSTRAP_PASSWORD`; ADM initial secret:
+  `CPF_ADM_BOOTSTRAP_PASSWORD`
+- Secret 값은 source/YAML/CLI argument/stdout/stderr/application log/audit/evidence/manifest/handover에
+  0건이어야 하며 `bootstrapSecretProvided=true` 같은 존재 여부만 evidence에 허용한다.
+
+### 34.3 Required Consumer / Runtime closure
+
+Open Git Fresh Consumer Gate는 반드시 `Fresh Clone → cpf bootstrap → ADM Initial Operator → ADM actual
+login/authenticated operation → MBW Initial Operator → MBW + Backoffice Web actual login → session/CSRF →
+authenticated business transaction → DB/File/Transaction Log/Trace/Audit correlation → status/stop/cleanup →
+Fresh Replay`를 실제로 수행한다. 401/403 또는 health/SPA만 확인한 결과는 PASS가 아니다.
+
+### 34.4 Negative Mutation
+
+- `if local`, `if dev`, `if prod`, `if test`로 bootstrap/auth/approval/audit 의미를 분기하면 FAIL
+- profile별 fixed password, auth/CSRF disable, local automatic admin, prod-only approval이면 FAIL
+- secret을 Spring YAML binding, log/audit/evidence, command argument로 넣으면 FAIL
+- 최초 account가 있는데 bootstrap이 password/role을 다시 쓰거나, Initial 이전 normal approval runner가
+  operator를 만들면 FAIL
+- Open Git verifier가 성공 login/BFF cookie/CSRF/authenticated business transaction을 생략하면 FAIL
+
+### 34.5 Required validator
+
+`cpf-tools/verification/verify_initial_operator_bootstrap_contract.py`와 mutation tests는 Product/Harness/
+machine policy/MBW/ADM/Open Git Consumer verifier를 함께 읽는다. 어느 한쪽만 문서화하거나 Source만
+수정해 계약이 어긋나면 fail-closed한다.

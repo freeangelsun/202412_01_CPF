@@ -25,6 +25,12 @@ public final class CpfBootstrap {
     private final List<Domain> domains = new ArrayList<>();
     private String requestedDbVendor = "";
     private String localDbPassword;
+    private boolean runtimeEnvironmentReady = false;
+    // Platform DB 는 moduleCode 기준이며 SystemCode namespace 와 섞지 않는다.
+    private static final String PLATFORM_MODULE_CODE = "CPF";
+    private static final String PLATFORM_DATABASE = "cpfDB";
+    private static final String PLATFORM_ASSET_ROOT = "deploy/local/db/platform";
+    private DbBinding platformDb;
 
     private record DbBinding(String vendor, String host, int port, String databaseName, String serviceName, String schemaName,
                              String migrationUser, String runtimeUser, String migrationSecretEnv, String runtimeSecretEnv, Path profile) {}
@@ -65,6 +71,7 @@ public final class CpfBootstrap {
         if (command.equals("stop") || command.equals("reset")) prepareLocalSecret();
         if (command.equals("stop")) return stop(options);
         if (command.equals("reset")) return reset(options);
+        if (command.equals("runtime")) return runtimeLifecycle(options);
         if (!command.equals("bootstrap")) throw new IllegalArgumentException("unsupported command=" + command);
 
         checkPrerequisites();
@@ -75,6 +82,7 @@ public final class CpfBootstrap {
         discoverDomains();
         prepareDatabase();
         prepareMiddleware();
+        applyPlatformDatabase();
         applyDomainDatabases();
         writeRuntimeEnvironment();
         runWorkspaceVerification(options.containsKey("full"));
@@ -101,10 +109,27 @@ public final class CpfBootstrap {
     }
 
     private void resolveBinaryRepository() throws Exception {
-        String version = envOrProperty("CPF_VERSION", "cpf.version", "").trim();
+        // Public Artifact version은 Release가 currentize한 workspace 정본이다. 상위 Shell의
+        // CPF_VERSION이 이를 조용히 바꾸면 Fresh Consumer가 존재하지 않는 SNAPSHOT 좌표를
+        // 조회해, 선언상 정상인 Test/Runtime classpath까지 깨질 수 있다. 외부 값은 선택
+        // override가 아니라 정본과의 일치 검증에만 허용한다.
+        String version = workspace.getProperty("cpf.version", "").trim();
+        String suppliedVersion = System.getenv("CPF_VERSION");
+        if (suppliedVersion != null && !suppliedVersion.isBlank() && !suppliedVersion.trim().equals(version)) {
+            throw new IllegalStateException("CPF_VERSION does not match canonical config/cpf-workspace.properties cpf.version");
+        }
         String repo = firstNonBlank(System.getenv("CPF_MAVEN_REPOSITORY_URL"), System.getenv("CPF_ARTIFACT_REPOSITORY_URL"), workspace.getProperty("cpf.maven.repository.url", ""));
-        if (repo.isBlank()) throw new IllegalStateException("CPF_MAVEN_REPOSITORY_URL is required for Public Workspace");
-        if (version.isBlank()) throw new IllegalStateException("CPF_VERSION is required for Public Workspace");
+        if (repo.isBlank()) {
+            // 공개 배포본은 Binary Repository 를 checkout 안에 함께 싣는다. 그래서 사용자는
+            // 별도 Repository 주소를 설정하지 않고 clone -> bootstrap 만으로 시작할 수 있어야 한다
+            // (공개 README 계약). 번들이 있는데도 주소를 요구하면 처음 사용하는 고객이 첫 명령에서
+            // 막힌다. 사내 Repository 를 쓰려면 환경변수로 덮어쓴다.
+            Path bundled = root.resolve("binary-repository");
+            if (Files.isDirectory(bundled)) repo = bundled.toUri().toString();
+        }
+        if (repo.isBlank()) throw new IllegalStateException(
+                "CPF_MAVEN_REPOSITORY_URL is required when the workspace has no bundled binary-repository");
+        if (version.isBlank()) throw new IllegalStateException("config/cpf-workspace.properties is missing cpf.version");
         baseEnv.put("CPF_VERSION", version);
         baseEnv.put("CPF_MAVEN_REPOSITORY_URL", repo);
         URI uri = URI.create(repo.endsWith("/") ? repo : repo + "/");
@@ -180,10 +205,100 @@ public final class CpfBootstrap {
         pass("05", "Workspace Discovery", "domains=" + domains.stream().map(d -> d.systemCode + ":" + d.name).toList());
     }
 
+    /** 생성 파일은 플랫폼과 무관하게 같은 바이트여야 한다. */
+    private static final String NEWLINE = "\n";
+
+    /** Vendor 별 기본 Port. DB 구성 namespace 의 값이며 SystemCode 와 무관하다. */
+    private static int defaultDbPort(String vendor) {
+        return switch (vendor) {
+            case "mariadb" -> 3306;
+            case "postgresql" -> 5432;
+            case "oracle" -> 1521;
+            default -> throw new IllegalStateException("unsupported CPF default DB vendor: " + vendor);
+        };
+    }
+
+    /**
+     * local 전용 Domain DB Profile 을 canonical 기본값으로 생성한다.
+     *
+     * <p>공개 Consumer 는 Fresh Clone 후 bootstrap 만으로 local 실행까지 도달해야 한다. Domain 별
+     * 프로필을 사람이 먼저 만들어야 한다면 첫 실행 경험이 성립하지 않는다. 대상 Domain 은
+     * Workspace Domain 계약에서 발견된 것들이며 이름 목록을 코드에 적지 않는다.</p>
+     *
+     * <p>다음은 절대 하지 않는다.</p>
+     * <ul>
+     *   <li>비밀번호/secret 생성 또는 파일 기록 — env reference 만 둔다.</li>
+     *   <li>local 이 아닌 environment 나 외부 DB 를 명시한 구성에서의 fallback — fail-closed 한다.</li>
+     *   <li>SystemCode 를 DB vendor/host/port/schema 의 근거로 사용 — 서로 다른 namespace 다.</li>
+     * </ul>
+     */
+    private void createLocalDomainDbProfile(Path profile, String name, String systemCode) throws Exception {
+        String environment = envOrProperty("CPF_ENVIRONMENT", "cpf.environment", "local").trim().toLowerCase(Locale.ROOT);
+        if (!environment.equals("local")) {
+            throw new IllegalStateException("Domain DB profile is required outside the local environment: environment="
+                    + environment + " path=" + root.relativize(profile));
+        }
+        // 외부 DB 를 명시한 구성은 자동 생성 대상이 아니다. 필수 값이 없으면 그대로 실패한다.
+        String externalHost = firstNonBlank(System.getenv("CPF_DB_HOST"), System.getenv("CPF_DB_URL"));
+        if (!externalHost.isBlank()) {
+            throw new IllegalStateException("external DB configuration requires an explicit Domain DB profile: "
+                    + root.relativize(profile));
+        }
+        String declared = firstNonBlank(System.getenv("CPF_DB_VENDOR"),
+                workspace.getProperty("cpf.default-db", ""), requestedDbVendor);
+        if (declared.isBlank()) {
+            throw new IllegalStateException("cpf.default-db is required to prepare a local Domain DB profile: "
+                    + root.relativize(profile));
+        }
+        String vendor = normalizeDb(declared);
+        String lower = systemCode.toLowerCase(Locale.ROOT);
+        String upper = systemCode.toUpperCase(Locale.ROOT);
+        int port = defaultDbPort(vendor);
+        String databaseEntry = vendor.equals("oracle")
+                ? "    \"serviceName\": \"" + name + "_db\""
+                : "    \"databaseName\": \"" + name + "_db\"";
+        String json = String.join(NEWLINE,
+                "{",
+                "  \"profileVersion\": 2,",
+                "  \"profileName\": \"" + name + "-local\",",
+                "  \"environment\": \"local\",",
+                "  \"domain\": {",
+                "    \"name\": \"" + name + "\",",
+                "    \"systemCode\": \"" + systemCode + "\"",
+                "  },",
+                "  \"database\": {",
+                "    \"vendor\": \"" + vendor + "\",",
+                "    \"host\": \"127.0.0.1\",",
+                "    \"port\": " + port + ",",
+                "    \"logicalDatabase\": \"" + lower + "DB\",",
+                "    \"schemaName\": \"" + name + "\",",
+                "    \"migration\": {",
+                "      \"username\": \"cpf_" + lower + "_migration\",",
+                "      \"password\": { \"env\": \"" + upper + "_DB_MIGRATION_PASSWORD\" }",
+                "    },",
+                "    \"runtime\": {",
+                "      \"username\": \"cpf_" + lower + "_runtime\",",
+                "      \"password\": { \"env\": \"" + upper + "_DB_RUNTIME_PASSWORD\" }",
+                "    },",
+                databaseEntry,
+                "  },",
+                "  \"sourceControlled\": false,",
+                "  \"secretPolicy\": \"ENV_REFERENCE_ONLY\"",
+                "}",
+                "");
+        Files.createDirectories(profile.getParent());
+        Files.writeString(profile, json, StandardCharsets.UTF_8);
+        progress("06", "Domain DB Profile", "created local default " + root.relativize(profile)
+                + " vendor=" + vendor);
+    }
+
     private DbBinding loadDbBinding(String name, String systemCode) throws Exception {
         Path profile = root.resolve("build/cpf-local").resolve(name).resolve("cpf-db-profile.local.json");
         if (!Files.isRegularFile(profile)) {
-            throw new IllegalStateException("persistent Domain DB profile missing; run cpf domain setup first: " + root.relativize(profile));
+            // Fresh Clone -> bootstrap -> local 실행까지 사용자가 별도 설정 없이 갈 수 있어야 한다.
+            // 프로필이 없으면 local 에 한해 canonical default-db 계약으로 생성한다.
+            // 기존 프로필은 절대 덮어쓰지 않는다(있으면 아래 canonical validation 으로 검증만 한다).
+            createLocalDomainDbProfile(profile, name, systemCode);
         }
         String text = Files.readString(profile, StandardCharsets.UTF_8);
         if (!text.contains("\"profileVersion\": 2")) throw new IllegalStateException("unsupported DB profileVersion: " + profile);
@@ -228,6 +343,10 @@ public final class CpfBootstrap {
             try (Writer w = Files.newBufferedWriter(secretFile, StandardCharsets.UTF_8)) { p.store(w, "Local-only generated secret. build/ is not source-controlled."); }
         }
         baseEnv.put("CPF_LOCAL_DB_ADMIN_PASSWORD", localDbPassword);
+        // Docker Compose 는 서비스를 하나만 올려도 파일 전체를 보간한다. 미들웨어 변수를
+        // 나중 단계에서만 넣으면, DB 만 띄우는 단계가 "다른 서비스의 필수 변수 없음"으로 실패한다.
+        // 값은 이미 만든 local 전용 생성 시크릿과 같으며 저장소에 남지 않는다.
+        baseEnv.put("CPF_LOCAL_MIDDLEWARE_PASSWORD", localDbPassword);
     }
 
     private void prepareDatabase() throws Exception {
@@ -350,6 +469,81 @@ public final class CpfBootstrap {
         }
     }
 
+    /**
+     * Platform DB(CPF_PLATFORM_DB) 의 local Binding.
+     *
+     * <p>증상 근거: 공개 bootstrap 은 Generated Domain DB 만 만들었다. 그래서 발행된 ADM 을
+     * 단독 기동하면 {@code CPF DataSource is required for role: CPF_PLATFORM_DB} 로 죽었다.
+     * ADM/Gateway/Batch 는 Domain 이 아니라 Platform 스키마를 쓴다.</p>
+     *
+     * <p>이 Binding 은 DB 구성 namespace 이며 SystemCode 와 무관하다. Platform 은 SystemCode 를
+     * 갖지 않으므로 moduleCode(CPF) 기준 이름만 쓴다.</p>
+     */
+    private DbBinding platformBinding() throws Exception {
+        if (platformDb != null) return platformDb;
+        String environment = envOrProperty("CPF_ENVIRONMENT", "cpf.environment", "local").trim().toLowerCase(Locale.ROOT);
+        if (!environment.equals("local")) {
+            throw new IllegalStateException("Platform DB binding must be configured explicitly outside local: environment=" + environment);
+        }
+        String externalHost = firstNonBlank(System.getenv("CPF_DB_HOST"), System.getenv("CPF_DB_URL"));
+        if (!externalHost.isBlank()) {
+            throw new IllegalStateException("external DB configuration requires an explicit Platform DB configuration");
+        }
+        String declared = firstNonBlank(System.getenv("CPF_DB_VENDOR"),
+                workspace.getProperty("cpf.default-db", ""), requestedDbVendor);
+        if (declared.isBlank()) throw new IllegalStateException("cpf.default-db is required to prepare the local Platform DB");
+        String vendor = normalizeDb(declared);
+        String database = PLATFORM_DATABASE;
+        boolean oracle = vendor.equals("oracle");
+        platformDb = new DbBinding(vendor, "127.0.0.1", defaultDbPort(vendor),
+                oracle ? "" : database, oracle ? database : "",
+                vendor.equals("postgresql") ? "public" : database,
+                "cpf_migration", "cpf_app",
+                "CPF_PLATFORM_DB_MIGRATION_PASSWORD", "CPF_PLATFORM_DB_RUNTIME_PASSWORD",
+                root.resolve(PLATFORM_ASSET_ROOT));
+        return platformDb;
+    }
+
+    /** Platform 은 Generated Domain 이 아니다. Domain 절차를 재사용하되 Domain 목록에는 넣지 않는다. */
+    private Domain platformDomain() throws Exception {
+        return new Domain("platform", PLATFORM_MODULE_CODE, null, null, Map.of(), 0, platformBinding());
+    }
+
+    private void applyPlatformDatabase() throws Exception {
+        Domain platform = platformDomain();
+        step("08", "DB Lifecycle", "PLATFORM " + PLATFORM_MODULE_CODE + " vendor=" + platform.db.vendor);
+        switch (platform.db.vendor) {
+            case "postgresql" -> applyPostgresql(platform);
+            case "mariadb" -> applyMariaDb(platform);
+            case "oracle" -> applyOracle(platform);
+        }
+    }
+
+    /**
+     * Platform Runtime 이 읽을 접속 정보를 실행 환경에 반영한다.
+     *
+     * <p>비밀 값은 파일로 남기지 않고 ENV 참조 표기만 남긴다.</p>
+     */
+    private void bindPlatformRuntimeEnvironment(List<String> lines) throws Exception {
+        DbBinding b = platformBinding();
+        String url;
+        String driver;
+        switch (b.vendor) {
+            case "postgresql" -> { url = "jdbc:postgresql://" + b.host + ":" + b.port + "/" + b.databaseName + "?currentSchema=" + b.schemaName; driver = "org.postgresql.Driver"; }
+            case "mariadb" -> { url = "jdbc:mariadb://" + b.host + ":" + b.port + "/" + b.databaseName; driver = "org.mariadb.jdbc.Driver"; }
+            case "oracle" -> { url = "jdbc:oracle:thin:@//" + b.host + ":" + b.port + "/" + b.serviceName; driver = "oracle.jdbc.OracleDriver"; }
+            default -> throw new IllegalStateException();
+        }
+        lines.add("CPF_PLATFORM_DB_URL=" + url);
+        lines.add("CPF_PLATFORM_DB_DRIVER=" + driver);
+        lines.add("CPF_PLATFORM_DB_USERNAME=" + b.runtimeUser);
+        lines.add("CPF_PLATFORM_DB_PASSWORD=<secret:" + b.runtimeSecretEnv + ">");
+        baseEnv.put("CPF_PLATFORM_DB_URL", url);
+        baseEnv.put("CPF_PLATFORM_DB_DRIVER", driver);
+        baseEnv.put("CPF_PLATFORM_DB_USERNAME", b.runtimeUser);
+        baseEnv.put("CPF_PLATFORM_DB_PASSWORD", localSecret(b.runtimeSecretEnv));
+    }
+
     private void applyDomainDatabases() throws Exception {
         int applied=0;
         for (Domain domain : domains) {
@@ -375,9 +569,15 @@ public final class CpfBootstrap {
     private void applyPostgresql(Domain d) throws Exception {
         DbBinding b=d.db; String db=b.databaseName; String migration=b.migrationUser; String runtime=b.runtimeUser;
         String mp=localSecret(b.migrationSecretEnv), rp=localSecret(b.runtimeSecretEnv);
-        String setup = "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L','"+migration+"','"+mp+"') WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='"+migration+"')\\gexec\n" +
-                "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L','"+runtime+"','"+rp+"') WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='"+runtime+"')\\gexec\n" +
-                "SELECT format('CREATE DATABASE %I OWNER %I','"+db+"','"+migration+"') WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname='"+db+"')\\gexec\n";
+        // Local container volume은 bootstrap 간에 살아 있을 수 있다. CREATE ... IF NOT EXISTS만
+        // 하면 새 local secret과 기존 role credential이 달라져 실제 Runtime TCP 접속만 실패한다.
+        // 이 경로는 local-only generated secret / cpf-public-postgresql에만 적용되므로, 매 bootstrap이
+        // migration/runtime role credential을 현재 local secret으로 명시적으로 수렴시킨다.
+        String setup = "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L',"+sqlLiteral(migration)+","+sqlLiteral(mp)+") WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname="+sqlLiteral(migration)+")\\gexec\n" +
+                "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L',"+sqlLiteral(runtime)+","+sqlLiteral(rp)+") WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname="+sqlLiteral(runtime)+")\\gexec\n" +
+                "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L',"+sqlLiteral(migration)+","+sqlLiteral(mp)+")\\gexec\n" +
+                "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L',"+sqlLiteral(runtime)+","+sqlLiteral(rp)+")\\gexec\n" +
+                "SELECT format('CREATE DATABASE %I OWNER %I',"+sqlLiteral(db)+","+sqlLiteral(migration)+") WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname="+sqlLiteral(db)+")\\gexec\n";
         runChecked(List.of("docker","exec","-i","cpf-public-postgresql","psql","-v","ON_ERROR_STOP=1","-U","postgres","-d","postgres"), baseEnv, 60, setup, true);
         runChecked(List.of("docker","exec","-i","-e","PGPASSWORD="+mp,"cpf-public-postgresql","psql","-v","ON_ERROR_STOP=1","-U",migration,"-d",db), Map.of(), 60,
                 "CREATE SCHEMA IF NOT EXISTS \""+b.schemaName+"\" AUTHORIZATION \""+migration+"\"; CREATE TABLE IF NOT EXISTS cpf_bootstrap_schema_history(script_name VARCHAR(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP); GRANT USAGE ON SCHEMA \""+b.schemaName+"\" TO \""+runtime+"\";", true);
@@ -387,7 +587,9 @@ public final class CpfBootstrap {
     private void applyMariaDb(Domain d) throws Exception {
         DbBinding b=d.db; String db=b.databaseName; String migration=b.migrationUser; String runtime=b.runtimeUser;
         String mp=localSecret(b.migrationSecretEnv), rp=localSecret(b.runtimeSecretEnv);
-        String setup = "CREATE DATABASE IF NOT EXISTS `"+db+"`; CREATE USER IF NOT EXISTS '"+migration+"'@'%' IDENTIFIED BY '"+mp+"'; CREATE USER IF NOT EXISTS '"+runtime+"'@'%' IDENTIFIED BY '"+rp+"'; GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP,INDEX,REFERENCES ON `"+db+"`.* TO '"+migration+"'@'%'; GRANT SELECT,INSERT,UPDATE,DELETE,EXECUTE ON `"+db+"`.* TO '"+runtime+"'@'%'; FLUSH PRIVILEGES;";
+        // PostgreSQL과 같은 local-volume 재사용 경로다. 존재하는 account도 local secret으로
+        // reconcile하지 않으면 next bootstrap의 Runtime credential과 갈라진다.
+        String setup = "CREATE DATABASE IF NOT EXISTS `"+db+"`; CREATE USER IF NOT EXISTS '"+migration+"'@'%' IDENTIFIED BY '"+mp+"'; CREATE USER IF NOT EXISTS '"+runtime+"'@'%' IDENTIFIED BY '"+rp+"'; ALTER USER '"+migration+"'@'%' IDENTIFIED BY '"+mp+"'; ALTER USER '"+runtime+"'@'%' IDENTIFIED BY '"+rp+"'; GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP,INDEX,REFERENCES ON `"+db+"`.* TO '"+migration+"'@'%'; GRANT SELECT,INSERT,UPDATE,DELETE,EXECUTE ON `"+db+"`.* TO '"+runtime+"'@'%'; FLUSH PRIVILEGES;";
         runChecked(List.of("docker","exec","-i","-e","MYSQL_PWD="+localDbPassword,"cpf-public-mariadb","mariadb","-uroot"), Map.of(), 60, setup, true);
         runChecked(List.of("docker","exec","-i","-e","MYSQL_PWD="+mp,"cpf-public-mariadb","mariadb","-u"+migration,db), Map.of(), 60,
                 "CREATE TABLE IF NOT EXISTS cpf_bootstrap_schema_history(script_name VARCHAR(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3));", true);
@@ -400,16 +602,30 @@ public final class CpfBootstrap {
         String service=b.serviceName;
         String setup = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER="+service+";\n" +
                 "DECLARE n NUMBER; BEGIN SELECT COUNT(*) INTO n FROM dba_users WHERE username='"+migration+"'; IF n=0 THEN EXECUTE IMMEDIATE 'CREATE USER "+migration+" IDENTIFIED BY \\\""+mp+"\\\"'; EXECUTE IMMEDIATE 'GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE TRIGGER, CREATE PROCEDURE TO "+migration+"'; EXECUTE IMMEDIATE 'ALTER USER "+migration+" QUOTA UNLIMITED ON USERS'; END IF; SELECT COUNT(*) INTO n FROM dba_users WHERE username='"+runtime+"'; IF n=0 THEN EXECUTE IMMEDIATE 'CREATE USER "+runtime+" IDENTIFIED BY \\\""+rp+"\\\"'; EXECUTE IMMEDIATE 'GRANT CREATE SESSION TO "+runtime+"'; END IF; END; /\n" +
+                // Existing local Oracle accounts must be reconciled too; CREATE USER is not a credential update.
+                "ALTER USER "+migration+" IDENTIFIED BY \\\""+mp+"\\\";\nALTER USER "+runtime+" IDENTIFIED BY \\\""+rp+"\\\";\n" +
                 "CONNECT "+migration+"/\\\""+mp+"\\\"@"+service+"\nBEGIN EXECUTE IMMEDIATE 'CREATE TABLE cpf_bootstrap_schema_history (script_name VARCHAR2(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END; /\nEXIT\n";
         runChecked(List.of("docker","exec","-i","cpf-public-oracle","sqlplus","-s","/","as","sysdba"), Map.of(), 90, setup, true);
         applyTrackedSql(d, service, migration, "cpf-public-oracle", "oracle", mp);
     }
 
+    /** Render a PostgreSQL SQL literal without exposing a local secret in a log or evidence file. */
+    private static String sqlLiteral(String value) {
+        return "'" + value.replace("'", "''") + "'";
+    }
+
     private void applyTrackedSql(Domain d, String db, String user, String container, String vendor, String password) throws Exception {
-        Path base = root.resolve("build/cpf-local").resolve(d.name).resolve("db3").resolve(vendor);
-        Files.createDirectories(base);
-        List<String> render=List.of(javaExecutable(), "-Dfile.encoding=UTF-8", "-cp", root.resolve("bin/lib/cpf-cli.jar").toString(), "CpfGeneratorLauncher", "db", "render", "--file", root.relativize(d.contract).toString(), "--vendor", vendor, "--output", base.toString());
-        runChecked(render, baseEnv, Math.max(timeoutSeconds,120), null, true);
+        Path base;
+        if (d.contract == null) {
+            // Platform DDL 은 Domain Generator 산출물이 아니라 배포본에 실려 오는 정본 자산이다.
+            base = root.resolve(PLATFORM_ASSET_ROOT).resolve(vendor);
+            if (!Files.isDirectory(base)) throw new IllegalStateException("Platform DB asset is missing: " + root.relativize(base));
+        } else {
+            base = root.resolve("build/cpf-local").resolve(d.name).resolve("db3").resolve(vendor);
+            Files.createDirectories(base);
+            List<String> render=List.of(javaExecutable(), "-Dfile.encoding=UTF-8", "-cp", root.resolve("bin/lib/cpf-cli.jar").toString(), "CpfGeneratorLauncher", "db", "render", "--file", root.relativize(d.contract).toString(), "--vendor", vendor, "--output", base.toString());
+            runChecked(render, baseEnv, Math.max(timeoutSeconds,120), null, true);
+        }
         List<Path> migrations;
         try(var stream=Files.list(base)){ migrations=stream.filter(p->p.getFileName().toString().startsWith("V")&&p.getFileName().toString().endsWith(".sql")).sorted().toList(); }
         for (Path sql : migrations) applyOneTrackedSql(d, db, user, container, vendor, sql, password);
@@ -456,7 +672,19 @@ public final class CpfBootstrap {
 
     private void writeRuntimeEnvironment() throws Exception {
         Path env = logDir.resolve("runtime.env");
+        Files.write(env, bindDomainRuntimeEnvironment(), StandardCharsets.UTF_8);
+        pass("09", "Runtime Config", "generated=" + root.relativize(env) + " per-domain DB binding=PASS");
+    }
+
+    /**
+     * Domain 별 DB Binding 과 Port 를 실행 환경(baseEnv)에 반영하고, 비밀이 없는 요약 줄을 돌려준다.
+     *
+     * <p>bootstrap 과 runtime 이 같은 계산을 공유해야 한다. 계산이 갈라지면 bootstrap 이 만든
+     * DB 와 실제 Runtime 이 접속하는 DB 가 달라진다.</p>
+     */
+    private List<String> bindDomainRuntimeEnvironment() throws Exception {
         List<String> lines = new ArrayList<>();
+        bindPlatformRuntimeEnvironment(lines);
         lines.add("CPF_VERSION=" + baseEnv.get("CPF_VERSION"));
         lines.add("CPF_MAVEN_REPOSITORY_URL=" + baseEnv.get("CPF_MAVEN_REPOSITORY_URL"));
         for (Domain d : domains) {
@@ -479,8 +707,7 @@ public final class CpfBootstrap {
             baseEnv.put(p+"_DATASOURCE_USERNAME",b.runtimeUser); baseEnv.put(p+"_DATASOURCE_PASSWORD",runtimePassword);
             baseEnv.put(p+"_ONLINE_PORT", Integer.toString(d.localOnlinePort));
         }
-        Files.write(env, lines, StandardCharsets.UTF_8);
-        pass("09", "Runtime Config", "generated=" + root.relativize(env) + " per-domain DB binding=PASS");
+        return lines;
     }
 
     private void runWorkspaceVerification(boolean full) throws Exception {
@@ -489,7 +716,20 @@ public final class CpfBootstrap {
         if (!isWindows()) gradlew.toFile().setExecutable(true);
         List<String> command = new ArrayList<>(); command.add(gradlew.toString()); command.add("cpfVerify"); command.add("--no-daemon");
         if (!full) command.add("--max-workers=2");
-        runChecked(command, baseEnv, Math.max(timeoutSeconds, 600), null, true);
+        // Domain build 는 DB Vendor 를 fail-closed 로 요구한다. bootstrap 은 방금 Domain DB Profile 로
+        // Vendor 를 확정했으므로 그 값을 그대로 넘긴다. 사용자가 -PcpfDbVendor 를 직접 붙여야만
+        // cpf bootstrap 이 통과하는 구조는 Golden Path 가 아니다.
+        Map<String,String> verifyEnv = new LinkedHashMap<>(baseEnv);
+        Set<String> vendors = new TreeSet<>();
+        for (Domain d : domains) if (d.db != null) vendors.add(d.db.vendor);
+        if (vendors.size() == 1) {
+            verifyEnv.put("CPF_DB_VENDOR", vendors.iterator().next());
+        } else if (vendors.size() > 1) {
+            // 하나의 Gradle 실행은 하나의 Vendor 만 표현할 수 있다. 임의로 고르지 않는다.
+            throw new IllegalStateException(
+                    "workspace domains declare multiple DB vendors; run cpf verify per vendor: " + vendors);
+        }
+        runChecked(command, verifyEnv, Math.max(timeoutSeconds, 600), null, true);
         pass("10", "Build/Test", full ? "FULL PASS" : "FAST PASS");
     }
 
@@ -578,6 +818,279 @@ public final class CpfBootstrap {
         catch (AtomicMoveNotSupportedException ex) { Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING); }
     }
 
+    /**
+     * 공개 배포본의 Runtime Lifecycle 진입점.
+     *
+     * <p>증상 근거: Fresh Consumer 가 공개 launcher 로 ADM 을 띄우면
+     * {@code CPF-CLI-ENGINE-MISSING cpf-tools/runtime/tools/cpf_local_runtime.py} 로 죽었다.
+     * 공개 배포본은 {@code cpf-tools/} 를 싣지 않으므로 내부 엔진 위임은 공개 사용자에게 영구히
+     * 실패한다. 그래서 실행 진입점을 공개 CLI 안에 둔다.</p>
+     *
+     * <p>되돌리면 재발할 증상: 공개 사용자가 Clone 과 bootstrap 까지 마치고도 어떤 Runtime 도
+     * 기동하지 못한다.</p>
+     */
+    private int runtimeLifecycle(Map<String,String> options) throws Exception {
+        String action = options.getOrDefault("action", "").trim();
+        String requested = options.getOrDefault("target", "").trim();
+        if (action.isEmpty()) throw new IllegalArgumentException("runtime action is required");
+        if (requested.isEmpty()) throw new IllegalArgumentException("runtime --target is required");
+        CpfRuntimeTargets.Target target = null;
+        for (CpfRuntimeTargets.Target row : CpfRuntimeTargets.resolveAll(root)) {
+            if (row.name().equals(requested)) { target = row; break; }
+        }
+        if (target == null) throw new IllegalStateException("unknown runtime target=" + requested);
+        final CpfRuntimeTargets.Target resolved = target;
+        return switch (action) {
+            case "start" -> runtimeStart(resolved);
+            case "stop" -> runtimeStop(resolved, true);
+            case "status" -> runtimeStatus(resolved);
+            case "health" -> runtimeHealth(resolved);
+            case "log" -> runtimeLog(resolved);
+            case "restart" -> { runtimeStop(resolved, false); yield runtimeStart(resolved); }
+            default -> throw new IllegalArgumentException("unsupported runtime action=" + action);
+        };
+    }
+
+    private Path runtimeStateFile(CpfRuntimeTargets.Target target) {
+        return root.resolve("build/cpf-runtime").resolve(target.name() + ".properties");
+    }
+
+    private Path runtimeLogFile(CpfRuntimeTargets.Target target) {
+        return root.resolve("build/cpf-runtime/logs").resolve(target.name() + ".log");
+    }
+
+    private Properties runtimeState(CpfRuntimeTargets.Target target) throws Exception {
+        Properties state = new Properties();
+        Path file = runtimeStateFile(target);
+        if (Files.isRegularFile(file)) {
+            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) { state.load(reader); }
+        }
+        return state;
+    }
+
+    /** 상태 파일의 pid 가 아직 살아 있을 때만 실행 중으로 인정한다. */
+    private Optional<ProcessHandle> runtimeProcess(Properties state) {
+        String pid = state.getProperty("pid", "").trim();
+        if (pid.isEmpty()) return Optional.empty();
+        return ProcessHandle.of(Long.parseLong(pid)).filter(ProcessHandle::isAlive);
+    }
+
+    /**
+     * Runtime 실행 환경을 준비한다.
+     *
+     * <p>Runtime 은 bootstrap 이 만든 DB 에 접속해야 하므로 같은 Binding 계산을 재사용한다.
+     * 여기서 다시 계산하지 않으면 Runtime 이 어떤 DB 를 볼지 알 수 없다.</p>
+     */
+    private void prepareRuntimeEnvironment() throws Exception {
+        if (runtimeEnvironmentReady) return;
+        prepareLocalSecret();
+        resolveBinaryRepository();
+        discoverDomains();
+        bindDomainRuntimeEnvironment();
+        runtimeEnvironmentReady = true;
+    }
+
+    /** Port 정본은 catalog 다. Generated Domain 만 Bootstrap 이 배정한 Port 를 쓴다. */
+    private int runtimePort(CpfRuntimeTargets.Target target) {
+        if (target.port() > 0) return target.port();
+        for (Domain d : domains) {
+            if (target.name().equals(d.name + "-online")) return d.localOnlinePort;
+        }
+        return 0;
+    }
+
+    private Path runtimeProjectDir(CpfRuntimeTargets.Target target) {
+        String owner = target.owner();
+        int slash = owner.indexOf(47);
+        return root.resolve(slash < 0 ? owner : owner.substring(0, slash));
+    }
+
+    private String runtimeGradleTask(CpfRuntimeTargets.Target target) {
+        String owner = target.owner();
+        int slash = owner.indexOf(47);
+        return slash < 0 ? "bootRun" : ":" + owner.substring(slash + 1) + ":bootRun";
+    }
+
+    /**
+     * Binary 로 배포된 Runtime 의 실행물을 찾는다.
+     *
+     * <p>좌표는 catalog 의 artifactId 를 그대로 쓴다. 이름을 추론하면 Runtime 이 하나 늘 때마다
+     * Launcher 가 조용히 틀린다.</p>
+     */
+    private Path publishedRuntimeJar(CpfRuntimeTargets.Target target) throws Exception {
+        String artifactId = target.artifactId();
+        if (artifactId.isBlank()) throw new IllegalStateException("runtime target declares no artifactId: " + target.name());
+        String version = firstNonBlank(baseEnv.get("CPF_VERSION"));
+        if (version.isEmpty()) throw new IllegalStateException("CPF_VERSION is not resolved");
+        String repository = firstNonBlank(baseEnv.get("CPF_MAVEN_REPOSITORY_URL"));
+        if (repository.isEmpty()) throw new IllegalStateException("Binary Repository is not resolved");
+        URI uri = URI.create(repository.endsWith("/") ? repository : repository + "/");
+        if (!"file".equalsIgnoreCase(uri.getScheme())) {
+            throw new IllegalStateException("binary runtime requires a local Binary Repository: " + safeUri(repository));
+        }
+        Path jar = Path.of(uri).resolve("com/cpf/runtime").resolve(artifactId).resolve(version)
+                .resolve(artifactId + "-" + version + ".jar");
+        if (!Files.isRegularFile(jar)) throw new IllegalStateException("published runtime jar is missing: " + jar);
+        return jar;
+    }
+
+    private List<String> runtimeCommand(CpfRuntimeTargets.Target target) throws Exception {
+        if ("binary".equals(target.provision())) {
+            return List.of(javaExecutable(), "-jar", publishedRuntimeJar(target).toString());
+        }
+        Path gradlew = root.resolve(isWindows() ? "gradlew.bat" : "gradlew");
+        if (!Files.isRegularFile(gradlew)) throw new IllegalStateException("gradle wrapper is missing: " + gradlew);
+        return List.of(gradlew.toString(), "-p", runtimeProjectDir(target).toString(),
+                runtimeGradleTask(target), "--no-daemon");
+    }
+
+    private int runtimeStart(CpfRuntimeTargets.Target target) throws Exception {
+        Optional<ProcessHandle> running = runtimeProcess(runtimeState(target));
+        if (running.isPresent()) {
+            System.out.println("CPF_RUNTIME=ALREADY_RUNNING target=" + target.name() + " pid=" + running.get().pid());
+            return 0;
+        }
+        prepareRuntimeEnvironment();
+        int port = runtimePort(target);
+        if ("http-server".equals(target.capability()) && port <= 0) {
+            throw new IllegalStateException("runtime target has no resolvable port: " + target.name());
+        }
+        Path logFile = runtimeLogFile(target);
+        Files.createDirectories(logFile.getParent());
+        ProcessBuilder builder = new ProcessBuilder(runtimeCommand(target));
+        builder.directory(root.toFile());
+        builder.environment().putAll(baseEnv);
+        builder.environment().put("SPRING_PROFILES_ACTIVE", envOrDefault("SPRING_PROFILES_ACTIVE", "local"));
+        if (port > 0 && !target.portEnv().isBlank()) {
+            builder.environment().put(target.portEnv(), Integer.toString(port));
+        }
+        builder.redirectErrorStream(true);
+        builder.redirectOutput(logFile.toFile());
+        Process process = builder.start();
+        Properties state = new Properties();
+        state.setProperty("workspace", root.toString());
+        state.setProperty("target", target.name());
+        state.setProperty("pid", Long.toString(process.pid()));
+        state.setProperty("port", Integer.toString(port));
+        state.setProperty("log", logFile.toString());
+        state.setProperty("startedAt", Instant.now().toString());
+        storePropertiesAtomic(runtimeStateFile(target), state, "CPF public runtime process state");
+        awaitRuntimeReady(target, process, port, logFile);
+        System.out.println("CPF_RUNTIME=STARTED target=" + target.name() + " port=" + port + " pid=" + process.pid());
+        return 0;
+    }
+
+    /**
+     * 기동 완료 판정.
+     *
+     * <p>catalog 의 lifecycleCapabilities 가 정한 대로 http-server 만 HTTP 200 으로 판정한다.
+     * worker/one-shot 을 같은 방식으로 판정하면 거짓 PASS 가 된다.</p>
+     */
+    private void awaitRuntimeReady(CpfRuntimeTargets.Target target, Process process, int port, Path logFile) throws Exception {
+        if (!"http-server".equals(target.capability())) return;
+        if (target.healthPath().isBlank()) {
+            throw new IllegalStateException("runtime target declares no healthPath: " + target.name());
+        }
+        int limit = workspaceInt("cpf.runtime.ready-timeout-seconds");
+        URI health = URI.create("http://127.0.0.1:" + port + target.healthPath());
+        Instant deadline = Instant.now().plusSeconds(limit);
+        while (Instant.now().isBefore(deadline)) {
+            if (!process.isAlive()) {
+                throw new IllegalStateException("runtime exited before becoming ready: " + target.name()
+                        + " log=" + root.relativize(logFile));
+            }
+            if (probeHealth(health) == 200) return;
+            Thread.sleep(2000);
+        }
+        throw new IllegalStateException("runtime did not become ready within " + limit + "s: " + target.name()
+                + " log=" + root.relativize(logFile));
+    }
+
+    private int probeHealth(URI uri) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(5)).GET().build();
+            return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding()).statusCode();
+        } catch (Exception ignored) {
+            return -1;
+        }
+    }
+
+    private int runtimeStop(CpfRuntimeTargets.Target target, boolean report) throws Exception {
+        Properties state = runtimeState(target);
+        Optional<ProcessHandle> handle = runtimeProcess(state);
+        if (handle.isPresent()) {
+            ProcessHandle process = handle.get();
+            String command = process.info().command().orElse("").toLowerCase(Locale.ROOT);
+            if (!command.contains("java") && !command.contains("gradle")) {
+                throw new IllegalStateException("refusing to stop reused/non-CPF pid=" + process.pid());
+            }
+            process.descendants().forEach(ProcessHandle::destroy);
+            process.destroy();
+            Instant deadline = Instant.now().plusSeconds(workspaceInt("cpf.runtime.stop-timeout-seconds"));
+            while (process.isAlive() && Instant.now().isBefore(deadline)) Thread.sleep(200);
+            if (process.isAlive()) {
+                process.descendants().forEach(ProcessHandle::destroyForcibly);
+                process.destroyForcibly();
+            }
+        }
+        Files.deleteIfExists(runtimeStateFile(target));
+        if (report) System.out.println("CPF_RUNTIME=STOPPED target=" + target.name());
+        return 0;
+    }
+
+    private int runtimeStatus(CpfRuntimeTargets.Target target) throws Exception {
+        Properties state = runtimeState(target);
+        Optional<ProcessHandle> handle = runtimeProcess(state);
+        if (handle.isEmpty()) {
+            System.out.println("CPF_RUNTIME_STATUS=STOPPED target=" + target.name());
+            return 0;
+        }
+        int port = Integer.parseInt(state.getProperty("port", "0"));
+        System.out.println("CPF_RUNTIME_STATUS=RUNNING target=" + target.name()
+                + " pid=" + handle.get().pid() + " port=" + port);
+        if ("http-server".equals(target.capability()) && port > 0 && !target.healthPath().isBlank()) {
+            System.out.println("health=" + probeHealth(URI.create("http://127.0.0.1:" + port + target.healthPath())));
+        }
+        return 0;
+    }
+
+    private int runtimeHealth(CpfRuntimeTargets.Target target) throws Exception {
+        if (!"http-server".equals(target.capability())) {
+            // catalog 계약상 단순 HTTP 200 은 이 capability 의 준비 완료가 아니다. 거짓 PASS 를 만들지 않는다.
+            System.out.println("CPF_RUNTIME_HEALTH=CONTRACT_NOT_HTTP target=" + target.name()
+                    + " capability=" + target.capability());
+            return 0;
+        }
+        Properties state = runtimeState(target);
+        int port = Integer.parseInt(state.getProperty("port", Integer.toString(target.port())));
+        if (port <= 0 || target.healthPath().isBlank()) {
+            throw new IllegalStateException("runtime target has no health endpoint: " + target.name());
+        }
+        int code = probeHealth(URI.create("http://127.0.0.1:" + port + target.healthPath()));
+        System.out.println("CPF_RUNTIME_HEALTH=" + (code == 200 ? "PASS" : "FAIL")
+                + " target=" + target.name() + " status=" + code);
+        return code == 200 ? 0 : 1;
+    }
+
+    private int runtimeLog(CpfRuntimeTargets.Target target) throws Exception {
+        Path logFile = runtimeLogFile(target);
+        if (!Files.isRegularFile(logFile)) {
+            System.out.println("CPF_RUNTIME_LOG=ABSENT target=" + target.name());
+            return 0;
+        }
+        List<String> lines = Files.readAllLines(logFile, StandardCharsets.UTF_8);
+        int limit = workspaceInt("cpf.runtime.log-lines");
+        for (String line : lines.subList(Math.max(0, lines.size() - limit), lines.size())) System.out.println(line);
+        return 0;
+    }
+
+    /** 운영 시간값의 정본은 config/cpf-workspace.properties 다. 값이 없으면 기본값으로 대체하지 않고 멈춘다. */
+    private int workspaceInt(String key) {
+        String value = workspace.getProperty(key, "").trim();
+        if (value.isEmpty()) throw new IllegalStateException("config/cpf-workspace.properties is missing " + key);
+        return Integer.parseInt(value);
+    }
+
     private int reset(Map<String,String> options) throws Exception {
         if (!options.containsKey("confirm-local-reset")) throw new IllegalStateException("reset requires --confirm-local-reset; volumes/data are destructive");
         Path compose = root.resolve("deploy/local/compose.yaml");
@@ -637,7 +1150,8 @@ public final class CpfBootstrap {
 
     private static Path locateRoot(){ Path p=Path.of(System.getProperty("user.dir")).toAbsolutePath(); while(p!=null){ if(Files.isRegularFile(p.resolve("settings.gradle"))&&Files.isDirectory(p.resolve("config"))) return p; p=p.getParent(); } throw new IllegalStateException("CPF Public Workspace root not found"); }
     private static String readDefaultTimeout(Path root){ Properties p=new Properties(); Path f=root.resolve("config/cpf-workspace.properties"); try{ if(Files.isRegularFile(f)) try(Reader r=Files.newBufferedReader(f)){p.load(r);} }catch(Exception ignored){} return p.getProperty("cpf.bootstrap.timeout-seconds","300"); }
-    private static Map<String,String> parseArgs(String[] args){ Map<String,String> m=new LinkedHashMap<>(); String command="bootstrap"; for(int i=0;i<args.length;i++){ String a=args[i]; if(!a.startsWith("--")&&!a.startsWith("-")){command=a;continue;} if(a.equals("--db")&&i+1<args.length)m.put("db",args[++i]); else if(a.equals("--timeout")&&i+1<args.length)m.put("timeout",args[++i]); else if(a.equals("--run"))m.put("run","true"); else if(a.equals("--full"))m.put("full","true"); else if(a.equals("--confirm-local-reset"))m.put("confirm-local-reset","true"); else throw new IllegalArgumentException("unknown option="+a);} m.put("command",command); return m; }
+    private static Map<String,String> parseArgs(String[] args){ Map<String,String> m=new LinkedHashMap<>(); String command="bootstrap"; List<String> positional=new ArrayList<>(); for(int i=0;i<args.length;i++){ String a=args[i]; if(!a.startsWith("--")&&!a.startsWith("-")){positional.add(a);continue;} if(a.equals("--db")&&i+1<args.length)m.put("db",args[++i]); else if(a.equals("--timeout")&&i+1<args.length)m.put("timeout",args[++i]); else if(a.equals("--run"))m.put("run","true"); else if(a.equals("--full"))m.put("full","true"); else if(a.equals("--confirm-local-reset"))m.put("confirm-local-reset","true"); else if(a.equals("--target")&&i+1<args.length)m.put("target",args[++i]); else throw new IllegalArgumentException("unknown option="+a);} // runtime 처럼 "명령 + 동작" 두 단어를 쓰는 진입점이 있으므로 위치 인자를 순서대로 해석한다.
+        if(!positional.isEmpty())command=positional.get(0); if(positional.size()>1)m.put("action",positional.get(1)); if(positional.size()>2)throw new IllegalArgumentException("unexpected argument="+positional.get(2)); m.put("command",command); return m; }
     private static String safeUri(String uri){ try{ URI u=URI.create(uri); return new URI(u.getScheme(),null,u.getHost(),u.getPort(),u.getPath(),null,null).toString(); }catch(Exception e){ return "<configured>"; } }
     private static String sanitize(String s){ if(s==null)return "unknown error"; return s.replaceAll("(?i)(password|token|secret)=\\S+","$1=***"); }
     private void step(String n,String label,String detail){ out("["+n+"] "+label+" .... "+detail); }

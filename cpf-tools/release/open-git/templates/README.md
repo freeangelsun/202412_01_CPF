@@ -65,6 +65,113 @@ Target만 바꾸면 모든 Runtime을 같은 방법으로 실행합니다. 사�
 
 전체를 함께 띄우려면 `all`, 일상 개발 구성만 띄우려면 `dev` Target을 사용합니다.
 
+## 운영 콘솔(ADM)과 업무 백오피스(MBW + Backoffice Web) 실행
+
+세 Runtime 모두 공개 launcher 하나로 기동합니다. npm 명령이나 내부 Gradle 경로를 알 필요가 없습니다.
+화면(production bundle)은 각 Runtime 실행물에 포함되어 있습니다.
+
+| Runtime | Target | 기본 Port | Port 환경변수 | 접속 URL |
+| --- | --- | --- | --- | --- |
+| ADM 운영 콘솔 | `admin` | 8090 | `ADM_SERVER_PORT` | http://127.0.0.1:8090/adm/ |
+| MBW 업무 Domain | `backoffice` | 8091 | `MBW_ONLINE_PORT` | http://127.0.0.1:8091/actuator/health |
+| Backoffice Web(MBW Channel Front) | `backoffice-web` | 8092 | `MBW_WEB_PORT` | http://127.0.0.1:8092/mbw/ |
+
+Port를 바꾸려면 해당 환경변수를 설정한 뒤 기동합니다(예: `ADM_SERVER_PORT=18090`).
+
+### 1) 사전 준비
+
+```powershell
+.\cpf.cmd bootstrap
+```
+
+```bash
+./bin/cpf bootstrap
+```
+
+`bootstrap`이 Java/Container Runtime 확인, DB 기동, 스키마 적용까지 수행합니다.
+
+### 2) ADM 최초 운영자 계정
+
+ADM은 모든 Profile에서 같은 **최초 1회 Initial Operator Bootstrap** 계약으로 계정을 만듭니다.
+계정이 없는 Fresh 설치에서만 아래 세 값을 환경으로 전달하고 기동합니다. 비밀번호는 파일·YAML·명령
+히스토리에 남기지 않습니다. 이미 운영자가 있으면 Bootstrap 변수를 설정하지 않고 기동하며, 기존
+계정의 비밀번호·권한은 절대로 덮어쓰지 않습니다.
+
+```powershell
+$env:CPF_ADM_BOOTSTRAP_OPERATOR_ID = Read-Host '최초 운영자 ID'
+$env:CPF_ADM_BOOTSTRAP_OPERATOR_NAME = Read-Host '최초 운영자 이름'
+$env:CPF_ADM_BOOTSTRAP_PASSWORD = Read-Host '초기 비밀번호' -MaskInput
+.\bin\cpf-start.ps1 -Target admin
+```
+
+```bash
+read -rp '최초 운영자 ID: ' CPF_ADM_BOOTSTRAP_OPERATOR_ID; export CPF_ADM_BOOTSTRAP_OPERATOR_ID
+read -rp '최초 운영자 이름: ' CPF_ADM_BOOTSTRAP_OPERATOR_NAME; export CPF_ADM_BOOTSTRAP_OPERATOR_NAME
+read -rsp '초기 비밀번호: ' CPF_ADM_BOOTSTRAP_PASSWORD; export CPF_ADM_BOOTSTRAP_PASSWORD
+./bin/cpf-start.sh --target admin
+```
+
+브라우저에서 http://127.0.0.1:8090/adm/ 로 접속해 방금 만든 계정으로 실제 로그인합니다.
+
+### 3) 업무 백오피스(MBW + Backoffice Web)
+
+Backoffice Web은 ADM이 아니라 MBW의 Channel Front입니다. MBW Fresh 설치도 동일한 1회 Initial
+Operator Bootstrap을 먼저 수행하고, 이후에는 maker/checker 승인 절차로 운영자를 추가합니다. 아래
+Local 개발자 경로는 HTTPS endpoint/secure-cookie 값만 Local transport에 맞추며 인증·CSRF·Bootstrap
+의미는 다른 Profile과 동일합니다.
+
+```powershell
+$env:CPF_MBW_INITIAL_OPERATOR_LOGIN_ID = Read-Host 'MBW 최초 운영자 ID'
+$env:CPF_MBW_INITIAL_OPERATOR_NAME = Read-Host 'MBW 최초 운영자 이름'
+$env:CPF_MBW_INITIAL_OPERATOR_ROLE_CODE = Read-Host 'MBW 최초 운영자 역할 코드'
+$env:CPF_MBW_BOOTSTRAP_PASSWORD = Read-Host 'MBW 초기 비밀번호' -MaskInput
+$env:CPF_MBW_JWT_SECRET = Read-Host '32자 이상 MBW JWT Secret' -MaskInput
+$env:MBW_WEB_MODE = 'DIRECT'
+$env:MBW_DIRECT_BASE_URI = 'http://127.0.0.1:8082'
+$env:MBW_WEB_SECURE_COOKIES = 'false'
+.\bin\cpf-start.ps1 -Target backoffice
+.\bin\cpf-start.ps1 -Target backoffice-web
+.\bin\cpf-status.ps1 -Target backoffice-web
+```
+
+```bash
+read -rp 'MBW 최초 운영자 ID: ' CPF_MBW_INITIAL_OPERATOR_LOGIN_ID; export CPF_MBW_INITIAL_OPERATOR_LOGIN_ID
+read -rp 'MBW 최초 운영자 이름: ' CPF_MBW_INITIAL_OPERATOR_NAME; export CPF_MBW_INITIAL_OPERATOR_NAME
+read -rp 'MBW 최초 운영자 역할 코드: ' CPF_MBW_INITIAL_OPERATOR_ROLE_CODE; export CPF_MBW_INITIAL_OPERATOR_ROLE_CODE
+read -rsp 'MBW 초기 비밀번호: ' CPF_MBW_BOOTSTRAP_PASSWORD; export CPF_MBW_BOOTSTRAP_PASSWORD
+read -rsp '32자 이상 MBW JWT Secret: ' CPF_MBW_JWT_SECRET; export CPF_MBW_JWT_SECRET
+export MBW_WEB_MODE=DIRECT
+export MBW_DIRECT_BASE_URI=http://127.0.0.1:8082
+export MBW_WEB_SECURE_COOKIES=false
+./bin/cpf-start.sh  --target backoffice
+./bin/cpf-start.sh  --target backoffice-web
+./bin/cpf-status.sh --target backoffice-web
+```
+
+브라우저에서 http://127.0.0.1:8092/mbw/ 로 접속해 MBW 최초 운영자로 로그인합니다. 로그인 후 Browser
+session Cookie와 CSRF token이 발급되고, Backoffice Web이 인증된 MBW 업무 API를 호출합니다.
+
+### 4) 상태 확인과 정지
+
+```powershell
+.\bin\cpf-health.ps1 -Target admin
+.\bin\cpf-stop.ps1   -Target backoffice-web
+.\bin\cpf-stop.ps1   -Target backoffice
+.\bin\cpf-stop.ps1   -Target admin
+```
+
+```bash
+./bin/cpf-health.sh --target admin
+./bin/cpf-stop.sh   --target backoffice-web
+./bin/cpf-stop.sh   --target backoffice
+./bin/cpf-stop.sh   --target admin
+```
+
+### Profile
+
+기본 Profile은 `local`입니다. 개발 구성을 쓰려면 `CPF_PROFILE=dev`를 설정한 뒤 기동합니다.
+
+
 ## 문서
 
 `cpf-docs/guides`에 프레임워크/배치 개발자 가이드, 운영자 매뉴얼, Gateway 가이드, 기술 명세가 있고

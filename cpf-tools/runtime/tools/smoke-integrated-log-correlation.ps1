@@ -81,6 +81,23 @@ function Get-ArrayCount([object]$Object,[string]$Name) {
     if ($null -eq $value) { return 0 }
     return @($value).Count
 }
+function Resolve-CpfCorrelationValue([object]$Record,[string[]]$Names) {
+    if ($null -eq $Record) { return '' }
+    foreach ($name in $Names) {
+        if ($Record -is [System.Collections.IDictionary]) {
+            foreach ($key in $Record.Keys) {
+                if ([string]$key -ieq $name -and $null -ne $Record[$key]) {
+                    return ([string]$Record[$key]).Trim()
+                }
+            }
+        }
+        $property = @($Record.PSObject.Properties | Where-Object { $_.Name -ieq $name } | Select-Object -First 1)
+        if ($property.Count -gt 0 -and $null -ne $property[0].Value) {
+            return ([string]$property[0].Value).Trim()
+        }
+    }
+    return ''
+}
 function Read-JsonIfPresent([string]$Path) {
     if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
     try { return (Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json) } catch { return $null }
@@ -307,7 +324,7 @@ $result = [ordered]@{
     traceId=$null
     transactionProbe=[ordered]@{ status='NOT_EXECUTED' }
     fileLog=[ordered]@{ status='NOT_EXECUTED'; matchCount=0; files=@() }
-    dbLog=[ordered]@{ status='NOT_EXECUTED'; itemCount=0 }
+    dbLog=[ordered]@{ status='NOT_EXECUTED'; itemCount=0; correlatedCount=0; candidates=@() }
     admTimeline=[ordered]@{ status='NOT_EXECUTED'; transactionLogCount=0; timelineSegmentCount=0 }
     recovery=[ordered]@{ status='NOT_EXECUTED'; pending=$null; quarantined=$null; terminalLoss=$null; alertState=$null }
     security=[ordered]@{ status='NOT_EXECUTED'; rawSecretLeakCount=0; fatalRuntimeMarkerCount=0 }
@@ -395,7 +412,7 @@ try {
     $dbResponse=$null; $obs=$null; $timeline=$null; $recovery=$null
     do {
         Start-Sleep -Milliseconds 750
-        try { $dbResponse=Invoke-CpfJsonGet "$BaseUrl/adm/api/logs?transactionId=$transactionId&traceId=$traceId&limit=50" (New-AdmAuthHeaders 'admLogFindLogs') } catch { $dbResponse=$null }
+        try { $dbResponse=Invoke-CpfJsonGet "$BaseUrl/adm/api/logs?transactionId=$transactionId&traceId=$traceId&size=50" (New-AdmAuthHeaders 'admLogFindLogs') } catch { $dbResponse=$null }
         try { $obs=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/transactions/${transactionId}?limit=50" (New-AdmAuthHeaders 'traceAdmByTransactionId') } catch { $obs=$null }
         try { $timeline=Invoke-CpfJsonGet "$BaseUrl/adm/api/transaction-groups/$transactionId/timeline" (New-AdmAuthHeaders 'admTransactionGroupFindTimeline') } catch { $timeline=$null }
         try { $recovery=Invoke-CpfJsonGet "$BaseUrl/adm/api/observability/file-log-recovery" (New-AdmAuthHeaders 'getAdmFileLogRecoveryStatus') } catch { $recovery=$null }
@@ -416,12 +433,23 @@ try {
 
     $dbItems=@(Get-SafeProperty $dbResponse 'items' @())
     $result.dbLog.itemCount=$dbItems.Count
-    $dbCorrelated=@($dbItems | Where-Object {
-        ([string](Get-SafeProperty $_ 'transactionId' (Get-SafeProperty $_ 'TRANSACTION_ID' ''))) -eq $transactionId -and
-        ([string](Get-SafeProperty $_ 'traceId' (Get-SafeProperty $_ 'TRACE_ID' ''))) -eq $traceId
-    })
-    $result.dbLog.correlatedCount=$dbCorrelated.Count
-    $result.dbLog.status=if($dbCorrelated.Count -gt 0){'PASS'}else{'FAIL'}
+    $dbCorrelatedItems=New-Object Collections.Generic.List[object]
+    $dbCandidates=New-Object Collections.Generic.List[object]
+    foreach ($dbItem in $dbItems) {
+        # JDBC Map/JSON DTO 모두에서 동일하게 canonical snake/camel/upper aliases를 읽는다.
+        # 후보 값을 보존해 실제 DB row가 있는데 verifier만 불일치로 판정하는 경우를 즉시 진단한다.
+        $candidateTransactionId=Resolve-CpfCorrelationValue $dbItem @('transactionId','TRANSACTION_ID','transaction_id')
+        $candidateTraceId=Resolve-CpfCorrelationValue $dbItem @('traceId','TRACE_ID','trace_id')
+        $matched=($candidateTransactionId -eq $transactionId -and $candidateTraceId -eq $traceId)
+        [void]$dbCandidates.Add([ordered]@{
+            transactionId=$candidateTransactionId; traceId=$candidateTraceId; matched=$matched
+            propertyNames=@($dbItem.PSObject.Properties.Name)
+        })
+        if ($matched) { [void]$dbCorrelatedItems.Add($dbItem) }
+    }
+    $result.dbLog.candidates=$dbCandidates.ToArray()
+    $result.dbLog.correlatedCount=$dbCorrelatedItems.Count
+    $result.dbLog.status=if($dbCorrelatedItems.Count -gt 0){'PASS'}else{'FAIL'}
     $result.fileLogDbCorrelation.fileLogMatches=$result.fileLog.matchCount
     $result.fileLogDbCorrelation.dbLogMatches=$result.dbLog.correlatedCount
     $result.fileLogDbCorrelation.status=if($result.fileLog.status -eq 'PASS' -and $result.dbLog.status -eq 'PASS'){'PASS'}else{'FAIL'}
@@ -433,7 +461,9 @@ try {
     $result.admTimeline.traceLinked=($obsText.Contains($traceId) -or $timelineText.Contains($traceId))
     $result.admTimeline.status=if($result.admTimeline.transactionLogCount -gt 0 -and $result.admTimeline.traceLinked){'PASS'}else{'FAIL'}
 
-    $result.evidenceFiles+=,(Write-SafeJsonEvidence 'db-log-transaction.json' ([ordered]@{transactionId=$transactionId;traceId=$traceId;items=$dbCorrelated}) @($admPassword,$accessToken))
+    $result.evidenceFiles+=,(Write-SafeJsonEvidence 'db-log-transaction.json' ([ordered]@{
+        transactionId=$transactionId;traceId=$traceId;items=$dbItems;correlatedItems=$dbCorrelatedItems.ToArray();candidates=$dbCandidates.ToArray()
+    }) @($admPassword,$accessToken))
     $result.evidenceFiles+=,(Write-SafeJsonEvidence 'adm-observability-transaction.json' $obs @($admPassword,$accessToken))
     $result.evidenceFiles+=,(Write-SafeJsonEvidence 'adm-timeline-transaction.json' $timeline @($admPassword,$accessToken))
 

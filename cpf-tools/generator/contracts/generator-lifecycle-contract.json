@@ -27,7 +27,9 @@
     "stateFile": "generation-state.json",
     "verificationFile": "verify-result.json",
     "db3Directory": "db3/<vendor>",
-    "customerProjectMetadata": "NONE"
+    "customerProjectMetadata": "NONE",
+    "templateEquivalentStateReconciliation": "CURRENT_TEMPLATE_CANONICAL_LF_TEXT_IDENTICAL_ONLY; otherwise USER_MODIFICATION_FAIL_CLOSED",
+    "generatedTextHashNormalization": "CRLF_TO_LF"
   },
   "forbiddenPermanentProjectEntries": [
     ".cpf",

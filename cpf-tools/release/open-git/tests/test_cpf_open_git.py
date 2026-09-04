@@ -42,15 +42,41 @@ def _materialize_public_distribution(staging: Path) -> None:
     pom = artifact_dir / "cpf-core-1.0.0.pom"
     jar.write_bytes(b"jar")
     pom.write_text("<project/>", encoding="utf-8")
+    # ADM 은 Source 를 공개하지 않고 Binary 로만 배포되는 Runtime 이다. 공개 Consumer 가 ADM 을
+    # 기동할 수 있어야 Release 이므로, fixture 도 실제 배포와 같이 실행물을 공급한다.
+    # bootstrap 은 Platform BOM 좌표로 Binary Repository 를 확인한다. 실제 배포와 같이 싣는다.
+    bom_dir = repository / "com/cpf/cpf-platform-bom/1.0.0"
+    bom_dir.mkdir(parents=True, exist_ok=True)
+    bom_pom = bom_dir / "cpf-platform-bom-1.0.0.pom"
+    bom_pom.write_text("<project/>", encoding="utf-8")
+    admin_dir = repository / "com/cpf/runtime/cpf-admin/1.0.0"
+    admin_dir.mkdir(parents=True, exist_ok=True)
+    admin_jar = admin_dir / "cpf-admin-1.0.0.jar"
+    admin_jar.write_bytes(b"jar")
+    # 공개 checkout 은 cpf-tools/ 를 포함하지 않으므로 Runtime Target Catalog 는 config/ 로 투영된다.
+    # 공개 workspace 기본 버전은 Release 가 실제 발행 버전으로 맞춘다. fixture 도 같은 경로를 쓴다.
+    MODULE.currentize_public_workspace_version(staging, "1.0.0")
+    published_catalog = staging / "config/cpf-runtime-target-catalog.json"
+    published_catalog.parent.mkdir(parents=True, exist_ok=True)
+    published_catalog.write_text(
+        (ROOT / "cpf-tools/runtime/cpf-runtime-target-catalog.json").read_text(encoding="utf-8"),
+        encoding="utf-8")
     artifacts = []
-    for path in (jar, pom):
+    for path in (jar, pom, admin_jar, bom_pom):
+        if path is admin_jar:
+            group, artifact_id = "com.cpf.runtime", "cpf-admin"
+        elif path is bom_pom:
+            group, artifact_id = "com.cpf", "cpf-platform-bom"
+        else:
+            group, artifact_id = "com.cpf.core", "cpf-core"
         artifacts.append({
-            "group": "com.cpf.core", "artifactId": "cpf-core", "module": "cpf-core",
+            "group": group, "artifactId": artifact_id, "module": artifact_id,
             "version": "1.0.0", "classifier": None, "type": path.suffix.lstrip("."),
             "relativePath": path.relative_to(repository).as_posix(),
             "fileSize": path.stat().st_size,
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "publicationType": "PUBLIC_COMPILE_TIME_JAVA", "classification": "PUBLIC",
+            "publicationType": "PUBLIC_RUNTIME" if path is admin_jar else "PUBLIC_COMPILE_TIME_JAVA",
+            "classification": "PUBLIC",
             "sourceIdentitySha256": "0" * 64,
         })
     manifest = {
@@ -66,14 +92,23 @@ def _materialize_public_distribution(staging: Path) -> None:
     guide.mkdir(parents=True, exist_ok=True)
     guide_name = "02_developer_guide.pdf"
     (guide / guide_name).write_bytes(b"pdf")
-    readme_lines = ["# CPF Open Git", "", "`cpf-docs/guides/" + guide_name + "`", ""]
-    (staging / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
+    # README 는 stub 을 쓰지 않는다. 실제 배포 README 계약(Consumer 실행 안내 포함)을 그대로
+    # 검증해야 "Runtime 은 실렸는데 실행 방법이 없는" 상태를 잡을 수 있다.
+    template = (ROOT / "cpf-tools/release/open-git/templates/README.md").read_text(encoding="utf-8")
+    guide_reference = "\n`cpf-docs/guides/" + guide_name + "`\n"
+    (staging / "README.md").write_text(template + guide_reference, encoding="utf-8")
 
     bin_dir = staging / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
+    # launcher 도 stub 을 쓰지 않는다. 파일 존재가 아니라 실제 배포 launcher 계약
+    # (-Target 수용 -> --target 전달)을 검증해야 문서대로 동작하지 않는 배포를 잡는다.
+    launcher_templates = ROOT / "cpf-tools/release/open-git/templates/bin"
     for name in ("start", "stop", "status", "restart", "health", "log", "help"):
-        (bin_dir / ("cpf-" + name + ".ps1")).write_text("", encoding="utf-8")
-        (bin_dir / ("cpf-" + name + ".sh")).write_text("", encoding="utf-8")
+        for suffix in (".ps1", ".sh"):
+            source = launcher_templates / ("cpf-" + name + suffix)
+            (bin_dir / ("cpf-" + name + suffix)).write_text(
+                source.read_text(encoding="utf-8") if source.is_file() else "",
+                encoding="utf-8")
 
 
 def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Path):
@@ -85,6 +120,9 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
         "--staging", str(staging),
         "--policy", str(ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"),
         "--source-identity", "TEST-IDENTITY",
+        # 공개 배포본은 ADM 과 함께 MBW/Backoffice Web 도 기동 가능해야 하므로 Release 는 항상
+        # backoffice 를 포함한다. Leakage 검사도 그 구성 그대로 수행해야 의미가 있다.
+        "--include-backoffice",
     ]
     cp = subprocess.run(command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True)
     assert cp.returncode == 0, cp.stdout + cp.stderr
@@ -101,9 +139,10 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
         "tools/verify-open-git-workspace.ps1",
     ):
         assert (staging / required).exists(), required
-    # Backoffice is optional; absence is a normal NOT_SELECTED state unless explicitly included.
-    assert not (staging / "cpf-backoffice").exists()
-    assert not (staging / "cpf-backoffice-web").exists()
+    # Backoffice(MBW Domain)와 Backoffice Web(그 Channel Front)은 공개 Consumer 실행 표면이다.
+    # 공개 배포본은 ADM 뿐 아니라 이 둘도 실제로 기동할 수 있어야 한다.
+    assert (staging / "cpf-backoffice").is_dir()
+    assert (staging / "cpf-backoffice-web").is_dir()
     for legacy in ("cpf-bootstrap", "cpf-domain-new", "cpf-domain-sync", "cpf-build", "cpf-test", "cpf-stop", "cpf-reset"):
         assert not (staging / legacy).exists(), legacy
 
@@ -152,7 +191,7 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
 
 
 
-def test_open_git_backoffice_is_optional_and_explicit(tmp_path: Path):
+def test_open_git_backoffice_is_part_of_the_public_consumer_runtime_surface(tmp_path: Path):
     staging = tmp_path / "staging"
     command = [
         sys.executable,
@@ -164,9 +203,105 @@ def test_open_git_backoffice_is_optional_and_explicit(tmp_path: Path):
     cp = subprocess.run(command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True)
     assert cp.returncode == 0, cp.stdout + cp.stderr
     assert (staging / "cpf-backoffice/gradle.properties").is_file()
+    # Public Workspace cpfTestAll은 포함 Build의 루트 :test를 호출한다. Backoffice는
+    # multi-project Domain이므로 root test aggregate를 투영하지 않으면 Fresh Consumer
+    # bootstrap이 ':cpf-backoffice:test' 경로 해석에서 실패한다.
+    backoffice_build = (staging / "cpf-backoffice/build.gradle").read_text(encoding="utf-8")
+    assert "tasks.register('test')" in backoffice_build
+    assert 'dependsOn subprojects.collect { "${it.path}:test" }' in backoffice_build
     assert (staging / "cpf-backoffice-web").is_dir()
     _materialize_public_distribution(staging)
     assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
+
+def _public_consumer_staging(tmp_path: Path) -> Path:
+    staging = tmp_path / "staging"
+    command = [
+        sys.executable,
+        str(ROOT / "cpf-tools/release/public/prepare-cpf-public-workspace.py"),
+        "--root", str(ROOT), "--staging", str(staging),
+        "--policy", str(ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"),
+        "--source-identity", "TEST-IDENTITY", "--include-backoffice",
+    ]
+    cp = subprocess.run(command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True)
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    _materialize_public_distribution(staging)
+    return staging
+
+
+def test_public_consumer_runtime_surface_fails_without_published_catalog(tmp_path: Path):
+    """공개 checkout 에 Runtime Target Catalog 가 없으면 사용자는 어떤 Target 도 기동할 수 없다."""
+    staging = _public_consumer_staging(tmp_path)
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
+    (staging / "config/cpf-runtime-target-catalog.json").unlink()
+    with pytest.raises(MODULE.OpenGitReleaseError) as failure:
+        MODULE.verify_open_git_tree(ROOT, staging, "binary")
+    assert "Runtime Target Catalog" in str(failure.value)
+
+
+def test_public_consumer_runtime_surface_fails_without_adm_runnable(tmp_path: Path):
+    """ADM 은 Binary 로만 배포된다. 실행물이 없으면 콘솔을 띄울 수 없으므로 Release 가 아니다."""
+    staging = _public_consumer_staging(tmp_path)
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
+    admin_jar = staging / "binary-repository/com/cpf/runtime/cpf-admin/1.0.0/cpf-admin-1.0.0.jar"
+    admin_jar.unlink()
+    with pytest.raises(MODULE.OpenGitReleaseError) as failure:
+        MODULE.verify_open_git_tree(ROOT, staging, "binary")
+    assert "cpf-admin" in str(failure.value) or "package manifest" in str(failure.value)
+
+
+def test_public_consumer_runtime_surface_fails_without_backoffice_source(tmp_path: Path):
+    """Backoffice Web 은 ADM 이 아니라 MBW Channel Front 이므로 MBW 와 함께 기동 가능해야 한다."""
+    staging = _public_consumer_staging(tmp_path)
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
+    shutil.rmtree(staging / "cpf-backoffice-web")
+    with pytest.raises(MODULE.OpenGitReleaseError) as failure:
+        MODULE.verify_open_git_tree(ROOT, staging, "binary")
+    assert "backoffice-web" in str(failure.value)
+
+
+def test_binary_provisioned_runtime_must_not_be_buildable_in_public_tree(tmp_path: Path):
+    """ADM/Gateway 는 공개 배포본에서 기동만 되어야 하고 빌드 Task 가 나가면 안 된다."""
+    staging = _public_consumer_staging(tmp_path)
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
+    # Binary Runtime 의 Source Root 가 공개 트리에 들어오면 그 순간 빌드 대상이 된다.
+    (staging / "cpf-admin").mkdir(parents=True, exist_ok=True)
+    (staging / "cpf-admin/build.gradle").write_text("plugins { id 'java' }", encoding="utf-8")
+    with pytest.raises(MODULE.OpenGitReleaseError) as failure:
+        MODULE.verify_open_git_tree(ROOT, staging, "binary")
+    message = str(failure.value)
+    # 정본 경계 검사가 먼저 잡는다. 파일 경로뿐 아니라 project/task graph 까지 대상이다.
+    assert "public distribution boundary violated" in message and "cpf-admin" in message
+
+
+def test_publisher_task_graph_must_not_reach_the_public_consumer(tmp_path: Path):
+    """Open Git Release Task 는 Development Master 전용이다.
+
+    공개 Consumer 가 또 다른 공개 Release 를 만들거나 공식 Repository 에 publish 하는 구조를
+    만들지 않는다. private source 가 없어도 task graph 가 공개되면 Architecture Leakage 다.
+    """
+    staging = _public_consumer_staging(tmp_path)
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
+    build_file = staging / "build.gradle"
+    build_file.write_text(
+        build_file.read_text(encoding="utf-8")
+        + "\ntasks.register('cpfOpenGitBuild') { group = '60. CPF 배포' }\n",
+        encoding="utf-8")
+    with pytest.raises(MODULE.OpenGitReleaseError) as failure:
+        MODULE.verify_open_git_tree(ROOT, staging, "binary")
+    assert "publisher task graph leaked" in str(failure.value)
+
+
+def test_private_component_project_graph_must_not_reach_the_public_consumer(tmp_path: Path):
+    """private source 가 없어도 Gradle project/included build 항목이 있으면 FAIL 이다."""
+    staging = _public_consumer_staging(tmp_path)
+    assert MODULE.verify_open_git_tree(ROOT, staging, "binary")["status"] == "PASS"
+    settings = staging / "settings.gradle"
+    settings.write_text(
+        settings.read_text(encoding="utf-8") + "\nincludeBuild('cpf-gateway')\n", encoding="utf-8")
+    with pytest.raises(MODULE.OpenGitReleaseError) as failure:
+        MODULE.verify_open_git_tree(ROOT, staging, "binary")
+    assert "gradle graph entry present" in str(failure.value) and "cpf-gateway" in str(failure.value)
+
 
 def test_binary_source_and_javadoc_policy_is_default_deny(tmp_path: Path):
     raw = tmp_path / "raw"
@@ -571,6 +706,60 @@ def test_open_git_rebuild_cleans_previous_release_before_contract_validation(tmp
         assert "contract test failure" in str(exc)
     assert not stale.exists(), "previous release must be removed before the new build proceeds"
     assert (root / "cpf-release/logs/open-git-release.log").is_file()
+
+
+def test_windows_open_git_stage6_builds_missing_linux_generator_in_docker(tmp_path: Path, monkeypatch):
+    """A Windows release must create a real Linux binary, never relabel Windows."""
+    calls = []
+
+    class Backend:
+        class PublishError(RuntimeError):
+            pass
+
+        @staticmethod
+        def _verify_generator_distribution(directory, version, classifier):
+            if directory.name == "generator-linux-matrix" and version == "9.9.9" and classifier == "linux-x64":
+                return directory / "archive.zip", directory / "archive.zip.sha256", directory / "archive.json"
+            raise Backend.PublishError("missing")
+
+    def fake_run(command, cwd, *, capture=False, env=None):
+        calls.append([str(value) for value in command])
+        if command[1:2] == ["version"]:
+            return "linux/amd64"
+        return ""
+
+    monkeypatch.setattr(MODULE, "_is_windows_host", lambda: True)
+    monkeypatch.setattr(MODULE.shutil, "which", lambda name: "docker.exe" if name == "docker" else None)
+    monkeypatch.setattr(MODULE, "run", fake_run)
+
+    matrix = MODULE.prepare_generator_matrix(tmp_path, tmp_path / "work", "9.9.9", Backend, None)
+
+    assert matrix == tmp_path / "work/generator-linux-matrix"
+    assert calls[0] == ["docker.exe", "version", "--format", "{{.Server.Os}}/{{.Server.Arch}}"]
+    docker_run = calls[1]
+    assert docker_run[:5] == ["docker.exe", "run", "--rm", "--workdir", "/src"]
+    assert "type=bind,src=" + str(tmp_path) + ",dst=/src,readonly" in docker_run
+    assert "type=bind,src=" + str(matrix) + ",dst=/out" in docker_run
+    assert MODULE.GENERATOR_LINUX_BUILD_IMAGE in docker_run
+    assert "build-cpf-generator-binary.py" in docker_run[-1]
+    assert "--version 9.9.9" in docker_run[-1]
+    assert "apt-get install --yes --no-install-recommends binutils" in docker_run[-1]
+
+
+def test_windows_open_git_stage6_fails_closed_without_docker_or_valid_linux_matrix(tmp_path: Path, monkeypatch):
+    class Backend:
+        class PublishError(RuntimeError):
+            pass
+
+        @staticmethod
+        def _verify_generator_distribution(_directory, _version, _classifier):
+            raise Backend.PublishError("missing")
+
+    monkeypatch.setattr(MODULE, "_is_windows_host", lambda: True)
+    monkeypatch.setattr(MODULE.shutil, "which", lambda _name: None)
+
+    with pytest.raises(MODULE.OpenGitReleaseError, match="Docker Desktop Linux/amd64"):
+        MODULE.prepare_generator_matrix(tmp_path, tmp_path / "work", "9.9.9", Backend, None)
 
 
 def test_setup_currentizes_only_owned_canonical_section(tmp_path: Path):

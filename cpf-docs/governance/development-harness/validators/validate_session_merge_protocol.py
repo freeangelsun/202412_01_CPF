@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 from pathlib import Path
-import csv, hashlib, json, os, re
+import csv, hashlib, json, os, re, subprocess
 
 DEFAULT_H = Path(__file__).resolve().parents[1]
 H = Path(os.environ.get("CPF_HARNESS_ROOT", str(DEFAULT_H))).resolve()
@@ -30,6 +30,20 @@ def load_registry_ids() -> set[str]:
     with REGISTRY.open(encoding="utf-8-sig", newline="") as f:
         return {r["work_item_id"].strip() for r in csv.DictReader(f)}
 
+
+def is_repository_excluded(path: Path) -> bool:
+    """저장소가 그 경로를 실을 수 없는지 git 에 직접 묻는다.
+
+    제외 규칙 목록을 이 파일에 복제하면 .gitignore 가 바뀌어도 게이트가 조용히 통과한다.
+    git 을 쓸 수 없는 환경에서는 판정하지 않는다(다른 검사로 fail-closed 된다).
+    """
+    try:
+        done = subprocess.run(
+            ["git", "check-ignore", "-q", str(path)],
+            cwd=str(ROOT), capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return done.returncode == 0
 
 def rel_path(value: str) -> Path:
     p = (ROOT / value).resolve()
@@ -118,8 +132,29 @@ def main() -> int:
             except Exception as e:
                 failures.append(f"MANIFEST_EVIDENCE_PATH_INVALID:{key}:{e}")
                 continue
+            declared_status = str(ev.get("evidence_status", "")).strip().upper()
+            # Manifest 가 참조하는 Mandatory Evidence 는 저장이 차단되는 경로에 두지 않는다.
+            # 저장소가 실을 수 없는 경로를 쓰면 fresh clone 에서 증적이 항상 사라진다.
+            # 이미 NOT_AVAILABLE 로 선언된 과거 기록은 그 경로가 곧 소실 원인이며 reason 에
+            # 기록돼 있다. 그 사실을 다시 위반으로 세지 않는다(현재/미래 증적에는 그대로 적용).
+            if declared_status != "NOT_AVAILABLE" and is_repository_excluded(ep):
+                failures.append(f"MANIFEST_EVIDENCE_PATH_NOT_PERSISTABLE:{key}:{ev_path}")
             if not ep.is_file():
-                failures.append(f"MANIFEST_EVIDENCE_MISSING:{key}:{ev_path}")
+                # 부재는 기본적으로 fail-closed 다. 명시적으로 선언된 NOT_AVAILABLE 만 허용하며,
+                # 이는 PASS 가 아니라 "증적 없음"을 정확히 기록한 상태다.
+                if declared_status != "NOT_AVAILABLE":
+                    failures.append(f"MANIFEST_EVIDENCE_MISSING:{key}:{ev_path}")
+                    continue
+                for field, allowed in (
+                    ("reproducibility", {"UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY", "REPRODUCIBLE"}),
+                    ("acceptanceInheritance", {"NOT_INHERITED"}),
+                ):
+                    if str(ev.get(field, "")).strip() not in allowed:
+                        failures.append(
+                            f"MANIFEST_EVIDENCE_NOT_AVAILABLE_DECLARATION_INVALID:{key}:{ev_path}:{field}")
+                if not str(ev.get("reason", "")).strip():
+                    failures.append(
+                        f"MANIFEST_EVIDENCE_NOT_AVAILABLE_DECLARATION_INVALID:{key}:{ev_path}:reason")
             elif sha(ep) != str(ev["sha256"]):
                 failures.append(f"MANIFEST_EVIDENCE_SHA_MISMATCH:{key}:{ev_path}")
 

@@ -12,7 +12,10 @@ services:
       timeout: 5s
       retries: 40
     volumes:
-      - cpf_public_postgresql:/var/lib/postgresql/data
+      # postgres 18+ 공식 이미지는 단일 mount 를 /var/lib/postgresql 에 두고 데이터는 그 하위
+      # 디렉터리에 만든다. /var/lib/postgresql/data 로 마운트하면 컨테이너가 초기화를 거부하고
+      # 영원히 unhealthy 로 남아 bootstrap 이 timeout 된다.
+      - cpf_public_postgresql:/var/lib/postgresql
 
   cpf-mariadb:
     image: ${CPF_MARIADB_IMAGE:-mariadb:12.3.2}

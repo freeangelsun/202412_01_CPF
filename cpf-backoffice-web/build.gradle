@@ -23,6 +23,81 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // spring-boot-starter-test 의 전이 의존에 기대지 않는다. launcher 가 전이에서 빠지는 순간
+    // Test Executor 가 'Failed to load JUnit Platform' 으로 기동하지 못한다.
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') { useJUnitPlatform() }
+
+// Backoffice Web 은 MBW Channel Front 다. 공개 Consumer 는 이 Runtime 하나만 기동해서 화면을
+// 열 수 있어야 하므로, production frontend bundle 을 Spring Boot 정적 리소스로 jar 에 싣는다.
+// 번들이 없으면 Runtime 은 뜨는데 화면이 없어 "실행 가능"이 아니다(ADM 과 같은 계약).
+def frontendDir = layout.projectDirectory.dir('frontend')
+def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
+def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
+def frontendNpmCache = layout.buildDirectory.dir('npm-cache')
+def windowsHost = System.getProperty('os.name').toLowerCase().contains('windows')
+def npmExecutable = windowsHost ? 'npm.cmd' : 'npm'
+def nodeExecutable = windowsHost ? 'node.exe' : 'node'
+def nodeVersionProvider = providers.exec { commandLine nodeExecutable, '--version' }.standardOutput.asText.map { it.trim() }
+def npmVersionProvider = providers.exec { commandLine npmExecutable, '--version' }.standardOutput.asText.map { it.trim() }
+
+sourceSets.main.resources.srcDir(frontendOutputDir)
+
+tasks.register('frontendInstall', Exec) {
+    description = 'Backoffice Web frontend의 package-lock 기준 의존성을 설치합니다.'
+    workingDir frontendDir
+    commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
+    environment 'npm_config_cache', frontendNpmCache.get().asFile.absolutePath
+    inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'))
+    inputs.property('nodeVersion', nodeVersionProvider)
+    inputs.property('npmVersion', npmVersionProvider)
+    outputs.file(frontendInstallMarker)
+    doLast {
+        frontendInstallMarker.asFile.setText("node=${nodeVersionProvider.get()}\nnpm=${npmVersionProvider.get()}\n", 'UTF-8')
+    }
+}
+
+['Typecheck': 'typecheck', 'Test': 'test'].each { taskSuffix, npmScript ->
+    tasks.register("frontend${taskSuffix}", Exec) {
+        dependsOn 'frontendInstall'
+        workingDir frontendDir
+        commandLine npmExecutable, 'run', npmScript
+        inputs.dir(frontendDir.dir('src'))
+        inputs.dir(frontendDir.dir('scripts'))
+        inputs.dir(frontendDir.dir('openapi'))
+        inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'),
+                frontendDir.file('tsconfig.json'), frontendDir.file('vite.config.ts'))
+        inputs.property('nodeVersion', nodeVersionProvider)
+        inputs.property('npmVersion', npmVersionProvider)
+    }
+}
+
+tasks.register('frontendBuild', Exec) {
+    group = 'build'
+    description = 'Backoffice Web frontend를 Spring Boot 정적 리소스로 빌드합니다.'
+    dependsOn 'frontendInstall'
+    workingDir frontendDir
+    commandLine npmExecutable, 'run', 'build'
+    inputs.dir(frontendDir.dir('src'))
+    inputs.dir(frontendDir.dir('scripts'))
+    inputs.dir(frontendDir.dir('openapi'))
+    inputs.files(frontendDir.file('index.html'), frontendDir.file('package.json'),
+            frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'),
+            frontendDir.file('tsconfig.json'))
+    inputs.property('nodeVersion', nodeVersionProvider)
+    inputs.property('npmVersion', npmVersionProvider)
+    outputs.dir(frontendOutputDir.map { it.dir('static/mbw') })
+}
+
+tasks.register('frontendVerify') {
+    description = 'Backoffice Web frontend typecheck, test와 production build를 검증합니다.'
+    dependsOn 'frontendTypecheck', 'frontendTest', 'frontendBuild'
+}
+
+def cpfSkipFrontendBuild = providers.gradleProperty('cpfSkipFrontendBuild').map { it.toBoolean() }.orElse(false)
+
+tasks.named('processResources') {
+    if (!cpfSkipFrontendBuild.get()) dependsOn 'frontendBuild'
+}

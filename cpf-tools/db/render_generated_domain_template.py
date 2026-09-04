@@ -261,7 +261,9 @@ BEGIN
       JOIN pg_class t ON t.oid = c.conrelid
       JOIN pg_namespace n ON n.oid = t.relnamespace
      WHERE n.nspname = current_schema()
-       AND LOWER(t.relname || '.' || c.conname || '.' || c.contype) IN ({constraint_literals});
+       -- pg_constraint.contype 은 "char" 타입이라 text 와의 || 연산자가 모호하다
+       -- (operator is not unique: text || "char"). 명시적으로 text 로 캐스팅한다.
+       AND LOWER(t.relname || '.' || c.conname || '.' || c.contype::text) IN ({constraint_literals});
     IF v_actual <> 8 OR v_matched <> 8 THEN
         RAISE EXCEPTION 'CPF generated domain constraint contract mismatch';
     END IF;

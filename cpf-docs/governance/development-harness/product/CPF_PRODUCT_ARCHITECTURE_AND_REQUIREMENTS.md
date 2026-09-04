@@ -441,6 +441,8 @@ Fresh Scratch Acceptance는 최소 다음을 포함한다.
 
 `create -> setup -> sync -> diff -> regenerate -> diff -> regenerate -> diff` 결과는 idempotent해야 하며 최종 `missing=[]`, `changed=[]`, `staleGeneratedFiles=[]`, `extraUserFiles=[]`, `clean=true`여야 한다. Existing `cpf-member`와 `cpf-external`도 같은 Generator 규칙으로 clean regenerate하고 Fresh Scratch와 동일한 IA rule을 따라야 한다.
 
+Template이 currentize됐는데 과거 transient `generation-state.json`이 없으면 `sync`는 자동 overwrite하지 않고 `VERIFICATION_PENDING_TEMPLATE_ADOPTION`으로 중단한다. Private Source의 명시적 `cpf domain-sync --approve-template-adoption`만 Git `HEAD`와 byte-identical인 tracked Generated output의 template content를 currentize할 수 있다. missing/stale/unmanaged/user-modified file, `gradle.properties`, 삭제는 이 경로에서 거부하며 mutation 뒤 즉시 transient ownership state를 재구축한다.
+
 Generated 파일 삭제는 ownership을 `GENERATED_OWNED / USER_OWNED / UNKNOWN`으로 분리하며 `USER_OWNED`와 `UNKNOWN`은 자동 삭제하지 않는다. Legacy generated path는 새 구조 compile/runtime, reference 0, replacement 확인 후 Exact Delete Manifest로만 관리한다.
 
 기본 생성 금지:
@@ -687,6 +689,31 @@ Backoffice가 제공할 수 있는 대표 업무관리 기능:
 - 선택형 업무 Sequence customization sample
 
 위험 조치는 permission, 사유, 필요 시 approval/SoD, immutable audit, 결과 추적을 제공한다.
+
+### 12.1 Initial Operator Bootstrap
+
+Fresh MBW와 ADM의 최초 운영자는 일반 운영자 관리 API나 profile별 편의 기능이 아니다. 모든
+`local/dev/stg/test/prod` Runtime은 다음 **동일한** Initial Operator Bootstrap 계약을 사용한다.
+
+`official cpf bootstrap → DB/Schema 준비 → Initial Operator Bootstrap → credential 활성화 → immutable audit → 정상 Runtime login`
+
+- 최초 운영자가 없을 때에만 canonical secret ENV를 읽어 강한 password policy를 통과한 계정을 만든다.
+  MBW secret은 `CPF_MBW_BOOTSTRAP_PASSWORD`, ADM secret은 `CPF_ADM_BOOTSTRAP_PASSWORD`다. secret 값은
+  source, YAML, command line, log, audit, evidence, manifest에 기록하지 않는다.
+- operator id/name/role과 password expiry는 canonical runtime configuration에서 읽으며 Source의 local
+  default 값으로 만들지 않는다. password 자체는 ENV/Secret Provider에서만 전달한다.
+- 최초 성공은 `INITIAL_OPERATOR_BOOTSTRAP` action, actor/source `CPF_BOOTSTRAP`, target, result,
+  environment/profile, instanceId와 transaction/correlation context가 존재하면 그 값을 durable audit에 남긴다.
+  audit payload에는 `bootstrapSecretProvided=true`만 남기고 secret·hash·token을 남기지 않는다.
+- 재실행은 기존 credential을 변경·재생성하지 않는다. 기존 operation 또는 운영자 존재를 DB 기준으로
+  확인해 `ALREADY_BOOTSTRAPPED`/`EXISTING_OPERATOR`만 반환한다. initial capability는 normal runtime API로
+  다시 호출할 수 없다.
+- Initial Bootstrap 완료 뒤의 일반 운영자 생성/변경은 모든 환경에서 기존 maker → checker approval →
+  approval token → operation → audit 계약을 사용한다. Initial Bootstrap과 normal approval token을 같은
+  기동에 섞거나, Initial Bootstrap 전 normal approval runner가 계정을 만드는 것은 fail-closed다.
+- Profile은 DB host/vendor/account, endpoint, port, resource sizing, secret **값**만 달리할 수 있다.
+  `local` 자동 생성, `dev` 승인 생략, `prod` 전용 추가 승인, `test` 인증/CSRF 제거처럼 security 의미를
+  바꾸는 분기는 Product Contract 위반이다.
 
 ## 13. Backoffice Web — Channel/BFF Reference
 
@@ -980,6 +1007,8 @@ repository URL/version은 중앙 설정으로 관리한다.
 
 CPF Open Git은 **Open Source Repository가 아니라 고객 개발·실행용 Current Release Distribution Repository**다. Private CPF Repository가 유일한 Framework 개발 정본이며 Open Git은 동일 Current Source Identity에서 매 Release Fresh 생성한 검증 Projection이다.
 
+Internal Release의 Fresh Consumer 실제 실행 acceptance는 `cpf release open-git consumer-runtime` 단일 진입점이 소유한다. 이 명령은 Fresh checkout의 공식 `bin/cpf bootstrap`부터 ADM Initial Operator 실제 로그인·인증된 운영 동작, MBW Initial Operator·Backoffice Web session/CSRF 실제 로그인·인증된 업무 거래, status/stop/cleanup까지 실행하며, Binary/Generator/정적 projection만으로 PASS를 대체하지 않는다. `cpf release open-git help`는 이 내부 Release action을 조회만 한다. 두 action 모두 Private/Open Git의 `git add`/commit/push를 수행하지 않는다.
+
 #### Release Profile과 공개 경계
 
 - 기본 Profile은 **`binary`**다. 별도 옵션이 없으면 반드시 Binary Distribution을 생성한다.
@@ -1004,6 +1033,7 @@ CPF Open Git은 **Open Source Repository가 아니라 고객 개발·실행용 C
 - `cpf-core`, `cpf-common`, `cpf-admin`, `cpf-batch` 핵심, Public Starter Runtime, Security/Logging/Audit/Transaction/Context/Gateway/DB Platform Runtime 등 CPF 제품 구현은 기본 Binary 제공 영역이다. 고객에게는 Public Contract와 Binary Artifact를 제공한다.
 - ADM은 CPF Platform 운영 제품으로 기본 Binary Profile에서 구현 Java Source를 공개하지 않고 필요한 Runtime Binary, Public/OpenAPI Contract, 운영 문서, 고객 Config만 제공한다. Source 제공 계약이 있으면 Source Profile allowlist에서 별도 승인한다.
 - Generator는 고객이 사용할 수 있는 `cpf domain-new`/`cpf domain-sync` 기능과 실행 Binary/계약/문서를 제공하되 Generator Engine/Template Compiler/내부 검증·Release Source는 공개하지 않는다.
+- Public `cpf-generator-cli`는 `windows-x64`와 `linux-x64` native executable을 각 OS에서 실제 생성한 checksum/manifest 검증 artifact로 함께 제공한다. Windows의 기본 `cpf release open-git`은 host-native `windows-x64`와 Docker Linux/amd64 native `linux-x64`를 fresh build해 matrix를 완성한다. 검증된 CI matrix는 `--generator-artifacts`로 주입할 수 있으나, archive 이름 변경·classifier 대체·mock은 허용하지 않는다. Linux host는 반대 OS `windows-x64` artifact를 검증된 CI matrix로 제공받지 못하면 fail-closed한다.
 - Platform DB의 canonical Physical Runtime DB는 `cpfDB`, 고객 업무 DB는 `mbwDB/mbrDB/exsDB`다. Platform Initializer/Migration은 Binary Resource 또는 공식 Bootstrap 경로로 제공할 수 있고 고객 업무 DB SQL/Migration은 해당 Source Tree에 포함한다.
 - `cmnDB/admDB/batDB/refDB/bzaDB`는 Open Git Current Runtime의 active DB/Schema/DataSource/Migration/Seed/Upgrade/Rollback/Query Target으로 **0건**이어야 한다. Released immutable provenance가 Private Repository 내부에 존재해도 Open Git Current Runtime으로 Projection하지 않는다.
 

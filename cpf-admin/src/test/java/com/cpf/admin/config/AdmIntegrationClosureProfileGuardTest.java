@@ -9,29 +9,36 @@ class AdmIntegrationClosureProfileGuardTest {
     private static void run(MockEnvironment environment) throws Exception {
         new AdmIntegrationClosureProfileGuard(environment).run(new DefaultApplicationArguments(new String[0]));
     }
-    @Test void enabledFeatureRequiresExplicitProfile() {
-        MockEnvironment environment=new MockEnvironment().withProperty("cpf.adm.integration-closure.enabled","true");
+    @Test void mandatoryFeatureRequiresExplicitProfile() {
+        MockEnvironment environment=new MockEnvironment();
         assertThrows(IllegalStateException.class,()->run(environment));
     }
     @Test void ephemeralProviderIsForbiddenInProduction() {
-        MockEnvironment environment=new MockEnvironment().withProperty("cpf.adm.integration-closure.enabled","true")
+        MockEnvironment environment=new MockEnvironment()
                 .withProperty("cpf.adm.integration-closure.ephemeral-providers-enabled","true");
         environment.setActiveProfiles("prod");
         assertThrows(IllegalStateException.class,()->run(environment));
     }
-    @Test void localExplicitProfileAllowsEphemeralProvider() {
-        MockEnvironment environment=new MockEnvironment().withProperty("cpf.adm.integration-closure.enabled","true")
-                .withProperty("cpf.adm.integration-closure.ephemeral-providers-enabled","true");
+    @Test void protectedProfileAllowsOnlyExplicitlyDisabledEphemeralProvider() {
+        MockEnvironment environment=new MockEnvironment()
+                .withProperty("cpf.adm.integration-closure.ephemeral-providers-enabled","false");
+        environment.setActiveProfiles("prod");
+        assertDoesNotThrow(()->run(environment));
+    }
+    @Test void localProfileAllowsDefaultEphemeralProvider() {
+        MockEnvironment environment=new MockEnvironment();
         environment.setActiveProfiles("local"); assertDoesNotThrow(()->run(environment));
     }
     @Test void rawApprovalProofSecretIsForbiddenInProduction() {
-        MockEnvironment environment=new MockEnvironment().withProperty("cpf.adm.integration-closure.enabled","true")
+        MockEnvironment environment=new MockEnvironment()
+                .withProperty("cpf.adm.integration-closure.ephemeral-providers-enabled","false")
                 .withProperty("cpf.adm.integration-closure.approval-proof-key-base64","secret");
         environment.setActiveProfiles("prod");
         assertThrows(IllegalStateException.class,()->run(environment));
     }
     @Test void rawCryptoSecretIsForbiddenInStaging() {
-        MockEnvironment environment=new MockEnvironment().withProperty("cpf.adm.integration-closure.enabled","true")
+        MockEnvironment environment=new MockEnvironment()
+                .withProperty("cpf.adm.integration-closure.ephemeral-providers-enabled","false")
                 .withProperty("cpf.adm.integration-closure.crypto.active-key-base64","secret");
         environment.setActiveProfiles("stg");
         assertThrows(IllegalStateException.class,()->run(environment));

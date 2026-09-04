@@ -105,11 +105,9 @@ cpf:
     persistence:
       mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}
     bootstrap:
-      enabled: ${CPF_ADM_BOOTSTRAP_ENABLED:false}
-      allow-prod: ${CPF_ADM_BOOTSTRAP_ALLOW_PROD:false}
-      operator-id: ${CPF_ADM_BOOTSTRAP_OPERATOR_ID:admin}
-      operator-name: ${CPF_ADM_BOOTSTRAP_OPERATOR_NAME:CPF 관리자}
-      password: ${CPF_ADM_BOOTSTRAP_PASSWORD:}
+      # 모든 profile에서 동일한 최초 운영자 계약을 쓴다. password는 runner가 ENV에서만 직접 읽는다.
+      operator-id: ${CPF_ADM_BOOTSTRAP_OPERATOR_ID:}
+      operator-name: ${CPF_ADM_BOOTSTRAP_OPERATOR_NAME:}
     security:
       enabled: ${CPF_ADM_SECURITY_ENABLED:true}
       session-ttl-seconds: ${CPF_ADM_SESSION_TTL_SECONDS:3600}

@@ -21,8 +21,13 @@
       "nameKey": "cpf.domain.name",
       "systemCodeKey": "cpf.domain.systemCode",
       "moduleIncludeFile": "settings.gradle",
-      "modules": ["online", "batch"],
-      "prebuiltGenerationModeIsStaticEntry": ["backoffice"],
+      "modules": [
+        "online",
+        "batch"
+      ],
+      "prebuiltGenerationModeIsStaticEntry": [
+        "backoffice"
+      ],
       "portEnvPattern": "{SYSTEM_CODE}_ONLINE_PORT"
     }
   },
@@ -37,126 +42,239 @@
     "DEV": {
       "label": "개발",
       "runtimeMode": "standard",
-      "excludedRoles": ["gateway"],
+      "excludedRoles": [
+        "gateway"
+      ],
       "includeDomains": true,
       "includeBatch": false
     },
     "ONLINE": {
       "label": "온라인",
       "runtimeMode": "minimal",
-      "excludedRoles": ["gateway", "admin", "backoffice-web"],
+      "excludedRoles": [
+        "gateway",
+        "admin",
+        "backoffice-web"
+      ],
       "includeDomains": true,
       "includeBatch": false
     }
   },
   "lifecycleCapabilities": {
     "http-server": {
-      "start": true, "stop": true, "status": true, "restart": true, "log": true,
+      "start": true,
+      "stop": true,
+      "status": true,
+      "restart": true,
+      "log": true,
       "health": "http-endpoint",
-      "statusEvidence": ["process", "port", "healthEndpoint", "instanceIdentity"]
+      "statusEvidence": [
+        "process",
+        "port",
+        "healthEndpoint",
+        "instanceIdentity"
+      ]
     },
     "worker": {
-      "start": true, "stop": true, "status": true, "restart": true, "log": true,
+      "start": true,
+      "stop": true,
+      "status": true,
+      "restart": true,
+      "log": true,
       "health": "runtime-readiness-contract",
-      "statusEvidence": ["process", "port", "leaseOrHeartbeat", "instanceIdentity"],
+      "statusEvidence": [
+        "process",
+        "port",
+        "leaseOrHeartbeat",
+        "instanceIdentity"
+      ],
       "note": "Batch roles expose an actuator port but readiness is owned by the runtime control plane, not by a plain HTTP 200."
     },
     "one-shot": {
-      "start": true, "stop": false, "status": true, "restart": false, "log": true,
+      "start": true,
+      "stop": false,
+      "status": true,
+      "restart": false,
+      "log": true,
       "health": "execution-result-contract",
-      "statusEvidence": ["lastExecutionResult"],
+      "statusEvidence": [
+        "lastExecutionResult"
+      ],
       "note": "Local batch runtime completes and exits; stop/restart are not meaningful and must report a clear contract message rather than a fake success."
     }
   },
   "runtimes": [
     {
-      "target": "admin", "owner": "cpf-admin", "systemCode": "ADM",
-      "capability": "http-server", "port": 8090, "portEnv": "ADM_SERVER_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "CPF 운영 관리 Runtime"
+      "target": "admin",
+      "owner": "cpf-admin",
+      "capability": "http-server",
+      "port": 8090,
+      "portEnv": "ADM_SERVER_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "CPF 운영 관리 Runtime",
+      "artifactId": "cpf-admin",
+      "healthPath": "/adm/api/health"
     },
     {
-      "target": "gateway", "owner": "cpf-gateway", "systemCode": "GWY",
-      "capability": "http-server", "port": 8070, "portEnv": "GWY_SERVER_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "API Gateway Runtime"
+      "target": "gateway",
+      "owner": "cpf-gateway",
+      "capability": "http-server",
+      "port": 8070,
+      "portEnv": "GWY_SERVER_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "API Gateway Runtime",
+      "artifactId": "cpf-gateway",
+      "healthPath": "/actuator/health"
     },
     {
-      "target": "batch-control", "owner": "cpf-batch/control-plane", "systemCode": "BAT",
-      "capability": "worker", "port": 8180, "portEnv": "CPF_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "Batch Control Plane"
+      "target": "batch-control",
+      "owner": "cpf-batch/control-plane",
+      "capability": "worker",
+      "port": 8180,
+      "portEnv": "CPF_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Control Plane",
+      "artifactId": "cpf-batch-control-plane"
     },
     {
-      "target": "batch-scheduler", "owner": "cpf-batch/scheduler", "systemCode": "BAT",
-      "capability": "worker", "port": 8181, "portEnv": "CPF_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "Batch Scheduler"
+      "target": "batch-scheduler",
+      "owner": "cpf-batch/scheduler",
+      "systemCode": "BAT",
+      "capability": "worker",
+      "port": 8181,
+      "portEnv": "CPF_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Scheduler",
+      "artifactId": "cpf-batch-scheduler"
     },
     {
-      "target": "batch-worker", "owner": "cpf-batch/worker", "systemCode": "BAT",
-      "capability": "worker", "port": 8182, "portEnv": "CPF_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "Batch Worker"
+      "target": "batch-worker",
+      "owner": "cpf-batch/worker",
+      "systemCode": "BAT",
+      "capability": "worker",
+      "port": 8182,
+      "portEnv": "CPF_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Worker",
+      "artifactId": "cpf-batch-worker"
     },
     {
-      "target": "batch-center-cut", "owner": "cpf-batch/center-cut", "systemCode": "CEC",
-      "capability": "worker", "port": 8183, "portEnv": "CPF_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "Center-Cut Runner"
+      "target": "batch-center-cut",
+      "owner": "cpf-batch/center-cut",
+      "systemCode": "CEC",
+      "capability": "worker",
+      "port": 8183,
+      "portEnv": "CPF_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Center-Cut Runner",
+      "artifactId": "cpf-batch-center-cut"
     },
     {
-      "target": "batch-agent", "owner": "cpf-batch/agent", "systemCode": "BAT",
-      "capability": "worker", "port": 8184, "portEnv": "CPF_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "Batch Agent"
+      "target": "batch-agent",
+      "owner": "cpf-batch/agent",
+      "systemCode": "BAT",
+      "capability": "worker",
+      "port": 8184,
+      "portEnv": "CPF_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "Batch Agent",
+      "artifactId": "cpf-batch-agent"
     },
     {
-      "target": "local-runtime", "owner": "cpf-tools/runtime/cpf-local-runtime", "systemCode": "LOCAL",
-      "capability": "http-server", "port": 8080, "portEnv": "CPF_LOCAL_RUNTIME_PORT",
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
+      "target": "local-runtime",
+      "owner": "cpf-tools/runtime/cpf-local-runtime",
+      "capability": "http-server",
+      "port": 8080,
+      "portEnv": "CPF_LOCAL_RUNTIME_PORT",
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
       "aggregateAlias": "ALL",
-      "description": "1-WAS 통합 Local Runtime"
+      "description": "1-WAS 통합 Local Runtime",
+      "artifactId": "cpf-local-runtime",
+      "healthPath": "/actuator/health"
     },
     {
-      "target": "local-batch", "owner": "cpf-tools/runtime/cpf-local-batch-runtime", "systemCode": "BAT",
-      "capability": "one-shot", "port": null, "portEnv": null,
-      "provision": "binary", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "통합 Local Batch Runtime"
+      "target": "local-batch",
+      "owner": "cpf-tools/runtime/cpf-local-batch-runtime",
+      "capability": "one-shot",
+      "port": null,
+      "portEnv": null,
+      "provision": "binary",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "통합 Local Batch Runtime",
+      "artifactId": "cpf-local-batch-runtime"
     },
     {
-      "target": "backoffice", "owner": "cpf-backoffice/online", "systemCode": "MBW",
-      "capability": "http-server", "port": 8091, "portEnv": "MBW_ONLINE_PORT",
-      "provision": "source", "optional": true, "publicationClass": "PUBLIC_RUNTIME",
+      "target": "backoffice",
+      "owner": "cpf-backoffice/online",
+      "systemCode": "MBW",
+      "capability": "http-server",
+      "port": 8091,
+      "portEnv": "MBW_ONLINE_PORT",
+      "provision": "source",
+      "optional": true,
+      "publicationClass": "PUBLIC_RUNTIME",
       "component": "domain",
-      "description": "업무 백오피스 Domain Runtime"
+      "description": "업무 백오피스 Domain Runtime",
+      "artifactId": "cpf-backoffice",
+      "healthPath": "/actuator/health"
     },
     {
-      "target": "backoffice-web", "owner": "cpf-backoffice-web", "systemCode": "MBW",
-      "capability": "http-server", "port": 8092, "portEnv": "MBW_WEB_PORT",
-      "provision": "source", "optional": true, "publicationClass": "PUBLIC_RUNTIME",
+      "target": "backoffice-web",
+      "owner": "cpf-backoffice-web",
+      "capability": "http-server",
+      "port": 8092,
+      "portEnv": "MBW_WEB_PORT",
+      "provision": "source",
+      "optional": true,
+      "publicationClass": "PUBLIC_RUNTIME",
       "component": "web",
       "portFinding": "Previously defaulted to 8090 and collided with admin; 8092 continues the MBW block after backoffice online 8091.",
-      "description": "업무 백오피스 Web(BFF) Runtime"
+      "description": "업무 백오피스 Web(BFF) Runtime",
+      "artifactId": "cpf-backoffice-web",
+      "healthPath": "/actuator/health"
     },
     {
-      "target": "education", "owner": "cpf-education", "systemCode": "EDU",
-      "capability": "http-server", "port": 8099, "portEnv": "EDU_SERVER_PORT",
-      "provision": "source", "publicationClass": "PUBLIC_RUNTIME",
-      "description": "교육/샘플 Runtime"
+      "target": "education",
+      "owner": "cpf-education",
+      "systemCode": "EDU",
+      "capability": "http-server",
+      "port": 8099,
+      "portEnv": "EDU_SERVER_PORT",
+      "provision": "source",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "description": "교육/샘플 Runtime",
+      "artifactId": "cpf-education",
+      "healthPath": "/actuator/health"
     }
   ],
   "dynamicRuntimes": {
     "source": "discovery.domain",
     "targetPattern": "{domainName}-{module}",
-    "capabilityByModule": { "online": "http-server", "batch": "one-shot" },
+    "capabilityByModule": {
+      "online": "http-server",
+      "batch": "one-shot"
+    },
     "provision": "source",
     "publicationClass": "PUBLIC_RUNTIME",
-    "note": "Generated Domain targets appear and disappear with the domain itself. No launcher, help text or catalog entry may hardcode a domain name."
+    "note": "Generated Domain targets appear and disappear with the domain itself. No launcher, help text or catalog entry may hardcode a domain name.",
+    "healthPathByModule": {
+      "online": "/actuator/health"
+    }
   },
   "portPolicy": {
     "duplicateDefaultPortsForbidden": true,
     "scope": "distinct owners; the same owner repeating its port across profiles is not a collision",
     "testProfileRandomPortAllowed": true
-  }
+  },
+  "identityContract": "systemCode 는 architectureRole 이 hasSystemCode=true 인 Runtime 에만 존재한다. PLATFORM_CONTROL_PLANE/GATEWAY/CHANNEL_FRONT/TOPOLOGY/BATCH_CONTROL_PLANE/FRAMEWORK_INTERNAL 은 System Identity 를 갖지 않으며, Module Code/DB Prefix/topology 이름을 SystemCode 로 승격하지 않는다. 정본: cpf-tools/governance/cpf-product-surface-policy.json",
+  "artifactIdContract": "artifactId 는 cpf-tools/release/cpf-final-artifact-catalog.json 의 ownerPath 대응 artifactId 와 같아야 한다. provision=binary Runtime 은 이 좌표로 Binary Repository 에서 실행물을 찾는다. 이름을 추론하지 않는다.",
+  "healthPathContract": "http-server Runtime 은 healthPath 를 catalog 에 선언해야 한다. Launcher 는 경로를 추론하지 않고 이 값만 쓴다. 선언이 없으면 기동 완료를 판정할 수 없으므로 fail-closed 로 중단한다. worker/one-shot 은 lifecycleCapabilities 가 정한 readiness 계약을 따르며 단순 HTTP 200 을 성공으로 취급하지 않는다."
 }

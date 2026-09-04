@@ -12,6 +12,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -87,11 +88,14 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def sha256_file(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
+    """Hash Generated text in its canonical newline representation.
+
+    The Generator writes LF, whereas a Windows Git checkout can materialize the same tracked
+    text as CRLF. Raw-byte comparison would then misclassify a clean template as a user edit
+    and make `domain-sync` non-idempotent. Generated ownership has no binary artifacts, so
+    this normalization is both safe and required for cross-platform lifecycle parity.
+    """
+    return sha256_bytes(path.read_bytes().replace(b"\r\n", b"\n"))
 
 
 def utc_now() -> str:
@@ -827,6 +831,15 @@ import java.security.MessageDigest
 
 plugins {{ id 'base' }}
 
+// Public Workspace 의 cpfTestAll 은 각 Public Source Surface 의 canonical :test 를 호출한다.
+// root 에 base plugin 만 적용하면 :test 가 없어 "Task with path ':test' not found" 로 실패한다.
+// 다중 Project Domain 도 단일 Project Domain 과 같은 진입점을 제공해야 한다.
+tasks.register('test') {{
+    group = 'verification'
+    description = '이 Domain 의 모든 하위 Project Test 를 실행합니다.'
+    dependsOn subprojects.collect {{ "${{it.path}}:test" }}
+}}
+
 def cpfResolvedPlatformVersion = providers.environmentVariable('CPF_VERSION')
         .orElse(providers.gradleProperty('cpfPlatformVersion'))
         .get()
@@ -900,22 +913,29 @@ subprojects {{
         // Runtime discovery descriptor는 업무 Source가 아니라 Build 산출물로만 생성합니다.
         def generatedDomainDescriptorRoot = layout.buildDirectory.dir('generated/cpf-runtime-descriptor')
         def generatedDomainDescriptor = generatedDomainDescriptorRoot.map {{ it.file('META-INF/cpf/generated-domain.properties') }}
+        // Task.project 를 실행 시점에 만지면 Gradle 9 가 deprecation 을 찍고 Gradle 10 에서는 오류가 된다.
+        // 공개 사용자의 첫 cpfVerify 에 stack trace 가 쏟아지지 않도록 Configuration 시점 값으로 붙잡는다.
+        def cpfProjectKind = project.name
         tasks.register('generateCpfDomainRuntimeDescriptor') {{
             inputs.property('domain', cpfDomainName)
             inputs.property('systemCode', cpfDomainSystemCode)
-            inputs.property('kind', project.name)
+            inputs.property('kind', cpfProjectKind)
             inputs.property('scanPackage', cpfDomainPackageName)
             outputs.file(generatedDomainDescriptor)
             doLast {{
                 def target = generatedDomainDescriptor.get().asFile
                 target.parentFile.mkdirs()
-                target.setText("domain=${{cpfDomainName}}\nsystemCode=${{cpfDomainSystemCode}}\nkind=${{project.name}}\nscanPackage=${{cpfDomainPackageName}}\n", 'UTF-8')
+                target.setText("domain=${{cpfDomainName}}\nsystemCode=${{cpfDomainSystemCode}}\nkind=${{cpfProjectKind}}\nscanPackage=${{cpfDomainPackageName}}\n", 'UTF-8')
             }}
         }}
         sourceSets.main.resources.srcDir(generatedDomainDescriptorRoot)
         tasks.named('processResources').configure {{ dependsOn('generateCpfDomainRuntimeDescriptor') }}
 
         if (project.name == 'online') {{
+        // Task.project 를 실행 시점에 만지면 Gradle 9 가 deprecation 을 찍고 Gradle 10 에서는 오류가 된다.
+        // 공개 사용자의 첫 cpfVerify 에 stack trace 가 쏟아지지 않도록 Configuration 시점 값으로 붙잡는다.
+            def cpfProjectDirPath = project.projectDir.toPath()
+            def cpfProjectPath = project.path
             def manifestRoot = layout.buildDirectory.dir('generated/cpf-operation-manifest')
             def manifestFile = manifestRoot.map {{ it.file('META-INF/cpf/business-operation-manifest.json') }}
             tasks.register('generateCpfBusinessOperationManifest') {{
@@ -976,7 +996,7 @@ subprojects {{
                                            openApiOperationId:openApiId, httpMethod:httpMethod, apiPath:path,
                                            controllerClass:controllerClass, handlerMethod:handlerMethod,
                                            sourceFingerprint:fingerprint,
-                                           sourcePath:project.projectDir.toPath().relativize(source.toPath()).toString().replace('\\','/')]
+                                           sourcePath:cpfProjectDirPath.relativize(source.toPath()).toString().replace('\\','/')]
                             previousTransactionEnd = txMatcher.end()
                         }}
                     }}
@@ -987,7 +1007,7 @@ subprojects {{
                     target.parentFile.mkdirs()
                     target.setText(JsonOutput.prettyPrint(JsonOutput.toJson([
                             schemaVersion:1,
-                            projectPath:project.path,
+                            projectPath:cpfProjectPath,
                             operations:operations
                     ])) + System.lineSeparator(), 'UTF-8')
                 }}
@@ -3017,6 +3037,61 @@ def regenerate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]
     return {'domain':d.name,'status':'REGENERATED','output':str(output),'restored':sorted(restored),'verify':vr}
 
 
+def _assert_git_clean_template_adoption(root: Path, output: Path, changed: list[str]) -> None:
+    """Permit explicit recovery only for tracked Generated files unchanged from ``HEAD``.
+
+    Missing transient ownership state must never turn a normal sync into an overwrite of a
+    developer edit.  This narrow migration bridge is for a private Source checkout after a
+    template currentization; public workspaces use the ordinary state-driven upgrade path.
+    """
+    git = shutil.which("git")
+    if not git:
+        raise DomainError("Template adoption requires Git provenance; git is unavailable")
+    try:
+        relative_root = output.resolve().relative_to(root.resolve())
+    except ValueError as failure:
+        raise DomainError(f"Template adoption target is outside workspace root: {output}") from failure
+    for rel in sorted(changed):
+        path = (relative_root / rel).as_posix()
+        tracked = subprocess.run(
+            [git, "-C", str(root), "ls-files", "--error-unmatch", "--", path],
+            text=True, encoding="utf-8", errors="replace", capture_output=True, check=False)
+        if tracked.returncode != 0:
+            raise DomainError(f"Template adoption requires tracked generated file: {path}")
+        unchanged = subprocess.run(
+            [git, "-C", str(root), "diff", "--quiet", "HEAD", "--", path],
+            text=True, encoding="utf-8", errors="replace", capture_output=True, check=False)
+        if unchanged.returncode == 1:
+            raise DomainError(f"Template adoption refuses user-modified generated file: {path}")
+        if unchanged.returncode != 0:
+            raise DomainError(f"Template adoption Git provenance check failed: {path}")
+
+
+def adopt_git_clean_template_drift(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
+    """Currentize a tracked old Generated template only after an explicit approval.
+
+    The operation neither deletes nor adopts missing/stale/unmanaged files.  It restores the
+    transient state immediately, so every later update again flows through ``upgrade``.
+    """
+    d=load_domain_contract(definition_path)
+    current=diff(root,definition_path,output)
+    changed=list(current.get('changed',[]))
+    unsafe=(list(current.get('missing',[]))+list(current.get('staleGeneratedFiles',[]))+
+            list(current.get('extraUserFiles',[]))+list(current.get('legacyMetadataFiles',[])))
+    if not changed or unsafe or 'gradle.properties' in changed:
+        raise DomainError(
+            "Template adoption only permits tracked template-content changes; "
+            f"changed={changed}, unsafe={sorted(unsafe)}")
+    _assert_git_clean_template_adoption(root,output,changed)
+    expected,_=_expected_files(root,d)
+    for rel in changed:
+        write_text(output/rel,expected[rel])
+    verification=verify_generated(root,definition_path,output,d)
+    _write_transient_state(root,definition_path,d,verification,_expected_hashes(root,d))
+    return {'domain':d.name,'status':'TEMPLATE_ADOPTED','output':str(output),'changed':sorted(changed),
+            'templateAdopted':True,'verify':verification}
+
+
 def upgrade(root: Path, definition_path: Path, output: Path, *, apply_delete: bool = False) -> dict[str,Any]:
     """Transient ownership state를 기준으로 Generated 파일만 안전하게 새 Template으로 승격한다.
 
@@ -3031,13 +3106,22 @@ def upgrade(root: Path, definition_path: Path, output: Path, *, apply_delete: bo
     current_files,_=_expected_files(root,d)
     current_hashes={rel:sha256_bytes(normalized_bytes(content)) for rel,content in current_files.items()}
     user_modified=[]
+    # Template을 먼저 currentize한 뒤 Generated Source도 같은 template으로 갱신한 경우,
+    # transient state만 이전 hash를 가질 수 있다. 이 경우 Source는 이미 현재 Generator의
+    # exact output이므로 덮어쓸 이유가 없다. state만 안전하게 재결속한다. 반대로 현재
+    # template과 한 byte라도 다르면 기존처럼 사용자 수정으로 fail-closed 한다.
+    template_equivalent_state_reconciled=[]
     for rel,digest in sorted(previous.items()):
         # gradle.properties는 Generator state가 아니라 개발자가 의도적으로 관리하는 입력 계약입니다.
         # 유효성/identity/risky-change는 새 DomainDefinition으로 검증하고, Seed Source drift와 혼동하지 않습니다.
         if rel == 'gradle.properties':
             continue
         p=output/rel
-        if p.is_file() and sha256_file(p)!=digest: user_modified.append(rel)
+        if p.is_file() and sha256_file(p)!=digest:
+            if current_hashes.get(rel) == sha256_file(p):
+                template_equivalent_state_reconciled.append(rel)
+            else:
+                user_modified.append(rel)
     if user_modified:
         raise DomainError(f"사용자 수정 Generated 파일이 있어 upgrade 중단: {user_modified}")
     added=sorted(set(current_hashes)-set(previous))
@@ -3065,7 +3149,8 @@ def upgrade(root: Path, definition_path: Path, output: Path, *, apply_delete: bo
     vr=verify_generated(root,definition_path,output,d)
     _write_transient_state(root,definition_path,d,vr,current_hashes)
     return {'domain':d.name,'status':'UPGRADED','output':str(output),'fromGeneratorVersion':state.get('generatorVersion'),
-            'toGeneratorVersion':GENERATOR_VERSION,'added':added,'changed':changed,'removed':[],'verify':vr}
+            'toGeneratorVersion':GENERATOR_VERSION,'added':added,'changed':changed,'removed':[],
+            'templateEquivalentStateReconciled':sorted(template_equivalent_state_reconciled),'verify':vr}
 
 
 def restore(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:

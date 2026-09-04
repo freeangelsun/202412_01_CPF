@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.function.Supplier;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -117,6 +118,23 @@ public class BackofficeBusinessAuditService extends BackofficeBaseService {
     result.put("previousRecordHash", previous);
     result.put("transactionId", transactionId);
     return result;
+  }
+
+  /**
+   * MBW 전체에서 하나뿐인 감사 체인 lock을 소유한 상태로 초기 설치 같은 singleton 작업을 수행한다.
+   *
+   * <p>별도의 process-local lock이나 profile 전용 table을 만들지 않는다. 이 method를 호출한
+   * transaction 안에서 {@link #record(String, String, String, String, String, Object, Object)}도
+   * 같은 DB lock을 재사용하므로 최초 운영자 생성과 감사 기록을 하나의 MBW transaction으로 묶을 수 있다.</p>
+   */
+  @CpfTransactional(transactionManager="MBW_TRANSACTION_MANAGER")
+  public <T> T withAuditChainLock(Supplier<T> action) {
+    Objects.requireNonNull(action, "action");
+    ensureLockRow();
+    jdbc().queryForMap(
+        sql.required("business-audit-service-record-02"),
+        new MapSqlParameterSource("id", LOCK_ID));
+    return action.get();
   }
 
   /** 전체 체인과 lock-head를 모두 검증한다. 과거 legacy row는 PARTIAL_LEGACY로 구분한다. */

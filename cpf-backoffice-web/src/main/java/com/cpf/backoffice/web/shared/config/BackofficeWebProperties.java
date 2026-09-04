@@ -10,9 +10,8 @@ public record BackofficeWebProperties(
         Mode mode,
         URI gatewayBaseUri,
         URI directBaseUri,
-        String callerSystemCode,
         String targetSystemCode,
-        String callerChannel,
+        String channelCode,
         Duration connectTimeout,
         Duration requestTimeout,
         String accessCookieName,
@@ -24,9 +23,8 @@ public record BackofficeWebProperties(
 
     public BackofficeWebProperties {
         mode = mode == null ? Mode.GATEWAY : mode;
-        callerSystemCode = systemCode(callerSystemCode, "MBW");
         targetSystemCode = systemCode(targetSystemCode, "MBW");
-        callerChannel = token(callerChannel, "MBW", 32);
+        channelCode = systemCode(channelCode, "MBW");
         connectTimeout = positive(connectTimeout, Duration.ofSeconds(3));
         requestTimeout = positive(requestTimeout, Duration.ofSeconds(10));
         accessCookieName = cookieName(accessCookieName, "CPF_MBW_ACCESS");

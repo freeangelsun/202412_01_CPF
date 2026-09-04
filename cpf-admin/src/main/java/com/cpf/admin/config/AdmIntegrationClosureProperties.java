@@ -7,16 +7,16 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * ADM integration-closure runtime selection policy.
+ * ADM integration-closure provider policy.
  *
- * <p>The feature is disabled by default. Ephemeral providers are intended only for local/dev
- * verification and must never be enabled for production state ownership.</p>
+ * <p>Integration-closure routes are mandatory whenever ADM is composed. Only local/dev
+ * ephemeral providers are selectable; protected runtimes must compose the real providers and
+ * fail closed when they are absent.</p>
  */
 @ConfigurationProperties(prefix = "cpf.adm.integration-closure")
 /** AdmIntegrationClosureProperties 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
 public class AdmIntegrationClosureProperties {
-    private boolean enabled;
-    private boolean ephemeralProvidersEnabled;
+    private boolean ephemeralProvidersEnabled = true;
     private Duration correctionApprovalTtl = Duration.ofMinutes(15);
     /** Shared 256-bit HMAC key for single-use correction execution proof. */
     /** Raw secret is local/dev compatibility only; prod/stg must use approvalProofKeyRef. */
@@ -26,8 +26,6 @@ public class AdmIntegrationClosureProperties {
     private final Webhook webhook = new Webhook();
     private final Crypto crypto = new Crypto();
 
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public boolean isEphemeralProvidersEnabled() { return ephemeralProvidersEnabled; }
     public void setEphemeralProvidersEnabled(boolean ephemeralProvidersEnabled) { this.ephemeralProvidersEnabled = ephemeralProvidersEnabled; }
     public Duration getCorrectionApprovalTtl() { return correctionApprovalTtl; }

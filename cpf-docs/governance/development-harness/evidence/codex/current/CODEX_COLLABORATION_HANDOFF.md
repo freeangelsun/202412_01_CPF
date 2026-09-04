@@ -353,7 +353,7 @@ Family 별 repo-wide 감사를 먼저 수행했다.
   **`@ConditionalOnSingleCandidate`** 제외, 1-WAS의 프로그램적 DataSource primary 반영,
   admin 의존 계약이 금지한 optional provider leaf 제외).
 
-**주의**: 작업 중 heredoc이 정규식 ``를 백스페이스 문자(0x08)로 바꿔 게이트가 조용히 0건을
+**주의**: 작업 중 heredoc이 정규식 `\b`를 백스페이스 문자(0x08)로 바꿔 게이트가 조용히 0건을
 반환하는 상태가 된 적이 있다. 게이트 수정 후에는 반드시 negative mutation으로 검출을 확인하라.
 
 ---
@@ -600,3 +600,195 @@ Generated Domain business effect and retry idempotency sampleRows=1 idempotencyR
 Batch→Domain File/DB transaction lineage summaries=1 segments=3 lineage=5 fileRows=1
 CPF_WORK_UNIT=PASS unit=BATCH_TWO_WORKER
 ```
+
+### C-30. One-WAS ADM Session/CSRF → File/DB Log correlation 재검증 (현재 Source에서 PASS)
+
+**검토 범위와 Source:** current `master` `19d536741481d6a239428bc64bbd6c39a133f63f`, clean Working
+Tree에서 실행했다. Git-independent Product Source Identity는
+`ff370b132093e6ef006ca40e0aef7a42735778e89175c3d7a13b5b365d4ff4d0`이고 실행 전후 값이 동일하다.
+
+**앞선 실패와 Root Cause 분리:** 이전 One-WAS 실행(`8d24e334...`)은 login 이후 최신 XSRF cookie가
+Browser에 존재하고 header로도 전송됐음에도 state-changing 요청이 403으로 거절됐다. 이는 현재
+Source와 다른 identity이므로 PASS 근거로 승계하지 않는다. 현재 Source는 (1) session-id 회전 owner가
+MVC response body 기록 전 configured CSRF repository로 새 cookie를 저장하고, (2) BFF Bridge가 만든
+SecurityContext를 Session repository에도 저장하여 `SessionManagementFilter`가 매 요청을 새 인증으로
+오인해 session/CSRF를 재회전하지 않게 한다. Product Contract와 Harness에는 같은 경계를 명시했고,
+`CpfBffCredentialResponseAdviceTest`, `CpfServerSessionSecurityFilterChainTest`,
+`test_cpf_runtime_readiness_ordering_contract.py`가 재발 방지 regression이다.
+
+**정적/Consumer 검증:**
+
+- `:starters:security:session:jdbc:test` — PASS
+- readiness + system identity + integrated logging contract pytest 22건 — PASS
+- test는 새 XSRF cookie의 response-before-body 발급, stale/missing CSRF 거절 분류, Session
+  SecurityContext 영속을 각각 고정한다. skip/xfail/조건완화는 사용하지 않았다.
+
+**실제 Runtime Evidence:**
+`C:\Users\fly10\Downloads\CPF_WORKUNIT_ONE_WAS_20260904_125255\work-unit-result.json`
+
+```text
+CPF_WORK_UNIT=PASS unit=ONE_WAS totalSeconds=270.1
+RUNTIME_DB_PREP / generated EXS·MBR bootstrap / registry seed          PASS
+LOCAL_ONE_WAS_START / ADM bootstrap password rotation                  PASS
+LOCAL_FILE_LOG_STANDARD / LOCAL_DB_LOG_POLICY_RUNTIME                 PASS
+LOCAL_INTEGRATED_LOG_CORRELATION                                      PASS
+ADM + MBW Runtime OpenAPI release parity / stop / DB cleanup           PASS
+SOURCE_IDENTITY_AFTER ff370b132093e6ef006ca40e0aef7a42735778e89175c3d7a13b5b365d4ff4d0
+```
+
+대표 상관 거래는 `transactionId=20260904125554274MBWlogcor10000001`,
+`traceId=64f6b784a8b14ab4a3edd5de2703efbf`,
+`segmentId=20260904125554274MBWlogcor10000001-SEG-0004-04739D8E`,
+`instanceId=cpf-local-5a51ec13e1df`다. File event 2건, DB Summary 1건, ADM transaction log 1건,
+ADM Timeline segment 1건이 같은 transaction/trace/segment/MBW target operation(`MBW_AUTH_LOGIN`)으로
+대조됐고, File↔DB correlation PASS, raw secret leak 0, fallback/recovery pending/quarantine/terminal loss 0,
+fatal runtime marker 0을 확인했다. 이 대표 건은 intentional authentication failure(`401`,
+`ECPF990000`, `ResponseStatusException`)이며 root inbound segment라 parent/attempt가 null이다. 따라서
+성공·업무 rollback·remote A→B→C·retry/UNKNOWN/reconcile 전체 lineage의 대체 근거로 사용하지 않는다.
+
+**상태 판정:** `WP-ONE01`의 이번 One-WAS substeps(RT-141~145 경로)는 **SOURCE_FIXED + physical
+PASS evidence**다. 그러나 `WP-R12.09/CPF-LOGTX`와 전체 CPF는 CLOSED가 아니다. DB3 vendor별
+rollback-surviving logging, remote/multi-instance/Batch retry·UNKNOWN/reconcile, Browser, Performance,
+Open Git Fresh Release, Fresh Replay와 QA acceptance가 여전히 `VERIFICATION_PENDING/NOT_EXECUTED`다.
+다음 작업자는 이 Evidence를 재실행 대상으로 중복 개발하지 말고, 남은 scenario만 current Source에서
+이어 닫는다.
+
+### C-31. ADM 필수 Control Plane route 및 One-WAS File↔DB lineage current-source 재종결
+
+**Current Product Source Identity:**
+`0a94567d3826a6ef4a7c6994f6784f5a36015c37b4de9f4199e9f731ad4ea2ec`
+(`contentSha1=c8179c6255f50caf64f67a20205e29da3a00fda3`). Git `master`/`HEAD`는
+`19d536741481d6a239428bc64bbd6c39a133f63f`이며, 이 Identity는 Current Harness/Evidence metadata를
+순환 방지를 위해 제외한다. Work-unit 실행 전후 Source Identity는 정확히 동일했다.
+
+**Root Cause와 Source/Consumer 정렬:** ADM은 optional generated domain이 아닌 CPF Platform
+Control Plane이다. `AdmIntegrationClosureConfiguration`의 top-level `enabled` switch를 제거했지만,
+Consumer인 `AdmIntegrationClosureController`에 남은 같은 switch가 `enabled=false`에서 mandatory route를
+다시 제거할 수 있었다. Controller switch, legacy top-level property와 profile YAML key를 제거했고,
+configuration/controller/property/profile을 함께 검사하는 `verify_integration_closure_contract.py`와
+configuration regression으로 negative mutation을 고정했다. Provider 구성 실패는 fail-closed이며
+Controller 제거로 계약을 축소하지 않는다.
+
+**실제 One-WAS runtime:**
+`C:\Users\fly10\Downloads\CPF_WORKUNIT_ONE_WAS_20260904_140747\work-unit-result.json`
+(`SHA-256=C2AC4639274B793B63CD6D9CFE1AAAC27571034166BE47D2F48D7A052EC00240`)
+
+13/13 stage가 PASS했다: fresh MariaDB schema/seed, generated EXS·MBR bootstrap, registry seed,
+One-WAS start, ADM bootstrap rotation, file log, DB policy, integrated correlation, ADM/MBW Runtime OpenAPI,
+stop, verifier-owned DB cleanup, Source Identity after check. 총 141.8초였다.
+
+대표 actual business-error 거래는 다음과 같다.
+
+- `transactionId=20260904140924068MBWlogcor10000001`
+- `traceId=e1a7e484099d4ec2bae784fd3c1a229d`
+- `executionId=EX-e742f674-349f-491d-96e6-75c048491f56`
+- `segmentId=20260904140924068MBWlogcor10000001-SEG-0004-97A6493A`, `parentSegmentId=null`,
+  `depth=0`, root inbound이므로 `attempt=null`
+- `instanceId=cpf-local-2ccc112ba520`, source/target SystemCode=`MBW`,
+  operation=`MBW_AUTH_LOGIN`, status=`FAILURE/FAILED`, HTTP `401`, response=`ECPF990000`,
+  message=`MCPF990000`, error=`ResponseStatusException`
+
+`file-log-transaction.ndjson` 2행과 DB Summary query result 1행, ADM transaction log 1행, ADM Timeline
+segment 1행이 위 transaction/trace/execution/segment를 동일하게 보유한다. File event에는 instance,
+parent/depth, operation, status/response/message/error가 있고 DB Summary에는 same transaction/trace,
+instance, MBW SystemCode와 status/error가 있다. `db-log-transaction.json`은 raw DB candidate와
+case-insensitive canonical aliases를 모두 남긴다. 따라서 API projection transform이 실제 DB row를
+버리고 count만 PASS시키는 결함도 재발하지 않는다. raw secret leak=0, recovery pending/quarantined/
+terminal loss=0, fatal runtime marker=0도 같은 evidence에 있다.
+
+**재발 방지 검증:**
+
+- `verify-cpf-integrated-logging-closure.py` PASS
+- isolated `pytest --basetemp` 11 PASS (`test_integrated_log_correlation_contract`, integrated logging closure,
+  live runtime log read sharing)
+- targeted integration gates 4 PASS
+- `:apps:admin:test` 267 tests PASS
+- Java 25 `aggregateQualityBuild publicationGate` 675 tasks, 4m53s PASS:
+  `C:\Users\fly10\Downloads\CPF_ROOT_PUBLICATION_20260904_141230.log`
+
+**정확한 상태:** One-WAS scoped mandatory route/logging/OpenAPI path는 physical PASS evidence로
+`SOURCE_FIXED`이며 current exact source로 검증됐다. 하지만 **WP-ONE01 parent와 CPF 전체는 CLOSED가
+아니다**. DB3 각 vendor rollback-surviving log, normal business transaction, remote A→B→C,
+multi-instance, retry/UNKNOWN/reconcile, Browser, Performance, Open Git Fresh Release, Fresh Replay 및 QA
+acceptance는 계속 `VERIFICATION_PENDING/NOT_EXECUTED`다. 다음 작업자는 이 closed subpath를 재개발하지
+말고, 위 미검증 scenario를 Source → Consumer → Test → Runtime → Evidence로 이어 닫는다.
+
+### C-32. Open Git 기본 Binary Release의 Windows/Linux Generator Matrix Root Cause 종결
+
+**Current Product Source Identity:**
+`0235f91d284132edbdd97c58bcd2a1c440bc9c42eff34d1ad4c5572e841deebd`
+(`contentSha1=d88cbe165e3cdebaf2a9665ba4ff490c66112944`). Git `master`/`HEAD`는
+`19d536741481d6a239428bc64bbd6c39a133f63f`이며 final Release의 Source Identity Before/After가 이 값으로
+동일하다.
+
+**실제 Root Cause:** 기본 `cpf release open-git build --profile binary`은 Public
+`cpf-generator-cli`에 `windows-x64`와 `linux-x64`를 모두 요구하지만, Windows host에서 Linux artifact를
+만드는 canonical consumer path가 없어 Stage 06/14에서 fail-closed됐다. fail-closed 정책은 맞지만 Docker
+Linux/amd64가 실제로 준비된 현재 release host에서 official CLI가 matrix를 조립하지 못한 것은 Source/UX
+결함이었다.
+
+**Source/Contract 보완:** `cpf_open_git.py`는 Windows에서 검증된 external matrix가 없을 때 fresh
+`cpf-release/work/generator-linux-matrix`에 Docker Linux/amd64 native PyInstaller build를 수행한다. Source는
+read-only mount, output은 fresh work mount, container workdir는 `/src`로 고정되며 PyInstaller의
+`binutils/objdump` 의존성도 명시 설치한다. 기존 publisher checksum/manifest verifier가 생성물을 다시
+검증한다. Windows archive classifier 이름 변경, unverified copy, Linux host의 Windows binary 위조는 모두
+허용하지 않는다. Product Requirement 21.3, Open Git work package/README, Artifact Catalog, CLI help은 같은
+실제 계약으로 currentize했다.
+
+**재발 방지:** Stage 06 isolated pytest 42 PASS. Regression은 Docker command의 read-only source/output
+mount, `/src` workdir, `binutils`, pinned PyInstaller를 요구하고 Docker/valid Linux matrix 부재는
+fail-closed한다. 기존 Publisher의 two-classifier checksum/manifest negative mutation도 그대로 유지한다.
+
+**Actual Fresh Release Evidence:**
+`C:\Users\fly10\Downloads\CPF_OPEN_GIT_BINARY_FINAL_20260904_150609.log`
+
+```text
+Framework Binary / Publication     2125 Gradle tasks, BUILD SUCCESSFUL
+Stage 06 Generator Matrix          Windows native + Docker Linux/amd64 PASS
+Stages 07–09 Public binary policy  PASS; source.jar=0; javadoc.jar=0
+Stages 10–12 Projection/Fresh      Fresh clone + isolated workspace PASS
+Stages 13–14 Git read-only/Status  PASS; result=VERIFIED
+git add/commit/push                false / false / false
+CPF_OPEN_GIT_BINARY_FINAL_EXIT=0
+```
+
+Final `cpf-generator-cli` archive 두 개의 manifest SHA-256, `.zip.sha256`, actual SHA-256는 일치한다.
+`windows-x64`는 MZ executable을 Windows에서 `--help` exit 0으로, `linux-x64`는 ELF executable을 Docker
+Linux에서 `--help` exit 0으로 실제 실행했다. 검증용 Windows extraction은 exact Temp path에서 삭제됐고,
+final `cpf-release`에는 `binary-repository/`, `open-git/`, `reports/`, `logs/` 한 본만 남는다.
+
+**정확한 상태:** Open Git binary Release/Windows-Linux Generator matrix subpath는 physical PASS evidence로
+`SOURCE_FIXED`다. `WP-RL02`와 CPF 전체는 `VERIFICATION_PENDING`이다. 이 evidence는 Source Profile, public
+`bootstrap → DB3 runtime transaction → stop/reset → fresh replay`, Browser, Performance, One-WAS 전체
+scenario, DB3 vendor별 logging rollback/recovery, QA acceptance의 대체 근거가 아니다. 다음 작업자는 Stage 06을
+재개발하지 말고 남은 current-source consumer/runtime scenario만 이어서 닫는다.
+
+### C-33. Open Git Fresh Consumer의 실제 로그인/업무거래 Gate 미완결 발견
+
+**검수 중 read-only로 확인한 Current Product Source Identity:**
+`36b2a85b7a73226f84e69f24589fcb1c55cfba8ffc75314d29f47e0e23e580b3`
+(`contentSha1=c377889a7e91ee71793a8b3d8ed9aedc8789cb14`, fileCount=8577).
+
+**현재 Source/Consumer 사실:** 공개 Consumer Runtime 계약과 ADM/MBW/Backoffice Web target 및 production
+bundle wiring은 추가됐다. Source lock 전의 targeted regression에서는 50 static tests PASS, Backoffice Web의
+OpenAPI 96 operations/Vitest 6 PASS, 그리고 bootJar 안 `BOOT-INF/classes/static/mbw/` bundle 5 entries를
+확인했다. 동시 currentization이 진행 중이므로 이 결과는 final exact-source Evidence가 아니며 Fresh Consumer
+Runtime PASS로 승격하지 않는다.
+
+**Root Cause:** `cpf bootstrap`은 local DB/Domain profile을 준비하지만 MBW 최초 운영자를 만들기 위한
+`approval-token-file` + `password-file` + 사전 승인 레코드를 공식 Consumer 경로로 준비하지 않는다.
+Backoffice의 현행 bootstrap은 의도적으로 owner-only secret file과 maker/checker 승인 token을 요구한다.
+공개 README에도 MBW 최초 운영자 절차가 없다. 따라서 Fresh Clone 사용자는 `backoffice`와
+`backoffice-web`을 기동해도 실제 업무 로그인을 완료할 수 없다.
+
+새 `verify_open_git_consumer_runtime.py`도 이 결함을 아직 감춘다. ADM은 SPA/health만 확인하고 login POST를
+수행하지 않으며, Backoffice는 가짜 credential POST가 5xx가 아닌지만 확인한다. HttpOnly BFF cookie를 받은
+실제 로그인, CSRF token, BFF→MBW Authorization forwarding, 인증된 MBW 업무 API transaction은 검증하지 않는다.
+이는 사용자가 요구한 `Fresh Clone → bootstrap → ADM login → MBW/Backoffice login → authenticated business
+transaction → status/stop/cleanup` Gate와 불일치한다.
+
+**정확한 상태:** `WP-R07.17` Open Git Consumer Runtime은 `VERIFICATION_PENDING`이다. existing Binary/
+Generator Release PASS나 SPA bundle 존재는 이 Root Cause의 PASS evidence가 아니다. 다음 수정은 MBW의
+maker/checker/secret-file security boundary를 약화시키지 않는 **local first-operator canonical provisioning
+policy**를 Product Contract/Harness에 확정한 뒤, `bootstrap → provision → runtime → real login/CSRF/BFF→MBW
+transaction → File/DB lineage → cleanup → Fresh Replay`와 negative mutation까지 연결해야 한다.

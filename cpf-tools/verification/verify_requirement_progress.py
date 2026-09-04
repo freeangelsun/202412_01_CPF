@@ -18,11 +18,13 @@ from pathlib import Path
 REQUIRED=("work_item_id","developer_status","verification_status","overall_status","source_identity","item_role")
 DEV_STATES={"완료","미완료","부분 구현","미구현","실패","재확인 필요","해당 없음","SOURCE_FIXED","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
 VERIFY_STATES={"완료","미완료","미검증","실패","재확인 필요","해당 없음","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
-# Current Registry 의 정본 구성: (tracking row, ROOT_CAUSE_EXECUTION row).
-# 새 Root Cause Execution 을 등록할 때만 의도적으로 올린다.
-CANONICAL_REGISTRY_SHAPE=(394,24)
+# item_role 은 열거값이다. 정본이 늘어나면 여기 추가한다(작업 현황 수치가 아니라 계약이다).
+ITEM_ROLES={'ROOT_CAUSE_EXECUTION','TRACKING'}
 
 OVERALL_STATES={"완료","부분 구현","미구현","미검증","실패","재확인 필요","해당 없음","VERIFICATION_PENDING","BLOCKED_EXTERNAL","NOT_EXECUTED","UNKNOWN"}
+
+def split(value:str)->set:
+    return {x.strip() for x in (value or '').split(',') if x.strip()}
 
 def load(path:Path):
     if not path.is_file(): raise ValueError(f"registry missing: {path}")
@@ -56,19 +58,23 @@ def main()->int:
         print('REQUIREMENT_PROGRESS_GATE=FAIL'); print('REQUIREMENT_PROGRESS_ERROR='+str(e)); return 1
     expected=ns.expected_canonical
     if expected is None:
-        execution=sum(1 for r in rows if (r.get('item_role') or '').strip()=='ROOT_CAUSE_EXECUTION')
-        tracking=sum(1 for r in rows if (r.get('item_role') or '').strip()!='ROOT_CAUSE_EXECUTION')
-        # WP-R16.01/02(ADM mandatory Admin Route Provider Composition, Canonical Config Owner)
-        # 등록으로 Root Cause Execution 이 17 -> 19 가 되었고, 2026-09-03 사용자 Steering 3건
-        # (WP-R17.01 Shell 조립성 / WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목)
-        # 등록으로 19 -> 22 가 되었다.
-        # 2026-09-04 WP-IDENTITY(Identity Namespace / 거래 Header / Runtime Architecture 통합 정정)
-        # 등록으로 23 -> 24 가 되었다. 이 수는 tripwire 다. 새 Root Cause Execution 은 반드시
-        # 여기를 함께 올리게 해서 "등록 없이 늘어나는" 것을 막는다.
-        if (tracking,execution)!=CANONICAL_REGISTRY_SHAPE:
-            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_shape={tracking}+{execution} expected={CANONICAL_REGISTRY_SHAPE[0]}+{CANONICAL_REGISTRY_SHAPE[1]}'); return 1
-        # 총 row 수를 따로 적어 두면 두 상수가 어긋난다. 같은 정본에서 파생시킨다.
-        expected=sum(CANONICAL_REGISTRY_SHAPE)
+        # 작업 현황 row 수는 제품 계약상 고정 cardinality 가 아니라 진행에 따라 늘어나는 값이다.
+        # snapshot 숫자를 코드에 복제하면 (1) WP 를 하나 추가할 때마다 사람이 상수를 올려야 하고,
+        # (2) 그 습관이 "숫자만 올려 PASS 시키는" 경로가 되어 실제 정합성 검사를 대체해 버린다.
+        # 따라서 현재 Registry 자체를 Source of Truth 로 쓰고, 대신 의미적 불변조건을 검사한다.
+        execution=[r for r in rows if (r.get('item_role') or '').strip()=='ROOT_CAUSE_EXECUTION']
+        if not execution:
+            print('REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=no_root_cause_execution_work_item'); return 1
+        roles=Counter((r.get('item_role') or '').strip() for r in rows)
+        unknown=sorted(k for k in roles if k not in ITEM_ROLES)
+        if unknown:
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=invalid_item_role={unknown}'); return 1
+        # Root Cause Execution 은 실행 주체가 자기 자신을 가리켜야 추적이 끊기지 않는다.
+        orphan=sorted(r['work_item_id'] for r in execution
+                      if r['work_item_id'] not in split(r.get('execution_wp_ids') or ''))
+        if orphan:
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=execution_wp_self_reference_missing={orphan[:20]}'); return 1
+        expected=len(rows)
     if len(rows)!=expected:
         print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=current_registry_count={len(rows)} expected={expected}'); return 1
     result={'schema':'CPF_CURRENT_WORK_ITEM_REGISTRY_V1','rows':len(rows),'overall':dict(Counter((r.get('overall_status') or '').strip() for r in rows)),'development':dict(Counter((r.get('developer_status') or '').strip() for r in rows)),'verification':dict(Counter((r.get('verification_status') or '').strip() for r in rows))}

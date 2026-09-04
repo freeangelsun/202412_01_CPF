@@ -122,6 +122,17 @@ public class BackofficeAuthRepository extends BackofficeBaseRepository {
 
     public record BootstrapResult(long adminUserId,String loginId,String operationId,boolean created) {}
 
+    /**
+     * 최초 설치 전인지 판정한다. 이 조회는 singleton bootstrap transaction의 DB lock 안에서만
+     * 사용해야 하며, 일반 운영자 생성 경로가 최초 설치 계약을 우회하지 않게 한다.
+     */
+    public boolean hasAnyOperator() {
+        Number count = jdbc().queryForObject(
+                sql.required("auth-bootstrap-operator-count"),
+                Map.of(), Number.class);
+        return count != null && count.longValue() > 0L;
+    }
+
 
     /** 로그인 operationId와 canonical request fingerprint를 먼저 등록해 동시 재시도를 직렬화합니다. */
     public boolean insertLoginOperation(String idempotencyKey, long adminUserId, String loginId, String requestHash) {

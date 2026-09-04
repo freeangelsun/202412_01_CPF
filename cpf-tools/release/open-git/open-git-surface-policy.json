@@ -249,6 +249,11 @@
       "classification": "OPEN_GIT_USER_CONFIG"
     },
     {
+      "source": "cpf-tools/runtime/cpf-runtime-target-catalog.json",
+      "target": "config/cpf-runtime-target-catalog.json",
+      "classification": "OPEN_GIT_USER_CONFIG"
+    },
+    {
       "source": "cpf-tools/runtime/bootstrap/compose.yaml",
       "target": "deploy/local/compose.yaml",
       "classification": "OPEN_GIT_DEPLOY_ASSET"
@@ -379,6 +384,66 @@
       "target": "gradlew.bat",
       "classification": "OPEN_GIT_BOOTSTRAP",
       "reason": "개발 저장소 wrapper 는 Gradle project-cache/JVM dump 를 cpf-docs/governance/... 로 보낸다. Public 사용자가 Gradle 을 실행하면 checkout 안에 governance 디렉터리가 생기므로 중립 경로 wrapper 를 투영한다."
+    },
+    {
+      "source": "cpf-tools/db/generated/current/mariadb/cpf-platform-schema.sql",
+      "target": "deploy/local/db/platform/mariadb/V1__cpf_platform_schema.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/mariadb/non-table-objects.sql",
+      "target": "deploy/local/db/platform/mariadb/V2__cpf_platform_objects.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/mariadb/cpf-platform-seed.sql",
+      "target": "deploy/local/db/platform/mariadb/20_product_seed.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/mariadb/cpf-platform-verify.sql",
+      "target": "deploy/local/db/platform/mariadb/90_verify.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/oracle/cpf-platform-schema.sql",
+      "target": "deploy/local/db/platform/oracle/V1__cpf_platform_schema.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/oracle/non-table-objects.sql",
+      "target": "deploy/local/db/platform/oracle/V2__cpf_platform_objects.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/oracle/cpf-platform-seed.sql",
+      "target": "deploy/local/db/platform/oracle/20_product_seed.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/oracle/cpf-platform-verify.sql",
+      "target": "deploy/local/db/platform/oracle/90_verify.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/postgresql/cpf-platform-schema.sql",
+      "target": "deploy/local/db/platform/postgresql/V1__cpf_platform_schema.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/postgresql/non-table-objects.sql",
+      "target": "deploy/local/db/platform/postgresql/V2__cpf_platform_objects.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/postgresql/cpf-platform-seed.sql",
+      "target": "deploy/local/db/platform/postgresql/20_product_seed.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/postgresql/cpf-platform-verify.sql",
+      "target": "deploy/local/db/platform/postgresql/90_verify.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
     }
   ],
   "allowedClassifications": [

@@ -4,6 +4,15 @@ import java.security.MessageDigest
 
 plugins { id 'base' }
 
+// Public Workspace 의 cpfTestAll 은 각 Public Source Surface 의 canonical :test 를 호출한다.
+// root 에 base plugin 만 적용하면 :test 가 없어 "Task with path ':test' not found" 로 실패한다.
+// 다중 Project Domain 도 단일 Project Domain 과 같은 진입점을 제공해야 한다.
+tasks.register('test') {
+    group = 'verification'
+    description = '이 Domain 의 모든 하위 Project Test 를 실행합니다.'
+    dependsOn subprojects.collect { "${it.path}:test" }
+}
+
 def cpfResolvedPlatformVersion = providers.environmentVariable('CPF_VERSION')
         .orElse(providers.gradleProperty('cpfPlatformVersion'))
         .get()
@@ -77,22 +86,29 @@ subprojects {
         // Runtime discovery descriptor는 업무 Source가 아니라 Build 산출물로만 생성합니다.
         def generatedDomainDescriptorRoot = layout.buildDirectory.dir('generated/cpf-runtime-descriptor')
         def generatedDomainDescriptor = generatedDomainDescriptorRoot.map { it.file('META-INF/cpf/generated-domain.properties') }
+        // Task.project 를 실행 시점에 만지면 Gradle 9 가 deprecation 을 찍고 Gradle 10 에서는 오류가 된다.
+        // 공개 사용자의 첫 cpfVerify 에 stack trace 가 쏟아지지 않도록 Configuration 시점 값으로 붙잡는다.
+        def cpfProjectKind = project.name
         tasks.register('generateCpfDomainRuntimeDescriptor') {
             inputs.property('domain', cpfDomainName)
             inputs.property('systemCode', cpfDomainSystemCode)
-            inputs.property('kind', project.name)
+            inputs.property('kind', cpfProjectKind)
             inputs.property('scanPackage', cpfDomainPackageName)
             outputs.file(generatedDomainDescriptor)
             doLast {
                 def target = generatedDomainDescriptor.get().asFile
                 target.parentFile.mkdirs()
-                target.setText("domain=${cpfDomainName}\nsystemCode=${cpfDomainSystemCode}\nkind=${project.name}\nscanPackage=${cpfDomainPackageName}\n", 'UTF-8')
+                target.setText("domain=${cpfDomainName}\nsystemCode=${cpfDomainSystemCode}\nkind=${cpfProjectKind}\nscanPackage=${cpfDomainPackageName}\n", 'UTF-8')
             }
         }
         sourceSets.main.resources.srcDir(generatedDomainDescriptorRoot)
         tasks.named('processResources').configure { dependsOn('generateCpfDomainRuntimeDescriptor') }
 
         if (project.name == 'online') {
+        // Task.project 를 실행 시점에 만지면 Gradle 9 가 deprecation 을 찍고 Gradle 10 에서는 오류가 된다.
+        // 공개 사용자의 첫 cpfVerify 에 stack trace 가 쏟아지지 않도록 Configuration 시점 값으로 붙잡는다.
+            def cpfProjectDirPath = project.projectDir.toPath()
+            def cpfProjectPath = project.path
             def manifestRoot = layout.buildDirectory.dir('generated/cpf-operation-manifest')
             def manifestFile = manifestRoot.map { it.file('META-INF/cpf/business-operation-manifest.json') }
             tasks.register('generateCpfBusinessOperationManifest') {
@@ -153,7 +169,7 @@ subprojects {
                                            openApiOperationId:openApiId, httpMethod:httpMethod, apiPath:path,
                                            controllerClass:controllerClass, handlerMethod:handlerMethod,
                                            sourceFingerprint:fingerprint,
-                                           sourcePath:project.projectDir.toPath().relativize(source.toPath()).toString().replace('\\','/')]
+                                           sourcePath:cpfProjectDirPath.relativize(source.toPath()).toString().replace('\\','/')]
                             previousTransactionEnd = txMatcher.end()
                         }
                     }
@@ -164,7 +180,7 @@ subprojects {
                     target.parentFile.mkdirs()
                     target.setText(JsonOutput.prettyPrint(JsonOutput.toJson([
                             schemaVersion:1,
-                            projectPath:project.path,
+                            projectPath:cpfProjectPath,
                             operations:operations
                     ])) + System.lineSeparator(), 'UTF-8')
                 }

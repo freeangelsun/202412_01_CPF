@@ -7,6 +7,24 @@ cpf:
   service-call:
     registry-mode: ${ADM_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}
 
+  # ADM_* 테이블의 정본은 CPF Platform 스키마이며 AdmJdbcConfig 는 CPF_PLATFORM_DB role 로만
+  # DataSource 를 얻는다. 이 선언이 없으면 ADM 을 단독 기동할 때
+  # "CPF DataSource is required for role: CPF_PLATFORM_DB" 로 기동 자체가 실패한다.
+  # 지금까지는 One-WAS 통합 Runtime 이 batch runtime-support 를 통해 이 role 을 켜 주었기 때문에
+  # ADM 단독 기동 경로가 한 번도 성립하지 않았다.
+  data:
+    persistence:
+      jdbc:
+        role-datasources:
+          cpf-platform-db:
+            enabled: true
+            jndi-name: ${ADM_DATASOURCE_JNDI_NAME:}
+            url: ${ADM_DB_URL:${CPF_PLATFORM_DB_URL:${CPF_DB_URL:}}}
+            username: ${ADM_DB_USERNAME:${CPF_PLATFORM_DB_USERNAME:cpf_app}}
+            password: ${ADM_DB_PASSWORD:${CPF_PLATFORM_DB_PASSWORD:}}
+            driver-class-name: ${ADM_DB_DRIVER:${CPF_PLATFORM_DB_DRIVER:${CPF_DB_DRIVER:}}}
+            pool-name: ${ADM_DATASOURCE_POOL_NAME:cpf-admin-platform}
+
   openapi:
     webmvc:
       enabled: ${CPF_OPENAPI_WEBMVC_ENABLED:true}

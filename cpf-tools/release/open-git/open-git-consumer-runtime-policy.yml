@@ -1,0 +1,25 @@
+# CPF Open Git Consumer Runtime 검증 정책 (정본)
+#
+# 운영 시간값을 검증기 소스에 숨기지 않는다. 이 파일이 유일한 정본이며 검증기는 읽기만 한다.
+# 값이 없으면 검증기는 기본값으로 대체하지 않고 fail-closed 로 중단한다.
+#
+# 각 값의 단위는 초(second)다.
+schemaVersion: 1
+policyId: CPF-OPEN-GIT-CONSUMER-RUNTIME
+
+# 살아 있는 endpoint 한 번 확인. 응답이 늦으면 그 자체가 결함이다.
+httpProbeSeconds: 15
+# 기동 대기 중 반복 probe 1회분.
+httpPollSeconds: 5
+# probe 사이 간격.
+httpPollIntervalSeconds: 2
+# Binary 로 배포된 Runtime(ADM)이 준비되기까지의 한도.
+admReadySeconds: 300
+# Source 로 배포된 Runtime(MBW / Backoffice Web)은 Consumer 워크스페이스에서 빌드까지 하므로 더 길다.
+sourceReadySeconds: 600
+# bootstrap 은 prerequisite 확인, DB 기동, 스키마 적용까지 수행하므로 가장 오래 걸린다.
+bootstrapSeconds: 2400
+# 공개 launcher 호출 한도. start 는 빌드를 포함할 수 있어 가장 길다.
+launcherStartSeconds: 1800
+launcherCommandSeconds: 300
+launcherStopSeconds: 600

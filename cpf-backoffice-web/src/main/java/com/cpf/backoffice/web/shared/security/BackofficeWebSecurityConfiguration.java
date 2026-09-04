@@ -23,7 +23,11 @@ public class BackofficeWebSecurityConfiguration {
         csrfRepository.setCookiePath("/");
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/actuator/health/**", "/actuator/info", "/assets/**", "/favicon.ico", "/api/v1/backoffice/auth/**").permitAll()
+                        // SPA 진입 화면과 그 정적 자원은 인증 전에 받아야 로그인 화면을 띄울 수 있다.
+                        // production bundle 은 base=/mbw/ 로 빌드되어 /mbw/assets/** 에 놓인다.
+                        .requestMatchers("/actuator/health/**", "/actuator/info", "/assets/**", "/favicon.ico",
+                                "/mbw", "/mbw/", "/mbw/index.html", "/mbw/assets/**",
+                                "/api/v1/backoffice/auth/**", "/api/v1/backoffice/security/csrf").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new BackofficeCookieAuthenticationFilter(properties), AnonymousAuthenticationFilter.class)
                 // Spring Security 6 기본 handler 는 XorCsrfTokenRequestAttributeHandler 라

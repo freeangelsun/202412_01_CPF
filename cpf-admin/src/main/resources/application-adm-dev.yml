@@ -13,7 +13,6 @@ spring:
 cpf:
   adm:
     integration-closure:
-      enabled: ${CPF_ADM_INTEGRATION_CLOSURE_ENABLED:true}
       ephemeral-providers-enabled: ${CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_ENABLED:true}
       correction-approval-ttl: ${CPF_ADM_INTEGRATION_CLOSURE_APPROVAL_TTL:15m}
   openapi:

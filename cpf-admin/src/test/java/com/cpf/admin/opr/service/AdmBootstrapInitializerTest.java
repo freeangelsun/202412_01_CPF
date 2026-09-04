@@ -1,89 +1,80 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.admin.config.AdmBootstrapProperties;
-import com.cpf.core.api.error.CpfValidationException;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.DefaultApplicationArguments;
-import org.springframework.mock.env.MockEnvironment;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * ADM bootstrap이 기본 비활성, prod 승인, secret 필수 규칙을 지키는지 검증합니다.
- */
+import com.cpf.admin.config.AdmBootstrapProperties;
+import com.cpf.core.api.error.CpfValidationException;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.DefaultApplicationArguments;
+
+/** 모든 profile에서 동일한 ADM 최초 운영자 계약을 유지한다. */
 class AdmBootstrapInitializerTest {
 
     @Test
-    void disabledBootstrapDoesNotCreateOperator() {
-        AdmBootstrapProperties properties = properties(false, null);
+    void existingOperatorSkipsBootstrapWithoutOverwritingCredential() {
         AdmOperatorService operatorService = mock(AdmOperatorService.class);
+        AdmAuditLogService audit = mock(AdmAuditLogService.class);
+        when(operatorService.hasAnyOperator()).thenReturn(true);
 
-        initializer(properties, operatorService, new MockEnvironment()).run(arguments());
+        initializer(properties(), operatorService, audit, "Strong!Password2026").run(arguments());
 
-        verify(operatorService, never()).bootstrapOperator("admin", "CPF 관리자", null);
+        verify(operatorService, never()).bootstrapOperator(any(), any(), any());
+        verify(audit, never()).record(any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
-    void enabledBootstrapRequiresPassword() {
-        AdmBootstrapProperties properties = properties(true, " ");
-
-        assertThatThrownBy(() -> initializer(
-                properties,
-                mock(AdmOperatorService.class),
-                new MockEnvironment()).run(arguments()))
-                .isInstanceOf(CpfValidationException.class)
-                .hasMessageContaining("비밀번호 환경변수");
-    }
-
-    @Test
-    void prodBootstrapRequiresExplicitApproval() {
-        AdmBootstrapProperties properties = properties(true, testPassword());
-        MockEnvironment environment = new MockEnvironment();
-        environment.setActiveProfiles("prod");
-
-        assertThatThrownBy(() -> initializer(
-                properties,
-                mock(AdmOperatorService.class),
-                environment).run(arguments()))
-                .isInstanceOf(CpfValidationException.class)
-                .hasMessageContaining("ALLOW_PROD");
-    }
-
-    @Test
-    void approvedBootstrapDelegatesWithoutLoggingPassword() {
-        String password = testPassword();
-        AdmBootstrapProperties properties = properties(true, password);
+    void freshEnvironmentFailsClosedWithoutSecret() {
         AdmOperatorService operatorService = mock(AdmOperatorService.class);
-        when(operatorService.bootstrapOperator("admin", "CPF 관리자", password)).thenReturn(true);
+        AdmAuditLogService audit = mock(AdmAuditLogService.class);
+        when(operatorService.hasAnyOperator()).thenReturn(false);
 
-        initializer(properties, operatorService, new MockEnvironment()).run(arguments());
+        assertThatThrownBy(() -> initializer(properties(), operatorService, audit, null).run(arguments()))
+                .isInstanceOf(CpfValidationException.class)
+                .hasMessage("ADM_INITIAL_OPERATOR_BOOTSTRAP_SECRET_REQUIRED");
 
-        verify(operatorService).bootstrapOperator("admin", "CPF 관리자", password);
+        verify(operatorService, never()).bootstrapOperator(any(), any(), any());
     }
 
-    private AdmBootstrapInitializer initializer(
+    @Test
+    void freshEnvironmentCreatesAndAuditsInitialOperator() {
+        String password = "Strong!Password2026";
+        AdmOperatorService operatorService = mock(AdmOperatorService.class);
+        AdmAuditLogService audit = mock(AdmAuditLogService.class);
+        when(operatorService.hasAnyOperator()).thenReturn(false, true);
+        when(operatorService.bootstrapOperator("initial-adm", "Initial ADM Operator", password)).thenReturn(true);
+
+        initializer(properties(), operatorService, audit, password).run(arguments());
+
+        verify(operatorService).bootstrapOperator("initial-adm", "Initial ADM Operator", password);
+        verify(audit).record(
+                eq(null), eq("CPF_BOOTSTRAP"), eq("INITIAL_OPERATOR_BOOTSTRAP"), eq("ADM_OPERATOR"),
+                eq("initial-adm"), eq("initial operator bootstrap"), eq(null),
+                eq("{\"result\":\"CREATED\",\"source\":\"CPF_BOOTSTRAP\",\"bootstrapSecretProvided\":true}"),
+                eq(null), eq("CPF_BOOTSTRAP"));
+    }
+
+    private static AdmBootstrapInitializer initializer(
             AdmBootstrapProperties properties,
             AdmOperatorService operatorService,
-            MockEnvironment environment) {
-        return new AdmBootstrapInitializer(properties, operatorService, environment);
+            AdmAuditLogService audit,
+            String password) {
+        return new AdmBootstrapInitializer(properties, operatorService, audit, () -> password);
     }
 
-    private AdmBootstrapProperties properties(boolean enabled, String password) {
+    private static DefaultApplicationArguments arguments() {
+        return new DefaultApplicationArguments();
+    }
+
+    private static AdmBootstrapProperties properties() {
         AdmBootstrapProperties properties = new AdmBootstrapProperties();
-        properties.setEnabled(enabled);
-        properties.setPassword(password);
+        properties.setOperatorId("initial-adm");
+        properties.setOperatorName("Initial ADM Operator");
         return properties;
-    }
-
-    private DefaultApplicationArguments arguments() {
-        return new DefaultApplicationArguments(new String[0]);
-    }
-
-    private String testPassword() {
-        return String.join("", "Bootstrap", "!", "2345Aa");
     }
 }

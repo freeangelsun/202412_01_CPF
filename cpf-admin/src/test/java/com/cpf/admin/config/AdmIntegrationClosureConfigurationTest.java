@@ -24,7 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AdmIntegrationClosureConfigurationTest {
-    private static final String PROOF_KEY = "cpf.adm.integration-closure.approval-proof-key-base64=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withInitializer(context -> context.getEnvironment().setActiveProfiles("local"))
             .withUserConfiguration(
@@ -33,21 +32,18 @@ class AdmIntegrationClosureConfigurationTest {
                     Dependencies.class);
 
     @Test
-    void disabledFeatureDoesNotCreateOperationalBeans() {
+    void mandatoryLocalCompositionCreatesOperationalBeansWithoutAnEnableSwitch() {
         contextRunner.run(context -> {
-            assertThat(context).doesNotHaveBean(AdmIntegrationClosureService.class);
-            assertThat(context).doesNotHaveBean(AdmIntegrationClosureController.class);
-            assertThat(context).doesNotHaveBean(CpfDataQualityOperations.class);
-            assertThat(context).doesNotHaveBean(CpfWebhookOperations.class);
+            assertThat(context).hasSingleBean(AdmIntegrationClosureService.class);
+            assertThat(context).hasSingleBean(AdmIntegrationClosureController.class);
+            assertThat(context).hasSingleBean(CpfDataQualityOperations.class);
+            assertThat(context).hasSingleBean(CpfWebhookOperations.class);
         });
     }
 
     @Test
     void ephemeralLocalModeCreatesSingleDefaultProviderSetAndController() {
-        contextRunner.withPropertyValues(
-                        "cpf.adm.integration-closure.enabled=true",
-                        PROOF_KEY,
-                        "cpf.adm.integration-closure.ephemeral-providers-enabled=true")
+        contextRunner.withPropertyValues("cpf.adm.integration-closure.ephemeral-providers-enabled=true")
                 .run(context -> {
                     assertThat(context).hasSingleBean(CpfDataQualityOperations.class);
                     assertThat(context).hasSingleBean(CpfTimeOperations.class);
@@ -62,9 +58,12 @@ class AdmIntegrationClosureConfigurationTest {
     }
 
     @Test
-    void enabledFeatureFailsClosedWhenRequiredProvidersAreMissing() {
-        contextRunner.withPropertyValues("cpf.adm.integration-closure.enabled=true", PROOF_KEY)
-                .run(context -> assertThat(context).hasFailed());
+    void legacyEnabledFalseCannotRemoveMandatoryOperationalRoutes() {
+        contextRunner.withPropertyValues("cpf.adm.integration-closure.enabled=false")
+                .run(context -> {
+                    assertThat(context).hasSingleBean(AdmIntegrationClosureService.class);
+                    assertThat(context).hasSingleBean(AdmIntegrationClosureController.class);
+                });
     }
 
     @Test
@@ -75,10 +74,7 @@ class AdmIntegrationClosureConfigurationTest {
         contextRunner.withBean("customerQuality", CpfDataQualityOperations.class, () -> customQuality)
                 .withBean("customerCorrection", CpfDataQualityCorrectionPort.class, () -> customCorrection)
                 .withBean("customerWebhook", CpfWebhookOperations.class, () -> customWebhook)
-                .withPropertyValues(
-                        "cpf.adm.integration-closure.enabled=true",
-                        PROOF_KEY,
-                        "cpf.adm.integration-closure.ephemeral-providers-enabled=true")
+                .withPropertyValues("cpf.adm.integration-closure.ephemeral-providers-enabled=true")
                 .run(context -> {
                     assertThat(context.getBean(CpfDataQualityOperations.class)).isSameAs(customQuality);
                     assertThat(context.getBean(CpfWebhookOperations.class)).isSameAs(customWebhook);
@@ -90,10 +86,7 @@ class AdmIntegrationClosureConfigurationTest {
     void partialCustomerQueryProviderFailsClosedInsteadOfCreatingAnUnpairedCorrectionProvider() {
         contextRunner.withBean("customerQuality", CpfDataQualityOperations.class, () -> mock(CpfDataQualityOperations.class))
                 .withBean("customerWebhook", CpfWebhookOperations.class, () -> mock(CpfWebhookOperations.class))
-                .withPropertyValues(
-                        "cpf.adm.integration-closure.enabled=true",
-                        PROOF_KEY,
-                        "cpf.adm.integration-closure.ephemeral-providers-enabled=true")
+                .withPropertyValues("cpf.adm.integration-closure.ephemeral-providers-enabled=true")
                 .run(context -> assertThat(context).hasFailed());
     }
 
@@ -101,10 +94,7 @@ class AdmIntegrationClosureConfigurationTest {
     void partialCustomerCorrectionProviderFailsClosedInsteadOfCreatingADuplicateCorrectionProvider() {
         contextRunner.withBean("customerCorrection", CpfDataQualityCorrectionPort.class, () -> mock(CpfDataQualityCorrectionPort.class))
                 .withBean("customerWebhook", CpfWebhookOperations.class, () -> mock(CpfWebhookOperations.class))
-                .withPropertyValues(
-                        "cpf.adm.integration-closure.enabled=true",
-                        PROOF_KEY,
-                        "cpf.adm.integration-closure.ephemeral-providers-enabled=true")
+                .withPropertyValues("cpf.adm.integration-closure.ephemeral-providers-enabled=true")
                 .run(context -> assertThat(context).hasFailed());
     }
 
@@ -114,7 +104,6 @@ class AdmIntegrationClosureConfigurationTest {
                 .withBean("qualityTwo", CpfDataQualityOperations.class, () -> mock(CpfDataQualityOperations.class))
                 .withBean("correction", CpfDataQualityCorrectionPort.class, () -> mock(CpfDataQualityCorrectionPort.class))
                 .withBean("webhook", CpfWebhookOperations.class, () -> mock(CpfWebhookOperations.class))
-                .withPropertyValues("cpf.adm.integration-closure.enabled=true", PROOF_KEY)
                 .run(context -> assertThat(context).hasFailed());
     }
 
@@ -123,10 +112,7 @@ class AdmIntegrationClosureConfigurationTest {
         CpfCryptoOperations customCrypto = mock(CpfCryptoOperations.class);
         when(customCrypto.activeKeyVersion()).thenReturn("kms-v9");
         contextRunner.withBean(CpfCryptoOperations.class, () -> customCrypto)
-                .withPropertyValues(
-                        "cpf.adm.integration-closure.enabled=true",
-                        PROOF_KEY,
-                        "cpf.adm.integration-closure.ephemeral-providers-enabled=true")
+                .withPropertyValues("cpf.adm.integration-closure.ephemeral-providers-enabled=true")
                 .run(context -> assertThat(context.getBean(AdmIntegrationClosureService.class).cryptoStatus())
                         .containsEntry("configured", true)
                         .containsEntry("activeKeyVersion", "kms-v9")
@@ -136,8 +122,6 @@ class AdmIntegrationClosureConfigurationTest {
     @Test
     void localJceCryptoFailsClosedWhenEnabledWithoutExternalKey() {
         contextRunner.withPropertyValues(
-                        "cpf.adm.integration-closure.enabled=true",
-                        PROOF_KEY,
                         "cpf.adm.integration-closure.ephemeral-providers-enabled=true",
                         "cpf.adm.integration-closure.crypto.enabled=true")
                 .run(context -> assertThat(context).hasFailed());

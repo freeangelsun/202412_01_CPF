@@ -17,6 +17,16 @@ BUILD_SPEC=importlib.util.spec_from_file_location('cpf_cli_builder_contract',BUI
 BUILD_MODULE=importlib.util.module_from_spec(BUILD_SPEC); assert BUILD_SPEC and BUILD_SPEC.loader; BUILD_SPEC.loader.exec_module(BUILD_MODULE)
 
 
+def _public_bootstrap_version_is_canonical(source: str) -> bool:
+    """Public Workspace version은 config 소유이고 환경변수는 일치 검증만 한다."""
+    return (
+        'String version = workspace.getProperty("cpf.version", "").trim();' in source
+        and 'String suppliedVersion = System.getenv("CPF_VERSION");' in source
+        and 'CPF_VERSION does not match canonical config/cpf-workspace.properties cpf.version' in source
+        and 'envOrProperty("CPF_VERSION", "cpf.version", "")' not in source
+    )
+
+
 def _is_command(cmd:list[object], executable:str)->bool:
     """Match Windows .exe and POSIX executable names through one contract helper."""
     actual=str(cmd[0]).replace('\\','/').rsplit('/',1)[-1].casefold()
@@ -80,6 +90,48 @@ def test_cli_command_surface_contains_required_lifecycle_and_utf8_contract():
     assert 'case "db-render" -> generator' in text
     assert 'builder.environment().put("PYTHONUTF8", "1")' in text
     assert 'builder.environment().put("PYTHONIOENCODING", "utf-8")' in text
+
+
+def test_public_windows_gradle_wrapper_is_ascii_safe_for_cmd_parser():
+    wrapper=(ROOT/'cpf-tools/release/open-git/templates/gradlew.bat').read_text(encoding='utf-8')
+    assert wrapper.isascii()
+    assert 'project-cache-dir' in wrapper
+    assert '-PcpfManagedGradleRoot=%CPF_MANAGED_GRADLE_ROOT%' in wrapper
+
+
+def test_public_bootstrap_rejects_ambient_version_override_with_negative_mutation():
+    """Release가 만든 immutable workspace version을 상위 개발 Shell이 바꾸면 안 된다.
+
+    실제 Finding은 ambient `CPF_VERSION=...-SNAPSHOT`이 Fresh Open Git의 `cpf.version=1.0.0`을
+    덮어 존재하지 않는 BOM/test classpath를 선택한 것이었다. source만 고치고 다시 같은
+    precedence를 넣는 회귀를 막기 위해 old implementation 자체를 negative mutation으로 판정한다.
+    """
+    bootstrap=(ROOT/'cpf-tools/runtime/bootstrap/CpfBootstrap.java').read_text(encoding='utf-8')
+    assert _public_bootstrap_version_is_canonical(bootstrap)
+    legacy=bootstrap.replace(
+        'String version = workspace.getProperty("cpf.version", "").trim();',
+        'String version = envOrProperty("CPF_VERSION", "cpf.version", "").trim();',
+        1)
+    assert not _public_bootstrap_version_is_canonical(legacy)
+
+    workspace_template=(ROOT/'cpf-tools/release/public/templates/config/cpf-workspace.properties').read_text(encoding='utf-8')
+    assert 'cpf.version=' in workspace_template
+    assert 'CPF_VERSION은 이 값과의 일치 검증' in workspace_template
+
+
+def test_local_bootstrap_reconciles_existing_vendor_role_credentials_before_runtime():
+    """Local container volume 재사용은 기존 role password를 유지하면 안 된다.
+
+    이전 구현은 CREATE USER/ROLE IF NOT EXISTS만 수행했다. 새 local secret을 만든 후에도
+    기존 credential이 남아 ADM/MBW Runtime JDBC가 password authentication failed로 죽는
+    결함을 재발시키므로, 세 Vendor 모두 explicit reconciliation이 필수다.
+    """
+    bootstrap=(ROOT/'cpf-tools/runtime/bootstrap/CpfBootstrap.java').read_text(encoding='utf-8')
+    assert "ALTER ROLE %I LOGIN PASSWORD %L" in bootstrap
+    assert "ALTER USER '" in bootstrap and "'@'%' IDENTIFIED BY '" in bootstrap
+    assert 'ALTER USER "+migration+" IDENTIFIED BY' in bootstrap
+    legacy=bootstrap.replace("ALTER ROLE %I LOGIN PASSWORD %L", "ALTER ROLE_REMOVED")
+    assert "ALTER ROLE %I LOGIN PASSWORD %L" not in legacy
 
 
 def test_production_cli_build_rejects_non_java25_before_compile(tmp_path:Path, monkeypatch):

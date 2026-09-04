@@ -11,9 +11,10 @@ backoffice:
     mode: ${MBW_WEB_MODE:GATEWAY}
     gateway-base-uri: ${MBW_GATEWAY_BASE_URI:http://127.0.0.1:8080}
     direct-base-uri: ${MBW_DIRECT_BASE_URI:http://127.0.0.1:8082}
-    caller-system-code: ${MBW_WEB_SYSTEM_CODE:MBW}
-    target-system-code: ${MBW_TARGET_SYSTEM_CODE:MBW}
-    caller-channel: ${MBW_WEB_CHANNEL:MBW}
+    # Backoffice Web은 Channel Front이며 자기 SystemCode가 없다. MBW는 이 Channel이
+    # 최초 기동하는 업무 transaction의 canonical target/original Business System이다.
+    target-system-code: MBW
+    channel-code: MBW
     connect-timeout: ${MBW_CONNECT_TIMEOUT:3s}
     request-timeout: ${MBW_REQUEST_TIMEOUT:10s}
     access-cookie-name: ${MBW_ACCESS_COOKIE_NAME:CPF_MBW_ACCESS}

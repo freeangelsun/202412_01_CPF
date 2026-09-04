@@ -50,6 +50,7 @@ ACTIVE_LOG_FILE: Path | None = None
 ACTIVE_STAGE_NO = 0
 ACTIVE_STAGE_LABEL = "초기화"
 BUILD_STAGE_TOTAL = 14
+GENERATOR_LINUX_BUILD_IMAGE = "python:3.13-slim"
 
 
 def release_stage(index: int, label: str, detail: str = "") -> None:
@@ -76,6 +77,8 @@ def recovery_hint(message: str) -> str:
         return "Java 25를 선택한 뒤 java -version을 확인하고 같은 명령을 다시 실행하세요."
     if "binary repository" in lower:
         return "Binary publication 로그와 OPEN_GIT_BINARY_VERIFY_RESULT를 확인한 뒤 누락 Artifact를 정식 Publication에서 수정하세요."
+    if "generator distribution" in lower or "required classifier" in lower or "generator matrix" in lower:
+        return "Windows 실행은 Docker Linux engine으로 linux-x64 Generator를 실제 생성합니다. Docker Desktop Linux/amd64 또는 완전한 --generator-artifacts matrix를 확인한 뒤 다시 실행하세요."
     if "secret" in lower or "leakage" in lower or "forbidden" in lower:
         return "공개 Surface/Artifact Policy를 확인하고 비공개 Source/Secret을 제거한 뒤 다시 생성하세요. Gate를 완화하지 마세요."
     if "clone" in lower or "git diff" in lower:
@@ -933,6 +936,19 @@ def verify_public_launcher_parity(open_git: Path) -> None:
     if missing:
         raise OpenGitReleaseError(f"public runtime launcher missing: {missing}")
 
+    # 파일이 있는 것과 문서대로 동작하는 것은 다르다. Target 을 받는 lifecycle launcher 는
+    # PowerShell 사용자가 기대하는 -Target 을 실제로 받아 정본 CLI 의 --target 으로 넘겨야 한다.
+    # 이 변환이 없으면 README 를 그대로 복사한 명령이 'target is required' 로 실패한다.
+    target_aware = sorted(required - {"cpf-help"})
+    broken: list[str] = []
+    for name in target_aware:
+        text = (bin_dir / f"{name}.ps1").read_text(encoding="utf-8")
+        if "$Target" not in text or "--target" not in text:
+            broken.append(f"{name}.ps1")
+    if broken:
+        raise OpenGitReleaseError(
+            f"public PowerShell launcher does not accept -Target and forward --target: {broken}")
+
 
 def verify_public_readme(open_git: Path) -> None:
     """README 는 checkout 만으로 실행 가능한 Golden Path 를 제시해야 한다."""
@@ -945,6 +961,205 @@ def verify_public_readme(open_git: Path) -> None:
         if not (open_git / reference).exists():
             raise OpenGitReleaseError(f"README references a missing document: {reference}")
 
+    # 사용자는 README 를 그대로 복사해서 ADM 과 MBW/Backoffice Web 을 띄울 수 있어야 한다.
+    # Runtime 이 배포되어 있어도 진입 방법이 문서에 없으면 실행 가능한 배포가 아니다.
+    # Target/기동 URL 은 Runtime Target Catalog 에서 파생해 확인한다(문서에 목록을 복제하지 않는다).
+    catalog_path = open_git / "config/cpf-runtime-target-catalog.json"
+    if catalog_path.is_file():
+        catalog = load_json(catalog_path)
+        ports = {str(entry.get("target")): entry for entry in catalog.get("runtimes", [])}
+        missing_doc: list[str] = []
+        for name in ("admin", "backoffice", "backoffice-web"):
+            entry = ports.get(name) or {}
+            if f"--target {name}" not in text and f"-Target {name}" not in text:
+                missing_doc.append(f"{name}:launcher")
+            port = entry.get("port")
+            if port is not None and str(port) not in text:
+                missing_doc.append(f"{name}:port{port}")
+            port_env = entry.get("portEnv")
+            if port_env and port_env not in text:
+                missing_doc.append(f"{name}:{port_env}")
+        for key in (
+                "CPF_ADM_BOOTSTRAP_OPERATOR_ID", "CPF_ADM_BOOTSTRAP_OPERATOR_NAME",
+                "CPF_ADM_BOOTSTRAP_PASSWORD", "CPF_MBW_INITIAL_OPERATOR_LOGIN_ID",
+                "CPF_MBW_INITIAL_OPERATOR_NAME", "CPF_MBW_INITIAL_OPERATOR_ROLE_CODE",
+                "CPF_MBW_BOOTSTRAP_PASSWORD", "CPF_MBW_JWT_SECRET"):
+            if key not in text:
+                missing_doc.append("initial-operator:" + key)
+        if missing_doc:
+            raise OpenGitReleaseError(
+                "README does not document how a consumer runs the published runtimes: "
+                + ", ".join(missing_doc))
+
+
+PRODUCT_SURFACE_POLICY_REL = Path("cpf-tools/governance/cpf-product-surface-policy.json")
+
+# Development Master 전용 Publisher Task. 공개 Consumer 가 또 다른 공개 Release 를 만들게 하지 않는다.
+PUBLISHER_TASK_PREFIX = "cpfOpenGit"
+
+
+def public_distribution_surfaces(root: Path) -> tuple[dict[str, dict], list[dict]]:
+    policy = load_json(root / PRODUCT_SURFACE_POLICY_REL)
+    surfaces = policy.get("publicDistributionSurfaces")
+    owners = policy.get("moduleOwners")
+    if not isinstance(surfaces, dict) or not surfaces or not isinstance(owners, list) or not owners:
+        raise OpenGitReleaseError(
+            "cpf-product-surface-policy.json must declare publicDistributionSurfaces and moduleOwners")
+    unclassified = [str(entry.get("prefix")) for entry in owners
+                    if not entry.get("publicDistributionSurface")]
+    if unclassified:
+        # 분류가 없으면 그 Component 를 공개해도 되는지 알 수 없다. 추측하지 않고 멈춘다.
+        raise OpenGitReleaseError(
+            f"component without publicDistributionSurface (fail-closed): {sorted(unclassified)}")
+    return surfaces, owners
+
+
+def verify_public_boundary_graph(root: Path, open_git: Path) -> dict[str, Any]:
+    """공개 Release 의 Source/Project/Task graph 가 Public Boundary 를 지키는지 검사한다.
+
+    파일 경로만 보지 않는다. private Component 의 Source 가 없어도 Gradle included build /
+    project path / task 이름이 공개되어 있으면 Architecture Leakage 다.
+    Build/Test 는 Source 를 공개하는 Surface 에만 존재해야 하고, Binary-only Platform Component 는
+    실행만 가능해야 한다.
+    """
+    surfaces, owners = public_distribution_surfaces(root)
+    settings = open_git / "settings.gradle"
+    build_file = open_git / "build.gradle"
+    settings_text = settings.read_text(encoding="utf-8") if settings.is_file() else ""
+    build_text = build_file.read_text(encoding="utf-8") if build_file.is_file() else ""
+    combined = settings_text + "\n" + build_text
+
+    findings: list[str] = []
+
+    # 1) Publisher Task 는 Development Master 전용이다.
+    if PUBLISHER_TASK_PREFIX in combined:
+        findings.append(f"publisher task graph leaked: {PUBLISHER_TASK_PREFIX}*")
+
+    # 2) Source 를 공개하지 않는 Component 는 Source Root / includedBuild / project path 가 없어야 한다.
+    for entry in owners:
+        prefix = str(entry.get("prefix", "")).rstrip("/")
+        surface = str(entry.get("publicDistributionSurface"))
+        spec = surfaces.get(surface, {})
+        if not prefix or bool(spec.get("publishesSource")):
+            continue
+        # 문서 표면은 Gradle Component graph 가 아니다. 무엇이 공개되는지는 문서 Allowlist 가 정한다.
+        if not spec.get("componentGraph", True):
+            continue
+        root_segment = prefix.split("/", 1)[0]
+        if not root_segment.startswith("cpf-"):
+            continue  # gradle/, deploy/, .github/ 같은 공용 인프라 경로는 Component graph 가 아니다
+        if (open_git / root_segment).exists():
+            findings.append(f"{surface}:{root_segment}: private source root present")
+        for pattern in (f"includeBuild('{root_segment}')", f'includeBuild("{root_segment}")',
+                        f"include ':{root_segment}'", f'include ":{root_segment}"'):
+            if pattern in combined:
+                findings.append(f"{surface}:{root_segment}: gradle graph entry present")
+
+    if findings:
+        raise OpenGitReleaseError(
+            "public distribution boundary violated (source/project/task graph): "
+            + ", ".join(sorted(set(findings))))
+
+    buildable = sorted({str(entry.get("prefix", "")).rstrip("/").split("/", 1)[0]
+                        for entry in owners
+                        if surfaces.get(str(entry.get("publicDistributionSurface")), {}).get("publishesSource")})
+    return {"publisherTasksPresent": False, "publicSourceSurfaces": buildable}
+
+
+def verify_public_consumer_runtime_surface(open_git: Path) -> dict[str, Any]:
+    """공개 Consumer 가 실제로 Runtime 을 기동할 수 있는지 판정한다.
+
+    Binary Repository 와 Generator 만 PASS 하고 사용자 실행경로가 끊겨 있으면 Release 가 아니다.
+    실제로 다음이 동시에 성립해야 한다.
+
+    - 공개 checkout 이 Runtime Target Catalog 를 갖는다(정본은 cpf-tools/ 아래라 공개되지 않으므로
+      config/ 로 투영된다). 없으면 `cpf runtime targets` 자체가 실패한다.
+    - Consumer 가 기동해야 하는 Runtime 이 Catalog 에 있고, 그 실행물이 실제로 공급된다.
+      provision=binary 는 Binary Repository 의 artifactId 좌표로, provision=source 는 checkout 의
+      Source 로 공급된다.
+    """
+    catalog_path = open_git / "config/cpf-runtime-target-catalog.json"
+    if not catalog_path.is_file():
+        raise OpenGitReleaseError(
+            "public Runtime Target Catalog missing: config/cpf-runtime-target-catalog.json")
+    catalog = load_json(catalog_path)
+    runtimes = {str(entry.get("target")): entry for entry in catalog.get("runtimes", [])}
+
+    # 공개 Consumer 의 필수 실행 표면. ADM 은 Platform 운영 콘솔이고, Backoffice Web 은 ADM 이
+    # 아니라 MBW Channel Front 이므로 MBW 와 함께 실행 가능해야 한다.
+    required_targets = ("admin", "backoffice", "backoffice-web")
+    missing = [name for name in required_targets if name not in runtimes]
+    if missing:
+        raise OpenGitReleaseError(f"public consumer runtime target missing from catalog: {missing}")
+
+    unavailable: list[str] = []
+    for name in required_targets:
+        entry = runtimes[name]
+        provision = str(entry.get("provision") or "")
+        if provision == "binary":
+            artifact_id = str(entry.get("artifactId") or "")
+            if not artifact_id:
+                raise OpenGitReleaseError(f"runtime target has no canonical artifactId: {name}")
+            base = open_git / "binary-repository/com/cpf/runtime" / artifact_id
+            jars = sorted(base.glob("*/*.jar")) if base.is_dir() else []
+            if not jars:
+                unavailable.append(f"{name}(binary:{artifact_id})")
+        else:
+            owner = open_git / str(entry.get("owner") or "")
+            if not owner.is_dir():
+                unavailable.append(f"{name}(source:{entry.get('owner')})")
+    if unavailable:
+        raise OpenGitReleaseError(
+            "public consumer cannot run required runtimes; artifact/source not published: "
+            + ", ".join(unavailable))
+
+    # Workspace 기본 버전은 실제로 발행된 좌표를 가리켜야 한다. 개발 SNAPSHOT 이 남아 있으면
+    # Fresh Consumer 의 첫 bootstrap 이 존재하지 않는 artifact 를 찾다가 실패한다.
+    config = open_git / "config/cpf-workspace.properties"
+    if not config.is_file():
+        raise OpenGitReleaseError("public workspace config missing: config/cpf-workspace.properties")
+    declared = ""
+    for line in config.read_text(encoding="utf-8-sig").splitlines():
+        if line.strip().startswith("cpf.version="):
+            declared = line.split("=", 1)[1].strip()
+    if not declared:
+        raise OpenGitReleaseError("public workspace config declares no cpf.version")
+    bom = open_git / "binary-repository/com/cpf/cpf-platform-bom" / declared
+    if not bom.is_dir():
+        published = sorted(
+            child.name for child in (open_git / "binary-repository/com/cpf/cpf-platform-bom").iterdir()
+            if child.is_dir()) if (open_git / "binary-repository/com/cpf/cpf-platform-bom").is_dir() else []
+        raise OpenGitReleaseError(
+            f"public workspace cpf.version={declared} is not published in the bundled repository; "
+            f"published={published}")
+    # 실행 가능과 빌드 가능은 다른 권한이다. Binary 로 공급되는 Runtime(ADM/Gateway/Batch 등)은
+    # 공개 배포본에서 기동만 되어야 하고, 그 Source/빌드 Task 는 나가면 안 된다.
+    # includedBuild 는 settings.gradle 이 Domain 계약과 지정 Component 로만 구성하므로,
+    # Source Root 가 없으면 빌드 Task 자체가 생기지 않는다. 그 사실을 계약으로 고정한다.
+    settings = open_git / "settings.gradle"
+    settings_text = settings.read_text(encoding="utf-8") if settings.is_file() else ""
+    buildable_leak: list[str] = []
+    for name, entry in runtimes.items():
+        if str(entry.get("provision") or "") != "binary":
+            continue
+        owner = str(entry.get("owner") or "").strip()
+        if not owner:
+            continue
+        root_segment = owner.split("/", 1)[0]
+        if (open_git / root_segment).exists():
+            buildable_leak.append(f"{name}:source={root_segment}")
+        if f"includeBuild('{root_segment}')" in settings_text or f'includeBuild("{root_segment}")' in settings_text:
+            buildable_leak.append(f"{name}:includeBuild={root_segment}")
+    if buildable_leak:
+        raise OpenGitReleaseError(
+            "binary-provisioned runtimes must be runnable but not buildable in the public distribution: "
+            + ", ".join(sorted(set(buildable_leak))))
+
+    return {"requiredTargets": list(required_targets), "catalog": str(catalog_path),
+            "workspaceVersion": declared,
+            "binaryOnlyRuntimes": sorted(name for name, entry in runtimes.items()
+                                         if str(entry.get("provision") or "") == "binary")}
+
 
 def verify_open_git_tree(root: Path, open_git: Path, profile: str = "binary") -> dict[str, Any]:
     # Public Product Distribution 필수 구성. Binary 만 있고 실행/문서가 없으면 Release 가 아니다.
@@ -954,6 +1169,8 @@ def verify_open_git_tree(root: Path, open_git: Path, profile: str = "binary") ->
         raise OpenGitReleaseError(f"Open Git required paths missing: {missing}")
     verify_public_binary_repository_tree(open_git / BINARY_DIR_NAME)
     verify_public_launcher_parity(open_git)
+    verify_public_boundary_graph(root, open_git)
+    verify_public_consumer_runtime_surface(open_git)
     verify_public_readme(open_git)
     forbidden_roots = ["cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin", "cpf-batch", "cpf-gateway", "cpf-starters", "cpf-tools"]
     leaked = [name for name in forbidden_roots if (open_git / name).exists()]
@@ -1126,6 +1343,79 @@ def _legacy_backend(root: Path):
     return load_module(root / LEGACY_PUBLIC_REL / "publish-cpf-public-repository.py", "cpf_legacy_public_release_backend")
 
 
+def _is_windows_host() -> bool:
+    return os.name == "nt"
+
+
+def _valid_generator_distribution(backend: Any, directory: Path | None, version: str, classifier: str) -> bool:
+    """Return whether *directory* contains the publisher-validated classifier.
+
+    Stage 6 must consume the same checksum/manifest validation as the public
+    publisher.  A file name alone is not a matrix artifact and must never cause
+    a cross-OS classifier to be accepted.
+    """
+    if directory is None or not directory.is_dir():
+        return False
+    try:
+        backend._verify_generator_distribution(directory, version, classifier)
+        return True
+    except backend.PublishError:
+        return False
+
+
+def prepare_generator_matrix(root: Path, work: Path, version: str, backend: Any,
+                             supplied_artifacts: Path | None) -> Path | None:
+    """Prepare the missing Linux side of the required native generator matrix.
+
+    A Windows release host can produce its own windows-x64 binary natively.  It
+    cannot truthfully relabel that executable as linux-x64, so when a validated
+    Linux artifact was not supplied by CI this function performs a real
+    PyInstaller build inside Docker's Linux/amd64 engine.  The result remains
+    inside the fresh ``cpf-release/work`` tree and is re-validated by the public
+    publisher before it is copied to the repository.
+
+    Linux hosts still require a validated windows-x64 artifact from their CI
+    matrix; this function deliberately never fabricates the opposite OS binary.
+    """
+    supplied = supplied_artifacts.resolve() if supplied_artifacts is not None else None
+    if supplied is not None and not supplied.is_dir():
+        raise OpenGitReleaseError(f"generator artifact directory does not exist: {supplied}")
+
+    if not _is_windows_host() or _valid_generator_distribution(backend, supplied, version, "linux-x64"):
+        return supplied
+
+    docker = shutil.which("docker")
+    if not docker:
+        raise OpenGitReleaseError(
+            "generator matrix requires a validated linux-x64 artifact or Docker Desktop Linux/amd64 on Windows")
+
+    docker_platform = run([docker, "version", "--format", "{{.Server.Os}}/{{.Server.Arch}}"], root, capture=True)
+    if docker_platform.strip().lower() != "linux/amd64":
+        raise OpenGitReleaseError(
+            f"generator matrix requires Docker Linux/amd64, actual={docker_platform.strip() or 'UNKNOWN'}")
+
+    matrix = work / "generator-linux-matrix"
+    matrix.mkdir(parents=True, exist_ok=False)
+    source_mount = f"type=bind,src={root},dst=/src,readonly"
+    output_mount = f"type=bind,src={matrix},dst=/out"
+    container_command = (
+        "apt-get update && apt-get install --yes --no-install-recommends binutils && "
+        "rm -rf /var/lib/apt/lists/* && "
+        "python -m pip install --disable-pip-version-check -r "
+        "cpf-tools/generator/distribution/requirements.txt && "
+        "python cpf-tools/generator/distribution/build-cpf-generator-binary.py "
+        "--root /src --output /out --version " + version
+    )
+    print("[CPF][OPEN-GIT][진행] 06/14 Generator Windows/Linux 배포본 생성 - Docker Linux/amd64 native artifact build", flush=True)
+    run([
+        docker, "run", "--rm", "--workdir", "/src", "--mount", source_mount, "--mount", output_mount,
+        GENERATOR_LINUX_BUILD_IMAGE, "sh", "-lc", container_command,
+    ], root)
+    if not _valid_generator_distribution(backend, matrix, version, "linux-x64"):
+        raise OpenGitReleaseError("Docker Linux generator build completed without a valid linux-x64 matrix artifact")
+    return matrix
+
+
 def build_cross_platform_cli(root: Path, staging: Path, source_identity: str, version: str) -> dict[str, Any]:
     """Build the single Java CPF CLI implementation into the Open Git workspace.
 
@@ -1218,12 +1508,34 @@ def verify_cross_platform_cli(open_git: Path, expected_source_identity: str | No
     return {"status": "PASS", "requiredFiles": len(required), "javaExecution": "PASS" if version_result is not None else "NOT_EXECUTED", "sourceLeakage": 0}
 
 
+def currentize_public_workspace_version(staging: Path, public_version: str) -> None:
+    """공개 workspace 기본 버전을 실제 발행 버전으로 맞춘다.
+
+    Binary Repository 는 immutable Public version 으로 발행되는데 workspace 기본값이 개발
+    SNAPSHOT 으로 남아 있으면, Fresh Consumer 의 bootstrap 이 존재하지 않는 좌표를 찾는다
+    (`cpf-platform-bom-<dev>.pom` missing). 템플릿에 버전을 적어두지 않고 발행 시점에 맞춘다.
+    """
+    config = staging / "config/cpf-workspace.properties"
+    if not config.is_file():
+        raise OpenGitReleaseError(f"public workspace config missing: {config}")
+    text = config.read_text(encoding="utf-8-sig")
+    line = f"cpf.version={public_version}"
+    if re.search(r"(?m)^cpf[.]version=.*$", text):
+        text = re.sub(r"(?m)^cpf[.]version=.*$", line, text)
+    else:
+        text = text.rstrip() + "\n" + line + "\n"
+    config.write_text(text, encoding="utf-8", newline="\n")
+
+
 def _prepare_workspace(root: Path, staging: Path, source_identity: str, env: dict[str, str]) -> dict[str, Any]:
     prepare = root / LEGACY_PUBLIC_REL / "prepare-cpf-public-workspace.py"
     policy = root / SURFACE_POLICY_REL
+    # 공개 배포본은 ADM 뿐 아니라 MBW(Backoffice Domain)와 그 Channel Front(Backoffice Web)까지
+    # 실제로 기동할 수 있어야 한다. backoffice 를 빼고 배포하면 Binary/Generator 는 PASS 인데
+    # 사용자 실행경로가 끊긴 False Green 이 된다(WP-R07.17 Consumer Runtime Surface).
     run([
         sys.executable, "-B", str(prepare), "--root", str(root), "--staging", str(staging),
-        "--policy", str(policy), "--source-identity", source_identity
+        "--policy", str(policy), "--source-identity", source_identity, "--include-backoffice"
     ], root, env=env)
     ready = load_json(staging / ".cpf-public/READY.json")
     if ready.get("status") != "PASS":
@@ -1274,8 +1586,11 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     backend.private_build_and_publication(root, raw_repo, version)
 
     release_stage(6, "Generator Windows/Linux 배포본 생성", "Windows/Linux 공개 Generator 산출물")
+    generator_matrix = prepare_generator_matrix(
+        root, work, version, backend, Path(generator_artifacts) if generator_artifacts else None
+    )
     generator_result = backend.publish_generator_distributions(
-        root, raw_repo, version, Path(generator_artifacts).resolve() if generator_artifacts else None
+        root, raw_repo, version, generator_matrix
     )
 
     release_stage(7, "원본 Binary Repository 검증", "Publication closure")
@@ -1299,6 +1614,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     # Fresh Consumer 는 bundled Public Binary Repository 를 쓰므로 immutable Public version 을 본다.
     env["CPF_VERSION"] = public_release_version(version)
     ready = _prepare_workspace(root, staging, source_identity, env)
+    currentize_public_workspace_version(staging, public_release_version(version))
     cli_result = build_cross_platform_cli(root, staging, source_identity, version)
     bundled_result = bundle_public_binary_repository(final_repo, staging)
     env["CPF_MAVEN_REPOSITORY_URL"] = (staging / BINARY_DIR_NAME).resolve().as_uri()
@@ -1388,6 +1704,44 @@ def check_release(root: Path, profile: str = "binary") -> dict[str, Any]:
     binary_result = verify_binary_repository(root, binary, version, profile)
     result = {"status": "PASS", "releaseProfile": profile, "openGit": open_result, "binaryRepository": binary_result, "commitExecuted": False, "pushExecuted": False}
     print(json.dumps(result, ensure_ascii=False))
+    return result
+
+
+def consumer_runtime_release(root: Path) -> dict[str, Any]:
+    """Fresh Consumer 가 공개 진입점만으로 ADM 과 MBW/Backoffice Web 을 실제 기동하는지 검증한다.
+
+    구조 검증(verify_open_git_tree)은 "실행물과 진입점이 배포됐는가"까지만 본다.
+    실제로 화면이 뜨고 거래가 되는지는 이 단계에서만 드러난다.
+    """
+    root = ensure_private_root(root)
+    release = verify_release_root_safety(root, require_ignore=False)
+    open_git = release / OPEN_GIT_DIR_NAME
+    if not open_git.is_dir():
+        raise OpenGitReleaseError("Open Git checkout does not exist. Run build first.")
+    verifier = root / TOOL_REL / "verify_open_git_consumer_runtime.py"
+    if not verifier.is_file():
+        raise OpenGitReleaseError(f"consumer runtime verifier missing: {verifier}")
+    reports = release / REPORTS_DIR_NAME
+    reports.mkdir(parents=True, exist_ok=True)
+    result_path = reports / "OPEN_GIT_CONSUMER_RUNTIME.json"
+    # 최초 운영자/JWT secret은 명령줄이 아니라 verifier 자식 환경으로만 전달한다. 값은
+    # result/evidence에 기록하지 않는다. Fresh Consumer가 실제 로그인까지 하는 데 필요한
+    # 모든 contract input을 여기서 fail-closed로 확인한다.
+    required_environment = (
+        "CPF_ADM_BOOTSTRAP_PASSWORD", "CPF_ADM_BOOTSTRAP_OPERATOR_ID", "CPF_ADM_BOOTSTRAP_OPERATOR_NAME",
+        "CPF_MBW_BOOTSTRAP_PASSWORD", "CPF_MBW_INITIAL_OPERATOR_LOGIN_ID",
+        "CPF_MBW_INITIAL_OPERATOR_NAME", "CPF_MBW_INITIAL_OPERATOR_ROLE_CODE", "CPF_MBW_JWT_SECRET",
+    )
+    missing_environment = [key for key in required_environment if not os.environ.get(key)]
+    if missing_environment:
+        raise OpenGitReleaseError(
+            "Fresh Consumer Runtime verification requires process-environment inputs: "
+            + ", ".join(missing_environment))
+    run([sys.executable, "-B", str(verifier), "--checkout", str(open_git),
+         "--result", str(result_path)], root)
+    result = load_json(result_path)
+    if result.get("status") != "PASS":
+        raise OpenGitReleaseError(f"Open Git consumer runtime verification failed: {result.get('message')}")
     return result
 
 
@@ -1688,7 +2042,7 @@ def push_release(root: Path, *, approved: bool) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="CPF Open Git release packaging")
     parser.add_argument("action", nargs="?", default="build",
-                        choices=("build", "check", "status", "setup", "commit", "push"))
+                        choices=("build", "check", "consumer-runtime", "status", "setup", "commit", "push"))
     # Git Write 는 명시적 승인 없이는 절대 수행하지 않는다(Harness §29.3).
     parser.add_argument("--confirm-git-write", action="store_true",
                         help="Open Git Commit/Push 를 명시적으로 승인합니다.")
@@ -1704,6 +2058,8 @@ def main() -> int:
             result = build_release(root, args.remote, args.generator_artifacts, profile=args.profile)
         elif args.action == "check":
             result = check_release(root, args.profile)
+        elif args.action == "consumer-runtime":
+            result = consumer_runtime_release(root)
         elif args.action == "status":
             result = status_release(root)
         elif args.action == "commit":

@@ -21,6 +21,5 @@ cpf:
     persistence:
       mode: DATABASE
     integration-closure:
-      enabled: ${CPF_ADM_INTEGRATION_CLOSURE_ENABLED:false}
       ephemeral-providers-enabled: ${CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_ENABLED:false}
       correction-approval-ttl: ${CPF_ADM_INTEGRATION_CLOSURE_APPROVAL_TTL:15m}

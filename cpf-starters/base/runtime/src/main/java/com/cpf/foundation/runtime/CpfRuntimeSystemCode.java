@@ -106,7 +106,9 @@ public final class CpfRuntimeSystemCode {
 
     private static boolean roleWithoutSystemCode(Environment environment) {
         String role = environment == null ? null : environment.getProperty(ARCHITECTURE_ROLE_PROPERTY);
-        return hasText(role) && ROLES_WITHOUT_SYSTEM_CODE.contains(role.trim().toUpperCase(Locale.ROOT));
+        // hasText 를 거쳤다는 사실을 정적 분석이 알 수 없어 null 경고가 남는다. 판정을 직접 쓴다.
+        if (role == null || role.isBlank()) return false;
+        return ROLES_WITHOUT_SYSTEM_CODE.contains(role.trim().toUpperCase(Locale.ROOT));
     }
 
     private static String first(Environment environment, String... keys) {

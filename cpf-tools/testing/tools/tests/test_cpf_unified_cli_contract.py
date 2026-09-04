@@ -23,6 +23,9 @@ def test_exactly_one_canonical_cli_owner_and_catalog():
     source=CLI_SRC.read_text(encoding='utf-8')
     assert 'gradle(root, "cpfBuildAll", argv)' in source
     assert 'gradle(root, "cpfTestAll", argv)' in source
+    assert '"consumer-runtime"' in source
+    assert 'cpf release open-git consumer-runtime' in source
+    assert 'cpf release open-git build/check/consumer-runtime/status' in data['canonicalEngines'][-1]['consumer']
 
 def test_official_wrappers_are_java_thin_launchers():
     wrappers=[ROOT/'cpf-tools/runtime/cli/cpf',ROOT/'cpf-tools/runtime/cli/cpf.cmd',ROOT/'cpf-tools/runtime/cli/cpf.ps1']

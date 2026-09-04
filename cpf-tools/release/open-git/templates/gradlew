@@ -90,6 +90,10 @@ APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exi
 
 # Keep Gradle cache/build diagnostics and JVM crash/OOM artifacts out of the repository root.
 CPF_GENERATED_EVIDENCE=$APP_HOME/build/cpf-gradle
+# Gradle project cache 는 각 Build 가 자기 기본 위치(.gradle)를 쓴다.
+# Composite 전체에 하나의 --project-cache-dir 를 강제하면 Included Build 들이 실행 이력과
+# stale-output registry 를 공유해, Gradle 이 서로의 build/classes 를 stale 로 보고 지운다.
+# 그 결과 같은 명령(cpf bootstrap / cpfVerify)이 한 번 걸러 한 번씩 컴파일 오류로 실패했다.
 CPF_GRADLE_PROJECT_CACHE=$CPF_GENERATED_EVIDENCE/gradle/project-cache
 CPF_MANAGED_GRADLE_ROOT=$CPF_GENERATED_EVIDENCE/gradle/managed-builds
 CPF_JVM_CRASH_DIR=$CPF_GENERATED_EVIDENCE/jvm/crash
@@ -253,7 +257,6 @@ DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 set -- \
         "-Dorg.gradle.appname=$APP_BASE_NAME" \
         -jar "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" \
-        --project-cache-dir "$CPF_GRADLE_PROJECT_CACHE" \
         "-PcpfManagedGradleRoot=$CPF_MANAGED_GRADLE_ROOT" \
         "$@"
 

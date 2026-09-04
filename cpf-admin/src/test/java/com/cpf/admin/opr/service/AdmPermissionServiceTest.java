@@ -15,6 +15,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -58,7 +59,7 @@ class AdmPermissionServiceTest {
 
     @Test
     void databaseModeDoesNotReturnEmptyPermissionMatrixWhenDbIsUnavailable() {
-        when(jdbc.queryForList(contains("adm_api_permission")))
+        when(jdbc.queryForList(argThat(sql -> sql.toUpperCase(java.util.Locale.ROOT).contains("ADM_API_PERMISSION"))))
                 .thenThrow(new DataAccessResourceFailureException("down"));
 
         assertThatThrownBy(service::findApiPermissionMatrix)
@@ -69,7 +70,7 @@ class AdmPermissionServiceTest {
     @Test
     void explicitMemoryModeMayReturnSafeEmptyFallbackInTestProfile() {
         JdbcTemplate offline = mock(JdbcTemplate.class);
-        when(offline.queryForList(contains("adm_api_permission")))
+        when(offline.queryForList(argThat(sql -> sql.toUpperCase(java.util.Locale.ROOT).contains("ADM_API_PERMISSION"))))
                 .thenThrow(new DataAccessResourceFailureException("down"));
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("test");

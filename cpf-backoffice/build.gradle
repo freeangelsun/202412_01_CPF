@@ -4,6 +4,14 @@ import java.security.MessageDigest
 
 plugins { id 'base' }
 
+// Public Workspace 의 cpfTestAll 은 각 Public Source Surface 의 canonical :test 를 호출한다.
+// root 에 base plugin 만 적용하면 :test 가 없어 "Task with path ':test' not found" 로 실패한다.
+tasks.register('test') {
+    group = 'verification'
+    description = '이 Domain 의 모든 하위 Project Test 를 실행합니다.'
+    dependsOn subprojects.collect { "${it.path}:test" }
+}
+
 def cpfResolvedPlatformVersion = providers.environmentVariable('CPF_VERSION')
         .orElse(providers.gradleProperty('cpfPlatformVersion'))
         .get()

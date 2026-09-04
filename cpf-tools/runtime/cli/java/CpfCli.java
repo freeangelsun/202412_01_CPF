@@ -125,6 +125,9 @@ public final class CpfCli {
             }
             List<String> forwarded = new ArrayList<>(List.of("runtime", action, "--target", requested));
             forwarded.addAll(rest);
+            // 공개 배포본에는 내부 python 엔진(cpf-tools/**)이 실리지 않는다. 공개 Profile 에서
+            // 내부 엔진으로 위임하면 Fresh Consumer 는 어떤 Runtime 도 기동하지 못한다.
+            if (!internalEnabled()) return requireJava25Then(() -> runClass(root, "CpfBootstrap", forwarded));
             return requireJava25Then(() -> internalRuntime(root, action, forwarded));
         } catch (IOException failure) {
             // Catalog 부재/손상은 설정 결함이므로 prerequisite 실패로 구분해 보고한다.
@@ -148,7 +151,7 @@ public final class CpfCli {
             System.out.println("  cpf dev build|test|targeted-test|full-validation|run-batch|modules|resource|db3|domain|db-render");
             System.out.println("  cpf verify all|generator|generated|db3|catalog|ownership|source");
             System.out.println("  cpf publish framework");
-            System.out.println("  cpf release open-git [build|check|status] [--profile binary|source]");
+            System.out.println("  cpf release open-git [build|check|consumer-runtime|status|help] [--profile binary|source]");
         }
         System.out.println("  cpf version");
         return EXIT_OK;
@@ -313,9 +316,19 @@ public final class CpfCli {
     }
 
     private static int internalRelease(Path root, List<String> args) throws Exception {
-        if (args.isEmpty() || !"open-git".equals(normalize(args.remove(0)))) return usage("cpf release open-git [build|check|status]");
+        if (args.isEmpty() || !"open-git".equals(normalize(args.remove(0)))) return usage("cpf release open-git [build|check|consumer-runtime|status|help]");
         String action = args.isEmpty() || args.get(0).startsWith("-") ? "build" : normalize(args.remove(0));
-        if (!Set.of("build", "check", "status").contains(action)) return usage("unsupported open-git action=" + action);
+        if ("help".equals(action)) {
+            if (!args.isEmpty()) return usage("cpf release open-git help");
+            System.out.println("CPF Open Git Release");
+            System.out.println("  cpf release open-git build [--profile binary|source]");
+            System.out.println("  cpf release open-git check [--profile binary|source]");
+            System.out.println("  cpf release open-git consumer-runtime");
+            System.out.println("  cpf release open-git status");
+            System.out.println("Build regenerates the local cpf-release/ staging tree; it never runs git add/commit/push.");
+            return EXIT_OK;
+        }
+        if (!Set.of("build", "check", "consumer-runtime", "status").contains(action)) return usage("unsupported open-git action=" + action);
         Path tool = root.resolve("cpf-tools/release/open-git/cpf_open_git.py");
         return runPython(root, tool, concat(List.of(action, "--root", root.toString()), args));
     }

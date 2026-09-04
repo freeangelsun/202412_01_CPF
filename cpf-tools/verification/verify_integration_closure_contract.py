@@ -20,6 +20,21 @@ def main():
  ops={o['operationId'] for p in spec.get('paths',{}).values() for o in p.values() if isinstance(o,dict) and 'operationId'in o}
  if ops!=EXPECTED:errors.append(f'operation set mismatch missing={EXPECTED-ops} extra={ops-EXPECTED}')
  controller=read(r/'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java',errors)
+ configuration=read(r/'cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureConfiguration.java',errors)
+ properties=read(r/'cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureProperties.java',errors)
+ profile_guard=read(r/'cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureProfileGuard.java',errors)
+ legacy_enabled_condition=r'@ConditionalOnProperty\s*\(\s*prefix\s*=\s*"cpf\\.adm\\.integration-closure"\s*,\s*name\s*=\s*"enabled"'
+ if re.search(legacy_enabled_condition,configuration,re.S) or re.search(legacy_enabled_condition,controller,re.S):
+  errors.append('mandatory ADM integration-closure route must not have an enabled ConditionalOnProperty switch')
+ top_level_properties=properties.split('public static final class Crypto',1)[0]
+ if re.search(r'\b(?:is|set)Enabled\s*\(',top_level_properties):
+  errors.append('integration-closure properties must not expose an enabled switch')
+ if 'cpf.adm.integration-closure.enabled' in profile_guard:
+  errors.append('integration-closure profile guard must not read a legacy enabled switch')
+ for name in ('application-adm-local.yml','application-adm-dev.yml','application-adm-test.yml','application-adm-prod.yml'):
+  profile=read(r/'cpf-admin/src/main/resources'/name,errors)
+  if re.search(r'^\s*enabled\s*:',profile,re.M):
+   errors.append(f'{name} must not retain a legacy integration-closure enabled setting')
  routes_dir=r/'cpf-admin/frontend/src/app/routes'
  routes='\n'.join(read(p,errors) for p in sorted(routes_dir.glob('*.ts')) if p.name!='types.ts') if routes_dir.is_dir() else read(r/'cpf-admin/frontend/src/app/routes.ts',errors)
  orval=read(r/'cpf-admin/frontend/src/generated/orval/cpf-api.ts',errors)

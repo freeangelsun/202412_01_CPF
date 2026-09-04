@@ -20,7 +20,16 @@ _NEG_GROUPS={
     },
     'STRENGTH': {
         'mutation_harness_strength_tracking_reduction','mutation_harness_strength_evidence_reduction',
-        'mutation_protected_retain_delete_reentry','mutation_session_manifest_missing','mutation_toolchain_exact_host_patch_reentry','mutation_toolchain_exact_java_host_major_reentry',
+        'mutation_protected_retain_delete_reentry','mutation_session_manifest_missing',
+        'mutation_session_manifest_evidence_missing','mutation_session_manifest_not_available_declaration_incomplete',
+        'mutation_toolchain_exact_host_patch_reentry','mutation_toolchain_exact_java_host_major_reentry',
+        'mutation_public_source_test_launcher_removed','mutation_public_projection_template_launcher_removed',
+        'mutation_generated_domain_test_launcher_removed','public_launcher_contract_positive_control',
+        'runtime_startability_contract_positive_control','mutation_runtime_logging_resource_removed',
+        'mutation_runtime_database_role_declaration_removed',
+        'public_gradle_idempotency_contract_positive_control',
+        'mutation_public_launcher_shared_project_cache_reentry',
+        'mutation_public_root_settings_project_cache_reentry',
     },
 }
 def _enabled(name):
@@ -46,7 +55,7 @@ record('non_vacuous_product_registry',n>0)
 
 # Session Merge Protocol negative mutation is exercised from a known-positive isolated fixture.
 # This prevents an already-pending real session from making the mutation look green by accident.
-def _session_merge_missing_manifest_mutation():
+def _session_merge_missing_manifest_mutation(mutate,expected):
     import hashlib
     root=Path(tempfile.mkdtemp(prefix='cpf-session-merge-negative-'))
     try:
@@ -87,13 +96,40 @@ def _session_merge_missing_manifest_mutation():
         env['CPF_REPOSITORY_ROOT']=str(root)
         validator=H/'validators/validate_session_merge_protocol.py'
         before=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
-        mf.unlink()
+        if before.returncode!=0: return False
+        mutate(mf,ev,manifest)
         after=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
-        return before.returncode==0 and after.returncode!=0 and 'MANIFEST_MISSING:FIXTURE_SESSION' in (after.stdout+after.stderr)
+        return after.returncode!=0 and expected in (after.stdout+after.stderr)
     finally:
         shutil.rmtree(root,ignore_errors=True)
-if _enabled('mutation_session_manifest_missing'):
-    record('mutation_session_manifest_missing',_session_merge_missing_manifest_mutation(),'positive fixture -> missing manifest must fail closed')
+
+def _drop_manifest(mf,ev,manifest):
+    mf.unlink()
+
+# Manifest 가 참조하는 증적이 사라지면 기본은 fail-closed 다. 증적 없이 통과하면 "그 검증을
+# 수행했다"는 기록만 남고 근거가 사라진다.
+def _drop_evidence_file(mf,ev,manifest):
+    ev.unlink()
+
+# 부재를 인정하더라도 근거/재현성/승계 여부를 명시하지 않은 선언은 허용하지 않는다.
+# NOT_AVAILABLE 은 PASS 가 아니라 "증적 없음"을 정확히 기록한 상태여야 한다.
+def _declare_not_available_without_reason(mf,ev,manifest):
+    import json as _json
+    ev.unlink()
+    manifest['evidenceFiles'][0]['evidence_status']='NOT_AVAILABLE'
+    mf.write_text(_json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+for _name,_mutate,_expected,_detail in (
+    ('mutation_session_manifest_missing',_drop_manifest,'MANIFEST_MISSING:FIXTURE_SESSION',
+     'positive fixture -> missing manifest must fail closed'),
+    ('mutation_session_manifest_evidence_missing',_drop_evidence_file,'MANIFEST_EVIDENCE_MISSING:FIXTURE_SESSION',
+     'manifest evidence disappearance must fail closed'),
+    ('mutation_session_manifest_not_available_declaration_incomplete',_declare_not_available_without_reason,
+     'MANIFEST_EVIDENCE_NOT_AVAILABLE_DECLARATION_INVALID:FIXTURE_SESSION',
+     'NOT_AVAILABLE without reason/reproducibility/inheritance must fail closed'),
+):
+    if _enabled(_name):
+        record(_name,_session_merge_missing_manifest_mutation(_mutate,_expected),_detail)
 
 # Executable Delete Manifest must contain only approved/delete-eligible paths. Protected-retain
 # provenance lives only in Migration Map/Semantic Ledger so unrelated protected documentation
@@ -344,6 +380,163 @@ def mut_protected_retain_delete_reentry(h):
     })
     with p.open('w',encoding='utf-8-sig',newline='') as f: w=csv.DictWriter(f,fieldnames=hdr);w.writeheader();w.writerows(rr)
 run_mut('mutation_protected_retain_delete_reentry',mut_protected_retain_delete_reentry,'DELETE_MIGRATION_PATH_SET_MISMATCH')
+
+
+# 공개 Source Development Surface 의 Test 실행 가능성 계약은 Harness 복제본이 아니라
+# build.gradle / 공개 projection template / Domain Generator 라는 Harness 밖 정본을 본다.
+# 그래서 이 계약만의 격리 fixture 를 따로 만든다. 실제 정본은 건드리지 않는다.
+_PUBLIC_LAUNCHER_TEST=ROOT/'cpf-tools/verification/tests/test_cpf_public_test_launcher_contract.py'
+_PUBLIC_LAUNCHER_FIXTURE_FILES=[
+    'cpf-tools/governance/cpf-product-surface-policy.json',
+    'cpf-tools/release/open-git/open-git-surface-policy.json',
+    'cpf-tools/generator/engine/cpf_domain_generator.py',
+    'cpf-tools/release/open-git/templates/cpf-education/build.gradle',
+    'cpf-education/build.gradle',
+]
+
+def _public_launcher_fixture():
+    root=Path(tempfile.mkdtemp(prefix='cpf-public-launcher-negative-'))
+    for rel in _PUBLIC_LAUNCHER_FIXTURE_FILES:
+        dst=root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/rel,dst)
+    # 계약은 Test Source 존재 여부만 본다. 실제 Test 를 복사하지 않고 최소 표식만 둔다.
+    marker=root/'cpf-education/src/test/java/CpfNegativeFixtureTest.java'
+    marker.parent.mkdir(parents=True,exist_ok=True)
+    marker.write_text('class CpfNegativeFixtureTest {}'+chr(10),encoding='utf-8')
+    return root
+
+def _run_public_launcher_contract(root):
+    env=dict(os.environ)
+    env['CPF_PUBLIC_SURFACE_ROOT']=str(root); env['PYTHONUTF8']='1'; env['PYTHONIOENCODING']='utf-8'
+    return subprocess.run([sys.executable,'-B',str(_PUBLIC_LAUNCHER_TEST)],cwd=str(ROOT),
+                          text=True,capture_output=True,env=env)
+
+def _strip_launcher(path):
+    kept=[line for line in path.read_text(encoding='utf-8').splitlines(True)
+          if 'junit-platform-launcher' not in line]
+    path.write_text(''.join(kept),encoding='utf-8')
+
+def run_public_launcher_mut(name,mutate,expected_fragment):
+    if not _enabled(name): return
+    root=_public_launcher_fixture()
+    try:
+        mutate(root)
+        cp=_run_public_launcher_contract(root)
+        ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+        record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
+    finally:
+        shutil.rmtree(root,ignore_errors=True)
+
+# fixture 구성이 잘못되면 모든 mutation 이 통과한 것처럼 보인다. 무손상 fixture 는 반드시 PASS 여야 한다.
+def _public_launcher_positive_control():
+    if not _enabled('public_launcher_contract_positive_control'): return
+    root=_public_launcher_fixture()
+    try:
+        cp=_run_public_launcher_contract(root)
+        record('public_launcher_contract_positive_control',cp.returncode==0,'rc='+str(cp.returncode))
+    finally:
+        shutil.rmtree(root,ignore_errors=True)
+_public_launcher_positive_control()
+
+def mut_public_project_launcher_removed(root):
+    _strip_launcher(root/'cpf-education/build.gradle')
+run_public_launcher_mut('mutation_public_source_test_launcher_removed',mut_public_project_launcher_removed,
+                        'junit-platform-launcher 미선언 공개 Project')
+
+def mut_public_template_launcher_removed(root):
+    _strip_launcher(root/'cpf-tools/release/open-git/templates/cpf-education/build.gradle')
+run_public_launcher_mut('mutation_public_projection_template_launcher_removed',mut_public_template_launcher_removed,
+                        'junit-platform-launcher 미선언 공개 template')
+
+def mut_generator_launcher_removed(root):
+    _strip_launcher(root/'cpf-tools/generator/engine/cpf_domain_generator.py')
+run_public_launcher_mut('mutation_generated_domain_test_launcher_removed',mut_generator_launcher_removed,
+                        'junit-platform-launcher 를 선언하지 않는다')
+
+
+# 발행된 Runtime 의 단독 기동 계약과 공개 Workspace 의 Gradle 반복 실행 계약은 Harness 밖 정본
+# (Runtime 설정 / 공개 launcher template)을 본다. 각 계약마다 자기 격리 fixture 를 만든다.
+_STARTABILITY_TEST=ROOT/'cpf-tools/verification/tests/test_cpf_runtime_standalone_startability_contract.py'
+_IDEMPOTENCY_TEST=ROOT/'cpf-tools/verification/tests/test_cpf_public_gradle_workspace_idempotency_contract.py'
+_STARTABILITY_FILES=[
+    'cpf-tools/runtime/cpf-runtime-target-catalog.json',
+    'cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/CpfDatabaseRole.java',
+    'cpf-starters/platform-operations/observability/src/main/resources/log/cpf-logback-spring.xml',
+    'cpf-admin/src/main/java/com/cpf/admin/config/AdmJdbcConfig.java',
+    'cpf-admin/src/main/resources/application.yml',
+    'cpf-admin/src/main/resources/application-adm.yml',
+]
+_IDEMPOTENCY_FILES=[
+    'cpf-tools/release/open-git/open-git-surface-policy.json',
+    'cpf-tools/release/open-git/templates/gradlew',
+    'cpf-tools/release/open-git/templates/gradlew.bat',
+    'cpf-tools/release/open-git/templates/settings.gradle',
+]
+
+def _copy_fixture(prefix, files):
+    root=Path(tempfile.mkdtemp(prefix=prefix))
+    for rel in files:
+        dst=root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/rel,dst)
+    return root
+
+def _run_contract(test_path, root, env_key):
+    env=dict(os.environ)
+    env[env_key]=str(root); env['PYTHONUTF8']='1'; env['PYTHONIOENCODING']='utf-8'
+    return subprocess.run([sys.executable,'-B',str(test_path)],cwd=str(ROOT),text=True,capture_output=True,env=env)
+
+def _contract_positive(name, test_path, prefix, files, env_key):
+    if not _enabled(name): return
+    root=_copy_fixture(prefix, files)
+    try:
+        cp=_run_contract(test_path, root, env_key)
+        record(name,cp.returncode==0,'rc='+str(cp.returncode))
+    finally:
+        shutil.rmtree(root,ignore_errors=True)
+
+def _contract_mut(name, test_path, prefix, files, env_key, mutate, expected_fragment):
+    if not _enabled(name): return
+    root=_copy_fixture(prefix, files)
+    try:
+        mutate(root)
+        cp=_run_contract(test_path, root, env_key)
+        ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+        record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
+    finally:
+        shutil.rmtree(root,ignore_errors=True)
+
+_contract_positive('runtime_startability_contract_positive_control',_STARTABILITY_TEST,
+                   'cpf-runtime-startability-negative-',_STARTABILITY_FILES,'CPF_RUNTIME_STARTABILITY_ROOT')
+
+def mut_runtime_logging_resource_removed(root):
+    (root/'cpf-starters/platform-operations/observability/src/main/resources/log/cpf-logback-spring.xml').unlink()
+_contract_mut('mutation_runtime_logging_resource_removed',_STARTABILITY_TEST,
+              'cpf-runtime-startability-negative-',_STARTABILITY_FILES,'CPF_RUNTIME_STARTABILITY_ROOT',
+              mut_runtime_logging_resource_removed,'존재하지 않는 logging classpath 자원')
+
+def mut_runtime_database_role_declaration_removed(root):
+    p=root/'cpf-admin/src/main/resources/application-adm.yml'
+    kept=[line for line in p.read_text(encoding='utf-8').splitlines(True) if 'cpf-platform-db:' not in line]
+    p.write_text(''.join(kept),encoding='utf-8')
+_contract_mut('mutation_runtime_database_role_declaration_removed',_STARTABILITY_TEST,
+              'cpf-runtime-startability-negative-',_STARTABILITY_FILES,'CPF_RUNTIME_STARTABILITY_ROOT',
+              mut_runtime_database_role_declaration_removed,'선언되지 않은 DB role')
+
+_contract_positive('public_gradle_idempotency_contract_positive_control',_IDEMPOTENCY_TEST,
+                   'cpf-public-gradle-idempotency-negative-',_IDEMPOTENCY_FILES,'CPF_PUBLIC_WORKSPACE_ROOT')
+
+def mut_public_launcher_shared_project_cache(root):
+    p=root/'cpf-tools/release/open-git/templates/gradlew'
+    raw=p.read_bytes().decode('utf-8',errors='surrogateescape')
+    p.write_bytes((raw+'exec gradle --project-cache-dir "$CPF_GRADLE_PROJECT_CACHE"'+chr(10)).encode('utf-8',errors='surrogateescape'))
+_contract_mut('mutation_public_launcher_shared_project_cache_reentry',_IDEMPOTENCY_TEST,
+              'cpf-public-gradle-idempotency-negative-',_IDEMPOTENCY_FILES,'CPF_PUBLIC_WORKSPACE_ROOT',
+              mut_public_launcher_shared_project_cache,'project cache 를 강제한다')
+
+def mut_public_root_settings_project_cache(root):
+    p=root/'cpf-tools/release/open-git/templates/settings.gradle'
+    p.write_text(p.read_text(encoding='utf-8')+chr(10)+"gradle.startParameter.projectCacheDir = new File(rootDir, 'shared-cache')"+chr(10),encoding='utf-8')
+_contract_mut('mutation_public_root_settings_project_cache_reentry',_IDEMPOTENCY_TEST,
+              'cpf-public-gradle-idempotency-negative-',_IDEMPOTENCY_FILES,'CPF_PUBLIC_WORKSPACE_ROOT',
+              mut_public_root_settings_project_cache,'project cache 를 다시 덮어쓴다')
 
 failed=[x for x in checks if not x[1]]
 print(f'NEGATIVE_FIXTURES_FINAL={len(checks)-len(failed)}/{len(checks)} PASS group={_NEG_GROUP}',flush=True)

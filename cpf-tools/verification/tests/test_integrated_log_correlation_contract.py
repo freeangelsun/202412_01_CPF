@@ -22,5 +22,9 @@ def test_integrated_log_correlation_is_fail_closed_and_secret_safe():
 def test_integrated_log_correlation_uses_safe_property_access_for_optional_evidence():
     text = SCRIPT.read_text(encoding='utf-8')
     assert 'function Get-SafeProperty' in text
+    assert 'function Resolve-CpfCorrelationValue' in text
     assert 'Read-JsonIfPresent' in text
     assert "Get-SafeProperty $fileEvidence 'error'" in text
+    assert "@('transactionId','TRANSACTION_ID','transaction_id')" in text
+    assert 'correlatedItems=$dbCorrelatedItems.ToArray()' in text
+    assert 'candidates=$dbCandidates.ToArray()' in text

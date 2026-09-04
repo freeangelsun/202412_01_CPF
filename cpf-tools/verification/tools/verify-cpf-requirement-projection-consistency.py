@@ -14,8 +14,6 @@ for _cpf_stream in (_cpf_sys.stdout, _cpf_sys.stderr):
 import argparse,csv,hashlib,json
 from pathlib import Path
 
-CANONICAL_CURRENT_ROWS=418
-
 class GateError(RuntimeError): pass
 
 def sha256(p:Path)->str:
@@ -54,11 +52,12 @@ def verify(root:Path)->dict:
  projection_required={'work_item_id','source_requirement_ids','priority','work_package','development_status','verification_status','runtime_status','overall_status','source_identity','devgpt_status','independent_reviewer_status','qa_status','current_action','closure_rule'}
  if registry_required-set(rf): raise GateError(f'Current Registry columns missing: {sorted(registry_required-set(rf))}')
  if projection_required-set(pf): raise GateError(f'Current Status projection columns missing: {sorted(projection_required-set(pf))}')
- # WP-R16.01/02 등록으로 411 -> 413, 2026-09-03 사용자 Steering 3건(WP-R17.01 Shell 조립성 /
- # WP-R17.02 운영자 선택 마스킹 / WP-R17.03 운영자 구성 로그 항목) 등록으로 413 -> 416 이 되었다.
- # 2026-09-04 WP-IDENTITY 등록으로 417 -> 418 이 되었다. 이 수는 tripwire 다.
- if len(rrows)!=CANONICAL_CURRENT_ROWS or len(prows)!=CANONICAL_CURRENT_ROWS:
-  raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)} expected={CANONICAL_CURRENT_ROWS}')
+ # 작업 현황 row 수는 진행에 따라 늘어나는 값이며 제품 계약상 고정 cardinality 가 아니다.
+ # snapshot 숫자를 복제하면 WP 를 추가할 때마다 상수를 올려야 하고, 그 습관이 실제 정합성
+ # 검사를 대체한다. Registry 를 Source of Truth 로 두고 projection 이 그것과 1:1 인지만 본다.
+ if not rrows: raise GateError('Current Registry is empty')
+ if len(rrows)!=len(prows):
+  raise GateError(f'Current projection row count drift registry={len(rrows)} projection={len(prows)}')
  rids=[(r.get('work_item_id') or '').strip() for r in rrows]; pids=[(r.get('work_item_id') or '').strip() for r in prows]
  if len(set(rids))!=len(rids) or len(set(pids))!=len(pids) or rids!=pids: raise GateError('Current Status work_item_id order/set differs from Current Registry')
  pmap={r['work_item_id']:r for r in prows}

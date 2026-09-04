@@ -206,7 +206,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     /**
-     * 환경변수로 승인된 최초 운영자 계정을 한 번만 생성합니다.
+     * canonical Initial Operator Bootstrap 계정을 한 번만 생성합니다.
      *
      * <p>이미 같은 운영자가 있으면 비밀번호와 역할을 변경하지 않습니다. DB가 없는 로컬 fallback도
      * 같은 idempotency 규칙을 적용합니다.</p>
@@ -227,9 +227,9 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                     )
                     SELECT ?, ?, ?, 'ACTIVE', 0, 'N', 0, CURRENT_TIMESTAMP, 'Y', 'Y', 'BOOTSTRAP', 'BOOTSTRAP'
                     WHERE NOT EXISTS (
-                        SELECT 1 FROM ADM_OPERATOR WHERE OPERATOR_ID = ?
+                        SELECT 1 FROM ADM_OPERATOR
                     )
-                    """, operatorId, operatorName, passwordHash, operatorId);
+                    """, operatorId, operatorName, passwordHash);
             if (inserted > 0) {
                 replaceRoles(operatorId, List.of("ADM_ADMIN"), "BOOTSTRAP");
             }
@@ -251,6 +251,17 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                     CpfTimes.nowDateTimeMillis(),
                     CpfTimes.nowDateTimeMillis());
             return operators.putIfAbsent(operatorId, state) == null;
+        }
+    }
+
+    /** 최초 Bootstrap이 필요한 Fresh 환경인지 DB 기준으로 판정한다. */
+    public boolean hasAnyOperator() {
+        if (persistencePolicy.memoryEnabled()) return !operators.isEmpty();
+        try {
+            Long count = admJdbcTemplate.queryForObject("SELECT COUNT(*) FROM ADM_OPERATOR", Long.class);
+            return count != null && count > 0L;
+        } catch (DataAccessException ex) {
+            throw unavailable(ex);
         }
     }
 

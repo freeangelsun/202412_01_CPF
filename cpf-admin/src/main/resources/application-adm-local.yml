@@ -18,7 +18,6 @@ cpf:
       mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}
     integration-closure:
       approval-proof-key-base64: ${CPF_ADM_APPROVAL_PROOF_KEY_BASE64}
-      enabled: ${CPF_ADM_INTEGRATION_CLOSURE_ENABLED:true}
       ephemeral-providers-enabled: ${CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_ENABLED:true}
       correction-approval-ttl: ${CPF_ADM_INTEGRATION_CLOSURE_APPROVAL_TTL:15m}
   openapi:

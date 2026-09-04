@@ -159,7 +159,7 @@
     {
       "owner": "cpf-tools/release",
       "engine": "cpf-tools/release/open-git/cpf_open_git.py",
-      "consumer": "cpf release open-git"
+      "consumer": "cpf release open-git build/check/consumer-runtime/status"
     }
   ],
   "profiles": {

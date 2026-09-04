@@ -1,6 +1,6 @@
 # CPF Current Detailed Development / QA Review
 
-- Work Items: **410**
+- Work Items: **418**
 - 출력 규칙: Current Work Item 전건 1:1, omitted=0
 
 ## 1. WP-R00.01 — WP-R00 Source Identity / Reopen Ledger / Current-only Governance
@@ -9748,11 +9748,11 @@
 - **Source Identity:** bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74
 - **역할별 수행:**
   - DEVGPT: performed=true, role_status=미완료, execution=VERIFICATION_PENDING, completion_reason=-, incomplete_reason=Java25/DB runtime unavailable; actual One-WAS transaction/log correlation/runtime OpenAPI/restart not executed., command=python -m pytest -q cpf-tools; Development Harness validators; targeted frontend/release/performance tests, environment=container: Java 21.0.11; Python 3.13.5; Node 22.16.0; npm 10.9.2; pwsh=UNAVAILABLE; docker=UNAVAILABLE, exit=0 (executed static gates); physical mandatory gates pending, evidence=cpf-docs/governance/development-harness/evidence/devgpt/current/executions/DEVGPT_CURRENT_EXECUTION_SUMMARY.json
-  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=Independent Reviewer/QA has not executed current exact-source acceptance., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=true, role_status=VERIFICATION_PENDING, execution=VERIFICATION_PENDING, completion_reason=One-WAS scoped physical substeps PASS: mandatory ADM provider composition; actual 401 transaction File 2/DB Summary 1/Timeline Segment 1 same lineage; ADM/MBW runtime OpenAPI; shutdown and verifier DB cleanup., incomplete_reason=Parent acceptance still lacks DB3 vendor replay, normal/business rollback, remote A→B→C, multi-instance, retry/UNKNOWN/reconcile, Browser, Performance, Open Git Fresh Release and Fresh Replay., command=pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\verification\tools\run-cpf-runtime-work-unit.ps1 -Unit ONE_WAS -RepoRoot <root> -DockerRoot C:\dev\Docker -OutputRoot <Downloads> -SkipBuild; .\gradlew.bat aggregateQualityBuild publicationGate --no-daemon --no-parallel --console=plain, environment=Windows PowerShell 7.6.5; Java 25; Docker MariaDB; local integrated One-WAS; Gradle 9.1, exit=0, evidence=C:\Users\fly10\Downloads\CPF_WORKUNIT_ONE_WAS_20260904_140747\work-unit-result.json; C:\Users\fly10\Downloads\CPF_WORKUNIT_ONE_WAS_20260904_140747\integrated-logging\integrated-log-correlation-result.json; C:\Users\fly10\Downloads\CPF_ROOT_PUBLICATION_20260904_141230.log
   - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=Independent Reviewer/QA has not executed current exact-source acceptance., command=-, environment=-, exit=-, evidence=-
 - **Test/Runtime 수행:**
   - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=VERIFICATION_PENDING, acceptance=logging/openapi/context/source-state static PASS, completion_reason=Prior-source PASS retained only as provenance outside current PASS; exact-source replay required., incomplete_reason=Prior-source PASS invalidated because Current Product Source Identity changed; exact-source replay required., command=python -m pytest -q cpf-tools + Development Harness validators/negative fixtures (target evidence file contains exact executed subset/result), environment=container: Java 21.0.11; Python 3.13.5; Node 22.16.0; npm 10.9.2; pwsh=UNAVAILABLE; docker=UNAVAILABLE, exit=-, observed=Integrated logging/OpenAPI/context/static runtime contracts included in full cpf-tools suite PASS | exact-final source evidence, evidence=-
-  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=BLOCKED_EXTERNAL, acceptance=transaction/error/rollback/file+DB+segment+timeline/OpenAPI/restart actual Runtime, completion_reason=-, incomplete_reason=Java25/DB runtime unavailable; actual One-WAS transaction/log correlation/runtime OpenAPI/restart not executed., command=See cpf-docs/governance/development-harness/current/CPF_FINAL_LOCAL_APPLY_RUNTIME_COMMANDS.md, environment=container: Java 21.0.11; Python 3.13.5; Node 22.16.0; npm 10.9.2; pwsh=UNAVAILABLE; docker=UNAVAILABLE, exit=-, observed=Mandatory physical runtime not promoted to PASS., evidence=cpf-docs/governance/development-harness/evidence/devgpt/current/executions/DEVGPT_CURRENT_EXECUTION_SUMMARY.json
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=true, status=VERIFICATION_PENDING, acceptance=transaction/error/rollback/file+DB+segment+timeline/OpenAPI/restart actual Runtime, completion_reason=Current One-WAS current-source run PASS: all 13 work-unit stages; mandatory ADM route retained; representative 401 File/DB/Timeline lineage exact; source identity unchanged., incomplete_reason=Parent acceptance remains incomplete for DB3 vendor replay, normal/business rollback, remote/multi-instance, retry/UNKNOWN/reconcile, Browser, Performance, Open Git Fresh Release and Fresh Replay., command=pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\verification\tools\run-cpf-runtime-work-unit.ps1 -Unit ONE_WAS -RepoRoot <root> -DockerRoot C:\dev\Docker -OutputRoot <Downloads> -SkipBuild, environment=Windows PowerShell 7.6.5; Java 25; Docker MariaDB; local integrated One-WAS, exit=0, observed=All 13 work-unit stages PASS: fresh DB prep/seed, startup, ADM bootstrap, File log, DB policy, integrated correlation, ADM+MBW Runtime OpenAPI, stop, cleanup and unchanged source identity. tx=20260904140924068MBWlogcor10000001 trace=e1a7e484099d4ec2bae784fd3c1a229d File=2 DB=1 Timeline=1., evidence=C:\Users\fly10\Downloads\CPF_WORKUNIT_ONE_WAS_20260904_140747\work-unit-result.json
 
 - **Closure Rule:** 현재 Source Identity에서 Source→Consumer→호출경로→Config/DB/Generator/API/Frontend→오류·복구→Test/Runtime→Evidence→Dev/Independent Reviewer/QA가 모두 충족되고 mandatory 미실행/FAIL/UNKNOWN/VERIFICATION_PENDING/BLOCKED_EXTERNAL=0일 때만 CLOSED
 
@@ -9820,7 +9820,7 @@
 - **Source Identity:** bb67ca18fcaceb9ddfda5c082f2f38e8deb76b5a58f30afc6c4ad04c31400d74
 - **역할별 수행:**
   - DEVGPT: performed=true, role_status=미완료, execution=VERIFICATION_PENDING, completion_reason=-, incomplete_reason=Java25 Fresh Build/Publication and actual Open Git remote/fresh consumer environment required., command=python -m pytest -q cpf-tools; Development Harness validators; targeted frontend/release/performance tests, environment=container: Java 21.0.11; Python 3.13.5; Node 22.16.0; npm 10.9.2; pwsh=UNAVAILABLE; docker=UNAVAILABLE, exit=0 (executed static gates); physical mandatory gates pending, evidence=cpf-docs/governance/development-harness/evidence/devgpt/current/executions/DEVGPT_CURRENT_EXECUTION_SUMMARY.json
-  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=Independent Reviewer/QA has not executed current exact-source acceptance., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=true, role_status=진행, execution=VERIFICATION_PENDING, completion_reason=Framework publication 2125 tasks passed; stage 06 produced validated Windows and Docker Linux native generator artifacts; fresh clone isolated workspace build test and source state exact passed, incomplete_reason=Full public bootstrap DB3 runtime transaction stop reset fresh replay and source profile remain outside this binary release evidence, command=cpf-tools/runtime/cli/cpf.ps1 release open-git build --profile binary, environment=Windows PowerShell 7.6.5; Java 25; Gradle 9.1; Python 3.13; Docker Linux amd64; PyInstaller 6.21, exit=0, evidence=C:\Users\fly10\Downloads\CPF_OPEN_GIT_BINARY_FINAL_20260904_150609.log; cpf-release/reports/OPEN_GIT_RELEASE_STATUS.json; cpf-docs/governance/development-harness/evidence/codex/current/CODEX_COLLABORATION_HANDOFF.md#C-32
   - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=Independent Reviewer/QA has not executed current exact-source acceptance., command=-, environment=-, exit=-, evidence=-
 - **Test/Runtime 수행:**
   - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=VERIFICATION_PENDING, acceptance=14-stage preconditions/public surface/leakage verifier PASS, completion_reason=Prior-source PASS retained only as provenance outside current PASS; exact-source replay required., incomplete_reason=Prior-source PASS invalidated because Current Product Source Identity changed; exact-source replay required., command=python -m pytest -q cpf-tools + Development Harness validators/negative fixtures (target evidence file contains exact executed subset/result), environment=container: Java 21.0.11; Python 3.13.5; Node 22.16.0; npm 10.9.2; pwsh=UNAVAILABLE; docker=UNAVAILABLE, exit=-, observed=Open Git/Public release source tests included in full cpf-tools suite PASS; actual fresh release remains blocked | exact-final source evidence, evidence=-
@@ -9851,4 +9851,196 @@
   - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=BLOCKED_EXTERNAL, acceptance=Same Source full runtime + fresh replay + independent reviewer + QA PASS, completion_reason=-, incomplete_reason=Mandatory Java25/VSCode/DB3/Batch/One-WAS/Frontend/Performance/OpenGit/FreshReplay plus Independent Reviewer/QA remain incomplete., command=See cpf-docs/governance/development-harness/current/CPF_FINAL_LOCAL_APPLY_RUNTIME_COMMANDS.md, environment=container: Java 21.0.11; Python 3.13.5; Node 22.16.0; npm 10.9.2; pwsh=UNAVAILABLE; docker=UNAVAILABLE, exit=-, observed=Mandatory physical runtime not promoted to PASS., evidence=cpf-docs/governance/development-harness/evidence/devgpt/current/executions/DEVGPT_CURRENT_EXECUTION_SUMMARY.json
 
 - **Closure Rule:** 현재 Source Identity에서 Source→Consumer→호출경로→Config/DB/Generator/API/Frontend→오류·복구→Test/Runtime→Evidence→Dev/Independent Reviewer/QA가 모두 충족되고 mandatory 미실행/FAIL/UNKNOWN/VERIFICATION_PENDING/BLOCKED_EXTERNAL=0일 때만 CLOSED
+
+## 411. WP-R07.17 — WP-R07 Open Git Actual Fresh Release / Public Developer Workspace
+
+- **원 Requirement/Signal:** REL-OPEN-GIT-PUBLIC-DISTRIBUTION / User Open Git Public Runtime/Documentation Steering
+- **현재 Observation/Root Cause:** Final Open Git Tree projection 이 Public Product Distribution 계약을 이행하지 않았다. open-git-surface-policy 는 binaryRepositoryDirectory 를 정의하는데 구현은 binary-repository 를 open-git 과 형제 디렉터리로 만들어 checkout 에 Binary 가 포함되지 않았고, README 는 <cpf-binary-repository-url> placeholder 였다. Stage 8 은 copytree+denylist 라 checksum sidecar 1258, timestamped SNAPSHOT 49, .module 48, maven-metadata 102 가 통과했고 sources/javadoc 삭제 후 orphan sidecar 128 이 남았다. executable Runtime 9종은 catalog 좌표와 maven-publish 가 없어 Binary coverage 0/9 였고, cpf-docs 는 root 통째 차단이라 Public 문서가 0건이었다. cpf-backoffice-web 은 canonical port table 미등록으로 8090 을 써 admin 과 충돌했다. 추가 확인(현재 Source): 공개 Open Git tree 의 required 실행 구성은 cpf-education 뿐이고 ADM/MBW/Backoffice Web 기동 경로가 Gate 대상이 아니다. cpf-backoffice-web/build.gradle 에는 frontend production bundle 통합이 없어 공개 Runtime 에 Backoffice Web 화면이 실리지 않는다. Binary/Generator 만 PASS 하고 사용자 실행경로가 깨지는 False Green 이 가능하다.
+- **개발 범위:** Stage 5 immutable public version / Stage 8 allowlist fail-closed projection / Stage 9 fail-closed verification+Package Manifest; bundled binary-repository; Public Runtime 9종 publication(bootJar); canonical Runtime Target Catalog + Windows/Linux launcher lifecycle; Public Documentation Allowlist; port collision 0; README 증분 보완(전면 재작성 금지).; Consumer Runtime Surface: ADM / MBW(cpf-backoffice online) / Backoffice Web 을 공개 lifecycle launcher 만으로 기동 가능하게 publication 하고, ADM·Backoffice Web frontend production bundle 을 공개 Runtime 산출물에 포함한다. 사용자가 npm 명령·내부 Gradle project path·Development Master script·private source 를 알아야 실행되면 FAIL 이다.
+- **영향 Source/Consumer:** Fresh Open Git checkout -> bundled binary repository -> CLI/launcher -> Build/Test/Generator/Generated Domain -> Runtime start/health/status/stop -> Public Documentation.
+- **Static 최대강도 Acceptance:** allowlist projection; checksum sidecar 0; orphan sidecar 0; timestamped/SNAPSHOT public artifact 0; Package Manifest exact(파일집합 일치); runtime 미분류 0; Binary<->Launcher parity; Generated Domain/Backoffice 하드코딩 0; port 중복 0; governance leakage 0; README placeholder 0.
+- **Runtime 최대강도 Acceptance:** Fresh Windows/Linux Consumer 에서 resolve/transitive/build/test/CLI/Generator/Generated Domain/runtime start-health-status-restart-stop/cleanup/Fresh Replay 실행. Development Master 및 local Maven cache 비의존 실증. Fresh Clone -> bootstrap -> DB/필수 dependency 준비 -> ADM start -> ADM Browser 화면/login -> MBW start -> Backoffice Web start -> Browser login -> Backoffice Web -> MBW 실제 API 거래 -> Header/Auth/CSRF 확인 -> status -> stop -> cleanup 을 Windows/Linux 양쪽 공개 진입점으로 실증한다. Backoffice Web 은 ADM 이 아니라 MBW Channel Front 이므로 MBW 와 함께 검증한다.
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS 24. Open Git Public Product Distribution(24.1~24.10) + open-git-artifact-policy finalPublicTree + open-git-surface-policy Public Documentation rules.
+- **Garbage/Delete:** checksum sidecar/orphan sidecar/timestamped SNAPSHOT/stale publication 0
+- **상태:** development=SOURCE_FIXED / verification=VERIFICATION_PENDING / runtime=VERIFICATION_PENDING / overall=VERIFICATION_PENDING
+- **개발 완료 사유:** 
+- **검증 미완료 사유:** 
+- **Source Identity:** 8068db79a356a6c5d93aaa1d1de9f630bd31008df8d85d885693b814e70de7d6
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=allowlist projection; checksum sidecar 0; orphan sidecar 0; timestamped/SNAPSHOT public artifact 0; package manifest exact; runtime classification 0; binary launcher parity; generated domain/backoffice hardcoding 0; port collision 0; governance leakage 0; README placeholder 0., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=Fresh Windows/Linux Consumer resolve/transitive/build/test/CLI/Generator/Generated Domain/runtime start-health-status-restart-stop/cleanup/Fresh Replay without Development Master or local Maven cache., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** Fresh Windows/Linux Consumer 가 bundled repository 만으로 실행까지 성공하고, Final Tree 가 Current-only 최소 Artifact + Public Documentation 을 만족하며 Leakage 0 일 때 CLOSED. 추가로 Open Git Release Gate 가 ADM runnable 과 Backoffice/MBW runnable 을 함께 판정하고, README 가 Windows/Linux 진입점·기본/변경 Port·local/dev Profile·초기 ADM credential/bootstrap 절차·기동 URL 을 그대로 복사해 실행 가능한 수준으로 명시할 때 CLOSED.
+
+## 412. WP-R16.01 — WP-R16 mandatory Admin Route Provider / Composition 계약
+
+- **원 Requirement/Signal:** ADM-LOG, CPF-FILELOG / RUN36~RUN39 [148] LOCAL_ONE_WAS_START / User Architecture-First Steering
+- **현재 Observation/Root Cause:** ADM capability registry(ADMUI-043/054/056)가 remoteLogs/featureFlags/resiliencePolicies 를 등록된 ADM 기능으로 선언하는데 각 Port 의 유일한 Provider 가 opt-in 이라 1-WAS 가 기동하지 못했다. Consumer 조건부 제거는 Route Contract 축소이고 Runtime YAML enabled=true 는 ADM 을 업무 Domain 으로 취급하는 오류다.
+- **개발 범위:** capability owner AutoConfiguration 을 matchIfMissing=true 로 전환하여 모듈 선언 자체를 opt-in 으로 삼는다. 기본 제공 전환에 따른 무자격 DataSource/TransactionManager/Clock 주입을 canonical role 로 해소하고, Generated Domain 이 선언하는 Starter 는 Platform role 조건으로 unintended default-on 을 차단한다.
+- **영향 Source/Consumer:** ADM Admin Route Contract / 1-WAS 합성 / Generated Domain Runtime
+- **Static 최대강도 Acceptance:** test_cpf_mandatory_route_provider_contract.py, test_cpf_default_on_capability_scope.py, test_cpf_infrastructure_injection_resolvable.py (모두 negative mutation 확인)
+- **Runtime 최대강도 Acceptance:** [148] LOCAL_ONE_WAS_START PASS 및 [149]~[155] 실제 실행 PASS
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS 26. Runtime 실패 수정 전 Ownership/제품 성격 판정
+- **Garbage/Delete:** 
+- **상태:** development=SOURCE_FIXED / verification=VERIFICATION_PENDING / runtime=VERIFICATION_PENDING / overall=VERIFICATION_PENDING
+- **개발 완료 사유:** capability owner AutoConfiguration 을 matchIfMissing=true 로 전환하여 모듈 선언 자체를 opt-in 으로 삼는다. 기본 제공 전환에 따른 무자격 DataSource/TransactionManager/Clock 주입을 canonical role 로 해소하고, Generated Domain 이 선언하는 Starter
+- **검증 미완료 사유:** [148] LOCAL_ONE_WAS_START PASS 및 [149]~[155] 실제 실행 PASS
+- **Source Identity:** 6603dbc001303bbdc3e03692a3d691dd0967e4f87cf8273830d3925327ef574f
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=Mandatory route provider, default-on capability scope, and infrastructure injection contracts with negative mutations., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=LOCAL_ONE_WAS_START and actual mandatory ADM route lifecycle acceptance., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** mandatory Admin Route 3건이 기본 구성에서 Provider 를 얻고 1-WAS 가 기동한다
+
+## 413. WP-R16.02 — WP-R16 mandatory Admin Route Provider / Composition 계약
+
+- **원 Requirement/Signal:** CPF-FILELOG, CORE-CONFIG / Canonical Config Owner 판정 중 발견 / User Config Duplication Steering
+- **현재 Observation/Root Cause:** 동일 의미 Log Root 를 두 키가 소유한다. 정본은 cpf.logging.root(CpfApplicationLoggingProperties, 기본 logs, 상대경로 허용)이고 cpf.logging.file.base-path 는 같은 네임스페이스에 얹혔지만 properties 필드가 아닌 중복 철자다. CpfLogPathPolicy 가 후자에 절대경로를 강제해 제약이 서로 다르다. 현재 blocker 는 아니다(remote-log 소비자는 정본 키를 따르고 기본값으로 폴백한다). 현재 blocker 는 아니다(remote-log 소비자는 정본 키를 따르고 기본값으로 폴백한다).
+- **개발 범위:** CpfLogPathPolicy 의 절대경로 요구와 정본 기본값(logs, 상대)의 의미 충돌을 먼저 해소한 뒤 cpf.logging.file.base-path 를 은퇴시킨다.
+- **영향 Source/Consumer:** File Log 경로 해소 전 Runtime
+- **Static 최대강도 Acceptance:** 중복 키 신규 도입 금지 및 은퇴 후 잔여 참조 0건
+- **Runtime 최대강도 Acceptance:** [149] LOCAL_FILE_LOG_STANDARD / [150] LOCAL_DB_LOG_POLICY_RUNTIME PASS 유지
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS 26.3 동일 의미 설정 키를 복제하지 않는다
+- **Garbage/Delete:** 
+- **상태:** development=부분 구현 / verification=미검증 / runtime=VERIFICATION_PENDING / overall=부분 구현
+- **개발 완료 사유:** CpfLogPathPolicy 의 절대경로 요구와 정본 기본값(logs, 상대)의 의미 충돌을 먼저 해소한 뒤 cpf.logging.file.base-path 를 은퇴시킨다.
+- **검증 미완료 사유:** [149] LOCAL_FILE_LOG_STANDARD / [150] LOCAL_DB_LOG_POLICY_RUNTIME PASS 유지
+- **Source Identity:** 6603dbc001303bbdc3e03692a3d691dd0967e4f87cf8273830d3925327ef574f
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=No duplicate log-root key and retired-key residual reference count zero., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=File log and DB log policy runtime retain one canonical log-root owner., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** Log Root 정본 키 1개만 남고 절대/상대 제약이 하나의 의미로 정리된다
+
+## 414. WP-R17.01 — WP-R17 사용자 대면 산출물 사용성/구성가능성
+
+- **원 Requirement/Signal:** CPF-TOOLING, CPF-LOCAL-RUNTIME / User Shell/Command Usability & Composability Steering (2026-09-03)
+- **현재 Observation/Root Cause:** 1-WAS 구동 Shell(start-cpf-local.ps1 485자 1줄, stop-cpf-local.ps1 392자 1줄)을 비롯한 사용자 진입 Shell이 단일 장문 명령이라 Domain/Module을 한 줄 주석으로 넣고 뺄 수 없고 수정 지점을 찾기 어렵다.
+- **개발 범위:** Harness §27 계약에 따라 사용자 진입 Shell을 설정 영역/실행 단계로 분리하고 한글 주석을 단다. Build/Test/Start/Stop/Reset/DB/Generator/Runtime/Validation/Open Git 진입점 전체가 대상.
+- **영향 Source/Consumer:** cpf-tools/runtime/tools, cpf-tools/db/tools, cpf-tools/generator/tools, cpf-tools/verification/tools, cpf-tools/release/open-git
+- **Static 최대강도 Acceptance:** test_cpf_user_facing_shell_usability.py (줄길이/문장수/설정영역/한글주석) + 음성 변이
+- **Runtime 최대강도 Acceptance:** 재구성 후 1-WAS start/stop이 Full Runtime과 동일하게 동작
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS.md §27
+- **Garbage/Delete:** N/A
+- **상태:** development=미구현 / verification=미검증 / runtime=NOT_EXECUTED / overall=미구현
+- **개발 완료 사유:** Harness §27 계약에 따라 사용자 진입 Shell을 설정 영역/실행 단계로 분리하고 한글 주석을 단다. Build/Test/Start/Stop/Reset/DB/Generator/Runtime/Validation/Open Git 진입점 전체가 대상.
+- **검증 미완료 사유:** Runtime 증적 미확보 (신규 사용자 Steering 등록)
+- **Source Identity:** 9d991e7472db22a9ee42537523c876ab297ba008f5619fbd3845e92c2d3ea152
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=User-facing shell usability contract covers line length statement count configuration area Korean comments and negative mutation., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=Recomposed One-WAS start and stop follows the Full Runtime lifecycle without regression., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** 사용자 진입 Shell 전수가 §27 게이트를 통과하고 1-WAS 기동/정지가 회귀 없이 통과
+
+## 415. WP-R17.02 — WP-R17 사용자 대면 산출물 사용성/구성가능성
+
+- **원 Requirement/Signal:** ADM-SEC, CPF-FILELOG, ADM-LOG / User Masking Policy Steering (2026-09-03) / [141] lineage transactionId 훼손
+- **현재 Observation/Root Cause:** CpfMaskingValueRule(7개 값 규칙) 신설 + MaskingPolicy/Snapshot/UpdateCommand에 valueRules 반영 + mask()가 운영자 선택만 적용하도록 전환 완료(CpfMaskingValueRuleSelectionTest 통과). 남은 것: cpf_masking_policy_* 정본 DDL 3벤더 신설(현재 어떤 SQL에도 없음)과 ADM mandatory Route/UI.
+- **개발 범위:** 마스킹 항목을 운영자가 ADM에서 선택하도록 기능 개발. 값 패턴 규칙을 정책화하고 ADM mandatory Route(조회/추가/삭제/수정/이력/롤백)를 제공한다. DB 로그와 File 로그에 동일 정책이 적용되어야 한다. CPF 발급 추적 식별자는 선택과 무관하게 마스킹 제외.
+- **영향 Source/Consumer:** cpf-starters/security, cpf-starters/security/secret, cpf-starters/platform-operations/observability, cpf-admin
+- **Static 최대강도 Acceptance:** CpfMaskingRuntimeTransactionIdTest + 정책 선택 단위테스트 + ADM Route 계약 게이트
+- **Runtime 최대강도 Acceptance:** ADM에서 항목 변경 후 File/DB 로그 양쪽에 즉시 반영되는 Runtime 증적
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS.md §28.1/§28.2/§28.4
+- **Garbage/Delete:** N/A
+- **상태:** development=부분 구현 / verification=미검증 / runtime=NOT_EXECUTED / overall=부분 구현
+- **개발 완료 사유:** 마스킹 항목을 운영자가 ADM에서 선택하도록 기능 개발. 값 패턴 규칙을 정책화하고 ADM mandatory Route(조회/추가/삭제/수정/이력/롤백)를 제공한다. DB 로그와 File 로그에 동일 정책이 적용되어야 한다. CPF 발급 추적 식별자는 선택과 무관하게 마스킹 제외.
+- **검증 미완료 사유:** Runtime 증적 미확보 (신규 사용자 Steering 등록)
+- **Source Identity:** 179de77fd9dd13787af0e2213a94d37615e9fa2914709fc33d97a665f8583093
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=Masking policy selection and ADM route contracts preserve immutable CPF lineage identifiers with negative checks., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=ADM policy change is reflected immediately and consistently in File and DB logs while CPF trace identifiers remain unmasked., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** 운영자가 ADM에서 선택한 항목만 마스킹되고 CPF 추적 식별자가 보존됨을 Runtime 증적으로 확인
+
+## 416. WP-R17.03 — WP-R17 사용자 대면 산출물 사용성/구성가능성
+
+- **원 Requirement/Signal:** ADM-LOG, CPF-FILELOG / User Dynamic Log Field Steering (2026-09-03)
+- **현재 Observation/Root Cause:** File/DB 로그의 항목(필드)이 CpfFileLogWriter.baseEvent 등 코드에 고정되어 있어 운영자가 남길 항목을 바꿀 수 없다.
+- **개발 범위:** 로그 항목을 운영자가 ADM에서 추가/삭제/수정할 수 있도록 기능 개발. DB 로그와 File 로그에 동일 구성이 적용되어야 하며, 필수 상관관계 식별자는 제거 불가 항목으로 고정한다.
+- **영향 Source/Consumer:** cpf-starters/platform-operations/observability, cpf-admin
+- **Static 최대강도 Acceptance:** 로그 항목 구성 단위테스트 + ADM Route 계약 게이트 + 필수 항목 제거 거부 음성 변이
+- **Runtime 최대강도 Acceptance:** ADM에서 항목 추가/삭제 후 File/DB 로그 출력이 즉시 바뀌는 Runtime 증적
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS.md §28.3/§28.4
+- **Garbage/Delete:** N/A
+- **상태:** development=미구현 / verification=미검증 / runtime=NOT_EXECUTED / overall=미구현
+- **개발 완료 사유:** 로그 항목을 운영자가 ADM에서 추가/삭제/수정할 수 있도록 기능 개발. DB 로그와 File 로그에 동일 구성이 적용되어야 하며, 필수 상관관계 식별자는 제거 불가 항목으로 고정한다.
+- **검증 미완료 사유:** Runtime 증적 미확보 (신규 사용자 Steering 등록)
+- **Source Identity:** 9d991e7472db22a9ee42537523c876ab297ba008f5619fbd3845e92c2d3ea152
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=Log-field configuration and ADM route contracts reject mandatory lineage-field removal by negative mutation., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=ADM field add/delete changes both File and DB log output while mandatory fields cannot be removed., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** 운영자가 구성한 로그 항목이 File/DB 양쪽에 반영되고 필수 식별자는 제거 불가함을 Runtime 증적으로 확인
+
+## 417. WP-R17.04 — WP-R17 사용자 대면 산출물 사용성/구성가능성
+
+- **원 Requirement/Signal:** REL-OPEN-GIT-PUBLIC-DISTRIBUTION, CPF-TOOLING / User Open Git Gradle Task Group Steering (2026-09-03)
+- **현재 Observation/Root Cause:** VS Code Gradle Projects 에 Open Git Release 사용자 진입점이 없었고, 정본 엔진에 commit/push 액션 자체가 없어 수동 명령 안내만 있었다.
+- **개발 범위:** 70. CPF 오픈깃 릴리즈 Task 그룹 신설(Build/Verify/Status/Prepare/Commit/Push/CommitAndPush). 정본 엔진 wrapper 구조 유지. Git Write 는 -PconfirmGitWrite=true 명시 승인 + preflight fail-closed.
+- **영향 Source/Consumer:** cpf-tools/build/cpf-root-conventions.gradle, cpf-tools/release/open-git
+- **Static 최대강도 Acceptance:** test_cpf_open_git_task_contract.py (9건) + 음성 변이 3건
+- **Runtime 최대강도 Acceptance:** Gradle Task 노출 확인, 승인 누락/오타 승인값 Negative 실행 2건에서 Git 변경 0건
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS.md §29
+- **Garbage/Delete:** N/A
+- **상태:** development=완료 / verification=미검증 / runtime=NOT_EXECUTED / overall=부분 구현
+- **개발 완료 사유:** 70. CPF 오픈깃 릴리즈 Task 그룹 신설(Build/Verify/Status/Prepare/Commit/Push/CommitAndPush). 정본 엔진 wrapper 구조 유지. Git Write 는 -PconfirmGitWrite=true 명시 승인 + preflight fail-closed.
+- **검증 미완료 사유:** Open Git Release 실물 생성/검증 미수행
+- **Source Identity:** 89d5e2ba3004661f9909333b45d34f6a1c8d4eaad780cc03bd00c2439229a69e
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=Open Git Gradle task contract and negative mutations cover task exposure and explicit Git-write approval., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=Gradle task exposure and missing/misspelled confirmation fail without Git change; actual release confirms write boundary., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** 실제 Open Git Release 생성/검증 후 Commit/Push 진입 조건까지 확인(Git Write 는 사용자 승인 시에만 수행)
+
+## 418. WP-IDENTITY — WP-IDENTITY Identity Namespace 및 거래 Header Architecture 통합 정정
+
+- **원 Requirement/Signal:** CPF-SYSTEM6, CPF-HEADER, CPF-INSTANCE, ONBOARD-DOMAIN, DB-BINDING / CPF Identity / 거래 Header / Runtime Architecture 최종 통합 Steering (2026-09-04)
+- **현재 Observation/Root Cause:** SystemCode/ChannelCode/DB Prefix/Module Code/instanceId/TransactionId issuer/1-WAS topology 가 서로 다른 시기의 계약으로 혼재했다. ADM/GWY/LOCAL/CPF/CMN 가상 SystemCode, Module/Package/Prefix 추론, 앞3자리 truncate, blank->CPF fallback, LOCAL->LOC issuer 보정이 존재했다.
+- **개발 범위:** 정본(Harness 30.1~30.22 / Product Architecture) 현행화 -> Architecture Role machine-readable 정본 -> Validator/Negative -> Source(CpfSystemCodes 해체, issuer=canonical ChannelCode, systemCode nullable) -> Config 고정값 -> DB Registry -> Generator -> Consumer 분류 -> Runtime/E2E
+- **영향 Source/Consumer:** cpf-docs/governance/development-harness, cpf-tools/governance/cpf-product-surface-policy.json, cpf-starters/base/runtime, cpf-starters/web, cpf-starters/platform-operations/observability, cpf-tools/db/canonical, cpf-tools/runtime/tools, 전체 application.yml
+- **Static 최대강도 Acceptance:** test_cpf_system_identity_contract.py(11건 PASS), test_cpf_runtime_readiness_ordering_contract.py(2건), test_cpf_smoke_operation_id_contract.py(1건), test_cpf_log_policy_clock_contract.py(4건), test_cpf_powershell_url_interpolation_contract.py(1건) 전건 PASS(negative mutation 확인)
+- **Runtime 최대강도 Acceptance:** 1-WAS Work Unit ONE_WAS 13/13 PASS(sourceIdentity=6560c7d2, File Log 표준/DB Log 정책/통합 로그 상관관계/ADM·MBW Runtime OpenAPI). Same-JVM/Remote/Front Channel/Gateway/Batch/CEC/EDU 전 구간 Runtime 은 미착수
+- **문서 현행화:** CPF_DEVELOPMENT_HARNESS.md §30.1~30.22, CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md §4/§7
+- **Garbage/Delete:** CpfSystemCodes.java 삭제(DELETE_MANIFEST 등재)
+- **상태:** development=부분 구현 / verification=미검증 / runtime=PARTIAL / overall=부분 구현
+- **개발 완료 사유:** Identity Namespace 정본(Harness §30) 현행화, Architecture Role machine-readable 정본, CpfSystemCodes 해체(가상 SystemCode/truncate/blank->CPF fallback 제거), issuer=canonical ChannelCode, systemCode nullable Role 계약, 13개 Runtime config 고정값화, DB/Generator/Consumer 정렬 완료. 1-WAS(ONE_WAS) Work Unit 13/13 PASS.
+- **검증 미완료 사유:** Same-JVM/Remote/Front Channel/Gateway/Batch/CEC/EDU 전 구간 Runtime E2E 및 X-Original-System-Code Consumer 분류(14개 파일) 미완
+- **Source Identity:** 6560c7d250ea64c9af3b91080e4abe44b69e61630a03166c4ed7779583d4aa9b
+- **역할별 수행:**
+  - DEVGPT: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source DevGPT execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - INDEPENDENT_REVIEWER: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source independent review execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+  - QA: performed=false, role_status=미검증, execution=NOT_EXECUTED, completion_reason=-, incomplete_reason=No current exact-source QA execution is registered for this work item., command=-, environment=-, exit=-, evidence=-
+- **Test/Runtime 수행:**
+  - STATIC_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=System identity header readiness operation log-policy clock and PowerShell URL interpolation contracts with negative mutations., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+  - RUNTIME_HIGH_INTENSITY: mandatory=true, performed=false, status=NOT_EXECUTED, acceptance=One-WAS File DB timeline and ADM MBW OpenAPI plus Same-JVM Remote Front Channel Gateway Batch CEC EDU identity runtime coverage., completion_reason=-, incomplete_reason=Current exact-source actual execution evidence is not registered., command=-, environment=-, exit=-, observed=-, evidence=-
+
+- **Closure Rule:** 정본/Validator/Source/DB/Generator/Consumer/Runtime 전 구간이 새 Identity 계약으로 정렬되고 Fresh Runtime PASS 시 종결
 

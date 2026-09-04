@@ -38,14 +38,11 @@ import java.util.Set;
 /** Explicit, fail-closed Spring wiring for the integration-closure operational surface. */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AdmIntegrationClosureProperties.class)
-// Harness 26.2 — ADMUI-046(CRITICAL)은 mandatory ADM route다. "모듈을 Composition에 선언하는 행위"
-// 자체를 opt-in 으로 삼고, 속성은 끄기 위한 수단으로만 남긴다.
-// 이전에는 havingValue 만 있어 기본 OFF 였고, 활성화 값이 `application-adm-*.yml`(adm-* profile)에만
-// 있었다. 그래서 그 profile 을 쓰지 않는 조립 Runtime(1-WAS: local,local-integrated)에서는 8개
-// operation 이 통째로 사라져 Runtime OpenAPI 계약이 "not exported admIntegrationCryptoStatus ..."
-// 로 실패했다. 조립하는 Runtime 마다 ADM 내부 요구사항을 알아야 하는 구조는 26.1 위반이다.
-@ConditionalOnProperty(prefix = "cpf.adm.integration-closure", name = "enabled",
-        havingValue = "true", matchIfMissing = true)
+// Harness 26.2 — ADMUI-046(CRITICAL)은 mandatory ADM route다. 이 Configuration을 ADM
+// Composition에 포함한 경우에는 항상 여덟 개의 운영 Route를 제공한다. `enabled` 같은 YAML
+// switch로 Controller/Operation을 숨기면 OpenAPI·Frontend·운영 절차의 제품 계약을 축소하므로
+// 허용하지 않는다. 실제 Provider가 없는 protected Runtime은 route를 삭제하지 않고 fail-closed로
+// 기동을 거부해야 한다.
 /** AdmIntegrationClosureConfiguration 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
 public class AdmIntegrationClosureConfiguration {
 

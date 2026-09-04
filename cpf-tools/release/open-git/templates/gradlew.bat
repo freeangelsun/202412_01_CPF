@@ -128,7 +128,10 @@ goto fail
 
 
 @rem Execute Gradle
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" --project-cache-dir "%CPF_GRADLE_PROJECT_CACHE%" "-PcpfManagedGradleRoot=%CPF_MANAGED_GRADLE_ROOT%" %*
+@rem Each included Build owns its default .gradle project cache.
+@rem A shared --project-cache-dir makes included Builds share stale-output state.
+@rem Keep only the CPF-managed Gradle root shared by this launcher.
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" "-PcpfManagedGradleRoot=%CPF_MANAGED_GRADLE_ROOT%" %*
 
 :end
 @rem End local scope for the variables with windows NT shell

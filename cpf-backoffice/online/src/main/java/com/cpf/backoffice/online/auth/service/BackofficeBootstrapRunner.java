@@ -30,7 +30,12 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-/** 사전 승인된 1회용 Token과 제한된 Secret 파일이 있을 때만 최초 MBW 운영자를 생성합니다. */
+/**
+ * 최초 운영자 완료 뒤의 일반 운영자 변경에 쓰이는 maker/checker 승인 Bootstrap runner다.
+ *
+ * <p>Fresh 환경의 첫 계정은 {@link BackofficeInitialOperatorBootstrapRunner}만 만들 수 있다.
+ * 이 runner가 첫 계정을 만들면 사전 승인 contract와 Initial Operator contract가 다시 섞인다.</p>
+ */
 @Component
 public final class BackofficeBootstrapRunner implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(BackofficeBootstrapRunner.class);
@@ -63,6 +68,12 @@ public final class BackofficeBootstrapRunner implements ApplicationRunner {
     public void run(ApplicationArguments arguments) throws Exception {
         String tokenFile = environment.getProperty("cpf.backoffice.bootstrap.approval-token-file");
         if (tokenFile == null || tokenFile.isBlank()) return;
+        if (System.getenv("CPF_MBW_BOOTSTRAP_PASSWORD") != null) {
+            throw new IllegalStateException("MBW_INITIAL_AND_APPROVED_BOOTSTRAP_CANNOT_RUN_TOGETHER");
+        }
+        if (!authRepository.hasAnyOperator()) {
+            throw new IllegalStateException("MBW_INITIAL_OPERATOR_BOOTSTRAP_REQUIRED");
+        }
 
         Path tokenPath = null;
         Path passwordPath = null;

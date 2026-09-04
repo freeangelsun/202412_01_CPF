@@ -16,7 +16,7 @@ else:
 from cpf_domain_generator import (DomainError, generate, regenerate, diff, dry_run, load_yaml_subset, validate_definition,
                            verify_generated, verify_prebuilt_domain, verify_genericity, remove_owned, preflight, upgrade, restore,
                            SUPPORTED_VENDORS, _ddl, _migration, _seed, _rollback, _verify_sql,
-                           managed_generator_root, load_domain_contract)
+                           managed_generator_root, load_domain_contract, adopt_git_clean_template_drift)
 from cpf_customer_library_generator import (CustomerLibraryError, create_library, attach_library, sync_libraries, verify_library)
 
 VERSION='6.4.0'
@@ -128,10 +128,13 @@ def _delete_approved_legacy_metadata(output:Path,candidates:list[str])->list[str
     return removed
 
 
-def sync_workspace_domains(root:Path,approve_generated_delete:bool=False)->dict:
+def sync_workspace_domains(root:Path,approve_generated_delete:bool=False,
+                           approve_template_adoption:bool=False)->dict:
     definitions=workspace_definitions(root)
     if not definitions:
-        return {'status':'PASS','action':'DOMAIN_SYNC','domainState':'NOT_SELECTED','approvedGeneratedDelete':approve_generated_delete,'count':0,'results':[]}
+        return {'status':'PASS','action':'DOMAIN_SYNC','domainState':'NOT_SELECTED',
+                'approvedGeneratedDelete':approve_generated_delete,
+                'approvedTemplateAdoption':approve_template_adoption,'count':0,'results':[]}
     results=[]
     for definition in definitions:
         d=load_domain_contract(definition); output=root/generated_root_name(d.name)
@@ -151,22 +154,35 @@ def sync_workspace_domains(root:Path,approve_generated_delete:bool=False)->dict:
                 if 'transient generation-state가 없습니다' not in str(exc): raise
                 current=diff(root,definition,output)
                 if not current.get('clean'):
-                    raise DomainError(f'Fresh clone의 현재 Source가 Developer Contract/Template과 exact-match가 아닙니다: {current}')
-                candidates=list(current.get('legacyMetadataFiles',[]))
-                if candidates and not approve_generated_delete:
-                    result={'domain':d.name,'status':'VERIFICATION_PENDING_DELETE','output':str(output),
-                            'deleteCandidates':candidates,'deletePrecondition':'EXPLICIT_APPROVAL_REQUIRED','mutated':False}
+                    if approve_template_adoption:
+                        result=adopt_git_clean_template_drift(root,definition,output)
+                    else:
+                        result={'domain':d.name,'status':'VERIFICATION_PENDING_TEMPLATE_ADOPTION','output':str(output),
+                                'changed':current.get('changed',[]),'missing':current.get('missing',[]),
+                                'staleGeneratedFiles':current.get('staleGeneratedFiles',[]),
+                                'extraUserFiles':current.get('extraUserFiles',[]),
+                                'templateAdoptionPrecondition':'EXPLICIT_APPROVAL_AND_GIT_CLEAN_TRACKED_OUTPUT_REQUIRED',
+                                'mutated':False}
                 else:
-                    removed=_delete_approved_legacy_metadata(output,candidates) if candidates else []
-                    result=regenerate(root,definition,output)
-                    result['removed']=removed
-                    result['mutated']=bool(removed or result.get('restored'))
+                    candidates=list(current.get('legacyMetadataFiles',[]))
+                    if candidates and not approve_generated_delete:
+                        result={'domain':d.name,'status':'VERIFICATION_PENDING_DELETE','output':str(output),
+                                'deleteCandidates':candidates,'deletePrecondition':'EXPLICIT_APPROVAL_REQUIRED','mutated':False}
+                    else:
+                        removed=_delete_approved_legacy_metadata(output,candidates) if candidates else []
+                        result=regenerate(root,definition,output)
+                        result['removed']=removed
+                        result['mutated']=bool(removed or result.get('restored'))
         results.append({'domain':d.name,'status':result.get('status'),'project':str(output),
                         'changed':result.get('changed',[]),'added':result.get('added',[]),
-                        'deleteCandidates':result.get('deleteCandidates',[]),'mutated':result.get('mutated',result.get('status') not in {'VERIFICATION_PENDING_DELETE'})})
-    pending=any(row['status']=='VERIFICATION_PENDING_DELETE' for row in results)
-    return {'status':'VERIFICATION_PENDING_DELETE' if pending else 'PASS','action':'DOMAIN_SYNC',
-            'approvedGeneratedDelete':approve_generated_delete,'count':len(results),'results':results}
+                        'deleteCandidates':result.get('deleteCandidates',[]),
+                        'templateEquivalentStateReconciled':result.get('templateEquivalentStateReconciled',[]),
+                        'mutated':result.get('mutated',result.get('status') in {'GENERATED','REGENERATED','UPGRADED','TEMPLATE_ADOPTED'})})
+    pending_delete=any(row['status']=='VERIFICATION_PENDING_DELETE' for row in results)
+    pending_adoption=any(row['status']=='VERIFICATION_PENDING_TEMPLATE_ADOPTION' for row in results)
+    status='VERIFICATION_PENDING_DELETE' if pending_delete else ('VERIFICATION_PENDING_TEMPLATE_ADOPTION' if pending_adoption else 'PASS')
+    return {'status':status,'action':'DOMAIN_SYNC','approvedGeneratedDelete':approve_generated_delete,
+            'approvedTemplateAdoption':approve_template_adoption,'count':len(results),'results':results}
 
 def resolve_definition(root:Path, domain_name:str, file_value:str|None=None)->Path:
     """Developer-Facing gradle.properties 계약 또는 명시적인 일회성 입력을 사용한다."""
@@ -534,6 +550,8 @@ def main()->int:
     sync_parser=dsub.add_parser('sync',help='Workspace Developer Domain 계약과 Generated Source를 안전하게 동기화')
     sync_parser.add_argument('--approve-generated-delete',action='store_true',
                              help='preview된 root legacy Generator metadata만 exact allowlist로 삭제')
+    sync_parser.add_argument('--approve-template-adoption',action='store_true',
+                             help='transient state가 없고 Git clean인 tracked Generated template drift만 명시 승인하여 currentize')
     # argparse keeps suppressed subcommands in the positional help list. Hide legacy/advanced aliases
     # from the Golden Path while keeping them callable for compatibility.
     _hidden_domain_commands={'generate','add','dry-run','validate','regenerate','generate-all','upgrade','restore','new'}
@@ -563,7 +581,10 @@ def main()->int:
         if ns.command in {'generate','add','dry-run','validate','regenerate','generate-all','upgrade','restore','new'}:
             print(f'[CPF][DEPRECATED] domain {ns.command} is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.', file=sys.stderr)
         if ns.command in ('create','new'): print_json(create_workspace_domain(root,ns.name,ns.system_code,ns.batch,getattr(ns,'business_feature',None))); return 0
-        if ns.command=='sync': print_json(sync_workspace_domains(root,ns.approve_generated_delete)); return 0
+        if ns.command=='sync':
+            result=sync_workspace_domains(root,ns.approve_generated_delete,ns.approve_template_adoption)
+            print_json(result)
+            return 0 if result.get('status')=='PASS' else 1
         if ns.command=='setup':
             if ns.interactive:
                 if not sys.stdin.isatty(): raise CpfCliError('Interactive setup requires a TTY')

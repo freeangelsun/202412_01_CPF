@@ -18,6 +18,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.mockito.InOrder;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 class AdmNotificationOutboxServiceTest {
 
@@ -70,9 +71,9 @@ class AdmNotificationOutboxServiceTest {
                 any(java.sql.Timestamp.class));
         ordered.verify(jdbc).update(
                 org.mockito.ArgumentMatchers.argThat(sql ->
-                        sql.contains("cpf_notification_delivery_attempt")
-                                && sql.contains("attempt_status = 'UNKNOWN_RESULT'")
-                                && sql.contains("LEASE_EXPIRED_UNKNOWN_RESULT")),
+                        sql.toUpperCase(Locale.ROOT).contains("CPF_NOTIFICATION_DELIVERY_ATTEMPT")
+                                && sql.toUpperCase(Locale.ROOT).contains("ATTEMPT_STATUS = 'UNKNOWN_RESULT'")
+                                && sql.toUpperCase(Locale.ROOT).contains("LEASE_EXPIRED_UNKNOWN_RESULT")),
                 any(java.sql.Timestamp.class),
                 eq("worker-1"));
     }

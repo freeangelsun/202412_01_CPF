@@ -9,11 +9,15 @@
 ```text
 cpf release open-git
 cpf release open-git check --profile binary
+cpf release open-git consumer-runtime
 cpf release open-git status
 cpf release open-git build --profile source
+cpf release open-git help
 ```
 
 `cpf-tools/release/open-git/cpf_open_git.py`와 OS별 release script는 Canonical Release Engine/저수준 자동화 진입점이며 별도 사용자 CLI가 아닙니다. 공식 사용자는 `cpf release open-git ...`만 사용합니다.
+
+Binary Release는 `windows-x64`, `linux-x64` Generator executable 두 개를 checksum/manifest와 함께 반드시 포함합니다. Windows에서 기본 `cpf release open-git`을 실행하면 Windows artifact는 host에서, 누락된 Linux artifact는 Docker Desktop의 실제 `linux/amd64` container에서 fresh PyInstaller build합니다. 파일명 변경이나 OS classifier 대체는 허용하지 않습니다. CI가 이미 검증한 matrix가 있으면 `--generator-artifacts <flat-directory>`로 주입할 수 있으며, Linux host에서는 검증된 `windows-x64` CI artifact가 필요합니다.
 
 ```powershell
 .\cpf-tools\release\open-git\cpf-open-git.ps1

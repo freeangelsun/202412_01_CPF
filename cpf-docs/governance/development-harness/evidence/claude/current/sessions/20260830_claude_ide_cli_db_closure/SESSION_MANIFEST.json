@@ -99,7 +99,11 @@
     {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/CLEAN_REPLAY_AND_LIFECYCLE_OWNERSHIP.log",
       "sha256": "92c3c1d43bbb872b56d4c6029202a1e9b9627d78f659fa393f621740f57a4f1d",
-      "purpose": "Claude session evidence"
+      "purpose": "Claude session evidence",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/CONTINUATION_REPORT.md",
@@ -109,17 +113,29 @@
     {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/HARNESS_FINAL_GATE_PASS.log",
       "sha256": "916accd94fb5b10b077e5e8d57c64bdf7fd2e3ca83a03152473f1496175e987c",
-      "purpose": "Claude session evidence"
+      "purpose": "Claude session evidence",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/OPEN_GIT_RELEASE_14_14_VERIFIED.log",
       "sha256": "c0c458d316f44c9143b70a8b6939b09c05c6a357e77c359eff6932a10a53001a",
-      "purpose": "Claude session evidence"
+      "purpose": "Claude session evidence",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/PYTEST_FINAL_ALL.log",
       "sha256": "d7659997ab42ce1f673ca4310c6284d4588ff9f64910a000ea1b905aa50365dd",
-      "purpose": "Claude session evidence"
+      "purpose": "Claude session evidence",
+      "evidence_status": "NOT_AVAILABLE",
+      "reason": "당시 .gitignore 정책(*.log 전역 제외, Evidence 예외가 삭제된 옛 경로를 가리킴)으로 저장소에 영속 저장되지 않았고 이후 정리 과정에서 소실되었다.",
+      "reproducibility": "UNAVAILABLE_FOR_ORIGINAL_SOURCE_IDENTITY",
+      "acceptanceInheritance": "NOT_INHERITED"
     },
     {
       "path": "cpf-docs/governance/development-harness/evidence/claude/current/sessions/20260830_claude_ide_cli_db_closure/SESSION_REPORT.md",

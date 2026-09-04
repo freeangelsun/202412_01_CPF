@@ -1,1 +1,5 @@
 rootProject.name = 'cpf-education'
+
+// Gradle project cache 는 각 Build 의 기본 위치를 쓴다. Composite 전체에 하나의 cache 를
+// 강제하면 Included Build 들이 실행 이력/stale-output registry 를 공유해 서로의 build/classes 를
+// 지운다(공개 Golden Path 가 한 번 걸러 한 번씩 실패했다). 그 강제는 공식 launcher 에서 제거했다.

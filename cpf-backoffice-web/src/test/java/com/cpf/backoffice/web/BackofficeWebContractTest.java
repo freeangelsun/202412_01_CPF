@@ -21,7 +21,17 @@ class BackofficeWebContractTest {
         assertTrue(id.matches("\\d{17}MBW[A-Z0-9]{7}\\d{7}"));
         assertEquals(34, id.length());
     }
+    @Test void channelFrontUsesChannelCodeAndASeparateBusinessTarget() {
+        var properties = new com.cpf.backoffice.web.shared.config.BackofficeWebProperties(
+                null, java.net.URI.create("http://127.0.0.1:8080"),
+                java.net.URI.create("http://127.0.0.1:8082"), "MBW", "WEB",
+                java.time.Duration.ofSeconds(3), java.time.Duration.ofSeconds(10),
+                "CPF_MBW_ACCESS", "CPF_MBW_REFRESH", false, "Strict");
+        assertEquals("WEB", properties.channelCode());
+        assertEquals("MBW", properties.targetSystemCode());
+    }
     @Test void receiverOwnedSystemHeaderIsProtectedFromBrowser() {
         assertTrue(CanonicalTransactionHeaders.BROWSER_FORBIDDEN.contains("X-System-Code"));
     }
+
 }

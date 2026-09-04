@@ -9,6 +9,10 @@ spring:
     driver-class-name: ${MBW_DATASOURCE_DRIVER}
 
 cpf:
+  # Environment는 SystemCode가 아닌 deployment context다. Initial Bootstrap audit은 이
+  # canonical configuration을 기록하며, local consumer의 기본값은 local이다.
+  environment:
+    code: ${CPF_ENVIRONMENT_CODE:local}
   logging:
     # 일반 Runtime 로그는 Application/Instance별 경로로 분리하며 Transaction Evidence와 혼용하지 않습니다.
     enabled: true
@@ -62,6 +66,12 @@ cpf:
       login-id: ${CPF_MBW_BOOTSTRAP_LOGIN_ID:}
       operator-name: ${CPF_MBW_BOOTSTRAP_OPERATOR_NAME:}
       role-code: ${CPF_MBW_BOOTSTRAP_ROLE_CODE:MBW_MANAGER}
+    initial-operator:
+      # 최초 운영자도 모든 profile에서 같은 ENV 계약을 사용한다. secret 값은 YAML에 두지 않는다.
+      login-id: ${CPF_MBW_INITIAL_OPERATOR_LOGIN_ID:}
+      operator-name: ${CPF_MBW_INITIAL_OPERATOR_NAME:}
+      role-code: ${CPF_MBW_INITIAL_OPERATOR_ROLE_CODE:}
+      password-expiry-days: ${CPF_MBW_INITIAL_OPERATOR_PASSWORD_EXPIRY_DAYS:90}
 
 management:
   endpoint:

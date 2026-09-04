@@ -15,8 +15,8 @@ assert.match(store, /hasOperation\(operationId:\s*string\)/, "session must expos
 assert.match(store, /hasButton\(buttonId:\s*string\)/, "session must retain button identity");
 
 const projection = read("src/main/java/com/cpf/admin/opr/service/AdmOperationPermissionProjectionService.java");
-assert.match(projection, /adm_api_permission/, "operation projection must use canonical API permission storage");
-assert.match(projection, /adm_role_api_permission/, "operation projection must use role API permission storage");
+assert.match(projection, /ADM_API_PERMISSION/, "operation projection must use canonical API permission storage");
+assert.match(projection, /ADM_ROLE_API_PERMISSION/, "operation projection must use canonical role API permission storage");
 assert.match(projection, /getMethodAnnotation\(Operation\.class\)/, "operation projection must discover actual controller operationId");
 assert.match(projection, /AdmApiPermissionPolicy\.evaluate/, "operation projection must share backend permission semantics");
 

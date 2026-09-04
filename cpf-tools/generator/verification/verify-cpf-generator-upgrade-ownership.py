@@ -18,6 +18,8 @@ REQUIRED = (
     "def _write_transient_state(",
     "generation-state.json",
     "def _read_transient_state(",
+    "def _assert_git_clean_template_adoption(",
+    "def adopt_git_clean_template_drift(",
     "def upgrade(",
     "사용자 수정 Generated 파일이 있어 upgrade 중단",
     "def remove_plan(",

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CPF Runtime 공용 Logback 정본.
+
+  증상 근거: ADM/EDU 의 application-*.yml 은 logging.config 로 이 경로를 가리키는데 파일이
+  저장소에 존재한 적이 없었다. 그래서 발행된 ADM Runtime 을 java -jar 로 단독 기동하면
+  FileNotFoundException 으로 Logging 초기화에서 즉시 죽었다. One-WAS 통합 Runtime 으로만
+  기동해 왔기 때문에 이 경로가 한 번도 검증되지 않았다.
+
+  되돌리면 재발할 증상: 공개 Consumer 가 ADM 을 단독 기동하지 못한다.
+-->
+<configuration>
+ <property name="LOG_ROOT" value="${CPF_LOG_ROOT:-./logs}"/><property name="SERVICE" value="${spring.application.name:-cpf-runtime}"/><property name="INSTANCE" value="${CPF_RUNTIME_INSTANCE_ID:-${HOSTNAME}}"/><property name="DIR" value="${LOG_ROOT}/${SERVICE}/${INSTANCE}"/>
+ <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender"><file>${DIR}/runtime.log</file><encoder><pattern>%d{ISO8601} level=%level service=${SERVICE} instance=${INSTANCE} env=%X{cpfEnvironment} cell=%X{cpfCellId} tx=%X{transactionId} trace=%X{traceId} correlation=%X{correlationId} originalSystem=%X{originalSystemCode} system=%X{systemCode} caller=%X{callerSystemCode} target=%X{targetSystemCode} operation=%X{operationId} segment=%X{segmentId} execution=%X{executionId} job=%X{jobId} logger=%logger{36} msg="%replace(%msg){'[\r\n]+',' '}"%n</pattern></encoder><rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy"><fileNamePattern>${DIR}/archive/runtime.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern><maxFileSize>${CPF_LOG_MAX_FILE_SIZE:-100MB}</maxFileSize><maxHistory>${CPF_LOG_MAX_HISTORY_DAYS:-30}</maxHistory><totalSizeCap>${CPF_LOG_TOTAL_SIZE_CAP:-10GB}</totalSizeCap><cleanHistoryOnStart>true</cleanHistoryOnStart></rollingPolicy></appender>
+ <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender"><encoder><pattern>%d{HH:mm:ss.SSS} %-5level ${SERVICE}/${INSTANCE} [%X{transactionId}] %logger{36} - %msg%n</pattern></encoder></appender>
+ <root level="${CPF_LOG_LEVEL:-INFO}"><appender-ref ref="FILE"/><appender-ref ref="CONSOLE"/></root>
+</configuration>

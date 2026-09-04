@@ -80,14 +80,17 @@ logs/
 **/.ruff_cache/
 
 # 공식 Evidence 디렉터리는 정제된 검증 결과와 현재 요청 기준 해시만 허용합니다.
-!cpf-docs/evidence/
-cpf-docs/evidence/**
-!cpf-docs/evidence/**/
-!cpf-docs/evidence/**/*.sanitized.log
-!cpf-docs/evidence/**/*.sanitized.json
-!cpf-docs/evidence/**/*.sanitized.png
+# 정본 Evidence 트리는 cpf-docs/governance/development-harness/evidence 다.
+# 이전 경로(cpf-docs/evidence)를 가리키던 예외는 해당 디렉터리가 사라진 뒤에도 남아 있었고,
+# 그 결과 *.log 전역 제외만 살아남아 Session Evidence 가 저장소에 하나도 실리지 못했다
+# (SESSION_MANIFEST 가 참조하는 증적이 fresh clone 에서 항상 없는 상태가 된다).
+!cpf-docs/governance/development-harness/evidence/
+!cpf-docs/governance/development-harness/evidence/**/
+!cpf-docs/governance/development-harness/evidence/**/*.sanitized.log
+!cpf-docs/governance/development-harness/evidence/**/*.sanitized.json
+!cpf-docs/governance/development-harness/evidence/**/*.sanitized.png
 # Evidence 계약 정본은 실행 원문과 분리해 추적합니다.
-!cpf-docs/evidence/templates/**/*.json
+!cpf-docs/governance/development-harness/evidence/templates/**/*.json
 !cpf-docs/evidence/schema/**/*.json
 !cpf-docs/evidence/fixtures/**/*.json
 !cpf-docs/evidence/**/cpf-current-work-request.baseline.sha256

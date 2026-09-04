@@ -40,7 +40,9 @@ public final class BusinessApiHttpClient {
         this.httpClient = httpClient;
         this.properties = properties;
         this.routes = routes;
-        this.transactionIds = ChannelTransactionIdGenerator.runtime(properties.callerSystemCode());
+        // Channel Front에는 Business SystemCode가 없다. TransactionId issuer는 이 Front가
+        // 최초 trusted entry로 사용하는 canonical ChannelCode에서만 만든다.
+        this.transactionIds = ChannelTransactionIdGenerator.runtime(properties.channelCode());
     }
 
     public ResponseEntity<byte[]> forward(HttpServletRequest request) throws IOException, InterruptedException {
@@ -82,13 +84,15 @@ public final class BusinessApiHttpClient {
     private void addCanonicalTransactionHeaders(HttpRequest.Builder builder, String operationId) {
         String transactionId = transactionIds.next();
         builder.header(CanonicalTransactionHeaders.TRANSACTION_ID, transactionId);
-        builder.header(CanonicalTransactionHeaders.ORIGINAL_SYSTEM_CODE, properties.callerSystemCode());
+        // Browser는 System이 아니다. 최초 업무 owner인 MBW가 이 거래의 Original/Caller
+        // Business System이며, Backoffice Web 자신에게 가상 SystemCode를 부여하지 않는다.
+        builder.header(CanonicalTransactionHeaders.ORIGINAL_SYSTEM_CODE, properties.targetSystemCode());
         builder.header(CanonicalTransactionHeaders.SYSTEM_CODE, properties.targetSystemCode());
-        builder.header(CanonicalTransactionHeaders.CALLER_SYSTEM_CODE, properties.callerSystemCode());
+        builder.header(CanonicalTransactionHeaders.CALLER_SYSTEM_CODE, properties.targetSystemCode());
         builder.header(CanonicalTransactionHeaders.TARGET_SYSTEM_CODE, properties.targetSystemCode());
         builder.header(CanonicalTransactionHeaders.TARGET_OPERATION_ID, operationId);
-        if (properties.callerChannel() != null && !properties.callerChannel().isBlank()) {
-            builder.header(CanonicalTransactionHeaders.CALLER_CHANNEL, properties.callerChannel());
+        if (properties.channelCode() != null && !properties.channelCode().isBlank()) {
+            builder.header(CanonicalTransactionHeaders.CALLER_CHANNEL, properties.channelCode());
         }
     }
 

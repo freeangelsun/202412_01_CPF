@@ -1,0 +1,303 @@
+{
+  "status": "FINDING",
+  "note": "SUSPECT 는 삭제 지시가 아니다. Spring 은 AutoConfiguration/SPI/Reflection 으로 쓰인다.",
+  "runtimeCount": 9,
+  "findings": {
+    "wrongScopeTest": [],
+    "wrongScopeDev": [
+      "admin",
+      "batch-scheduler",
+      "batch-worker",
+      "gateway",
+      "local-batch",
+      "local-runtime"
+    ],
+    "duplicateVersion": [
+      "admin",
+      "batch-agent",
+      "batch-center-cut",
+      "batch-control",
+      "batch-scheduler",
+      "batch-worker",
+      "gateway",
+      "local-batch",
+      "local-runtime"
+    ],
+    "dualWebStack": [
+      "admin",
+      "batch-center-cut",
+      "batch-worker",
+      "gateway",
+      "local-batch",
+      "local-runtime"
+    ],
+    "crossRoleRuntimeModules": [],
+    "frontendWaste": []
+  },
+  "runtimes": [
+    {
+      "target": "admin",
+      "artifact": "cpf-admin-1.0.0.jar",
+      "dependencyCount": 216,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']",
+        "netty-codec-native-quic ['4.2.15.Final-linux-aarch_64', '4.2.15.Final-linux-x86_64', '4.2.15.Final-osx-aarch_64', '4.2.15.Final-osx-x86_64', '4.2.15.Final-windows-x86_64']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [
+        "spring-boot-configuration-processor-4.1.0.jar"
+      ],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [
+        "netty-codec-http-4.2.15.Final.jar",
+        "netty-codec-http2-4.2.15.Final.jar",
+        "netty-codec-http3-4.2.15.Final.jar",
+        "reactor-netty-http-1.3.6.jar"
+      ],
+      "dualWebStack": true,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 2423135,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "batch-agent",
+      "artifact": "cpf-batch-agent-1.0.0.jar",
+      "dependencyCount": 91,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [],
+      "dualWebStack": false,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "batch-center-cut",
+      "artifact": "cpf-batch-center-cut-1.0.0.jar",
+      "dependencyCount": 135,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']",
+        "netty-codec-native-quic ['4.2.15.Final-linux-aarch_64', '4.2.15.Final-linux-x86_64', '4.2.15.Final-osx-aarch_64', '4.2.15.Final-osx-x86_64', '4.2.15.Final-windows-x86_64']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [
+        "netty-codec-http-4.2.15.Final.jar",
+        "netty-codec-http2-4.2.15.Final.jar",
+        "netty-codec-http3-4.2.15.Final.jar",
+        "reactor-netty-http-1.3.6.jar"
+      ],
+      "dualWebStack": true,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "batch-control",
+      "artifact": "cpf-batch-control-plane-1.0.0.jar",
+      "dependencyCount": 105,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [],
+      "dualWebStack": false,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "batch-scheduler",
+      "artifact": "cpf-batch-scheduler-1.0.0.jar",
+      "dependencyCount": 126,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [
+        "spring-boot-configuration-processor-4.1.0.jar"
+      ],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [],
+      "dualWebStack": false,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "batch-worker",
+      "artifact": "cpf-batch-worker-1.0.0.jar",
+      "dependencyCount": 171,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']",
+        "netty-codec-native-quic ['4.2.15.Final-linux-aarch_64', '4.2.15.Final-linux-x86_64', '4.2.15.Final-osx-aarch_64', '4.2.15.Final-osx-x86_64', '4.2.15.Final-windows-x86_64']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [
+        "spring-boot-configuration-processor-4.1.0.jar"
+      ],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [
+        "netty-codec-http-4.2.15.Final.jar",
+        "netty-codec-http2-4.2.15.Final.jar",
+        "netty-codec-http3-4.2.15.Final.jar",
+        "reactor-netty-http-1.3.6.jar"
+      ],
+      "dualWebStack": true,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "gateway",
+      "artifact": "cpf-gateway-1.0.0.jar",
+      "dependencyCount": 176,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']",
+        "netty-codec-native-quic ['4.2.15.Final-linux-aarch_64', '4.2.15.Final-linux-x86_64', '4.2.15.Final-osx-aarch_64', '4.2.15.Final-osx-x86_64', '4.2.15.Final-windows-x86_64']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [
+        "spring-boot-configuration-processor-4.1.0.jar"
+      ],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [
+        "netty-codec-http-4.2.15.Final.jar",
+        "netty-codec-http2-4.2.15.Final.jar",
+        "netty-codec-http3-4.2.15.Final.jar",
+        "reactor-netty-http-1.3.6.jar"
+      ],
+      "dualWebStack": true,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "local-batch",
+      "artifact": "cpf-local-batch-runtime-1.0.0-local-batch.jar",
+      "dependencyCount": 181,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']",
+        "netty-codec-native-quic ['4.2.15.Final-linux-aarch_64', '4.2.15.Final-linux-x86_64', '4.2.15.Final-osx-aarch_64', '4.2.15.Final-osx-x86_64', '4.2.15.Final-windows-x86_64']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [
+        "spring-boot-configuration-processor-4.1.0.jar"
+      ],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [
+        "netty-codec-http-4.2.15.Final.jar",
+        "netty-codec-http2-4.2.15.Final.jar",
+        "netty-codec-http3-4.2.15.Final.jar",
+        "reactor-netty-http-1.3.6.jar"
+      ],
+      "dualWebStack": true,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    },
+    {
+      "target": "local-runtime",
+      "artifact": "cpf-local-runtime-1.0.0-local-web.jar",
+      "dependencyCount": 218,
+      "duplicateVersions": [
+        "jackson-core ['2.21.4', '3.1.4']",
+        "jackson-databind ['2.21.4', '3.1.4']",
+        "netty-codec-native-quic ['4.2.15.Final-linux-aarch_64', '4.2.15.Final-linux-x86_64', '4.2.15.Final-osx-aarch_64', '4.2.15.Final-osx-x86_64', '4.2.15.Final-windows-x86_64']"
+      ],
+      "testScopeSuspect": [],
+      "devScopeSuspect": [
+        "spring-boot-configuration-processor-4.1.0.jar"
+      ],
+      "servletStack": [
+        "tomcat-embed-core-11.0.22.jar"
+      ],
+      "reactiveStack": [
+        "netty-codec-http-4.2.15.Final.jar",
+        "netty-codec-http2-4.2.15.Final.jar",
+        "netty-codec-http3-4.2.15.Final.jar",
+        "reactor-netty-http-1.3.6.jar"
+      ],
+      "dualWebStack": true,
+      "dbDrivers": [
+        "mariadb",
+        "oracle",
+        "postgresql"
+      ],
+      "crossRoleRuntimeModules": [],
+      "frontendBytes": 0,
+      "frontendWasteBytes": 0
+    }
+  ]
+}

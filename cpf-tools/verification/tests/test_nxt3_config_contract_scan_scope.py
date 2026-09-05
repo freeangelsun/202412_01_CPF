@@ -39,3 +39,14 @@ def test_config_scan_excludes_pytest_basetemp_but_keeps_evidence_payloads():
     assert not module.is_owned_text_path(pytest_fixture)
     assert module.is_owned_text_path(evidence_payload)
     assert module.is_owned_text_path(product_source)
+
+
+def test_config_scan_allows_only_the_exact_git_lfs_pointer_specification_uri():
+    """LFS pointer syntax is technical format metadata, never an operations endpoint."""
+    module = _load_module()
+
+    assert module.is_immutable_technical_spec_uri(
+        "https://git-lfs.github.com/spec/v1"
+    )
+    assert not module.is_immutable_technical_spec_uri("https://github.com/cpf-team/cpf-framework")
+    assert not module.is_immutable_technical_spec_uri("https://git-lfs.github.com/spec/v2")

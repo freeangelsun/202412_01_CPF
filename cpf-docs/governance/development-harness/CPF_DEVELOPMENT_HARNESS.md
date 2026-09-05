@@ -1737,12 +1737,21 @@ tree 는 그 **projection 결과**다.
 5. Release 의 Clean 은 `git clean` / `git reset --hard` / `git restore .` 가 아니라 **승인된 generated
    release root 또는 isolated staging** 을 대상으로 한다. Canonical Source, `.git`, Harness, Product
    Source 는 건드리지 않는다.
-6. **실측된 문제가 확인된 Asset 만** machine-readable exception 으로 Master tracking 에서 제외한다.
-   binary/generated 라는 이유만으로 일괄 제외하지 않으며, 임의 용량 Threshold 를 코드나 정책에
-   숫자로 박지 않는다.
-7. Tracked Current Release Result 는 Audit/Diff/Review/Current Deliverable 보존용이며
+6. Public Runtime Target Catalog에서 `provision=binary`로 선언된 **executable product runtime**은
+   Master/Open Git 모두 Git LFS로 transport한다. 이것은 일반 `*.jar` 또는 directory glob 규칙이
+   아니며, POM/checksum/manifest/SBOM/report와 library/starter JAR은 regular Git에 둔다.
+7. Git LFS는 Fresh Build/Test/Runtime/패키징 품질 검증을 대체하지 않는다. Fresh Build 결과를
+   checksum/SBOM/manifest와 실제 runtime으로 검증한 뒤에만 LFS currentization할 수 있고, 이전 LFS
+   object는 다음 Release input이 아니다.
+8. LFS scope는 `runtimeTargetCatalog.binaryProvisionArtifactIds`를 `gitAttributesPathTemplate`으로
+   확장해 `.gitattributes`와 exact 대조한다. Git LFS 미설치, pointer 미물질화, pull 실패, manifest/SHA
+   불일치, 실행 JAR 손상은 각각 fail-closed한다.
+9. binary/generated라는 이유만으로 일괄 제외하지 않으며, 임의 용량 Threshold를 코드나 정책에 숫자로
+   박지 않는다. 미래의 Master 미보존 예외가 필요하면 실측된 문제와 machine-readable 근거를 별도로
+   남긴다.
+10. Tracked Current Release Result 는 Audit/Diff/Review/Current Deliverable 보존용이며
    **Fresh Build Cache 가 아니다.**
-8. 사용자 Steering 은 Source 에만 적용하지 않고 Harness/Validator/Negative Mutation/Registry 에
+11. 사용자 Steering 은 Source 에만 적용하지 않고 Harness/Validator/Negative Mutation/Registry 에
    영구 반영한다.
 
 ### 39.3 Asset 분류
@@ -1750,12 +1759,13 @@ tree 는 그 **projection 결과**다.
 정본 metadata 는 `cpf-tools/release/open-git/open-git-surface-policy.json` 의 `releaseAssetPolicy` 다.
 분류는 **파일명/확장자/폴더명이 아니라 투영 규칙의 metadata** 에서 파생한다.
 
-| 부류 | masterTracked | publicRelease | releaseInputAuthority | freshRegenerationRequired |
-| --- | --- | --- | --- | --- |
-| `CANONICAL_RELEASE_SOURCE` | true | Surface Policy | **true** | false (대신 매 Release Fresh Projection) |
-| `TRACKED_VERIFIED_RELEASE_RESULT` | true | Surface Policy | **false** | true |
-| `UNTRACKED_RELEASE_RESULT` | false (사유 필수) | true | false | true |
-| `TRANSIENT_RELEASE_OUTPUT` | false | false | false | true |
+| 부류 | masterTracked | publicRelease | releaseInputAuthority | freshRegenerationRequired | transport |
+| --- | --- | --- | --- | --- | --- |
+| `CANONICAL_RELEASE_SOURCE` | true | Surface Policy | **true** | false (대신 매 Release Fresh Projection) | regular Git |
+| `TRACKED_VERIFIED_RELEASE_RESULT` | true | Surface Policy | **false** | true | regular Git |
+| `LARGE_RELEASE_BINARY` | true | true | false | true | **Git LFS** |
+| `UNTRACKED_RELEASE_RESULT` | false (사유 필수) | true | false | true | N/A |
+| `TRANSIENT_RELEASE_OUTPUT` | false | false | false | true | N/A |
 
 - **CANONICAL_RELEASE_SOURCE** — 사람이 지속 관리하는 정본(`bin/cpf*`, 공개 Gradle workspace,
   공개 config/schema/template, Runtime/Product Catalog, Release Policy/Engine). Release 엔진이 이 본문을
@@ -1766,6 +1776,10 @@ tree 는 그 **projection 결과**다.
   보존하되 **다음 Release 의 원재료로 쓰지 않는다.** 승격은 `GENERATED → STAGED → VERIFIED →
   PROMOTED_CURRENT_RELEASE` 이며 currentize 는 `generate → verify → promote → currentize` 순서다.
   논리 Artifact Set 단위로 원자적으로 갱신한다(새 JAR + 옛 SBOM 혼합 금지).
+- **LARGE_RELEASE_BINARY** — Runtime Target Catalog에서 `provision=binary`로 선언한 Public executable
+  runtime이다. 동일 artifact는 Master와 Open Git에서 Git LFS pointer로 track하며 Fresh consumer clone
+  후 실제 JAR materialization/SHA/manifest/runtime 실행까지 확인한다. `*.jar`, `binary-repository/**`,
+  크기 threshold로 LFS 범위를 넓히지 않는다.
 - **UNTRACKED_RELEASE_RESULT** — 실측된 Repository 운영 문제로 Master 에 두지 않는 공개 자산.
   `trackingExceptionReason` 과 실측 근거(현재 크기, Release Set 크기, repository 성장, clone/pull 영향,
   hosting 제약, 대안)를 남긴다. **Master 미보존이 공개 제외를 뜻하지 않는다.**
@@ -1786,7 +1800,7 @@ Source Freeze → Current Source Identity → Clean Release Workspace
 → Fresh Build → Fresh Test → Fresh Publication → Fresh Generator → Fresh Generated Source
 → Canonical Public Source Fresh Projection → Fresh Binary Repository → POM/Sources/Javadoc
 → Fresh SBOM → Fresh Checksum → Fresh Manifest → Leakage 0 → Release Candidate
-→ Tracked Result 비교/현행화 → Fresh Consumer → Evidence
+→ Git LFS materialization/Manifest correlation → Tracked Result 비교/현행화 → Fresh Consumer → Evidence
 ```
 
 발행 경로는 `isolatedStaging → verification → promotionOrProjection` 이다. Publisher 의 출력 경로를
@@ -1845,7 +1859,9 @@ avoidable bytes
    결정이며 사용자 판단 사항이다.
 
 측정 도구는 `cpf-tools/release/open-git/report_release_payload_composition.py` 이고 결과는
-`current/RELEASE_PAYLOAD_COMPOSITION.json` 이다. tracking 예외를 논의할 때는 이 결과를 함께 제시한다.
+`current/RELEASE_PAYLOAD_COMPOSITION.json` 이다. Git LFS transport 결정 또는 packaging 개선을 논의할 때도
+이 결과를 함께 제시한다. LFS는 byte transport를 바꿀 뿐 dependency scope/중복/취약점/라이선스 품질 판단을
+면제하지 않는다.
 
 ### 39.7 잔여물 없음의 증명 방식
 

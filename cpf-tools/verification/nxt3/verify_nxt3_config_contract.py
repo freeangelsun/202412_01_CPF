@@ -28,7 +28,15 @@ OP_PATTERNS={
 }
 EXEMPT_PREFIX=('cpf-docs/','cpf-tools/verification/','cpf-tools/contracts/','cpf-tools/testing/','cpf-reference/','cpf-education/')
 SPEC_URI_HOSTS=('json-schema.org','mybatis.org','w3.org','spring.io','springframework.org','gradle.org','maven.apache.org','schemas.microsoft.com','apache.org','xml.org','in-toto.io','slsa.dev','opentelemetry.io')
+# A Git LFS pointer has one protocol-identifying line defined by the LFS format.
+# This is neither a CPF service endpoint nor a configurable external operation.
+# Keep this exact instead of allowing github.com generally: a repository/API URL
+# remains an operational URL and must still be classified by the normal rule.
+GIT_LFS_POINTER_SPEC_URI='https://git-lfs.github.com/spec/v1'
 SECRET_ASSIGN=re.compile(r'(?im)^\s*(?:[A-Za-z_][\w<>?, .\[\]-]*\s+)?(?:password|secret|token|api[-_]?key)\s*[:=]\s*["\']([^"\']+)["\']')
+
+def is_immutable_technical_spec_uri(literal: str) -> bool:
+ return literal == GIT_LFS_POINTER_SPEC_URI
 
 def is_owned_text_path(path: Path) -> bool:
  return (path.suffix.lower() in TEXT_EXT
@@ -212,7 +220,7 @@ def main():
     literal=m.group(0)
     if is_canonical_registry_seed and cat == 'url':
      continue
-    if cat=='url' and (any(host in literal.lower() for host in SPEC_URI_HOSTS) or '${' in literal or '.example' in literal.lower() or 'example.test' in literal.lower()): continue
+    if cat=='url' and (is_immutable_technical_spec_uri(literal) or any(host in literal.lower() for host in SPEC_URI_HOSTS) or '${' in literal or '.example' in literal.lower() or 'example.test' in literal.lower()): continue
     line=s.count('\n',0,m.start())+1; nearby=s[max(0,m.start()-260):m.end()+260]
     line_start=s.rfind('\n',0,m.start())+1; line_end=s.find('\n',m.end()); line_text=s[line_start:line_end if line_end>=0 else len(s)].strip()
     if line_text.startswith(('#','//','*')): continue

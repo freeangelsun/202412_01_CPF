@@ -143,6 +143,19 @@ def test_public_bootstrap_rejects_ambient_version_override_with_negative_mutatio
     assert 'CPF_VERSION은 이 값과의 일치 검증' in workspace_template
 
 
+def test_public_bootstrap_fails_closed_before_maven_on_lfs_pointer_or_manifest_drift():
+    bootstrap=(ROOT/'cpf-tools/runtime/bootstrap/CpfBootstrap.java').read_text(encoding='utf-8')
+    assert 'validateBundledReleaseRepository(bundled)' in bootstrap
+    assert 'validateGitLfsMaterialization()' in bootstrap
+    for code in ('GIT_LFS_NOT_AVAILABLE', 'LFS_OBJECT_NOT_MATERIALIZED',
+                 'LFS_DOWNLOAD_FAILED', 'LFS_HASH_MISMATCH',
+                 'RELEASE_MANIFEST_MISMATCH', 'RUNTIME_ARTIFACT_INVALID'):
+        assert code in bootstrap, code
+    assert 'git", "lfs", "pull"' in bootstrap
+    legacy=bootstrap.replace('validateBundledReleaseRepository(bundled);', '// removed', 1)
+    assert 'validateBundledReleaseRepository(bundled);' not in legacy
+
+
 def test_local_bootstrap_reconciles_existing_vendor_role_credentials_before_runtime():
     """Local container volume 재사용은 기존 role password를 유지하면 안 된다.
 

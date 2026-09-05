@@ -1,5 +1,5 @@
 category,classification,required_externalization,programmatic_extension,security_rule
-url,environment-operation,true,Customizer|Provider|Builder,credential-in-url forbidden
+url,environment-operation,true,Customizer|Provider|Builder,credential-in-url forbidden; immutable technical specification URI requires exact validator allowlist
 host,environment-operation,true,Customizer|Provider|Builder,loopback allowed only explicit local/test
 port,environment-operation,true,Customizer|Provider|Builder,well-known protocol defaults must be documented
 path,framework-default-overrideable,true,Customizer|Strategy|Builder,secret path forbidden

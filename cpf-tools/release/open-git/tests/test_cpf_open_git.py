@@ -42,29 +42,35 @@ def _materialize_public_distribution(staging: Path) -> None:
     pom = artifact_dir / "cpf-core-1.0.0.pom"
     jar.write_bytes(b"jar")
     pom.write_text("<project/>", encoding="utf-8")
-    # ADM 은 Source 를 공개하지 않고 Binary 로만 배포되는 Runtime 이다. 공개 Consumer 가 ADM 을
-    # 기동할 수 있어야 Release 이므로, fixture 도 실제 배포와 같이 실행물을 공급한다.
+    # Public Consumer가 기동해야 할 binary Runtime 집합은 catalog가 정한다. fixture에 ADM만
+    # 하드코딩하면 Gateway/1-WAS 같은 새 필수 Runtime 누락을 실제 Product 결함과 구분하지 못한다.
     # bootstrap 은 Platform BOM 좌표로 Binary Repository 를 확인한다. 실제 배포와 같이 싣는다.
     bom_dir = repository / "com/cpf/cpf-platform-bom/1.0.0"
     bom_dir.mkdir(parents=True, exist_ok=True)
     bom_pom = bom_dir / "cpf-platform-bom-1.0.0.pom"
     bom_pom.write_text("<project/>", encoding="utf-8")
-    admin_dir = repository / "com/cpf/runtime/cpf-admin/1.0.0"
-    admin_dir.mkdir(parents=True, exist_ok=True)
-    admin_jar = admin_dir / "cpf-admin-1.0.0.jar"
-    admin_jar.write_bytes(b"jar")
     # 공개 checkout 은 cpf-tools/ 를 포함하지 않으므로 Runtime Target Catalog 는 config/ 로 투영된다.
     # 공개 workspace 기본 버전은 Release 가 실제 발행 버전으로 맞춘다. fixture 도 같은 경로를 쓴다.
     MODULE.currentize_public_workspace_version(staging, "1.0.0")
     published_catalog = staging / "config/cpf-runtime-target-catalog.json"
     published_catalog.parent.mkdir(parents=True, exist_ok=True)
-    published_catalog.write_text(
-        (ROOT / "cpf-tools/runtime/cpf-runtime-target-catalog.json").read_text(encoding="utf-8"),
-        encoding="utf-8")
+    catalog_text = (ROOT / "cpf-tools/runtime/cpf-runtime-target-catalog.json").read_text(encoding="utf-8")
+    published_catalog.write_text(catalog_text, encoding="utf-8")
+    runtime_jars = []
+    for runtime in json.loads(catalog_text)["runtimes"]:
+        if runtime.get("provision") != "binary" or runtime.get("capability") != "http-server":
+            continue
+        artifact_id = runtime["artifactId"]
+        runtime_dir = repository / "com/cpf/runtime" / artifact_id / "1.0.0"
+        runtime_dir.mkdir(parents=True, exist_ok=True)
+        runtime_jar = runtime_dir / f"{artifact_id}-1.0.0.jar"
+        runtime_jar.write_bytes(b"jar")
+        runtime_jars.append((artifact_id, runtime_jar))
     artifacts = []
-    for path in (jar, pom, admin_jar, bom_pom):
-        if path is admin_jar:
-            group, artifact_id = "com.cpf.runtime", "cpf-admin"
+    for path in (jar, pom, bom_pom, *(item[1] for item in runtime_jars)):
+        runtime = next((item for item in runtime_jars if item[1] is path), None)
+        if runtime is not None:
+            group, artifact_id = "com.cpf.runtime", runtime[0]
         elif path is bom_pom:
             group, artifact_id = "com.cpf", "cpf-platform-bom"
         else:
@@ -75,7 +81,7 @@ def _materialize_public_distribution(staging: Path) -> None:
             "relativePath": path.relative_to(repository).as_posix(),
             "fileSize": path.stat().st_size,
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "publicationType": "PUBLIC_RUNTIME" if path is admin_jar else "PUBLIC_COMPILE_TIME_JAVA",
+            "publicationType": "PUBLIC_RUNTIME" if runtime is not None else "PUBLIC_COMPILE_TIME_JAVA",
             "classification": "PUBLIC",
             "sourceIdentitySha256": "0" * 64,
         })
@@ -438,7 +444,7 @@ def test_setup_integration_is_narrow_and_idempotent(tmp_path: Path):
     assert first["status"] == "PASS"
     assert second["changed"] == []
     assert "# keep-existing" in (root / ".gitignore").read_text(encoding="utf-8")
-    assert "/cpf-release/" in (root / ".gitignore").read_text(encoding="utf-8")
+    assert (root / ".gitignore").read_text(encoding="utf-8") == "# keep-existing\n"
     assert '"cpf-release"' in (root / "cpf-tools/verification/tools/cpf-source-state.py").read_text(encoding="utf-8")
     text = canonical.read_text(encoding="utf-8")
     assert text.count("### 21.3 Open Git Release Packaging") == 1
@@ -792,7 +798,7 @@ def test_setup_currentizes_only_owned_canonical_section(tmp_path: Path):
     (root / "cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md").write_text("# current\n", encoding="utf-8")
     first = MODULE.setup_integration(root)
     assert first["status"] == "PASS"
-    assert "/cpf-release/" in (root / ".gitignore").read_text(encoding="utf-8")
+    assert (root / ".gitignore").read_text(encoding="utf-8") == "# existing\n"
     result = MODULE.setup_integration(root)
     assert result["status"] == "PASS"
     # setup is compatibility-only: it must not rewrite canonical product steering.
@@ -909,7 +915,8 @@ def test_open_git_git_boundary_is_read_only_until_user_review():
     assert boundary["openGitWorkingRepository"] == "FRESH_CLONE_READ_ONLY_STATUS_DIFF_UNTIL_USER_APPROVAL"
     assert boundary["toolMaxState"] == "VERIFIED"
     assert boundary["automaticGitWrite"] is False
-    assert boundary["privateMasterIncludesCpfRelease"] is False
+    assert boundary["privateMasterIncludesCpfRelease"] is True
+    assert boundary["privateReleaseTracking"] == "CATALOG_CLASSIFIED_CURRENT_VERIFIED_ONLY"
 
 
 def test_private_git_context_allows_dirty_working_tree_without_cleanup(monkeypatch, tmp_path: Path):
@@ -941,3 +948,52 @@ def test_private_git_context_allows_dirty_working_tree_without_cleanup(monkeypat
     assert result["branch"] == "master"
     forbidden = {"add", "commit", "push", "reset", "restore", "stash", "clean"}
     assert not any(any(part in forbidden for part in cmd) for cmd in commands)
+
+
+def test_private_git_context_allows_only_current_verified_release_roles(monkeypatch, tmp_path: Path):
+    root = tmp_path / "cpf"
+    root.mkdir()
+    (root / ".git").mkdir()
+
+    def fake_run(cmd, cwd, *, capture=False, env=None):
+        if cmd[1:3] == ["rev-parse", "--is-inside-work-tree"]:
+            return "true"
+        if cmd[1:3] == ["ls-files", MODULE.RELEASE_DIR_NAME]:
+            return "\n".join([
+                "cpf-release/binary-repository/com/cpf/runtime/cpf-admin/1/cpf-admin-1.jar",
+                "cpf-release/reports/package-manifest.json",
+            ])
+        if cmd[1:3] == ["status", "--short"]:
+            return ""
+        if cmd[1:3] == ["rev-parse", "--abbrev-ref"]:
+            return "master"
+        if cmd[1:3] == ["rev-parse", "HEAD"]:
+            return "abc123"
+        raise AssertionError(cmd)
+
+    monkeypatch.setattr(MODULE.shutil, "which", lambda name: "git" if name == "git" else None)
+    monkeypatch.setattr(MODULE, "run", fake_run)
+    result = MODULE.private_git_context(root)
+    assert result["releaseTracked"] is True
+    assert result["releaseTrackedPaths"] == [
+        "cpf-release/binary-repository/com/cpf/runtime/cpf-admin/1/cpf-admin-1.jar",
+        "cpf-release/reports/package-manifest.json",
+    ]
+
+
+def test_private_git_context_rejects_transient_release_roles(monkeypatch, tmp_path: Path):
+    root = tmp_path / "cpf"
+    root.mkdir()
+    (root / ".git").mkdir()
+
+    def fake_run(cmd, cwd, *, capture=False, env=None):
+        if cmd[1:3] == ["rev-parse", "--is-inside-work-tree"]:
+            return "true"
+        if cmd[1:3] == ["ls-files", MODULE.RELEASE_DIR_NAME]:
+            return "cpf-release/open-git/README.md"
+        raise AssertionError(cmd)
+
+    monkeypatch.setattr(MODULE.shutil, "which", lambda name: "git" if name == "git" else None)
+    monkeypatch.setattr(MODULE, "run", fake_run)
+    with pytest.raises(MODULE.OpenGitReleaseError, match="not a catalog-classified"):
+        MODULE.private_git_context(root)

@@ -385,6 +385,14 @@ class EngineFreshnessContract(unittest.TestCase):
         self.assertIn("sanitize_binary_repository(", read(ENGINE),
                       "공개 저장소가 투영 함수의 결과로 만들어지지 않는다")
 
+    def test_lfs_contract_runs_for_candidate_staging_and_fresh_open_git_tree(self) -> None:
+        body = self._build_release_body()
+        calls = [match.start() for match in re.finditer(r"verify_release_lfs_contract\(", body)]
+        self.assertEqual(3, len(calls),
+                         "candidate binary, public staging, fresh Open Git tree의 LFS 검증이 모두 필요하다")
+        self.assertLess(body.find("candidate_lfs_result"), body.find("staging_lfs_result"))
+        self.assertLess(body.find("staging_lfs_result"), body.find("open_git_lfs_result"))
+
 
 class GeneratedAndArtifactContract(unittest.TestCase):
     def test_generated_asset_declares_its_generator_input(self) -> None:
@@ -491,6 +499,7 @@ class ReleaseGateStaging(unittest.TestCase):
         for stage in ("sourceFreeze", "cleanReleaseWorkspace", "freshBuild", "freshPublication",
                       "canonicalPublicSourceProjection", "freshBinaryRepository", "freshSbom",
                       "freshChecksum", "freshManifest", "leakageZero",
+                      "gitLfsMaterializationAndManifestCorrelation",
                       "trackedResultComparisonAndCurrentization", "freshConsumer", "evidence"):
             self.assertIn(stage, order, f"최종 순서에 단계가 없다: {stage}")
         self.assertLess(order.index("cleanReleaseWorkspace"), order.index("freshBuild"),
@@ -567,9 +576,10 @@ class ArtifactClassificationContract(unittest.TestCase):
 
         rule = next(rule for rule in self.classification()["rules"]
                     if rule["id"] == "publicBinaryRuntimeExecutable")
-        self.assertEqual(LARGE_BINARY, rule["assetClass"])
-        self.assertTrue(rule["masterTracked"])
-        self.assertTrue(rule["publicRelease"])
+        self.assertEqual(LARGE_BINARY, rule["assetClass"],
+                         "binary runtime must use the canonical GIT_LFS class")
+        self.assertIs(True, rule["masterTracked"], "GIT_LFS runtime must remain Master tracked")
+        self.assertIs(True, rule["publicRelease"], "GIT_LFS runtime must remain publicly delivered")
         self.assertEqual("GIT_LFS", rule["transport"])
         self.assertEqual("runtimeTargetCatalog.binaryProvisionArtifactIds", rule["selection"])
 
@@ -649,9 +659,11 @@ class PayloadCompositionContract(unittest.TestCase):
 class HarnessAndRegistryRelation(unittest.TestCase):
     def test_harness_declares_the_release_asset_rule(self) -> None:
         text = read(HARNESS)
+        self.assertIn("### 39.2 영구 Rule", text,
+                      "Current Harness 에 Release Asset 계약이 없다")
         self.assertIn("Release Asset", text,
                       "Current Harness 에 Release Asset 계약이 없다")
-        for name in (CANONICAL, TRACKED, UNTRACKED, TRANSIENT):
+        for name in (CANONICAL, TRACKED, UNTRACKED, TRANSIENT, LARGE_BINARY):
             self.assertIn(name, text, f"Harness 에 부류 선언이 없다: {name}")
         self.assertIn("projection", text.lower(),
                       "Open Git tree 가 투영 결과라는 계약이 Harness 에 없다")

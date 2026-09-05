@@ -4,6 +4,12 @@ import csv,json,tempfile,shutil,subprocess,sys,os
 ROOT=Path(__file__).resolve().parents[4]; H=ROOT/'cpf-docs/governance/development-harness'
 c=json.loads((H/'contracts/contract-registry.json').read_text(encoding='utf-8'))
 checks=[]
+
+# Windows parent Python may use cp949 even when the child correctly emits UTF-8.
+# Every harness mutation subprocess is therefore decoded explicitly; otherwise a
+# diagnostic decode failure can hide the negative mutation's real failure reason.
+def _combined_output(cp): return (cp.stdout or '')+(cp.stderr or '')
+
 _NEG_GROUP=os.environ.get('CPF_HARNESS_NEGATIVE_GROUP','ALL').strip().upper() or 'ALL'
 _NEG_GROUPS={
     'BASE': {
@@ -129,9 +135,14 @@ _NEG_GROUPS={
         'mutation_gitignore_blanket_excludes_release_artifacts',
         'mutation_gitignore_excludes_release_metadata_too',
         'mutation_unknown_artifact_silently_allowed',
-        'mutation_tracking_exception_without_measured_evidence',
-        'mutation_size_threshold_replaces_measurement',
-        'mutation_untracked_artifact_dropped_from_public_release',
+        'mutation_lfs_transport_not_adopted',
+        'mutation_lfs_runtime_reclassified_as_regular_git',
+        'mutation_lfs_global_jar_scope',
+        'mutation_lfs_metadata_scope',
+        'mutation_lfs_validator_removed',
+        'mutation_engine_skips_fresh_open_git_lfs_gate',
+        'mutation_lfs_size_threshold_replaces_measurement',
+        'mutation_lfs_runtime_dropped_from_public_release',
         'mutation_payload_composition_rule_removed',
         'mutation_payload_tool_reports_only_total_size',
         'mutation_development_gate_forced_to_full_release',
@@ -230,11 +241,11 @@ def _session_merge_missing_manifest_mutation(mutate,expected):
         env['CPF_HARNESS_ROOT']=str(h)
         env['CPF_REPOSITORY_ROOT']=str(root)
         validator=H/'validators/validate_session_merge_protocol.py'
-        before=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
+        before=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True,encoding='utf-8',errors='replace')
         if before.returncode!=0: return False
         mutate(mf,ev,manifest)
-        after=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True)
-        return after.returncode!=0 and expected in (after.stdout+after.stderr)
+        after=subprocess.run([sys.executable,'-B',str(validator)],cwd=ROOT,env=env,text=True,capture_output=True,encoding='utf-8',errors='replace')
+        return after.returncode!=0 and expected in _combined_output(after)
     finally:
         shutil.rmtree(root,ignore_errors=True)
 
@@ -356,8 +367,8 @@ def run_mut(name, mutate, expected_fragment):
     if not _enabled(name): return
     _restore_negative_fixture()
     mutate(_NEG_TARGET)
-    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_development_harness.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
-    ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_development_harness.py')],cwd=_NEG_ROOT,text=True,capture_output=True,encoding='utf-8',errors='replace')
+    ok=cp.returncode!=0 and expected_fragment in _combined_output(cp)
     record(name,ok,('rc='+str(cp.returncode)+' expected='+expected_fragment))
 
 def mut_empty_req(h):
@@ -396,8 +407,8 @@ def run_auth_mut(name, mutate, expected_fragment):
     if not _enabled(name): return
     _restore_negative_fixture()
     mutate(_NEG_TARGET)
-    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_harness_authority.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
-    ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_harness_authority.py')],cwd=_NEG_ROOT,text=True,capture_output=True,encoding='utf-8',errors='replace')
+    ok=cp.returncode!=0 and expected_fragment in _combined_output(cp)
     record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
 
 def mut_drop_one_canonical(h):
@@ -473,8 +484,8 @@ def run_strength_mut(name, mutate, expected_fragment):
     if not _enabled(name): return
     _restore_negative_fixture()
     mutate(_NEG_TARGET)
-    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_harness_strength_regression.py')],cwd=_NEG_ROOT,text=True,capture_output=True)
-    ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+    cp=subprocess.run([sys.executable,'-B',str(_NEG_TARGET/'validators/validate_harness_strength_regression.py')],cwd=_NEG_ROOT,text=True,capture_output=True,encoding='utf-8',errors='replace')
+    ok=cp.returncode!=0 and expected_fragment in _combined_output(cp)
     record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
 
 def mut_tracking_scope_reduced(h):
@@ -543,7 +554,7 @@ def _run_public_launcher_contract(root):
     env=dict(os.environ)
     env['CPF_PUBLIC_SURFACE_ROOT']=str(root); env['PYTHONUTF8']='1'; env['PYTHONIOENCODING']='utf-8'
     return subprocess.run([sys.executable,'-B',str(_PUBLIC_LAUNCHER_TEST)],cwd=str(ROOT),
-                          text=True,capture_output=True,env=env)
+                          text=True,capture_output=True,encoding='utf-8',errors='replace',env=env)
 
 def _strip_launcher(path):
     kept=[line for line in path.read_text(encoding='utf-8').splitlines(True)
@@ -556,7 +567,7 @@ def run_public_launcher_mut(name,mutate,expected_fragment):
     try:
         mutate(root)
         cp=_run_public_launcher_contract(root)
-        ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
+        ok=cp.returncode!=0 and expected_fragment in _combined_output(cp)
         record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
     finally:
         shutil.rmtree(root,ignore_errors=True)
@@ -618,14 +629,17 @@ def _copy_fixture(prefix, files):
 def _run_contract(test_path, root, env_key):
     env=dict(os.environ)
     env[env_key]=str(root); env['PYTHONUTF8']='1'; env['PYTHONIOENCODING']='utf-8'
-    return subprocess.run([sys.executable,'-B',str(test_path)],cwd=str(ROOT),text=True,capture_output=True,env=env)
+    return subprocess.run([sys.executable,'-B',str(test_path)],cwd=str(ROOT),text=True,capture_output=True,encoding='utf-8',errors='replace',env=env)
 
 def _contract_positive(name, test_path, prefix, files, env_key):
     if not _enabled(name): return
     root=_copy_fixture(prefix, files)
     try:
         cp=_run_contract(test_path, root, env_key)
-        record(name,cp.returncode==0,'rc='+str(cp.returncode))
+        detail='rc='+str(cp.returncode)
+        if cp.returncode!=0:
+            detail+=' output='+_combined_output(cp)[-1200:].replace(chr(10),' | ')
+        record(name,cp.returncode==0,detail)
     finally:
         shutil.rmtree(root,ignore_errors=True)
 
@@ -635,8 +649,11 @@ def _contract_mut(name, test_path, prefix, files, env_key, mutate, expected_frag
     try:
         mutate(root)
         cp=_run_contract(test_path, root, env_key)
-        ok=cp.returncode!=0 and expected_fragment in (cp.stdout+cp.stderr)
-        record(name,ok,'rc='+str(cp.returncode)+' expected='+expected_fragment)
+        ok=cp.returncode!=0 and expected_fragment in _combined_output(cp)
+        detail='rc='+str(cp.returncode)+' expected='+expected_fragment
+        if not ok:
+            detail+=' output='+_combined_output(cp)[-1200:].replace(chr(10),' | ')
+        record(name,ok,detail)
     finally:
         shutil.rmtree(root,ignore_errors=True)
 
@@ -1249,7 +1266,10 @@ _ASSET_TEST=ROOT/'cpf-tools/verification/tests/test_cpf_release_asset_freshness_
 _ASSET_FILES=[
     'cpf-tools/release/open-git/open-git-surface-policy.json',
     'cpf-tools/release/open-git/cpf_open_git.py',
+    'cpf-tools/release/open-git/verify_release_lfs_contract.py',
     'cpf-tools/db/canonical/platform-schema.json',
+    'cpf-tools/runtime/cpf-runtime-target-catalog.json',
+    '.gitattributes',
     '.gitignore',
     'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md',
     'cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv',
@@ -1264,6 +1284,7 @@ _ASSET_POLICY='cpf-tools/release/open-git/open-git-surface-policy.json'
 _ASSET_CANONICAL='CANONICAL_RELEASE_SOURCE'
 _ASSET_TRACKED='TRACKED_VERIFIED_RELEASE_RESULT'
 _ASSET_UNTRACKED='UNTRACKED_RELEASE_RESULT'
+_ASSET_LARGE='LARGE_RELEASE_BINARY'
 
 def _asset_mut(name, mutate, expected):
     _contract_mut(name,_ASSET_TEST,_ASSET_PREFIX,_ASSET_FILES,_ASSET_ENV,mutate,expected)
@@ -1359,6 +1380,46 @@ def mut_size_threshold_hardcoded(root):
     _asset_edit(root,apply)
 _asset_mut('mutation_size_threshold_hardcoded',mut_size_threshold_hardcoded,
            '임의 용량 기준이 하드코딩됐다')
+
+# Git LFS는 catalog-derived executable runtime에만 적용한다. 전역 JAR LFS나 metadata LFS로
+# 되돌리는 것은 actual consumer clone에서 필요 없는 object까지 받거나 SHA 계약을 깨뜨린다.
+_asset_mut('mutation_lfs_transport_not_adopted',
+           lambda root: _asset_edit(root,lambda a: a['artifactClassification']['gitLfs'].__setitem__('adopted',False)),
+           '확정된 Git LFS transport를 정본화하지 않았다')
+
+def mut_lfs_runtime_reclassified(root):
+    def apply(a):
+        rule=next(r for r in a['artifactClassification']['rules'] if r['id']=='publicBinaryRuntimeExecutable')
+        rule['assetClass']=_ASSET_TRACKED; rule['transport']='REGULAR_GIT'
+    _asset_edit(root,apply)
+_asset_mut('mutation_lfs_runtime_reclassified_as_regular_git',mut_lfs_runtime_reclassified,
+           'binary runtime must use the canonical GIT_LFS class')
+
+def mut_lfs_global_jar_scope(root):
+    p=root/'.gitattributes'
+    p.write_text(p.read_text(encoding='utf-8')+chr(10)+'*.jar filter=lfs diff=lfs merge=lfs -text'+chr(10),encoding='utf-8')
+_asset_mut('mutation_lfs_global_jar_scope',mut_lfs_global_jar_scope,
+           'runtime catalog executable만 exact하게 따라야 한다')
+
+def mut_lfs_metadata_scope(root):
+    p=root/'.gitattributes'
+    p.write_text(p.read_text(encoding='utf-8')+chr(10)+'cpf-release/binary-repository/**/*.pom filter=lfs diff=lfs merge=lfs -text'+chr(10),encoding='utf-8')
+_asset_mut('mutation_lfs_metadata_scope',mut_lfs_metadata_scope,
+           'runtime catalog executable만 exact하게 따라야 한다')
+
+def mut_lfs_validator_removed(root):
+    (root/'cpf-tools/release/open-git/verify_release_lfs_contract.py').unlink()
+_asset_mut('mutation_lfs_validator_removed',mut_lfs_validator_removed,
+           'LFS attribute/materialization validator가 없다')
+
+def mut_engine_skips_fresh_open_git_lfs_gate(root):
+    p=root/'cpf-tools/release/open-git/cpf_open_git.py'
+    t=p.read_text(encoding='utf-8')
+    line='    open_git_lfs_result = verify_release_lfs_contract('+chr(10)
+    if line not in t: raise AssertionError('fresh Open Git LFS gate not found')
+    p.write_text(t.replace(line,'    # fresh Open Git LFS gate removed'+chr(10),1),encoding='utf-8')
+_asset_mut('mutation_engine_skips_fresh_open_git_lfs_gate',mut_engine_skips_fresh_open_git_lfs_gate,
+           'candidate binary, public staging, fresh Open Git tree')
 
 # Canonical Source 를 Release 가 다시 만들거나 지난 출력을 이어 쓰는 되돌림.
 _asset_mut('mutation_canonical_source_regenerated_by_release_engine',
@@ -1751,28 +1812,19 @@ def mut_unknown_artifact_allowed(root):
 _asset_mut('mutation_unknown_artifact_silently_allowed',mut_unknown_artifact_allowed,
            '분류가 없는 Artifact 를 통과시킨다')
 
-def mut_exception_without_evidence(root):
-    def apply(a):
-        rule=_asset_rule(a,'publicBinaryRuntimeExecutable')
-        rule['trackingExceptionReason']='binary 라서 제외한다'
-        rule['evidence']=''
-    _asset_edit(root,apply)
-_asset_mut('mutation_tracking_exception_without_measured_evidence',mut_exception_without_evidence,
-           '예외 사유에 실측치가 없다')
-
 def mut_threshold_replaces_measurement(root):
     def apply(a):
         _asset_rule(a,'publicBinaryRuntimeExecutable')['sizeThresholdMb']='50MB 이상 제외'
     _asset_edit(root,apply)
-_asset_mut('mutation_size_threshold_replaces_measurement',mut_threshold_replaces_measurement,
+_asset_mut('mutation_lfs_size_threshold_replaces_measurement',mut_threshold_replaces_measurement,
            '임의 용량 기준이 하드코딩됐다')
 
-def mut_untracked_dropped_from_public(root):
+def mut_lfs_runtime_dropped_from_public(root):
     def apply(a):
         _asset_rule(a,'publicBinaryRuntimeExecutable')['publicRelease']=False
     _asset_edit(root,apply)
-_asset_mut('mutation_untracked_artifact_dropped_from_public_release',mut_untracked_dropped_from_public,
-           'Master 미보존이 공개 배포 제외로 연결된다')
+_asset_mut('mutation_lfs_runtime_dropped_from_public_release',mut_lfs_runtime_dropped_from_public,
+           'GIT_LFS runtime must remain publicly delivered')
 
 def mut_payload_rule_removed(root):
     p=root/'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md'

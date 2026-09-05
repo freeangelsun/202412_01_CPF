@@ -133,10 +133,12 @@ cpf-release/
 
 ```
 
-`cpf-release/**`는 local-generated 영역이며 Private Git에서 전체 ignore되어야 한다.
+`cpf-release/`는 local-generated delivery root이지만 모든 항목을 같은 Git policy로 처리하지 않는다. `work/`, `logs/`, `open-git/`만 Private Git transient ignore 대상이며, catalog-classified Current Verified `binary-repository/`와 `reports/`는 사용자 승인으로 Master에 보존할 수 있다. Runtime executable JAR은 catalog-derived exact Git LFS path만 사용하고 POM/manifest/SBOM/report/source는 regular Git이다.
 
 ```gitignore
-/cpf-release/
+/cpf-release/work/
+/cpf-release/logs/
+/cpf-release/open-git/
 
 ```
 
@@ -152,9 +154,9 @@ Release 정의/정책/Template/Tool의 정본을 `cpf-release/**`에 두지 않�
 
 ```text
 canonical cpf-release 경로 안전성 확인
-→ tracked/protected path 오염 여부 확인
-→ 기존 cpf-release 전체 제거
-→ cpf-release 신규 생성
+→ transient/unknown tracked path와 protected path 오염 여부 확인
+→ 이전 managed candidate만 제거
+→ isolated candidate 신규 생성
 → Open Git fresh workspace/fresh clone
 → Fresh Generation / Fresh Build / Projection
 → 전체 Gate
@@ -715,7 +717,7 @@ cpf reset --confirm
 최소 의미:
 
 ```text
-01 Release root safety / cpf-release Private master tracked=0
+01 Release root safety / transient-or-unknown tracking=0, catalog-classified verified result만 허용
 02 Previous cpf-release current-only clean regeneration
 03 Repository Root / Branch / HEAD / Working Tree / Source Identity capture
 04 Toolchain
@@ -761,7 +763,7 @@ Tool/CLI가 자동으로 도달할 수 있는 최종 상태는 `VERIFIED`다. `U
 
 # 26. Git 반영 분리 / 자동 Git write 금지
 
-`cpf-release/`는 Open Git 전달 전용이며 Private CPF master Commit/Push 대상이 아니다. Private `.gitignore`와 Source Identity에서 제외한다.
+`cpf-release/`의 `work/`/`logs/`/`open-git/`은 Open Git 전달용 transient이며 Private CPF master Commit/Push 대상이 아니다. catalog-classified Current Verified `binary-repository/`/`reports/`는 Source Identity 입력이 아니지만 사용자 승인으로 Private master에 보존할 수 있다. Runtime executable은 exact Git LFS path, manifest SHA와 fresh materialization을 통과해야 한다.
 
 Release Tool/CLI/DevGPT/Codex는 사용자 승인 전 Private master와 Open Git fresh clone 모두에서 다음을 자동 실행하지 않는다.
 
@@ -826,9 +828,10 @@ cpf-release/**
 
 ```
 
-- local generated
-- Private Git ignore
-- 매 실행 clean regeneration
+- candidate/generated delivery root
+- transient subtree만 Private Git ignore
+- catalog-classified verified binary/report는 Master current result 후보
+- 매 실행 isolated candidate clean regeneration
 
 ## Framework
 
@@ -896,7 +899,7 @@ cpf-release/**
 - EDU를 폴더 존재만으로 완료
 - user command 실제 실행검증 누락
 - `public`과 `open-git` 이중 정본 허용
-- `cpf-release/**`를 Private master Git tracked/commit 대상 source로 취급
+- transient/unknown `cpf-release/**` 또는 catalog class 없는 large artifact를 Private master Git tracked/commit 대상으로 취급
 - Open Git 자동 commit/push 허용
 
 이런 Requirement가 사용자 Steering/최종 제품 목표와 충돌하면 **개발 정본 자체를 명확하게 currentize**한다.

@@ -26,7 +26,7 @@ cpf-release/
 └─ logs/                 # 실행 로그
 ```
 
-`cpf-release/`는 Private Git과 Git-independent Source Identity에서 제외한다. 재실행 시 정확히 이 디렉터리만 안전성 확인 후 전체 제거하고 신규 생성한다.
+`cpf-release/`는 canonical Source Identity의 입력에서 제외한다. `work/`, `logs/`, `open-git/`은 Private Git에서 transient로 제외하고, catalog-classified Current Verified `binary-repository/`와 `reports/`는 사용자 승인으로 보존할 수 있다. Runtime executable JAR은 exact Git LFS path/materialization/SHA 계약을 따른다. 재실행은 managed candidate만 안전하게 제거한 뒤 신규 생성한다.
 
 ## 4. Source 공개 정책
 
@@ -111,12 +111,12 @@ cpf reset
 → 사용자 직접 Open Git commit/push
 ```
 
-Release Tool은 `git add`/index staging/commit/push를 수행하지 않는다. `cpf-release/`는 Private master에 Commit/Push하지 않으며, 모든 Release Gate PASS 후 사용자가 Open Git에서 직접 Git 반영한다.
+Release Tool은 `git add`/index staging/commit/push를 수행하지 않는다. 모든 Release Gate PASS 후 사용자가 Open Git을 직접 Git 반영하며, Private master에는 catalog-classified Current Verified binary/report만 별도 사용자 승인으로 반영할 수 있다.
 
 ## 8. Acceptance Criteria
 
 1. `cpf-release/` 외 경로를 재생성 삭제하지 않는다.
-2. `cpf-release/` symlink 또는 Private tracked 파일이 있으면 fail-closed한다.
+2. `cpf-release/` symlink 또는 transient/unknown Private tracked path가 있으면 fail-closed한다. catalog-classified Current Verified binary/report만 허용하며 executable runtime JAR은 exact Git LFS attribute/materialization/SHA/manifest를 통과한다.
 3. 이전 Release stale 파일이 재사용되지 않는다.
 4. Open Git Source에 금지된 Framework Source가 0건이다.
 5. Open Git Source에 Gradle Wrapper 이외 CPF/Application JAR/WAR가 0건이다.
@@ -125,7 +125,7 @@ Release Tool은 `git add`/index staging/commit/push를 수행하지 않는다. `
 8. Public Binary Artifact 좌표가 불명확하면 임의 생성하지 않고 Release Blocker로 판정한다.
 9. Fresh Open Git Clone과 isolated Binary Repository 기반 Build/Test가 성공한다.
 10. Manifest/SHA/SBOM/Secret/Leakage/Git read-only Diff/Status Gate가 성공한다.
-11. Release Tool은 Private/Open Git 어디에서도 사용자 승인 전 `git add`/index staging/commit/push를 실행하지 않는다. `cpf-release/` Private master tracked=0을 fail-closed 검증한다.
+11. Release Tool은 Private/Open Git 어디에서도 사용자 승인 전 `git add`/index staging/commit/push를 실행하지 않는다. Private master의 transient/unknown `cpf-release/` tracking은 fail-closed이며 catalog-classified Current Verified binary/report만 허용한다.
 12. Codex 작업 중인 기존 Product/Gradle/Generator/Runtime Source를 이번 Overlay가 덮어쓰지 않는다.
 13. 개발자 Canonical 명령은 짧은 단일 Dispatcher로 제공되고 호환 Wrapper는 동일 계약을 재사용한다.
 14. 모든 장시간 개발 명령은 진행 단계/로그를 실시간 표시하고 PASS/FAIL, ExitCode, 시각, 로그 경로와 다음 행동을 출력한다.

@@ -121,18 +121,19 @@ public final class CpfBootstrap {
         if (suppliedVersion != null && !suppliedVersion.isBlank() && !suppliedVersion.trim().equals(version)) {
             throw new IllegalStateException("CPF_VERSION does not match canonical config/cpf-workspace.properties cpf.version");
         }
+        Path bundled = root.resolve("binary-repository");
         String repo = firstNonBlank(System.getenv("CPF_MAVEN_REPOSITORY_URL"), System.getenv("CPF_ARTIFACT_REPOSITORY_URL"), workspace.getProperty("cpf.maven.repository.url", ""));
         if (repo.isBlank()) {
             // 공개 배포본은 Binary Repository 를 checkout 안에 함께 싣는다. 그래서 사용자는
             // 별도 Repository 주소를 설정하지 않고 clone -> bootstrap 만으로 시작할 수 있어야 한다
             // (공개 README 계약). 번들이 있는데도 주소를 요구하면 처음 사용하는 고객이 첫 명령에서
             // 막힌다. 사내 Repository 를 쓰려면 환경변수로 덮어쓴다.
-            Path bundled = root.resolve("binary-repository");
             if (Files.isDirectory(bundled)) repo = bundled.toUri().toString();
         }
         if (repo.isBlank()) throw new IllegalStateException(
                 "CPF_MAVEN_REPOSITORY_URL is required when the workspace has no bundled binary-repository");
         if (version.isBlank()) throw new IllegalStateException("config/cpf-workspace.properties is missing cpf.version");
+        if (Files.isDirectory(bundled)) validateBundledReleaseRepository(bundled);
         baseEnv.put("CPF_VERSION", version);
         baseEnv.put("CPF_MAVEN_REPOSITORY_URL", repo);
         URI uri = URI.create(repo.endsWith("/") ? repo : repo + "/");
@@ -143,6 +144,94 @@ public final class CpfBootstrap {
         requireRepositoryArtifact(uri, generatorRel, "com.cpf.tooling:cpf-generator-cli:" + version + ":" + classifier);
         requireRepositoryArtifact(uri, generatorRel + ".sha256", "cpf-generator-cli checksum");
         pass("04", "Binary Repository", "version=" + version + " generator=" + classifier + " repository=" + safeUri(repo));
+    }
+
+    /**
+     * Public Release는 LFS pointer 자체가 아니라 materialized binary와 manifest SHA를 소비해야 한다.
+     * 이 검증은 Maven/Gradle resolution보다 먼저 수행해 pointer를 ZIP/JAR 오류로 오인하지 않게 한다.
+     */
+    private void validateBundledReleaseRepository(Path repository) throws Exception {
+        Path manifest = repository.resolve("package-manifest.json");
+        if (!Files.isRegularFile(manifest)) throw new IllegalStateException("RELEASE_MANIFEST_MISMATCH: package-manifest.json missing");
+        Path attributes = root.resolve(".gitattributes");
+        boolean lfsConfigured = Files.isRegularFile(attributes)
+                && Files.readString(attributes, StandardCharsets.UTF_8).contains("filter=lfs");
+        if (lfsConfigured) validateGitLfsMaterialization();
+
+        String json = Files.readString(manifest, StandardCharsets.UTF_8);
+        if (!json.contains("\"contract\": \"CPF_PUBLIC_PACKAGE_MANIFEST\""))
+            throw new IllegalStateException("RELEASE_MANIFEST_MISMATCH: unexpected package manifest contract");
+        Matcher sourceIdentity = Pattern.compile("\\\"sourceIdentitySha256\\\"\\s*:\\s*\\\"([0-9a-fA-F]{64})\\\"").matcher(json);
+        if (!sourceIdentity.find()) throw new IllegalStateException("RELEASE_MANIFEST_MISMATCH: sourceIdentitySha256 missing or invalid");
+
+        Pattern artifact = Pattern.compile("\\\"artifactId\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"(?:(?!\\\"artifactId\\\").)*?"
+                + "\\\"relativePath\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*,\\s*"
+                + "\\\"fileSize\\\"\\s*:\\s*\\d+\\s*,\\s*\\\"sha256\\\"\\s*:\\s*\\\"([0-9a-fA-F]{64})\\\"",
+                Pattern.DOTALL);
+        Matcher row = artifact.matcher(json);
+        Set<String> expectedRuntimeArtifacts = publicBinaryRuntimeArtifactIds();
+        Set<String> seenPaths = new HashSet<>();
+        Set<String> verifiedRuntimeArtifacts = new HashSet<>();
+        int count = 0;
+        while (row.find()) {
+            String artifactId = row.group(1);
+            String relative = row.group(2);
+            String expectedSha = row.group(3).toLowerCase(Locale.ROOT);
+            Path target = repository.resolve(relative).normalize();
+            if (!target.startsWith(repository) || !seenPaths.add(relative) || !Files.isRegularFile(target))
+                throw new IllegalStateException("RELEASE_MANIFEST_MISMATCH: invalid or missing artifact=" + relative);
+            if (isLfsPointer(target)) throw new IllegalStateException("LFS_OBJECT_NOT_MATERIALIZED: " + relative);
+            String actualSha = sha256(target);
+            boolean runtime = expectedRuntimeArtifacts.contains(artifactId) && relative.endsWith(".jar");
+            if (!actualSha.equalsIgnoreCase(expectedSha))
+                throw new IllegalStateException((runtime ? "LFS_HASH_MISMATCH" : "RELEASE_MANIFEST_MISMATCH")
+                        + ": SHA-256 mismatch=" + relative);
+            if (runtime) {
+                if (!isZip(target)) throw new IllegalStateException("RUNTIME_ARTIFACT_INVALID: executable runtime JAR is invalid=" + relative);
+                verifiedRuntimeArtifacts.add(artifactId);
+            }
+            count++;
+        }
+        if (count == 0 || !verifiedRuntimeArtifacts.equals(expectedRuntimeArtifacts))
+            throw new IllegalStateException("RUNTIME_ARTIFACT_INVALID: package manifest runtime coverage mismatch expected="
+                    + expectedRuntimeArtifacts + " actual=" + verifiedRuntimeArtifacts);
+    }
+
+    private void validateGitLfsMaterialization() throws Exception {
+        ExecResult available = run(List.of("git", "lfs", "version"), Map.of(), 30, null, false, true);
+        if (available.exit != 0) throw new IllegalStateException("GIT_LFS_NOT_AVAILABLE: install Git LFS before cpf bootstrap");
+        // A public Git checkout can have LFS download skipped by environment/config. Pull here gives the
+        // customer a stable CPF error code rather than a later opaque JAR/Maven failure. Non-Git bundles
+        // are validated by the pointer/SHA checks below and never invoke a network operation.
+        if (Files.exists(root.resolve(".git"))) {
+            ExecResult pull = run(List.of("git", "lfs", "pull"), Map.of(), timeoutSeconds, null, false, true);
+            if (pull.exit != 0) throw new IllegalStateException("LFS_DOWNLOAD_FAILED: git lfs pull failed");
+        }
+    }
+
+    private Set<String> publicBinaryRuntimeArtifactIds() throws Exception {
+        Path catalog = root.resolve("config/cpf-runtime-target-catalog.json");
+        if (!Files.isRegularFile(catalog)) throw new IllegalStateException("RUNTIME_ARTIFACT_INVALID: runtime target catalog missing");
+        String json = Files.readString(catalog, StandardCharsets.UTF_8);
+        Matcher matcher = Pattern.compile("\\\"provision\\\"\\s*:\\s*\\\"binary\\\"(?:(?!\\\"provision\\\").)*?"
+                + "\\\"artifactId\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"", Pattern.DOTALL).matcher(json);
+        Set<String> result = new HashSet<>();
+        while (matcher.find()) result.add(matcher.group(1));
+        if (result.isEmpty()) throw new IllegalStateException("RUNTIME_ARTIFACT_INVALID: binary runtime artifacts missing from catalog");
+        return result;
+    }
+
+    private static boolean isLfsPointer(Path path) throws IOException {
+        byte[] prefix = "version https://git-lfs.github.com/spec/v1".getBytes(StandardCharsets.UTF_8);
+        try (InputStream input = Files.newInputStream(path)) {
+            byte[] actual = input.readNBytes(prefix.length);
+            return Arrays.equals(prefix, actual);
+        }
+    }
+
+    private static boolean isZip(Path path) {
+        try (java.util.zip.ZipFile archive = new java.util.zip.ZipFile(path.toFile())) { return archive.size() >= 0; }
+        catch (IOException ignored) { return false; }
     }
 
     private void requireRepositoryArtifact(URI repository, String relative, String label) throws Exception {

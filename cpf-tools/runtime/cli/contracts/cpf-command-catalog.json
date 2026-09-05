@@ -181,7 +181,8 @@
     "command": "cpf release open-git",
     "privateRepositoryGit": "READ_ONLY_PROVENANCE_STATUS",
     "privateReleaseRoot": "cpf-release/",
-    "privateReleaseTracked": false,
+    "privateReleaseTracked": true,
+    "privateReleaseTracking": "CATALOG_CLASSIFIED_CURRENT_VERIFIED_ONLY",
     "openGitWorkingRepository": "FRESH_CLONE_READ_ONLY_STATUS_DIFF_UNTIL_USER_APPROVAL",
     "toolMaxState": "VERIFIED",
     "stateModel": [
@@ -194,7 +195,7 @@
     "gitAdd": "USER_ONLY_AFTER_VERIFIED_REVIEW",
     "commitPush": "USER_ONLY_AFTER_VERIFIED_REVIEW",
     "automaticGitWrite": false,
-    "privateMasterIncludesCpfRelease": false
+    "privateMasterIncludesCpfRelease": true
   },
   "developerDiscovery": {
     "commands": [

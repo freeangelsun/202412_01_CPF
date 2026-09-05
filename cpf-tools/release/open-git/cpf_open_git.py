@@ -333,8 +333,11 @@ def private_git_context(root: Path) -> dict[str, Any]:
     """Read private Git provenance without mutating or requiring a clean tree.
 
     The current Local Working Tree is a valid Source Authority for CPF release work.
-    Git is provenance only.  cpf-release itself must never be tracked by the private
-    development repository.
+    Git is provenance only.  ``cpf-release/work``, ``logs`` and the local Open Git
+    projection are transient, but the catalog-classified current verified binary and
+    report result may be tracked by the private development repository (runtime
+    binaries use the exact Git-LFS scope).  A broad tracked release root is therefore
+    rejected by path role, not by the obsolete ``tracked=0`` shortcut.
     """
     git = shutil.which("git")
     if not git or not (root / ".git").exists():
@@ -348,9 +351,21 @@ def private_git_context(root: Path) -> dict[str, Any]:
     inside = run([git, "rev-parse", "--is-inside-work-tree"], root, capture=True)
     if inside.lower() != "true":
         raise OpenGitReleaseError("private source is not a Git working tree")
-    tracked = run([git, "ls-files", RELEASE_DIR_NAME], root, capture=True)
-    if tracked:
-        raise OpenGitReleaseError("cpf-release must not be tracked by the private development repository")
+    tracked_paths = [line.strip().replace("\\", "/") for line in run(
+        [git, "ls-files", RELEASE_DIR_NAME], root, capture=True
+    ).splitlines() if line.strip()]
+    allowed_tracked_prefixes = (
+        f"{RELEASE_DIR_NAME}/{BINARY_DIR_NAME}/",
+        f"{RELEASE_DIR_NAME}/{REPORTS_DIR_NAME}/",
+    )
+    prohibited_tracked_paths = [
+        path for path in tracked_paths if not path.startswith(allowed_tracked_prefixes)
+    ]
+    if prohibited_tracked_paths:
+        rendered = ", ".join(prohibited_tracked_paths[:8])
+        raise OpenGitReleaseError(
+            "private tracked release path is not a catalog-classified verified result: " + rendered
+        )
     status_text = run([git, "status", "--short", "--untracked-files=all"], root, capture=True)
     status_lines = [line for line in status_text.splitlines() if line.strip()]
     branch = run([git, "rev-parse", "--abbrev-ref", "HEAD"], root, capture=True)
@@ -360,7 +375,8 @@ def private_git_context(root: Path) -> dict[str, Any]:
         "branch": branch,
         "statusShort": status_lines,
         "dirty": bool(status_lines),
-        "releaseTracked": False,
+        "releaseTracked": bool(tracked_paths),
+        "releaseTrackedPaths": tracked_paths,
     }
 
 
@@ -934,6 +950,26 @@ def verify_public_binary_repository_tree(repository: Path) -> None:
         target = repository / str(row["relativePath"])
         if sha256(target) != str(row["sha256"]):
             raise OpenGitReleaseError(f"package manifest SHA-256 mismatch: {row['relativePath']}")
+
+
+def verify_release_lfs_contract(root: Path, repository: Path, attributes_root: Path, *,
+                                require_git_lfs: bool = True) -> dict[str, Any]:
+    """Run the canonical LFS verifier without mutating an index, object, or checkout."""
+    verifier = root / TOOL_REL / "verify_release_lfs_contract.py"
+    if not verifier.is_file():
+        raise OpenGitReleaseError(f"Git LFS release contract verifier missing: {verifier}")
+    command = [sys.executable, "-B", str(verifier), "--root", str(root),
+               "--repository", str(repository), "--attributes-root", str(attributes_root)]
+    if require_git_lfs:
+        command.append("--require-git-lfs")
+    output = run(command, root, capture=True)
+    try:
+        value = json.loads(output)
+    except json.JSONDecodeError as exc:
+        raise OpenGitReleaseError(f"Git LFS release verifier returned invalid JSON: {exc}") from exc
+    if value.get("status") != "PASS":
+        raise OpenGitReleaseError(f"Git LFS release verifier did not pass: {value}")
+    return value
 
 
 def verify_public_launcher_parity(open_git: Path) -> None:
@@ -1656,6 +1692,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     # 기준으로 검증하면 Gradle plugin marker version 이 어긋난다.
     binary_result = verify_binary_repository(
         root, candidate_repo, public_release_version(version), profile)
+    candidate_lfs_result = verify_release_lfs_contract(root, candidate_repo, root)
 
     release_stage(10, "Open Git 공개 Source 구성", "Generated Domain / Backoffice / EDU / Developer Command")
     env = dict(os.environ)
@@ -1670,6 +1707,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     source_projection = project_optional_framework_sources(root, staging, profile)
     verify_open_git_tree(root, staging, profile)
     verify_cross_platform_cli(staging, source_identity)
+    staging_lfs_result = verify_release_lfs_contract(root, staging / BINARY_DIR_NAME, staging)
 
     release_stage(11, "Open Git Fresh Clone 준비", "이전 Open Git Working Copy 재사용 금지")
     git = shutil.which("git") or "git"
@@ -1679,6 +1717,8 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     backend.sync_public_surface(staging, candidate_open_git)
     verify_open_git_tree(root, candidate_open_git, profile)
     verify_cross_platform_cli(candidate_open_git, source_identity)
+    open_git_lfs_result = verify_release_lfs_contract(
+        root, candidate_open_git / BINARY_DIR_NAME, candidate_open_git)
 
     release_stage(12, "Fresh Workspace 빌드·테스트", "Open Git + isolated Binary Repository")
     verifier = candidate_open_git / "tools" / ("verify-open-git-workspace.ps1" if os.name == "nt" else "verify-open-git-workspace.sh")
@@ -1721,6 +1761,11 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
         "openGit": str(open_git),
         "binaryRepository": str(final_repo),
         "bundledBinaryRepository": bundled_result,
+        "gitLfs": {
+            "candidateRepository": candidate_lfs_result,
+            "publicStaging": staging_lfs_result,
+            "freshOpenGitProjection": open_git_lfs_result,
+        },
         "openGitFileCount": open_file_count,
         "binaryFileCount": binary_file_count,
         "changedFiles": len(changed),
@@ -1910,7 +1955,7 @@ WORK_PACKAGE_TEXT = """# CPF Open Git Release Work Package
 - Owner: Development GPT / `cpf-tools/release/open-git/**`
 - Canonical Requirement: `CPF_FINAL_TARGET_REQUIREMENTS.md` 21.3
 - Generated Root: `cpf-release/`
-- Private Git: `cpf-release/work`, `cpf-release/logs`, `cpf-release/open-git`만 transient 제외. Current Verified metadata는 Asset Policy에 따라 보존한다.
+- Private Git: `cpf-release/work`, `cpf-release/logs`, `cpf-release/open-git`만 transient 제외. catalog-classified Current Verified binary/report는 Master에 보존할 수 있고 runtime binary는 exact Git LFS scope를 사용한다.
 - Lifecycle: 기존 생성물 안전 전체 제거 → Fresh 생성 → Fresh Open Git clone → 검증 → `VERIFIED` → 사용자 검토 → 사용자 직접 Open Git commit/push
 - Automatic commit/push: 금지
 - Developer UX: Java 기반 단일 `cpf` CLI. Public `bootstrap/domain-new/domain-sync/build/test/run/stop/reset/status`, Internal `dev/verify/publish/release` Namespace
@@ -1932,7 +1977,7 @@ Framework 내부 Source Tree는 공개하지 않고 Maven-compatible Binary Repo
 5. EDU/Generated Domain/Backoffice/Developer Command가 실제 Open Git Projection에 존재한다.
 6. Fresh Open Git clone 검증과 isolated Binary Repository 기반 Build/Test가 성공한다.
 7. Secret/Leakage/Manifest/SHA/Git working-tree read-only gate를 통과한다.
-8. Tool은 git add/commit/push를 실행하지 않는다. `cpf-release/`는 Private master에 반영하지 않는다.
+8. Tool은 git add/commit/push를 실행하지 않는다. Private master에는 catalog-classified verified binary/report만 사용자 승인으로 반영할 수 있으며 transient `cpf-release/` subtree는 반영하지 않는다.
 9. Canonical 개발 명령은 짧은 단일 Dispatcher로 제공되고 기존 개별 Script는 동일 계약의 호환 Wrapper로 동작한다.
 10. 모든 장시간 개발 명령은 진행 단계와 로그를 실시간 표시하고 종료 시 PASS/FAIL, ExitCode, 시각, 로그 경로와 다음 행동을 출력한다.
 11. `cpf reset`은 명시 확인 전 destructive action을 수행하지 않는다.

@@ -25,13 +25,13 @@ Binary Release는 `windows-x64`, `linux-x64` Generator executable 두 개를 che
 .\cpf-tools\release\open-git\cpf-open-git.ps1 status
 ```
 
-기존 설치본에서 `/cpf-release/` 제외 또는 Canonical integration이 누락된 경우에만 호환 `setup`을 1회 실행합니다. 신규 Current Source는 integration 완료 상태가 정본입니다.
+기존 설치본에서 transient Release 경로 규칙 또는 Canonical integration이 누락된 경우에만 호환 `setup`을 1회 실행합니다. 신규 Current Source는 integration 완료 상태가 정본입니다.
 
 ```powershell
 .\cpf-tools\release\open-git\cpf-open-git.ps1 setup
 ```
 
-`setup`은 전체 파일을 덮어쓰지 않고 `/cpf-release/` ignore, Source Identity 제외, Canonical Requirement 21.3을 좁은 Anchor 기반으로 추가합니다.
+`setup`은 전체 파일을 덮어쓰지 않고 Source Identity의 generated-root 제외와 Canonical Requirement 21.3 연결만 확인합니다. `/cpf-release/` 전체 ignore는 금지하며, `work/`, `logs/`, `open-git/`만 transient입니다.
 
 ## 생성 결과
 
@@ -49,10 +49,10 @@ cpf-release/
 
 - `cpf-release` 이외 경로는 재생성 삭제 대상으로 허용하지 않습니다.
 - `cpf-release`가 symlink이면 삭제하지 않습니다.
-- Private Git tracked path가 `cpf-release` 아래에 있으면 중단합니다.
+- Private Git의 `cpf-release/work`, `logs`, `open-git` tracked path는 중단합니다. catalog-classified Current Verified `binary-repository`/`reports`만 허용하고 executable runtime JAR은 exact Git LFS attribute/materialization/SHA를 추가 검증합니다.
 - Open Git Source는 Default-Deny입니다.
 - Open Git Source에 Framework 내부 Source/JAR/WAR를 넣지 않습니다.
 - Binary Repository의 Framework sources/javadoc은 모든 Public Profile에서 0건입니다. Optional `source` Profile은 allowlist Source Tree만 제공합니다.
-- `cpf-release/`는 Open Git 전달 전용 local-generated staging이며 Private CPF master Commit/Push 대상이 아닙니다.
+- `cpf-release/`의 transient subtree는 Open Git 전달용 local staging이며 Private CPF master Commit/Push 대상이 아닙니다. catalog-classified Current Verified `binary-repository`/`reports`는 사용자 승인으로 별도 반영할 수 있습니다.
 - Release Tool은 Private/Open Git 어디에서도 사용자 승인 전 `git add`/index staging/commit/push를 실행하지 않습니다.
 - Release Tool은 `VERIFIED`까지 생성하고, 필수 Gate PASS 후 사용자가 `cpf-release/open-git`을 검토해 Open Git에 직접 Commit/Push합니다.

@@ -11,7 +11,11 @@ dependencies {
     implementation project(':framework:operations:observability')
     implementation project(':framework:security')
     implementation 'org.springframework:spring-tx'
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+    // spring-cloud-circuitbreaker-resilience4j 가 configuration processor 를 runtime 스코프로
+    // 선언해 production 실행물까지 따라온다. compile 전용 도구이므로 runtime 에서 제외한다.
+    implementation('org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-configuration-processor'
+    }
     implementation 'org.springframework.boot:spring-boot-starter-aspectj'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

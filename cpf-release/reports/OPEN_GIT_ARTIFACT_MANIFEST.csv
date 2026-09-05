@@ -117,10 +117,10 @@ com/cpf/starter/cpf-starter-web-api/1.0.0/cpf-starter-web-api-1.0.0.jar,951,db8c
 com/cpf/starter/cpf-starter-web-api/1.0.0/cpf-starter-web-api-1.0.0.pom,2335,174f44d5dacae80796f6aab3489ed9ea14923bfc9e70daee7b85d959277033f0
 com/cpf/testkit/cpf-testkit/1.0.0/cpf-testkit-1.0.0.jar,39837,b432e2f36c47e30443bd1db6f1a2a7b8a00e3b60a2723462452baf9d9bd2c51a
 com/cpf/testkit/cpf-testkit/1.0.0/cpf-testkit-1.0.0.pom,2755,b5c2ecff56772670f2676fd6a9fcb512b37ce2c9e538b81821f3c6ed7c30b6a4
-com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-linux-x64.json,340,d3aecd1a85f5f1741b22faa3bef04d3718928821a7b2cda9777d1236f490fcb8
-com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-linux-x64.zip,8123159,25a3cd995f19845eb860d5a6a88cf32f4dc5937054a871ff593ebefe8acb9ce1
-com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-linux-x64.zip.sha256,65,ed28caf2f04836fc3290f0ebb7d05f2ce282c0359a50a8a529634158a48abe89
-com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-windows-x64.json,353,5bc51debc9afe06fa9041f165da41e7c96993a416d6a3192d414d6038fe8e81c
-com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-windows-x64.zip,8432527,ce1fd2143940088d622d0c9a2ee5d8bba50fa5d76374aeeecc3d9787fe96620d
-com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-windows-x64.zip.sha256,66,e323ecf943a6e51f4d7244e9b5a19eb6a201438c110dbfc17fc2e0021ac4c295
-package-manifest.json,76646,2a1549367345c36801628a2dc5467a95a3ebd84cc906ae81826a8108579b9258
+com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-linux-x64.json,340,8be465ed47d5b9466ad8f31922babb9fb3834a9cc859917123ab14dd8f261ad4
+com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-linux-x64.zip,8219843,cf94f0c7650fb57bbcf29e330c404f43cb4769e0129f567ce4026c58c96a2b04
+com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-linux-x64.zip.sha256,65,6fc8fdf9c21a015f6f8985b0b9a5b0aec27abf1d5f01b539a32c4db17c4dd0b0
+com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-windows-x64.json,353,120ed1b4856c070babfd725862f5eadd29a0f2e01e91fb17ef87d7929a2cf3d4
+com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-windows-x64.zip,8528031,8e8244f73efd3f410424e7eb1d9ced383f25e24366e5a15bb0462377b898d4b9
+com/cpf/tooling/cpf-generator-cli/1.0.0/cpf-generator-cli-1.0.0-windows-x64.zip.sha256,66,59dbf08c88e639c1fca4490caeaef180897cb4f5088d00353c1bec81db979850
+package-manifest.json,76646,c263b6c58ed493cceb1334d6534917b8fe86dcddc4572adb3100a7a97e2e3fcd

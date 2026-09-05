@@ -66,7 +66,7 @@ def release_stage(index: int, label: str, detail: str = "") -> None:
 def recovery_hint(message: str) -> str:
     lower = message.lower()
     if "cpf-release" in lower and ("gitignore" in lower or "tracked" in lower or "symlink" in lower):
-        return "/cpf-release/ 제외와 Canonical integration 상태를 확인하세요. 필요할 때만 호환 setup을 1회 실행합니다."
+        return "Release Asset Policy와 managed candidate/promotion 상태를 확인하세요. /cpf-release/ 전체 ignore나 Git 자동 정리는 허용되지 않습니다."
     if "working tree must be clean" in lower:
         return "Private Working Tree 변경을 검토/정리한 뒤 다시 실행하세요. Tool은 commit/reset/clean을 자동 수행하지 않습니다."
     if "remote" in lower:
@@ -278,23 +278,19 @@ def _is_exact_release_root(root: Path, target: Path) -> bool:
         return False
 
 
-def verify_release_root_safety(root: Path, *, require_ignore: bool = True) -> Path:
+def verify_release_root_safety(root: Path) -> Path:
+    """Verify the generated Release root without conflating it with Git policy.
+
+    ``cpf-release`` is a managed generated root, so its old contents may be removed
+    only after non-destructive prerequisites have passed. It is not a blanket ignored
+    private tree: current verified POM, checksum, manifest, SBOM and small binary
+    results can be tracked by the Development Master.
+    """
     target = release_root(root)
     if target.is_symlink():
         raise OpenGitReleaseError("refusing release cleanup: cpf-release must not be a symlink")
     if not _is_exact_release_root(root, target):
         raise OpenGitReleaseError("refusing release cleanup: target is not exactly <CPF_ROOT>/cpf-release")
-    if require_ignore:
-        ignore = root / ".gitignore"
-        text = ignore.read_text(encoding="utf-8-sig") if ignore.is_file() else ""
-        rules = {line.strip() for line in text.splitlines() if line.strip() and not line.lstrip().startswith("#")}
-        if "/cpf-release/" not in rules:
-            raise OpenGitReleaseError("/cpf-release/ is not registered in private .gitignore. Run 'cpf-open-git setup' once after Codex work is complete.")
-    git = shutil.which("git")
-    if git and (root / ".git").exists():
-        tracked = run([git, "ls-files", RELEASE_DIR_NAME], root, capture=True)
-        if tracked:
-            raise OpenGitReleaseError("cpf-release contains private Git tracked paths; refusing generated release cleanup")
     return target
 
 
@@ -304,6 +300,24 @@ def clean_release_root(root: Path) -> Path:
         shutil.rmtree(target)
     target.mkdir(parents=True, exist_ok=False)
     return target
+
+
+def promote_release_candidate(release: Path, work: Path, *, binary: Path, open_git: Path,
+                              reports: Path) -> None:
+    """Promote a fully verified candidate set into the visible current Release root."""
+    managed_work = release / WORK_DIR_NAME
+    if work.resolve() != managed_work.resolve() or work.is_symlink():
+        raise OpenGitReleaseError("refusing Release promotion: candidate work root is not the managed isolated workspace")
+    candidates = ((binary, release / BINARY_DIR_NAME),
+                  (open_git, release / OPEN_GIT_DIR_NAME),
+                  (reports, release / REPORTS_DIR_NAME))
+    for candidate, destination in candidates:
+        if not candidate.is_dir() or candidate.is_symlink():
+            raise OpenGitReleaseError(f"refusing Release promotion: verified candidate is missing or unsafe: {candidate}")
+        if destination.exists():
+            raise OpenGitReleaseError(f"refusing Release promotion: destination already exists: {destination}")
+    for candidate, destination in candidates:
+        candidate.replace(destination)
 
 
 def canonical_source_state(root: Path) -> dict[str, Any]:
@@ -1585,7 +1599,9 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     # Safety checks run before deletion and cleanup is restricted to exact <CPF_ROOT>/cpf-release.
     release_stage(1, "Release 작업공간 안전 확인", "이전 생성물 전체 재생성 준비")
     release = clean_release_root(root)
-    reports = release / REPORTS_DIR_NAME; reports.mkdir()
+    # Logs are transient and may be streamed while the candidate is being built.
+    # Everything that could be mistaken for a current Release stays under work until
+    # all fourteen stages have passed and is then promoted as one set below.
     logs = release / LOGS_DIR_NAME; logs.mkdir()
     global ACTIVE_LOG_FILE
     ACTIVE_LOG_FILE = logs / "open-git-release.log"
@@ -1593,6 +1609,9 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     work = release / WORK_DIR_NAME; work.mkdir()
     raw_repo = work / "binary-repository-raw"
     staging = work / "open-git-staging"
+    candidate_repo = work / "binary-repository"
+    candidate_open_git = work / OPEN_GIT_DIR_NAME
+    candidate_reports = work / REPORTS_DIR_NAME; candidate_reports.mkdir()
     final_repo = release / BINARY_DIR_NAME
     open_git = release / OPEN_GIT_DIR_NAME
 
@@ -1629,24 +1648,24 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
 
     release_stage(8, "공개 Artifact 필터 적용", f"profile={profile} / Binary만 유지")
     sanitize_result = sanitize_binary_repository(
-        root, raw_repo, final_repo, profile,
+        root, raw_repo, candidate_repo, profile,
         development_version=version, source_identity=source_identity)
 
     release_stage(9, "최종 Binary Repository 검증", "Maven 좌표 / Dependency / Source disclosure")
     # Final Tree 는 immutable Public version 으로 투영되어 있으므로 development SNAPSHOT
     # 기준으로 검증하면 Gradle plugin marker version 이 어긋난다.
     binary_result = verify_binary_repository(
-        root, final_repo, public_release_version(version), profile)
+        root, candidate_repo, public_release_version(version), profile)
 
     release_stage(10, "Open Git 공개 Source 구성", "Generated Domain / Backoffice / EDU / Developer Command")
     env = dict(os.environ)
-    env["CPF_MAVEN_REPOSITORY_URL"] = final_repo.resolve().as_uri()
+    env["CPF_MAVEN_REPOSITORY_URL"] = candidate_repo.resolve().as_uri()
     # Fresh Consumer 는 bundled Public Binary Repository 를 쓰므로 immutable Public version 을 본다.
     env["CPF_VERSION"] = public_release_version(version)
     ready = _prepare_workspace(root, staging, source_identity, env)
     currentize_public_workspace_version(staging, public_release_version(version))
     cli_result = build_cross_platform_cli(root, staging, source_identity, version)
-    bundled_result = bundle_public_binary_repository(final_repo, staging)
+    bundled_result = bundle_public_binary_repository(candidate_repo, staging)
     env["CPF_MAVEN_REPOSITORY_URL"] = (staging / BINARY_DIR_NAME).resolve().as_uri()
     source_projection = project_optional_framework_sources(root, staging, profile)
     verify_open_git_tree(root, staging, profile)
@@ -1654,33 +1673,33 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
 
     release_stage(11, "Open Git Fresh Clone 준비", "이전 Open Git Working Copy 재사용 금지")
     git = shutil.which("git") or "git"
-    run([git, "clone", "--no-tags", remote, str(open_git)], release)
-    if run([git, "status", "--porcelain=v1", "--untracked-files=all"], open_git, capture=True):
+    run([git, "clone", "--no-tags", remote, str(candidate_open_git)], release)
+    if run([git, "status", "--porcelain=v1", "--untracked-files=all"], candidate_open_git, capture=True):
         raise OpenGitReleaseError("fresh Open Git clone unexpectedly dirty")
-    backend.sync_public_surface(staging, open_git)
-    verify_open_git_tree(root, open_git, profile)
-    verify_cross_platform_cli(open_git, source_identity)
+    backend.sync_public_surface(staging, candidate_open_git)
+    verify_open_git_tree(root, candidate_open_git, profile)
+    verify_cross_platform_cli(candidate_open_git, source_identity)
 
     release_stage(12, "Fresh Workspace 빌드·테스트", "Open Git + isolated Binary Repository")
-    verifier = open_git / "tools" / ("verify-open-git-workspace.ps1" if os.name == "nt" else "verify-open-git-workspace.sh")
+    verifier = candidate_open_git / "tools" / ("verify-open-git-workspace.ps1" if os.name == "nt" else "verify-open-git-workspace.sh")
     if os.name == "nt":
         shell = shutil.which("pwsh") or shutil.which("powershell")
         if not shell:
             raise OpenGitReleaseError("PowerShell is required for Open Git workspace verification")
-        run([shell, "-NoProfile", "-File", str(verifier)], open_git, env=env)
+        run([shell, "-NoProfile", "-File", str(verifier)], candidate_open_git, env=env)
     else:
-        run(["bash", str(verifier)], open_git, env=env)
+        run(["bash", str(verifier)], candidate_open_git, env=env)
 
     release_stage(13, "Open Git 변경사항 검증", "Git index/write 없이 diff/status 확인; 사용자 검토 전 add/commit/push 금지")
-    run([git, "diff", "--check"], open_git)
-    open_git_status = run([git, "status", "--short", "--untracked-files=all"], open_git, capture=True)
+    run([git, "diff", "--check"], candidate_open_git)
+    open_git_status = run([git, "status", "--short", "--untracked-files=all"], candidate_open_git, capture=True)
     changed = [line for line in open_git_status.splitlines() if line.strip()]
 
     release_stage(14, "Manifest·SHA·최종 상태 생성", "VERIFIED 결과와 사용자 Git 반영용 read-only 정보 생성")
-    open_file_count = write_file_manifest(root, open_git, reports / "OPEN_GIT_FILE_MANIFEST.csv")
-    binary_file_count = write_artifact_manifest(final_repo, reports / "OPEN_GIT_ARTIFACT_MANIFEST.csv")
-    write_json(reports / "OPEN_GIT_ARTIFACT_FILTER_RESULT.json", sanitize_result)
-    write_json(reports / "OPEN_GIT_BINARY_VERIFY_RESULT.json", binary_result)
+    open_file_count = write_file_manifest(root, candidate_open_git, candidate_reports / "OPEN_GIT_FILE_MANIFEST.csv")
+    binary_file_count = write_artifact_manifest(candidate_repo, candidate_reports / "OPEN_GIT_ARTIFACT_MANIFEST.csv")
+    write_json(candidate_reports / "OPEN_GIT_ARTIFACT_FILTER_RESULT.json", sanitize_result)
+    write_json(candidate_reports / "OPEN_GIT_BINARY_VERIFY_RESULT.json", binary_result)
 
     result = {
         "schemaVersion": 1,
@@ -1716,9 +1735,11 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
         "pushExecuted": False,
         "userReviewRequired": True,
     }
-    write_json(reports / "OPEN_GIT_RELEASE_STATUS.json", result)
-    write_status_md(reports / "OPEN_GIT_RELEASE_STATUS.md", result)
-    write_user_git_commands(reports / "OPEN_GIT_USER_GIT_COMMANDS.md", result)
+    write_json(candidate_reports / "OPEN_GIT_RELEASE_STATUS.json", result)
+    write_status_md(candidate_reports / "OPEN_GIT_RELEASE_STATUS.md", result)
+    write_user_git_commands(candidate_reports / "OPEN_GIT_USER_GIT_COMMANDS.md", result)
+    promote_release_candidate(release, work, binary=candidate_repo, open_git=candidate_open_git,
+                              reports=candidate_reports)
     # Successful release leaves only user-visible deliverables/reports/logs.
     shutil.rmtree(work)
     return result
@@ -1744,7 +1765,7 @@ def consumer_runtime_release(root: Path) -> dict[str, Any]:
     실제로 화면이 뜨고 거래가 되는지는 이 단계에서만 드러난다.
     """
     root = ensure_private_root(root)
-    release = verify_release_root_safety(root, require_ignore=False)
+    release = verify_release_root_safety(root)
     open_git = release / OPEN_GIT_DIR_NAME
     if not open_git.is_dir():
         raise OpenGitReleaseError("Open Git checkout does not exist. Run build first.")
@@ -1823,22 +1844,14 @@ def setup_integration(root: Path) -> dict[str, Any]:
     """Currentize only generated-release integration owned by this release engine.
 
     Unified CPF CLI and governance are canonical product source. This compatibility
-    setup must never inject a second ``open-git`` CLI or overwrite current steering.
-    It may only add the generated ``cpf-release/`` exclusion when absent, then it
-    fail-closed validates that ``cpf release open-git`` is already wired through the
-    exactly-one Java CLI and canonical command catalog.
+    setup must never inject a second ``open-git`` CLI, overwrite current steering or
+    blanket-ignore ``cpf-release``. Verified metadata in that managed root may be
+    tracked; only already-declared transient children are ignored. It validates that
+    ``cpf release open-git`` is wired through the exactly-one Java CLI and canonical
+    command catalog.
     """
     root = ensure_private_root(root)
     changed: list[str] = []
-
-    ignore = root / ".gitignore"
-    text = ignore.read_text(encoding="utf-8-sig") if ignore.is_file() else ""
-    if "/cpf-release/" not in {line.strip() for line in text.splitlines()}:
-        if text and not text.endswith("\n"):
-            text += "\n"
-        text += "\n# CPF Open Git release output (generated, never private-source tracked)\n/cpf-release/\n"
-        ignore.write_text(text, encoding="utf-8")
-        changed.append(".gitignore")
 
     source_state = root / "cpf-tools/verification/tools/cpf-source-state.py"
     source_text = source_state.read_text(encoding="utf-8")
@@ -1897,7 +1910,7 @@ WORK_PACKAGE_TEXT = """# CPF Open Git Release Work Package
 - Owner: Development GPT / `cpf-tools/release/open-git/**`
 - Canonical Requirement: `CPF_FINAL_TARGET_REQUIREMENTS.md` 21.3
 - Generated Root: `cpf-release/`
-- Private Git: `/cpf-release/` 전체 제외
+- Private Git: `cpf-release/work`, `cpf-release/logs`, `cpf-release/open-git`만 transient 제외. Current Verified metadata는 Asset Policy에 따라 보존한다.
 - Lifecycle: 기존 생성물 안전 전체 제거 → Fresh 생성 → Fresh Open Git clone → 검증 → `VERIFIED` → 사용자 검토 → 사용자 직접 Open Git commit/push
 - Automatic commit/push: 금지
 - Developer UX: Java 기반 단일 `cpf` CLI. Public `bootstrap/domain-new/domain-sync/build/test/run/stop/reset/status`, Internal `dev/verify/publish/release` Namespace
@@ -1912,7 +1925,7 @@ Framework 내부 Source Tree는 공개하지 않고 Maven-compatible Binary Repo
 
 ## Acceptance
 
-1. `cpf-release/`가 Private Git/Source Identity에 포함되지 않는다.
+1. `cpf-release/`의 transient output은 Source Identity에 포함되지 않으며, Current Verified metadata의 Master 보존 여부는 Asset Policy만 따른다.
 2. 재실행 시 이전 `cpf-release/`가 남지 않는다.
 3. Open Git Source에 Private Framework Source 및 JAR/WAR가 0건이다.
 4. Binary Repository에서 허용되지 않은 sources/javadoc artifact가 0건이다.

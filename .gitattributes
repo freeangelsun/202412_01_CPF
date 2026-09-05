@@ -26,4 +26,14 @@
 *.pdf binary
 # git archive에서 현재 commit SHA를 Source identity 파일에 치환합니다.
 /cpf-docs/work/BASE_SHA.txt export-subst
-cpf-release/binary-repository/**/*.jar filter=lfs diff=lfs merge=lfs -text
+# Public Runtime catalog(provision=binary) executable artifacts only use LFS.
+# Do not widen this to *.jar: library/starter JARs and all metadata stay in regular Git.
+cpf-release/binary-repository/com/cpf/runtime/cpf-admin/*/cpf-admin-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-gateway/*/cpf-gateway-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-batch-control-plane/*/cpf-batch-control-plane-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-batch-scheduler/*/cpf-batch-scheduler-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-batch-worker/*/cpf-batch-worker-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-batch-center-cut/*/cpf-batch-center-cut-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-batch-agent/*/cpf-batch-agent-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-local-runtime/*/cpf-local-runtime-*.jar filter=lfs diff=lfs merge=lfs -text
+cpf-release/binary-repository/com/cpf/runtime/cpf-local-batch-runtime/*/cpf-local-batch-runtime-*.jar filter=lfs diff=lfs merge=lfs -text

@@ -9,6 +9,13 @@
   "gitRemoteEnvironment": "CPF_OPEN_GIT_REMOTE",
   "sourceRules": [
     {
+      "pattern": ".gitattributes",
+      "target": ".gitattributes",
+      "classification": "OPEN_GIT_USER_CONFIG",
+      "required": true,
+      "reason": "Public Runtime binary의 Git LFS transport scope를 canonical source와 exact하게 투영한다."
+    },
+    {
       "pattern": "cpf-backoffice/build.gradle",
       "target": "cpf-backoffice/build.gradle",
       "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
@@ -642,14 +649,17 @@
       "Master 에 보존된 Generated/Release Artifact 는 다음 Fresh Release 의 Build/Generation 입력으로 쓰지 않는다.",
       "Open Git Release 는 항상 Clean Isolated Release Workspace 에서 Canonical Source 기준으로 다시 만든다.",
       "cpf-release/open-git 은 정본이 아니라 projection 결과다. 정본은 Development Master 의 canonical source 다.",
+      "cpf-release 전체를 .gitignore 로 제외하지 않는다. work/logs/open-git만 transient이며, verified binary metadata와 report는 검증 후 현재 결과로 승격할 수 있다.",
       "분류는 파일명/확장자/폴더명이 아니라 투영 규칙의 metadata 에서 파생한다.",
-      "Artifact 분류는 확장자나 임의 크기 기준이 아니라 canonical Runtime metadata 에서 파생한다. 분류가 없으면 UNKNOWN 이며 FAIL CLOSED 다."
+      "Artifact 분류는 확장자나 임의 크기 기준이 아니라 canonical Runtime metadata 에서 파생한다. 분류가 없으면 UNKNOWN 이며 FAIL CLOSED 다.",
+      "Public Runtime catalog의 executable binary는 Git LFS로 transport한다. LFS는 Fresh Build/검증을 대체하지 않으며 ordinary source, POM, checksum, manifest, SBOM, report를 LFS로 넓히지 않는다."
     ],
     "axes": {
       "masterTracked": "Development Master Git 에 보존하는가",
       "publicRelease": "Open Git 공개 배포본에 포함하는가",
       "releaseInputAuthority": "Fresh Release 의 생성 입력으로 쓸 수 있는가",
-      "freshRegenerationRequired": "Final Fresh Release 에서 다시 만들어야 하는가"
+      "freshRegenerationRequired": "Final Fresh Release 에서 다시 만들어야 하는가",
+      "transport": "Master/Open Git에서 사용하는 canonical transport (REGULAR_GIT, GIT_LFS, NOT_APPLICABLE)"
     },
     "independenceRules": [
       "masterTracked=true 가 releaseInputAuthority=true 를 뜻하지 않는다.",
@@ -657,7 +667,8 @@
       "masterTracked=true 가 publicRelease=true 를 뜻하지 않는다.",
       "generated 라는 이유만으로 masterTracked=false 로 만들지 않는다.",
       "binary 라는 이유만으로 masterTracked=false 로 만들지 않는다.",
-      "text 라는 이유만으로 masterTracked=true 로 만들지 않는다."
+      "text 라는 이유만으로 masterTracked=true 로 만들지 않는다.",
+      "GIT_LFS는 artifact class가 요구하는 transport일 뿐 Fresh Release input authority나 packaging quality 판정을 대체하지 않는다."
     ],
     "classes": {
       "CANONICAL_RELEASE_SOURCE": {
@@ -674,6 +685,7 @@
         "publicRelease": "BY_SURFACE_POLICY",
         "releaseInputAuthority": true,
         "freshRegenerationRequired": false,
+        "transport": "REGULAR_GIT",
         "projectionPolicy": "FRESH_PROJECTION_FROM_CANONICAL",
         "mustNotBeGeneratedByReleaseEngine": true,
         "reusePreviousReleaseOutput": false,
@@ -704,6 +716,7 @@
         "publicRelease": "BY_SURFACE_POLICY",
         "releaseInputAuthority": false,
         "freshRegenerationRequired": true,
+        "transport": "REGULAR_GIT",
         "projectionPolicy": "REGENERATED_NOT_COPIED",
         "roles": [
           "currentReleaseVisibility",
@@ -745,6 +758,7 @@
         "publicRelease": true,
         "releaseInputAuthority": false,
         "freshRegenerationRequired": true,
+        "transport": "NOT_APPLICABLE",
         "trackingExceptionReasonRequired": true,
         "trackingExceptionEvidence": [
           "assetCurrentSize",
@@ -785,7 +799,39 @@
         "publicRelease": false,
         "releaseInputAuthority": false,
         "freshRegenerationRequired": true,
+        "transport": "NOT_APPLICABLE",
         "promotionPolicy": "NEVER"
+      },
+      "LARGE_RELEASE_BINARY": {
+        "meaning": "canonical Runtime Target Catalog에서 binary provision으로 선언된 Public executable runtime. Current Master와 Open Git 모두 Git LFS pointer로 보존·전송한다.",
+        "examples": [
+          "catalog-derived Spring Boot executable runtime"
+        ],
+        "masterTracked": true,
+        "publicRelease": true,
+        "releaseInputAuthority": false,
+        "freshRegenerationRequired": true,
+        "transport": "GIT_LFS",
+        "projectionPolicy": "REGENERATED_NOT_COPIED",
+        "neverUsedAs": "FRESH_BUILD_CACHE",
+        "verificationPolicy": [
+          "currentSourceIdentity",
+          "freshBuild",
+          "freshRuntimeExecution",
+          "manifestSha256",
+          "lfsAttribute",
+          "lfsMaterialization",
+          "freshConsumerExecution",
+          "dependencyPackagingQuality"
+        ],
+        "promotionPolicy": "PROMOTE_AFTER_VERIFICATION",
+        "lfsCurrentizationOrder": [
+          "freshBuild",
+          "testAndRuntimeVerification",
+          "checksumSbomManifest",
+          "promotion",
+          "gitLfsCurrentization"
+        ]
       }
     },
     "classificationMapping": {
@@ -828,6 +874,12 @@
         "productSource"
       ],
       "previousResidueAllowed": false,
+      "releaseRootCanContainTrackedVerifiedResults": true,
+      "transientIgnoredPaths": [
+        "cpf-release/work",
+        "cpf-release/logs",
+        "cpf-release/open-git"
+      ],
       "prerequisitesBeforeDestruction": true
     },
     "publicationRouting": {
@@ -860,6 +912,7 @@
       "freshManifest",
       "leakageZero",
       "releaseCandidate",
+      "gitLfsMaterializationAndManifestCorrelation",
       "trackedResultComparisonAndCurrentization",
       "freshConsumer",
       "evidence"
@@ -896,13 +949,14 @@
             "artifactIdFrom": "runtimeTargetCatalog.binaryProvisionArtifactIds",
             "fileKind": "executable-runtime-jar"
           },
-          "assetClass": "UNTRACKED_RELEASE_RESULT",
-          "masterTracked": false,
+          "assetClass": "LARGE_RELEASE_BINARY",
+          "masterTracked": true,
           "publicRelease": true,
-          "trackingExceptionReason": "Spring Boot executable runtime jar 은 의존성 전체를 담고 있어 재빌드마다 blob 이 통째로 바뀐다. 2026-09-05 실측: 9개 합계 679MB, 최대 111.3MB / 111.0MB 로 GitHub 파일당 100MB 하드 제한을 초과해 push 자체가 거부되며, 회차마다 .git(현재 183MB)이 수백 MB 씩 증가한다.",
-          "measuredAt": "2026-09-05",
-          "evidence": "cpf-docs/governance/development-harness/current/RELEASE_BINARY_TRACKING_MANIFEST.csv",
-          "reevaluation": "크기가 줄거나 저장 방식이 바뀌어 실질적인 Git 운영 문제가 사라지면 예외를 재평가한다. 이 예외를 \"JAR 은 저장하지 않는다\" 는 일반 규칙으로 확대하지 않는다."
+          "transport": "GIT_LFS",
+          "gitAttributesPathTemplate": "cpf-release/binary-repository/com/cpf/runtime/{artifactId}/*/{artifactId}-*.jar",
+          "selection": "runtimeTargetCatalog.binaryProvisionArtifactIds",
+          "transportDecisionEvidence": "cpf-docs/governance/development-harness/current/RELEASE_BINARY_TRACKING_MANIFEST.csv",
+          "note": "LFS 대상은 runtime catalog가 선언한 executable product runtime이다. 확장자·일반 경로·임의 용량 기준으로 다른 JAR에 확장하지 않는다."
         },
         {
           "id": "generatorDistribution",
@@ -913,6 +967,7 @@
           "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
           "masterTracked": true,
           "publicRelease": true,
+          "transport": "REGULAR_GIT",
           "note": "Windows/Linux Generator 배포본. 2026-09-05 실측 8.0MB / 7.7MB 로 Git 운영 문제가 없어 보존한다. binary 라는 이유만으로 제외하지 않는다."
         },
         {
@@ -924,6 +979,7 @@
           "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
           "masterTracked": true,
           "publicRelease": true,
+          "transport": "REGULAR_GIT",
           "note": "적정 크기의 Current Verified Release Metadata 는 Master 에서 보존한다."
         },
         {
@@ -935,6 +991,7 @@
           "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
           "masterTracked": true,
           "publicRelease": true,
+          "transport": "REGULAR_GIT",
           "note": "Runtime 실행물이 아닌 라이브러리 jar 은 크기 문제가 없어 보존한다."
         },
         {
@@ -946,6 +1003,7 @@
           "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
           "masterTracked": true,
           "publicRelease": false,
+          "transport": "REGULAR_GIT",
           "note": "Release 검수용 Current Metadata 다. 공개 배포본에는 넣지 않는다."
         }
       ],
@@ -960,11 +1018,31 @@
         "master_tracked",
         "public_release",
         "asset_class",
+        "transport",
+        "lfs_required",
         "tracking_exception_reason"
       ],
       "gitLfs": {
-        "adopted": false,
-        "reason": "별도 저장 인프라/운영 계약을 추가하는 Architecture 결정이므로 이번 Release closure 에 도입하지 않는다."
+        "adopted": true,
+        "attributeFile": ".gitattributes",
+        "requiredCommand": "git-lfs",
+        "pointerPrefix": "version https://git-lfs.github.com/spec/v1",
+        "largeArtifactClass": "LARGE_RELEASE_BINARY",
+        "attributeSource": "artifactClassification.rules[id=publicBinaryRuntimeExecutable].gitAttributesPathTemplate expanded from runtimeTargetCatalog.binaryProvisionArtifactIds",
+        "ordinaryGitClasses": [
+          "CANONICAL_RELEASE_SOURCE",
+          "TRACKED_VERIFIED_RELEASE_RESULT"
+        ],
+        "materializationRequiredBeforeRuntime": true,
+        "currentizationRule": "Fresh Build -> Test/Runtime verify -> checksum/SBOM/manifest -> promotion -> Git LFS currentization. Previous LFS object is never a Fresh Release input.",
+        "failClosedCodes": [
+          "GIT_LFS_NOT_AVAILABLE",
+          "LFS_OBJECT_NOT_MATERIALIZED",
+          "LFS_DOWNLOAD_FAILED",
+          "LFS_HASH_MISMATCH",
+          "RELEASE_MANIFEST_MISMATCH",
+          "RUNTIME_ARTIFACT_INVALID"
+        ]
       }
     }
   },
@@ -1022,8 +1100,8 @@
         "name": "releaseReport",
         "path": "cpf-release/reports",
         "producedBy": "cpf_open_git",
-        "releaseAssetClass": "TRANSIENT_RELEASE_OUTPUT",
-        "note": "Release 실행 보고서. 제품 자산이 아니다."
+        "releaseAssetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+        "note": "검증 완료 뒤 Current Release와 함께 승격하는 검수 보고서다. 실행 중 candidate는 isolated work에만 존재한다."
       },
       {
         "name": "releaseLog",

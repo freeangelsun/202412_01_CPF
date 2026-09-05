@@ -308,9 +308,14 @@ Release 로 인정하지 않는다.
 ### 24.11 Release Generated Root 는 Current-only
 
 - `clean` 은 Source build clean 만이 아니다. Release generated root 자체가 Current-only 다.
-- 매 Release 시작 시 exact `<CPF_ROOT>/cpf-release` 전체(`open-git/`, `binary-repository/`,
-  `reports/`, `logs/`, `work/`)를 안전하게 제거하고 0부터 Fresh 생성한다.
-- 이전 Release 파일을 merge / copy-over / currentize 해서 재사용하지 않는다.
+- 매 Release 시작 시 exact `<CPF_ROOT>/cpf-release`의 이전 managed 결과를 안전하게 제거하고 0부터 Fresh
+  candidate를 생성한다. candidate는 `work/` 아래에서 Build/Publication/Fresh Clone/검증을 마친 뒤에만
+  `binary-repository/`, `open-git/`, `reports/`로 한 세트 승격한다.
+- 이전 Release 파일을 merge / copy-over / build input으로 재사용하지 않는다. `reports/`와 적정 크기의
+  binary metadata는 검증 완료 뒤 Master Current Result가 될 수 있지만, 그 사실이 다음 Fresh Build 입력권한을
+  만들지는 않는다.
+- `.gitignore`는 `work/`, `logs/`, `open-git/` 같은 transient만 제외한다. `cpf-release/` 전체 제외는
+  POM/checksum/manifest/SBOM/report까지 숨기므로 금지한다.
 - Open Git fresh clone 에서도 staging 에 없는 과거 Working Tree 파일은 0 이어야 한다.
 - `.git/**` 은 Open Git Repository history 이므로 Release Artifact garbage 로 취급하거나
   삭제하지 않는다.
@@ -1623,8 +1628,9 @@ fail-closed 로 공개 좌표에 투영하는 단계다. 이 둘을 분리해 �
    공개 저장소로 직접 지정하지 않는다.
 2. 발행은 항상 별도 staging repository 에 한다. 공개 저장소는 staging 을 입력으로 하는 투영
    함수(`sanitize_binary_repository`)의 출력으로만 갱신한다.
-3. `cpf-release/` 는 저장소 추적 대상이 아니다. 손상되면 git 복원이 불가능하므로 **재생성 경로가
-   항상 성립해야 한다.** 재생성에는 Generator OS matrix(windows-x64 / linux-x64) 재빌드가 포함된다.
+3. `cpf-release/`의 transient subtree는 저장소 추적 대상이 아니며, Current Verified Result의 보존 여부는
+   Release Asset Policy가 정한다. 어느 경우에도 Fresh 재생성 경로가 항상 성립해야 하며, 재생성에는
+   Generator OS matrix(windows-x64 / linux-x64) 재빌드가 포함된다.
 4. 부분 재생성으로 검증을 이어갈 수 있으나, 최종 Gate 는 승인된 remote 를 clone 한 실제 Fresh
    Consumer 배포본에서 다시 수행한다. staging 트리 검증은 최종 Gate 를 대체하지 않는다.
 

@@ -31,6 +31,9 @@ REPO_ROOT = Path(os.environ.get("CPF_RELEASE_ASSET_ROOT") or Path(__file__).reso
 POLICY = REPO_ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"
 ENGINE = REPO_ROOT / "cpf-tools/release/open-git/cpf_open_git.py"
 GITIGNORE = REPO_ROOT / ".gitignore"
+GITATTRIBUTES = REPO_ROOT / ".gitattributes"
+RUNTIME_CATALOG = REPO_ROOT / "cpf-tools/runtime/cpf-runtime-target-catalog.json"
+LFS_VERIFIER = REPO_ROOT / "cpf-tools/release/open-git/verify_release_lfs_contract.py"
 HARNESS = REPO_ROOT / "cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md"
 WORK_ITEM_REGISTRY = REPO_ROOT / "cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv"
 
@@ -38,6 +41,7 @@ CANONICAL = "CANONICAL_RELEASE_SOURCE"
 TRACKED = "TRACKED_VERIFIED_RELEASE_RESULT"
 UNTRACKED = "UNTRACKED_RELEASE_RESULT"
 TRANSIENT = "TRANSIENT_RELEASE_OUTPUT"
+LARGE_BINARY = "LARGE_RELEASE_BINARY"
 BY_SURFACE = "BY_SURFACE_POLICY"
 
 
@@ -74,18 +78,24 @@ def asset_class(rule: dict) -> str:
     return mapping[classification]
 
 
+def binary_runtime_artifact_ids() -> list[str]:
+    catalog = json.loads(read(RUNTIME_CATALOG))
+    return sorted(str(runtime["artifactId"]) for runtime in catalog["runtimes"]
+                  if runtime.get("provision") == "binary")
+
+
 class AssetAuthorityShape(unittest.TestCase):
     """분류와 축이 정본 metadata 로 존재한다."""
 
-    def test_four_asset_classes_are_declared(self) -> None:
+    def test_asset_classes_are_declared(self) -> None:
         classes = authority()["classes"]
-        for name in (CANONICAL, TRACKED, UNTRACKED, TRANSIENT):
+        for name in (CANONICAL, TRACKED, UNTRACKED, TRANSIENT, LARGE_BINARY):
             self.assertIn(name, classes, f"Release Asset 부류 선언이 없다: {name}")
 
     def test_every_class_declares_all_four_axes(self) -> None:
         axes = set(authority()["axes"])
         for required in ("masterTracked", "publicRelease", "releaseInputAuthority",
-                         "freshRegenerationRequired"):
+                         "freshRegenerationRequired", "transport"):
             self.assertIn(required, axes, f"Release Asset 축 선언이 없다: {required}")
         missing: list[str] = []
         for name, contract in authority()["classes"].items():
@@ -531,7 +541,8 @@ class ArtifactClassificationContract(unittest.TestCase):
     def test_tracked_manifest_records_every_required_field(self) -> None:
         columns = set(authority()["artifactClassification"]["trackedManifestColumns"])
         for field in ("artifact_path", "coordinate", "version", "size_bytes", "sha256",
-                      "source_identity", "public_release", "tracking_exception_reason"):
+                      "source_identity", "public_release", "asset_class", "transport",
+                      "lfs_required"):
             self.assertIn(field, columns, f"tracked manifest 항목이 빠졌다: {field}")
 
     def test_untracked_artifact_is_still_publicly_delivered(self) -> None:
@@ -542,10 +553,53 @@ class ArtifactClassificationContract(unittest.TestCase):
             self.assertTrue(rule.get("publicRelease"),
                             f"{rule['id']}: Master 미보존이 공개 배포 제외로 연결된다")
 
-    def test_git_lfs_decision_is_recorded(self) -> None:
+    def test_git_lfs_is_canonical_transport_for_catalog_binary_runtimes(self) -> None:
         lfs = authority()["artifactClassification"]["gitLfs"]
-        self.assertFalse(lfs["adopted"], "Git LFS 도입 여부가 기록과 다르다")
-        self.assertTrue(str(lfs["reason"]).strip(), "Git LFS 미도입 사유가 없다")
+        self.assertTrue(lfs["adopted"], "확정된 Git LFS transport를 정본화하지 않았다")
+        self.assertEqual(LARGE_BINARY, lfs["largeArtifactClass"])
+        self.assertEqual(".gitattributes", lfs["attributeFile"])
+        self.assertEqual("git-lfs", lfs["requiredCommand"])
+        self.assertTrue(lfs["materializationRequiredBeforeRuntime"])
+        for code in ("GIT_LFS_NOT_AVAILABLE", "LFS_OBJECT_NOT_MATERIALIZED",
+                     "LFS_DOWNLOAD_FAILED", "LFS_HASH_MISMATCH",
+                     "RELEASE_MANIFEST_MISMATCH", "RUNTIME_ARTIFACT_INVALID"):
+            self.assertIn(code, lfs["failClosedCodes"], f"LFS failure code가 없다: {code}")
+
+        rule = next(rule for rule in self.classification()["rules"]
+                    if rule["id"] == "publicBinaryRuntimeExecutable")
+        self.assertEqual(LARGE_BINARY, rule["assetClass"])
+        self.assertTrue(rule["masterTracked"])
+        self.assertTrue(rule["publicRelease"])
+        self.assertEqual("GIT_LFS", rule["transport"])
+        self.assertEqual("runtimeTargetCatalog.binaryProvisionArtifactIds", rule["selection"])
+
+    def test_lfs_attributes_are_exactly_catalog_derived_and_metadata_stays_regular_git(self) -> None:
+        self.assertTrue(GITATTRIBUTES.is_file(), ".gitattributes가 없다")
+        lines = [line.strip() for line in read(GITATTRIBUTES).splitlines()
+                 if line.strip() and not line.lstrip().startswith("#")]
+        lfs_lines = [line for line in lines if "filter=lfs" in line]
+        expected = {
+            f"cpf-release/binary-repository/com/cpf/runtime/{artifact_id}/*/{artifact_id}-*.jar "
+            "filter=lfs diff=lfs merge=lfs -text"
+            for artifact_id in binary_runtime_artifact_ids()
+        }
+        self.assertEqual(expected, set(lfs_lines),
+                         "LFS scope는 runtime catalog executable만 exact하게 따라야 한다")
+        forbidden = {"*.jar", "**/*.jar", "cpf-release/binary-repository/**/*.jar"}
+        lfs_patterns = {line.split(maxsplit=1)[0] for line in lfs_lines}
+        self.assertEqual(set(), lfs_patterns.intersection(forbidden),
+                         "전역/경로 glob LFS가 library 또는 metadata까지 넓힌다")
+        self.assertFalse(any(".pom" in line or ".json" in line or ".sha" in line
+                             for line in lfs_lines),
+                         "POM/manifest/checksum/report는 regular Git이어야 한다")
+
+    def test_lfs_validator_is_a_release_gate_not_a_document_only_rule(self) -> None:
+        self.assertTrue(LFS_VERIFIER.is_file(), "LFS attribute/materialization validator가 없다")
+        text = read(LFS_VERIFIER)
+        for required in ("GIT_LFS_NOT_AVAILABLE", "LFS_OBJECT_NOT_MATERIALIZED",
+                         "LFS_HASH_MISMATCH", "RELEASE_MANIFEST_MISMATCH",
+                         "RUNTIME_ARTIFACT_INVALID", "git-lfs"):
+            self.assertIn(required, text, f"LFS validator의 fail-closed contract가 빠졌다: {required}")
 
 
 class PayloadCompositionContract(unittest.TestCase):

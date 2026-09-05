@@ -5242,7 +5242,7 @@
         "updated_by"
       ],
       "sourceKind": "values",
-      "source": "('SAMPLE0001', NULL, 'SAMPLE_DEV', '샘플 결재자', 'SAMPLE_P2', 'SAMPLE_MANAGER', NULL,\n     'ACTIVE', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('SAMPLE0002', NULL, 'SAMPLE_DEV', '샘플 요청자', 'SAMPLE_P1', 'SAMPLE_MEMBER', 'SAMPLE0001',\n     'ACTIVE', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')",
+      "source": "('SAMPLE0001', NULL, 'SAMPLE_DEV', '샘플 결재자', 'SAMPLE_P2', 'SAMPLE_MANAGER', NULL,\n     'EMPLOYED', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('SAMPLE0002', NULL, 'SAMPLE_DEV', '샘플 요청자', 'SAMPLE_P1', 'SAMPLE_MEMBER', 'SAMPLE0001',\n     'EMPLOYED', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')",
       "conflictKey": "uk_mbw_employee_admin_user",
       "conflictColumns": [
         "admin_user_id"
@@ -6378,7 +6378,7 @@
         "updated_by"
       ],
       "sourceKind": "select",
-      "source": "SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,\n       'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'\nFROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin'",
+      "source": "SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'EMPLOYED', CURRENT_DATE,\n       'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'\nFROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin'",
       "conflictKey": "uk_mbw_employee_admin_user",
       "conflictColumns": [
         "admin_user_id"
@@ -6446,40 +6446,8 @@
         "created_by",
         "updated_by"
       ],
-      "sourceKind": "values",
-      "source": "(\n    'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'\n)",
-      "conflictKey": "LOGICAL",
-      "conflictColumns": [
-        "employee_no",
-        "assignment_type",
-        "primary_yn"
-      ],
-      "updates": [
-        {
-          "column": "organization_code",
-          "expression": "VALUES(organization_code)"
-        },
-        {
-          "column": "position_code",
-          "expression": "VALUES(position_code)"
-        },
-        {
-          "column": "job_title_code",
-          "expression": "VALUES(job_title_code)"
-        },
-        {
-          "column": "effective_to",
-          "expression": "NULL"
-        },
-        {
-          "column": "updated_by",
-          "expression": "VALUES(updated_by)"
-        },
-        {
-          "column": "updated_at",
-          "expression": "CURRENT_TIMESTAMP(3)"
-        }
-      ],
+      "sourceKind": "select",
+      "source": "SELECT v.employee_no, v.organization_code, v.position_code, v.job_title_code, 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'\nFROM (\n    SELECT 'EMP001' employee_no, 'OPS' organization_code, 'P3' position_code, 'OPERATOR' job_title_code\n) v\nWHERE NOT EXISTS (\n    SELECT 1 FROM MBW_EMPLOYEE_ASSIGNMENT a\n    WHERE a.employee_no = v.employee_no AND a.assignment_type = 'PRIMARY' AND a.primary_yn = 'Y'\n)",
       "currentLogicalDatabase": "mbwDB",
       "productionDefault": true,
       "currentTable": "MBW_EMPLOYEE_ASSIGNMENT",

@@ -174,10 +174,20 @@ public class CpfBrokerReliabilityAutoConfiguration {
                 return;
             }
             try (Connection connection = dataSource.getConnection()) {
+                java.sql.DatabaseMetaData metaData = connection.getMetaData();
                 for (String table : List.of(
                         "CPF_BROKER_OUTBOX", "CPF_BROKER_INBOX", "CPF_BROKER_DLQ")) {
-                    try (var result = connection.getMetaData().getTables(
-                            connection.getCatalog(), null, table, null)) {
+                    // JDBC metadata 의 table pattern 은 대소문자를 그대로 비교한다. PostgreSQL 은
+                    // 따옴표 없는 식별자를 소문자로 접어 저장하므로 대문자 이름을 그대로 넘기면
+                    // 테이블이 있어도 못 찾고 기동이 "Missing CPF broker table" 로 실패한다.
+                    // 저장 규칙은 Driver 가 알려 주는 계약으로만 판정한다.
+                    String pattern = metaData.storesLowerCaseIdentifiers()
+                            ? table.toLowerCase(java.util.Locale.ROOT)
+                            : metaData.storesUpperCaseIdentifiers()
+                                    ? table.toUpperCase(java.util.Locale.ROOT)
+                                    : table;
+                    try (var result = metaData.getTables(
+                            connection.getCatalog(), null, pattern, null)) {
                         if (!result.next()) {
                             throw new IllegalStateException("Missing CPF broker table: " + table);
                         }

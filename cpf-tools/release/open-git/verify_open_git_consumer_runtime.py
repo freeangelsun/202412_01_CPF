@@ -269,30 +269,41 @@ def verify_adm(checkout: Path, entries: dict[str, dict], credentials: dict[str, 
     })
     base = f"http://127.0.0.1:{port}"
     wait_http(f"{base}/adm/api/health", seconds=ADM_READY_SECONDS, accept=(200,))
+
+    # ADM 콘솔은 Browser BFF 다. 실제 사용자 여정과 같은 방식(Cookie Jar + CSRF + Origin)으로 확인한다.
+    # Bearer token 을 기대하면 Browser 세션 계약을 검증하지 못하고, 오히려 token 이 body 로
+    # 새는 구현을 통과시킨다.
+    jar = CookieJar()
+    browser = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+
     # 화면이 실제로 실려 있어야 한다. Runtime 만 뜨고 bundle 이 없으면 사용자는 아무것도 못 본다.
-    status, body, _ = http(f"{base}/adm/")
+    status, body, _ = http(f"{base}/adm/", opener=browser)
     if status != 200 or b"<div id=" not in body and b"<script" not in body:
         raise ConsumerRuntimeError(f"ADM SPA entry is not served: status={status} bytes={len(body)}")
+    csrf_token = next((cookie.value for cookie in jar if cookie.name == "XSRF-TOKEN"), None)
+    if not csrf_token:
+        raise ConsumerRuntimeError("ADM SPA entry did not issue the XSRF-TOKEN cookie")
 
     # health/SPA만으로는 Consumer가 실제로 운영 콘솔을 쓸 수 있는지 증명하지 못한다.
     login_status, login_body, _ = http(
-        f"{base}/adm/api/auth/login", method="POST", headers={"Content-Type": "application/json"},
+        f"{base}/adm/api/auth/login", method="POST",
+        headers={"Content-Type": "application/json", "X-XSRF-TOKEN": csrf_token,
+                 "Origin": base, "Referer": f"{base}/adm/"},
         body=json.dumps({
             "operatorId": credentials["CPF_ADM_BOOTSTRAP_OPERATOR_ID"],
             "password": credentials["CPF_ADM_BOOTSTRAP_PASSWORD"],
-        }).encode("utf-8"))
+        }).encode("utf-8"), opener=browser)
     if login_status != 200:
         raise ConsumerRuntimeError(f"ADM initial operator login did not succeed: status={login_status}")
     login = json_object(login_body, context="ADM login")
-    access_token = login.get("accessToken")
-    if not isinstance(access_token, str) or not access_token:
-        raise ConsumerRuntimeError("ADM login did not issue an authenticated session credential")
-    try:
-        me_status, _, _ = http(
-            f"{base}/adm/api/auth/me", headers={"Authorization": "Bearer " + access_token})
-    finally:
-        # Evidence/result에는 token을 기록하지 않고, Python object 보존도 최소화한다.
-        del access_token
+    if "accessToken" in login or "refreshToken" in login:
+        raise ConsumerRuntimeError("ADM login exposed an upstream credential in the Browser body")
+    if "CPFSESSION" not in cookie_names(jar):
+        raise ConsumerRuntimeError("ADM login did not establish the HttpOnly Browser session cookie")
+    if not login.get("menus"):
+        raise ConsumerRuntimeError("ADM login did not return an authorized console composition")
+
+    me_status, _, _ = http(f"{base}/adm/api/auth/me", opener=browser)
     if me_status != 200:
         raise ConsumerRuntimeError(f"ADM authenticated operation did not succeed: status={me_status}")
     return {"port": port, "spa": "PASS", "health": "PASS", "login": "PASS", "authenticatedOperation": "PASS"}

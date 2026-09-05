@@ -412,7 +412,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         DataSource dataSource=jdbcTemplate.getDataSource(); if(dataSource==null)return false;
         try(Connection connection=dataSource.getConnection()){
             String catalog=connection.getCatalog(), schema=currentSchema(connection);
-            for(String candidate:List.of(table,table.toUpperCase(java.util.Locale.ROOT))){
+            // PostgreSQL 은 따옴표 없는 식별자를 소문자로 접어 저장한다. 대문자만 시도하면
+            // 테이블이 있어도 없다고 판정한다.
+            for(String candidate:List.of(table,table.toUpperCase(java.util.Locale.ROOT),table.toLowerCase(java.util.Locale.ROOT))){
                 try(ResultSet rs=connection.getMetaData().getTables(catalog,schema,candidate,new String[]{"TABLE"})){if(rs.next())return true;}
             }
             return false;
@@ -667,7 +669,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         try (Connection connection = dataSource.getConnection()) {
             String catalog = connection.getCatalog();
             String schema = currentSchema(connection);
-            for (String candidate : List.of("CPF_TRANSACTION_SEGMENT")) {
+            // 식별자 저장 규칙은 Vendor 마다 다르다. 고정 대문자 하나만 조회하면 PostgreSQL 에서
+            // 항상 없다고 판정한다.
+            for (String candidate : List.of("CPF_TRANSACTION_SEGMENT",
+                    "CPF_TRANSACTION_SEGMENT".toLowerCase(java.util.Locale.ROOT))) {
                 try (ResultSet tables = connection.getMetaData()
                         .getTables(catalog, schema, candidate, new String[]{"TABLE"})) {
                     if (tables.next()) {

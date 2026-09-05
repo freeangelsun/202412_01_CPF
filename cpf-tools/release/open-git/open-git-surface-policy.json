@@ -215,6 +215,24 @@
       "classification": "OPEN_GIT_USER_CONFIG",
       "required": true,
       "reason": "gradlew wrapper 가 기동 시 gradle/cpf-runtime/{common,profile}.properties 를 fail-closed 로 요구한다. 없으면 Fresh checkout 사용자가 어떤 Gradle 명령도 실행할 수 없다."
+    },
+    {
+      "pattern": "cpf-tools/db/vendor/mariadb/**",
+      "target": "deploy/local/db/vendor/mariadb",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "required": true
+    },
+    {
+      "pattern": "cpf-tools/db/vendor/oracle/**",
+      "target": "deploy/local/db/vendor/oracle",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "required": true
+    },
+    {
+      "pattern": "cpf-tools/db/vendor/postgresql/**",
+      "target": "deploy/local/db/vendor/postgresql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "required": true
     }
   ],
   "templateRules": [
@@ -444,6 +462,60 @@
       "source": "cpf-tools/db/generated/current/postgresql/cpf-platform-verify.sql",
       "target": "deploy/local/db/platform/postgresql/90_verify.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/mariadb/backoffice-schema.sql",
+      "target": "deploy/local/db/domain/backoffice/mariadb/V1__backoffice_domain_schema.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/mariadb/backoffice-seed.sql",
+      "target": "deploy/local/db/domain/backoffice/mariadb/20_product_seed.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/mariadb/backoffice-verify.sql",
+      "target": "deploy/local/db/domain/backoffice/mariadb/90_verify.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/oracle/backoffice-schema.sql",
+      "target": "deploy/local/db/domain/backoffice/oracle/V1__backoffice_domain_schema.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/oracle/backoffice-seed.sql",
+      "target": "deploy/local/db/domain/backoffice/oracle/20_product_seed.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/oracle/backoffice-verify.sql",
+      "target": "deploy/local/db/domain/backoffice/oracle/90_verify.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/postgresql/backoffice-schema.sql",
+      "target": "deploy/local/db/domain/backoffice/postgresql/V1__backoffice_domain_schema.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/postgresql/backoffice-seed.sql",
+      "target": "deploy/local/db/domain/backoffice/postgresql/20_product_seed.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
+    },
+    {
+      "source": "cpf-tools/db/generated/current/postgresql/backoffice-verify.sql",
+      "target": "deploy/local/db/domain/backoffice/postgresql/90_verify.sql",
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "option": "backoffice"
     }
   ],
   "allowedClassifications": [

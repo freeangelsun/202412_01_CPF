@@ -10,6 +10,10 @@ import static org.mockito.Mockito.when;
 
 import com.cpf.admin.config.AdmBootstrapProperties;
 import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.foundation.execution.CpfContextExecutionFactory;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
 
@@ -64,7 +68,21 @@ class AdmBootstrapInitializerTest {
             AdmOperatorService operatorService,
             AdmAuditLogService audit,
             String password) {
-        return new AdmBootstrapInitializer(properties, operatorService, audit, () -> password);
+        return new AdmBootstrapInitializer(properties, operatorService, audit, () -> password,
+                bootstrapContextFactory());
+    }
+
+    /** 최초 운영자 생성은 감사 기록을 남기므로 관리 실행 Context 안에서 돌아야 한다. */
+    private static CpfContextExecutionFactory bootstrapContextFactory() {
+        Clock clock = Clock.systemUTC();
+        return new CpfContextExecutionFactory(
+                () -> "TX-" + UUID.randomUUID(),
+                new com.cpf.foundation.id.spi.CpfExecutionIdGenerator() {
+                    @Override public String newExecutionId() { return "EX-" + UUID.randomUUID(); }
+                    @Override public String newSegmentId() { return "SG-" + UUID.randomUUID(); }
+                },
+                () -> LocalDate.now(clock),
+                clock);
     }
 
     private static DefaultApplicationArguments arguments() {

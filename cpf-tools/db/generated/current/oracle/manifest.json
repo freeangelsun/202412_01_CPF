@@ -14,7 +14,7 @@
     "cpf-platform-verify.sql": "0092d0554e1ff576a28fa7972ec2fb63ece6dbe47e852ebe15482a448d79d485",
     "cpf-platform-rollback.sql": "e3b2cd442c2a7e97d6a1a2024db9db849b15a16bb558cf3e9f64787eb2a98c80",
     "backoffice-schema.sql": "90b80aa69a8360d865720bc0634682da215a9e70a7e2468f3b5b03c6772f062e",
-    "backoffice-seed.sql": "18b26bcc6f187ab4cad6a05361af9e20b644e554469e581ed80ed9d6a7d2ac95",
+    "backoffice-seed.sql": "71c80c5abeb5b5af45853a46c005e02f2874e1c7718f40dcafeed2438de8de7e",
     "backoffice-verify.sql": "a5fe7193db0b34b4dbb6dc96073ff8123b0ce7dd766bc6c6afb4da0605e0a323",
     "backoffice-rollback.sql": "71bf2e595b987c6a6e6222abc7057318456ba22fe8153d5519a719a0a76a314b",
     "non-table-objects.sql": "cbe1ff0a1852a7cc5c21279d76ed0cfb32faab9f068c92ef4bde463f917a8bf1"

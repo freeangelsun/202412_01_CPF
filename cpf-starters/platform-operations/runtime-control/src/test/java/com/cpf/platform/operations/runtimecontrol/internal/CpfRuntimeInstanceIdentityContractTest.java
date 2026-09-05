@@ -47,4 +47,35 @@ class CpfRuntimeInstanceIdentityContractTest {
                 Map.of(), Map.of(), null, null, "HOST-A", "MBR", "app", "APPLICATION",
                 pid, "25", "1", "1", started, started, 60);
     }
+
+    @Test void deadSameHostProcessLeaseCanBeTakenOver() throws Exception {
+        long dead = exitedProcessId();
+        assertThat(CpfRuntimeControlPlaneRepository.staleSameHostProcess(row(dead, STARTED), registration(9999L, STARTED.plusSeconds(30))))
+                .isTrue();
+    }
+
+    @Test void livingSameHostProcessLeaseIsNeverTakenOver() {
+        long alive = ProcessHandle.current().pid();
+        assertThat(CpfRuntimeControlPlaneRepository.staleSameHostProcess(row(alive, STARTED), registration(9999L, STARTED.plusSeconds(30))))
+                .isFalse();
+    }
+
+    @Test void otherHostLeaseIsNeverTakenOver() throws Exception {
+        long dead = exitedProcessId();
+        Map<String,Object> other = new java.util.HashMap<>(row(dead, STARTED));
+        other.put("runtime_hostname", "HOST-B");
+        assertThat(CpfRuntimeControlPlaneRepository.staleSameHostProcess(other, registration(9999L, STARTED.plusSeconds(30))))
+                .isFalse();
+    }
+
+    /** 이미 끝난 Process 의 pid 를 결정적으로 얻는다. */
+    private static long exitedProcessId() throws Exception {
+        ProcessBuilder builder = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win")
+                ? new ProcessBuilder("cmd", "/c", "exit")
+                : new ProcessBuilder("sh", "-c", "exit 0");
+        Process process = builder.start();
+        long pid = process.pid();
+        process.onExit().get(30, java.util.concurrent.TimeUnit.SECONDS);
+        return pid;
+    }
 }

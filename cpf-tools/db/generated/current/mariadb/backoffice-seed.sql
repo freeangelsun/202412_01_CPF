@@ -71,9 +71,9 @@ ON DUPLICATE KEY UPDATE job_title_name=VALUES(job_title_name), manager_yn=VALUES
 
 INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by)
 VALUES ('SAMPLE0001', NULL, 'SAMPLE_DEV', '샘플 결재자', 'SAMPLE_P2', 'SAMPLE_MANAGER', NULL,
-     'ACTIVE', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+     'EMPLOYED', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SAMPLE0002', NULL, 'SAMPLE_DEV', '샘플 요청자', 'SAMPLE_P1', 'SAMPLE_MEMBER', 'SAMPLE0001',
-     'ACTIVE', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
+     'EMPLOYED', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), manager_employee_no=VALUES(manager_employee_no), employment_status=VALUES(employment_status), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
@@ -209,16 +209,20 @@ VALUES ('OPERATOR', '업무담당자', 'N', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE job_title_name=VALUES(job_title_name), manager_yn=VALUES(manager_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
 INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by)
-SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
+SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'EMPLOYED', CURRENT_DATE,
        'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
 FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin'
 ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), employment_status=VALUES(employment_status), email=VALUES(email), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
-VALUES (
-    'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), effective_to=NULL, updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+SELECT v.employee_no, v.organization_code, v.position_code, v.job_title_code, 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
+FROM (
+    SELECT 'EMP001' employee_no, 'OPS' organization_code, 'P3' position_code, 'OPERATOR' job_title_code
+) v
+WHERE NOT EXISTS (
+    SELECT 1 FROM MBW_EMPLOYEE_ASSIGNMENT a
+    WHERE a.employee_no = v.employee_no AND a.assignment_type = 'PRIMARY' AND a.primary_yn = 'Y'
+);
 
 INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
 SELECT 'mbw-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',

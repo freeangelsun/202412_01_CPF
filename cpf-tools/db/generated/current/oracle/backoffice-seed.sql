@@ -194,12 +194,12 @@ WHEN MATCHED THEN UPDATE SET tgt.job_title_name=src.job_title_name, tgt.manager_
 WHEN NOT MATCHED THEN INSERT (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by) VALUES (src.job_title_code, src.job_title_name, src.manager_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO MBW_EMPLOYEE tgt
-USING (SELECT 'SAMPLE0001' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 결재자' AS employee_name, 'SAMPLE_P2' AS position_code, 'SAMPLE_MANAGER' AS job_title_code, NULL AS manager_employee_no, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'SAMPLE0001' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 결재자' AS employee_name, 'SAMPLE_P2' AS position_code, 'SAMPLE_MANAGER' AS job_title_code, NULL AS manager_employee_no, 'EMPLOYED' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.admin_user_id=src.admin_user_id)
 WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.manager_employee_no=src.manager_employee_no, tgt.employment_status=src.employment_status, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.manager_employee_no, src.employment_status, src.join_date, src.leave_date, src.email, src.mobile_no, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO MBW_EMPLOYEE tgt
-USING (SELECT 'SAMPLE0002' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 요청자' AS employee_name, 'SAMPLE_P1' AS position_code, 'SAMPLE_MEMBER' AS job_title_code, 'SAMPLE0001' AS manager_employee_no, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'SAMPLE0002' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 요청자' AS employee_name, 'SAMPLE_P1' AS position_code, 'SAMPLE_MEMBER' AS job_title_code, 'SAMPLE0001' AS manager_employee_no, 'EMPLOYED' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.admin_user_id=src.admin_user_id)
 WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.manager_employee_no=src.manager_employee_no, tgt.employment_status=src.employment_status, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.manager_employee_no, src.employment_status, src.join_date, src.leave_date, src.email, src.mobile_no, src.use_yn, src.created_by, src.updated_by);
@@ -495,16 +495,20 @@ WHEN MATCHED THEN UPDATE SET tgt.job_title_name=src.job_title_name, tgt.manager_
 WHEN NOT MATCHED THEN INSERT (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by) VALUES (src.job_title_code, src.job_title_name, src.manager_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO MBW_EMPLOYEE tgt
-USING (SELECT 'EMP001' AS employee_no, admin_user_id AS admin_user_id, 'OPS' AS organization_code, '업무 담당자' AS employee_name, 'P3' AS position_code, 'OPERATOR' AS job_title_code, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, 'operator@example.com' AS email, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin') src
+USING (SELECT 'EMP001' AS employee_no, admin_user_id AS admin_user_id, 'OPS' AS organization_code, '업무 담당자' AS employee_name, 'P3' AS position_code, 'OPERATOR' AS job_title_code, 'EMPLOYED' AS employment_status, CURRENT_DATE AS join_date, 'operator@example.com' AS email, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin') src
 ON (tgt.admin_user_id=src.admin_user_id)
 WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.employment_status=src.employment_status, tgt.email=src.email, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.employment_status, src.join_date, src.email, src.use_yn, src.created_by, src.updated_by);
 
-MERGE INTO MBW_EMPLOYEE_ASSIGNMENT tgt
-USING (SELECT 'EMP001' AS employee_no, 'OPS' AS organization_code, 'P3' AS position_code, 'OPERATOR' AS job_title_code, 'PRIMARY' AS assignment_type, 'Y' AS primary_yn, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.employee_no=src.employee_no AND tgt.assignment_type=src.assignment_type AND tgt.primary_yn=src.primary_yn)
-WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.effective_to=NULL, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by) VALUES (src.employee_no, src.organization_code, src.position_code, src.job_title_code, src.assignment_type, src.primary_yn, src.effective_from, src.effective_to, src.created_by, src.updated_by);
+INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
+SELECT v.employee_no, v.organization_code, v.position_code, v.job_title_code, 'PRIMARY', 'Y', SYSTIMESTAMP, NULL, 'SYSTEM', 'SYSTEM'
+FROM (
+    SELECT 'EMP001' employee_no, 'OPS' organization_code, 'P3' position_code, 'OPERATOR' job_title_code
+) v
+WHERE NOT EXISTS (
+    SELECT 1 FROM MBW_EMPLOYEE_ASSIGNMENT a
+    WHERE a.employee_no = v.employee_no AND a.assignment_type = 'PRIMARY' AND a.primary_yn = 'Y'
+);
 
 INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
 SELECT 'mbw-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',

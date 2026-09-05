@@ -4,6 +4,23 @@ cpf:
   framework:
     module-id: ${ADM_MODULE_ID:ADM}
     was-id: ${ADM_WAS_ID:${WAS_ID:admAP01}}
+  web:
+    context:
+      # ADM 은 SystemCode 를 갖지 않는 Platform Control Plane 이고 그 client 는 Browser 다.
+      # 업무 거래 Header(X-Transaction-Id / X-Target-Operation-Id)를 요구하면 SPA 진입도, 로그인도,
+      # Liveness/Readiness probe 도 400 EXTERNAL_HEADER_REQUIRED 로 막힌다. BAT Control Plane 과 같은
+      # 계약으로 ADM Surface 전체를 업무 System6 강제 대상에서 제외한다.
+      # Spring Security / ADM 인증 필터 / CSRF 는 그대로 적용된다.
+      management-root-paths:
+        - /adm
+  runtime:
+    control:
+      agent:
+        # Service Identity 는 SystemCode 와 다른 축이다(Harness 30.11/30.13). ADM 은 SystemCode 를
+        # 갖지 않으므로 명시가 없으면 spring.application.name(소문자 adm)으로 중앙 Registry 를
+        # 조회하게 되고, OPS_SERVICE 의 canonical module code(ADM)와 어긋나 기동이
+        # "Runtime Agent service가 중앙 Registry에 등록되어 있지 않습니다: adm" 로 실패한다.
+        service-id: ${ADM_RUNTIME_SERVICE_ID:${ADM_MODULE_ID:ADM}}
   service-call:
     registry-mode: ${ADM_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}
 

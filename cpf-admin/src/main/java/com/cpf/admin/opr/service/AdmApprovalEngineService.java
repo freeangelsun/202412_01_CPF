@@ -38,6 +38,9 @@ import java.util.Set;
  * and execution ledger.</p>
  */
 @Deprecated(forRemoval = true, since = "V9")
+// 생성 키 컬럼을 지정하지 않으면 PostgreSQL Driver 는 삽입한 행 전체를 생성 키로 돌려주고
+// KeyHolder.getKey() 가 "contains multiple keys" 로 실패한다. Oracle 은 ROWID 를 돌려준다.
+// 세 Vendor 공통으로 안전한 방법은 키 컬럼을 명시하는 것이다.
 public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Set<String> SENSITIVE_INLINE_KEYS = Set.of(
             "password", "passwd", "secret", "token", "authorization", "apikey", "api_key");
@@ -179,7 +182,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
                                 + "request_reason,command_payload_hash,command_payload_snapshot,approval_status,"
                                 + "current_step_no,expire_at,created_by,updated_by) "
                                 + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,'PENDING',1,?,?,?)",
-                        Statement.RETURN_GENERATED_KEYS);
+                        new String[]{"approval_request_id"});
                 int i = 1;
                 ps.setObject(i++, requestKey);
                 ps.setObject(i++, value(policy, "policyCode"));

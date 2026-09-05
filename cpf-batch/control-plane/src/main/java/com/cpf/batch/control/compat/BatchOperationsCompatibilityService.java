@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -630,7 +629,10 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
         jdbc.update(connection -> {
             var statement = connection.prepareStatement(
                     sql.required("compat-execution-insert"),
-                    Statement.RETURN_GENERATED_KEYS);
+                    // 생성 키 컬럼을 지정하지 않으면 PostgreSQL Driver 는 삽입한 행 전체를 생성 키로
+                    // 돌려주고 KeyHolder 해석이 깨진다. Oracle 은 ROWID 를 돌려준다. 세 Vendor 공통으로
+                    // 안전한 방법은 키 컬럼을 명시하는 것이다.
+                    new String[]{"execution_id"});
             statement.setObject(1, jobId);
             statement.setObject(2, scheduleId);
             statement.setObject(3, hasText(parameters) ? parameters : "{}");

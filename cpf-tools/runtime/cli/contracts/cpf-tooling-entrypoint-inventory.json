@@ -11,7 +11,7 @@
     "DUPLICATE",
     "DEAD"
   ],
-  "entrypointCount": 920,
+  "entrypointCount": 944,
   "duplicateCount": 0,
   "deadCount": 0,
   "entries": [
@@ -191,6 +191,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/db/tests/test_masking_policy_store_schema_parity.py",
+      "path": "cpf-tools/db/tests/test_masking_policy_store_schema_parity.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/db/tests/test_migration_lifecycle_simulator.py",
       "path": "cpf-tools/db/tests/test_migration_lifecycle_simulator.py",
       "kind": "PYTHON",
@@ -207,6 +214,13 @@
     {
       "id": "FILE:cpf-tools/db/tests/test_oracle_lifecycle_process_contract.py",
       "path": "cpf-tools/db/tests/test_oracle_lifecycle_process_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/db/tests/test_product_sql_uses_canonical_table_case.py",
+      "path": "cpf-tools/db/tests/test_product_sql_uses_canonical_table_case.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -270,6 +284,13 @@
     {
       "id": "FILE:cpf-tools/db/tests/test_vendor_renderer.py",
       "path": "cpf-tools/db/tests/test_vendor_renderer.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/db/tests/test_verifier_sql_columns_exist.py",
+      "path": "cpf-tools/db/tests/test_verifier_sql_columns_exist.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -1885,6 +1906,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/release/open-git/tests/test_verify_open_git_consumer_runtime.py",
+      "path": "cpf-tools/release/open-git/tests/test_verify_open_git_consumer_runtime.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/release/open-git/verify-current-only-release-root.py",
       "path": "cpf-tools/release/open-git/verify-current-only-release-root.py",
       "kind": "PYTHON",
@@ -1894,6 +1922,13 @@
     {
       "id": "FILE:cpf-tools/release/open-git/verify-fresh-public-consumer.py",
       "path": "cpf-tools/release/open-git/verify-fresh-public-consumer.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/release/open-git/verify_open_git_consumer_runtime.py",
+      "path": "cpf-tools/release/open-git/verify_open_git_consumer_runtime.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -2356,6 +2391,13 @@
     {
       "id": "FILE:cpf-tools/runtime/tools/invoke-cpf-datasource-runtime-gate.ps1",
       "path": "cpf-tools/runtime/tools/invoke-cpf-datasource-runtime-gate.ps1",
+      "kind": "POWERSHELL",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/runtime/tools/prepare-cpf-adm-bootstrap-rotation.ps1",
+      "path": "cpf-tools/runtime/tools/prepare-cpf-adm-bootstrap-rotation.ps1",
       "kind": "POWERSHELL",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4384,6 +4426,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_initial_operator_bootstrap_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_initial_operator_bootstrap_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py",
       "path": "cpf-tools/verification/tests/test_cpf_injection_constructor_unambiguous.py",
       "kind": "PYTHON",
@@ -4412,6 +4461,13 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_log_policy_clock_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_log_policy_clock_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_mandatory_route_provider_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_mandatory_route_provider_contract.py",
       "kind": "PYTHON",
@@ -4419,8 +4475,29 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_multi_interface_bean_ambiguity.py",
+      "path": "cpf-tools/verification/tests/test_cpf_multi_interface_bean_ambiguity.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_open_git_task_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_open_git_task_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_openapi_runtime_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_openapi_runtime_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_operation_owner_descriptor_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_operation_owner_descriptor_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4440,8 +4517,22 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_powershell_generic_list_projection.py",
+      "path": "cpf-tools/verification/tests/test_cpf_powershell_generic_list_projection.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_powershell_script_references_exist.py",
       "path": "cpf-tools/verification/tests/test_cpf_powershell_script_references_exist.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_powershell_url_interpolation_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_powershell_url_interpolation_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4456,6 +4547,27 @@
     {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py",
       "path": "cpf-tools/verification/tests/test_cpf_proxied_stereotype_not_final.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_public_distribution_surface_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_public_distribution_surface_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_public_gradle_workspace_idempotency_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_public_gradle_workspace_idempotency_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_public_test_launcher_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_public_test_launcher_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4482,8 +4594,36 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_runtime_readiness_ordering_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_runtime_readiness_ordering_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_runtime_standalone_startability_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_runtime_standalone_startability_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_runtime_target_identity_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_runtime_target_identity_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_runtime_work_unit_contract.py",
       "path": "cpf-tools/verification/tests/test_cpf_runtime_work_unit_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_smoke_operation_id_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_smoke_operation_id_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -4503,8 +4643,29 @@
       "replacement": ""
     },
     {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_spring_advice_registration.py",
+      "path": "cpf-tools/verification/tests/test_cpf_spring_advice_registration.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_system_identity_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_system_identity_contract.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
       "id": "FILE:cpf-tools/verification/tests/test_cpf_targeted_verification.py",
       "path": "cpf-tools/verification/tests/test_cpf_targeted_verification.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/tests/test_cpf_text_control_character_contract.py",
+      "path": "cpf-tools/verification/tests/test_cpf_text_control_character_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""
@@ -5975,6 +6136,13 @@
     {
       "id": "FILE:cpf-tools/verification/verify_gradle_project_dependency_closure.py",
       "path": "cpf-tools/verification/verify_gradle_project_dependency_closure.py",
+      "kind": "PYTHON",
+      "classification": "INTERNAL_ENGINE",
+      "replacement": ""
+    },
+    {
+      "id": "FILE:cpf-tools/verification/verify_initial_operator_bootstrap_contract.py",
+      "path": "cpf-tools/verification/verify_initial_operator_bootstrap_contract.py",
       "kind": "PYTHON",
       "classification": "INTERNAL_ENGINE",
       "replacement": ""

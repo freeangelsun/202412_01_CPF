@@ -9,6 +9,21 @@ spring:
     driver-class-name: ${MBW_DATASOURCE_DRIVER}
 
 cpf:
+  # cpf-starter-common 의 code/message 정본은 CPF Platform 스키마다.
+  # 업무 Domain Runtime 도 CPF_PLATFORM_DB role 을 요구하므로 자기 설정으로 해석할 수 있어야 한다.
+  # 선언이 없으면 단독 기동이 "CPF DataSource is required for role: CPF_PLATFORM_DB" 로 실패한다.
+  # 업무 DB(CUSTOMER_BUSINESS_DB)와는 다른 논리 role 이며 접속 정보도 별개다.
+  data:
+    persistence:
+      jdbc:
+        role-datasources:
+          cpf-platform-db:
+            enabled: true
+            url: ${CPF_PLATFORM_DB_URL:}
+            username: ${CPF_PLATFORM_DB_USERNAME:cpf_app}
+            password: ${CPF_PLATFORM_DB_PASSWORD:}
+            driver-class-name: ${CPF_PLATFORM_DB_DRIVER:}
+            pool-name: ${CPF_PLATFORM_DB_POOL_NAME:cpf-platform}
   # Environment는 SystemCode가 아닌 deployment context다. Initial Bootstrap audit은 이
   # canonical configuration을 기록하며, local consumer의 기본값은 local이다.
   environment:
@@ -35,6 +50,18 @@ cpf:
         rolling: DAILY
         compress-after-days: 5
         delete-after-days: 365
+  # Backoffice 는 Generated Business Domain 과 같은 Runtime 계약을 따른다고 선언한다. 그런데 Domain
+  # persistence 선언이 없으면 표준 Domain DataSource(cpfDomainDataSource)가 만들어지지 않아
+  # CUSTOMER_BUSINESS_DB role 해석이 실패하고 단독 기동이 불가능하다. 통합 Runtime 이 별도 role
+  # DataSource 를 켜 주던 경로에 가려져 지금까지 드러나지 않았다.
+  domain:
+    persistence:
+      enabled: true
+      required: true
+      # MBW 는 NamedParameterJdbcTemplate 로 자기 DB 를 쓰고 MyBatis mapper 를 갖지 않는다.
+      # provider 를 mybatis 로 두면 mybatis.mapper-locations 를 요구해 기동이 실패한다.
+      provider: jdbc
+      data-source-prefix: spring.datasource
   generated-domain:
     # Backoffice는 Generator가 매번 생성하지 않는 Optional Prebuilt Business Domain이지만
     # Runtime 계약은 Generated Business Domain과 동일합니다.
@@ -46,7 +73,10 @@ cpf:
     database-role: CUSTOMER_BUSINESS_DB
     table-prefix: MBW
   runtime:
-    role: backoffice-online
+    # Runtime Role 은 Platform Registry 의 정본 제약(OPS_RUNTIME_INSTANCE_STATE.ck_ops_runtime_instance_role)
+    # 값만 쓴다. 업무 Domain Online Runtime 은 APPLICATION 이다. 자유 문자열을 쓰면 Runtime 등록이
+    # check constraint 위반으로 실패해 기동 자체가 막힌다.
+    role: APPLICATION
   operation-policy:
     seed:
       allowed-callers: ${CPF_OPERATION_POLICY_SEED_ALLOWED_CALLERS:}

@@ -8,12 +8,14 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
 /** CMN_CACHE_REFRESH_EVENT/CHECKPOINT의 CPF Data JDBC repository입니다. */
 @Repository
+// 생성 키 컬럼을 지정하지 않으면 PostgreSQL Driver 는 삽입한 행 전체를 생성 키로 돌려주고
+// KeyHolder.getKey() 가 "contains multiple keys" 로 실패한다. Oracle 은 ROWID 를 돌려준다.
+// 세 Vendor 공통으로 안전한 방법은 키 컬럼을 명시하는 것이다.
 public class CpfCommonCacheRefreshEventRepository {
     private final JdbcTemplate jdbc;
 
@@ -28,7 +30,7 @@ public class CpfCommonCacheRefreshEventRepository {
             PreparedStatement ps = connection.prepareStatement(
                     "INSERT INTO CMN_CACHE_REFRESH_EVENT(cache_name,event_type,event_key,source_was_id,published_by,published_at,created_by,created_at,updated_by,updated_at) " +
                             "VALUES(?,?,?,?,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)",
-                    Statement.RETURN_GENERATED_KEYS);
+                    new String[]{"event_id"});
             ps.setString(1, cacheName);
             ps.setString(2, eventType);
             ps.setString(3, eventKey);

@@ -113,7 +113,29 @@ def classify_and_copy(root:Path,staging:Path,policy:dict,include_backoffice:bool
         if key in classifications: raise PublicSurfaceError(f'duplicate public target: {key}')
         dest=staging/target; dest.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(source,dest)
         classifications[key]=str(rule['classification'])
+    sanitize_public_vendor_packs(staging)
     return classifications
+
+
+def sanitize_public_vendor_packs(staging:Path)->None:
+    """공개 배포본의 DB Vendor Pack manifest 를 공개 계약 형태로 정리한다.
+
+    Runtime 이 검증하는 필드는 vendor/schemaVersion/status 뿐이다. 내부 저장소 경로가 적힌
+    생성 메타데이터를 공개 트리에 그대로 실을 이유가 없다. Pack 자체(SQL 자원)는 Platform
+    Runtime 기동에 반드시 필요하므로 그대로 싣는다.
+    """
+    base=staging/'deploy/local/db/vendor'
+    if not base.is_dir(): return
+    for manifest in sorted(base.glob('*/pack.json')):
+        source=json.loads(manifest.read_text(encoding='utf-8'))
+        public={
+            'schemaVersion': source['schemaVersion'],
+            'vendor': source['vendor'],
+            'status': source['status'],
+            'publicPackContract': 'Public Runtime SQL 자원 정본. cpf.db.resource-root 가 이 디렉터리를 가리킨다.',
+        }
+        if 'databaseRoles' in source: public['databaseRoles']=source['databaseRoles']
+        manifest.write_text(json.dumps(public,ensure_ascii=False,indent=2)+chr(10),encoding='utf-8')
 
 
 def verify_domain_projects(staging:Path, policy:dict)->None:

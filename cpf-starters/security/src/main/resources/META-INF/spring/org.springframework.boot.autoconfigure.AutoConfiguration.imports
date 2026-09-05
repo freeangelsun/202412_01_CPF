@@ -1,2 +1,3 @@
 com.cpf.security.CpfMaskingPolicyAutoConfiguration
 com.cpf.security.CpfPasswordAutoConfiguration
+com.cpf.security.common.CpfSecurityCommonAutoConfiguration

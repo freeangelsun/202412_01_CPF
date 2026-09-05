@@ -653,6 +653,10 @@ Domain / Module / 기능 단위 실행 항목은 **한 줄을 주석 처리하�
 PowerShell launcher에 둔다. code page 변경으로 이 예외를 우회하지 않으며, public `.bat`의
 non-ASCII 재유입은 regression test에서 FAIL해야 한다.
 
+Windows wrapper의 기본 출력은 ambient `DEBUG` 같은 Host 변수에 따라 달라지면 안 된다.
+명령 trace가 필요할 때만 CPF 소유 `CPF_GRADLE_DEBUG=1`을 명시적으로 설정한다. 기본 실행에서
+내부 `set`/`for` 명령이 노출되면 사용자 실행 가독성 결함으로 FAIL이다.
+
 ### 27.5 기본값만으로 동작해야 한다
 
 선택 기능을 넣고 빼도 전체 스크립트를 다시 쓰지 않아야 한다. 기본값 실행은 언제나 정상 동작한다.
@@ -1333,6 +1337,33 @@ credential이 다르면, schema 단계가 PASS여도 실제 JVM의 TCP JDBC 연�
 Negative mutation: PostgreSQL `ALTER ROLE`, MariaDB `ALTER USER`, Oracle `ALTER USER` 중 하나라도
 제거한 구현은 local volume 재사용 후 Runtime authentication failure를 재발시키므로 FAIL이다.
 
+### 32.3.2 Local DB bootstrap은 schema privilege까지 수렴시킨다
+
+Runtime account는 migration account와 달리 schema owner가 아니다. 따라서 DB 접속 credential이
+정상이어도 새로 추가된 Common/Platform table에 DML 권한이 없으면 실제 Runtime은 startup에서
+종료한다. 이는 health/container 상태나 migration 성공으로 대체할 수 없는 Consumer defect다.
+
+- PostgreSQL은 bootstrap이 migration 후 existing table/sequence와 future migration default
+  privilege를 runtime account에 함께 reconcile한다. `GRANT USAGE ON SCHEMA`만으로 완료 처리하면 FAIL이다.
+- MariaDB는 database-wide runtime DML grant가 현재와 이후 table을 모두 포괄해야 한다.
+- Oracle은 migration schema의 table/sequence/program unit grant를 runtime account에 매 bootstrap
+  수렴시킨다. account에 `CREATE SESSION`만 있으면 FAIL이다.
+- Vendor별 실제 Runtime JDBC startup이 Common durable-cache checkpoint의 SELECT/INSERT/UPDATE를
+  수행해 확인해야 하며, PostgreSQL PASS를 MariaDB/Oracle PASS로 승계하지 않는다.
+
+Negative mutation: PostgreSQL `ALL TABLES`/`ALTER DEFAULT PRIVILEGES` 또는 Oracle object-grant
+reconcile 중 하나라도 제거하면 Runtime consumer startup이 fail-closed 해야 한다.
+
+### 32.3.3 Platform runtime은 canonical DB vendor를 반드시 투영한다
+
+ADM/Gateway/Batch 같은 Platform consumer는 Generated Domain의 datasource prefix가 아니라
+공통 MyBatis Vendor SQL consumer를 함께 쓴다. local bootstrap이 Platform datasource URL만 만들고
+canonical `CPF_DB_VENDOR`를 process environment에 투영하지 않으면 `cpf.db.vendor`가 비어 startup이
+중단된다. 이 mandatory consumer를 조건부 제거하거나 vendor default로 숨기지 않는다.
+
+Negative mutation: Platform runtime binding에서 `CPF_DB_VENDOR` projection을 제거하면 Fresh
+Consumer ADM startup이 fail-closed 해야 한다.
+
 ### 32.4 문서도 실행 계약의 일부다
 
 README 는 Windows/Linux 진입점, 기본/변경 가능 Port, Profile, 초기 운영자 credential 절차,
@@ -1483,3 +1514,98 @@ Fresh Replay`를 실제로 수행한다. 401/403 또는 health/SPA만 확인한 
 `cpf-tools/verification/verify_initial_operator_bootstrap_contract.py`와 mutation tests는 Product/Harness/
 machine policy/MBW/ADM/Open Git Consumer verifier를 함께 읽는다. 어느 한쪽만 문서화하거나 Source만
 수정해 계약이 어긋나면 fail-closed한다.
+
+## 35. 발행 Runtime 단독 기동 계약 (Mandatory)
+
+### 35.1 근거
+
+Fresh Open Git Consumer 가 공개 launcher 로 ADM 을 기동하자 연속으로 다른 원인에 걸려 죽었다.
+`logging.config` 가 저장소에 없는 자원을 가리켰고, `CPF_PLATFORM_DB` role 선언이 없었고, Vendor SQL
+Pack 이 배포본에 없었고, `com.cpf.security.common` 이 scan 범위 밖이었고, 생성자가 둘인 Bean 이
+주입 대상 표시 없이 남아 있었고, Service Identity 가 소문자 application 이름으로 등록됐고,
+JDBC table 존재 검사가 대문자 식별자를 고정으로 넘겼고, ApplicationRunner 가 CPF 실행 Context 없이
+감사 기록을 남겼고, Liveness/Readiness 가 업무 거래 Header 를 요구했다.
+
+원인은 하나다. **Platform Runtime 을 One-WAS 통합 Runtime 으로만 기동해 왔기 때문에 단독 기동 경로가
+한 번도 성립한 적이 없었다.** 통합 Runtime 이 자기 모듈에서 채워 주던 설정·Bean·scan 범위가 단독
+기동에는 존재하지 않는다는 사실이 검증되지 않았다.
+
+### 35.2 계약
+
+1. Runtime Target Catalog 가 선언한 모든 Runtime 은 **발행된 실행물만으로** 기동 가능해야 한다.
+   통합 Runtime 이 채워 주는 설정에 의존하는 Runtime 은 미완성으로 본다.
+2. Runtime 이 요구하는 논리 DB role 은 그 Runtime 자신의 설정으로 해석돼야 한다. Generated Domain 은
+   `cpf.generated-domain.database-role` 선언으로, Platform Runtime 은 `role-datasources` 선언으로 해석한다.
+3. `logging.config` 처럼 classpath 자원을 가리키는 선언은 그 자원이 실제로 존재해야 한다.
+4. Runtime 이 기동에 요구하는 local 전용 Secret 은 공개 bootstrap 이 생성해 자식 환경으로만 전달한다.
+   Source 나 Release 산출물에는 남기지 않는다. 값이 환경에 이미 있으면 생성하지 않는다.
+5. Vendor SQL Pack 은 공개 배포본의 Runtime 자산이다. Runtime 은 module-local fallback 을 쓰지 않으므로
+   Pack 이 없으면 fail-closed 한다.
+6. Service Identity 는 SystemCode 와 다른 축이다. SystemCode 를 갖지 않는 Platform Runtime 은 중앙
+   Registry 의 canonical module code 를 `service-id` 로 명시한다. application 이름으로 추론하지 않는다.
+7. JDBC metadata 로 table 존재를 확인할 때는 Driver 가 알려 주는 식별자 저장 규칙을 쓰거나 대소문자
+   변형을 모두 시도한다. 고정 대문자 이름은 PostgreSQL 에서 항상 실패한다.
+8. HTTP 경계 밖(ApplicationRunner/Scheduler)에서 감사·거래 기록을 남기는 코드는 관리 실행 Context 를
+   연 뒤 수행한다.
+9. Liveness/Readiness 는 인프라 probe 다. 업무 거래 Header 를 요구해서는 안 된다. 인증/보안 필터는
+   그대로 적용한다.
+10. 공개 launcher 가 띄운 Runtime 은 launcher 명령이 끝난 뒤에도 계속 실행돼야 한다.
+
+### 35.3 Required validator
+
+`cpf-tools/verification/tests/test_cpf_runtime_standalone_startability_contract.py` 와
+`cpf-docs/governance/development-harness/tests/test_negative_fixtures.py` 의 startability mutation 이
+이 계약을 강제한다. 실제 증명은 Open Git Fresh Consumer Runtime Gate 의 물리 기동이다.
+
+## 36. 공개 Workspace Gradle 반복 실행 계약 (Mandatory)
+
+### 36.1 근거
+
+공개 배포본에서 `cpf bootstrap`(내부적으로 `gradlew cpfVerify`)을 연속으로 실행하면 두 번째가 반드시
+실패했다. `compileJava` 는 UP-TO-DATE 인데 `build/classes` 가 사라져 `package ... does not exist` 로 죽었고,
+회차마다 희생되는 Included Build 가 바뀌었다. 공개 launcher 가 `--project-cache-dir` 로 Composite 전체에
+하나의 project cache 를 강제했기 때문에 Included Build 들이 실행 이력과 stale-output registry 를 공유했고,
+Gradle 의 OutputsCleaner 가 서로의 산출물을 등록되지 않은 것으로 보고 지웠다.
+
+### 36.2 계약
+
+1. 공개 Workspace 의 Gradle 명령은 **반복 실행에 대해 idempotent** 해야 한다. 같은 명령을 두 번 실행해서
+   실패하면 결함이다.
+2. 공개 launcher 와 settings 는 Composite 전체에 하나의 project cache 를 강제하지 않는다. 각 Build 는
+   자기 기본 위치를 쓴다.
+3. 검증은 한 번 실행으로 끝내지 않는다. 최소 2회 연속 실행으로 확인한다.
+
+### 36.3 Required validator
+
+`cpf-tools/verification/tests/test_cpf_public_gradle_workspace_idempotency_contract.py` 와 대응 negative
+mutation 이 이 계약을 강제한다.
+
+## 37. 공개 Binary Repository 생성 경로 계약 (Mandatory)
+
+### 37.1 근거
+
+공개 배포본이 소비하는 Binary Repository 를 최신 Source 로 맞추려고 Gradle 발행 태스크
+(`cpfPublishAllVerifiedLocalPlatformArtifacts`)를 **공개 저장소 경로에 직접** 실행한 적이 있다.
+그 태스크는 개발 좌표(`1.0.0-SNAPSHOT`)로 발행하므로, 릴리즈가 공개 좌표(`1.0.0`)로 투영해 둔
+Artifact 가 대체되고 Generator 배포본(`com.cpf.tooling`)이 사라졌다. 공개 Consumer 는 그 순간부터
+어떤 의존성도 해석하지 못한다.
+
+릴리즈 파이프라인은 두 단계다. 개발 좌표로 staging repository 에 발행하는 단계와, allowlist
+fail-closed 로 공개 좌표에 투영하는 단계다. 이 둘을 분리해 실행하면 공개 저장소가 깨진다.
+
+### 37.2 계약
+
+1. 공개 Binary Repository 는 **투영 단계의 산출물로만** 만든다. Gradle 발행 태스크의 출력 경로를
+   공개 저장소로 직접 지정하지 않는다.
+2. 발행은 항상 별도 staging repository 에 한다. 공개 저장소는 staging 을 입력으로 하는 투영
+   함수(`sanitize_binary_repository`)의 출력으로만 갱신한다.
+3. `cpf-release/` 는 저장소 추적 대상이 아니다. 손상되면 git 복원이 불가능하므로 **재생성 경로가
+   항상 성립해야 한다.** 재생성에는 Generator OS matrix(windows-x64 / linux-x64) 재빌드가 포함된다.
+4. 부분 재생성으로 검증을 이어갈 수 있으나, 최종 Gate 는 승인된 remote 를 clone 한 실제 Fresh
+   Consumer 배포본에서 다시 수행한다. staging 트리 검증은 최종 Gate 를 대체하지 않는다.
+
+### 37.3 Required validator
+
+`cpf-tools/release/open-git/cpf_open_git.py` 의 stage 5/8 분리와
+`cpf-tools/release/public/publish-cpf-public-repository.py` 의 staging repository 인자가 이 계약의
+구현이다. 공개 저장소 경로를 발행 대상으로 넘기는 명령은 문서/스크립트/증적 어디에도 남기지 않는다.

@@ -1141,10 +1141,36 @@ public class CpfRuntimeControlPlaneRepository {
         if (rows.isEmpty()) return;
         Map<String,Object> current = rows.getFirst();
         if (sameProcessIdentity(current, r)) return;
+        if (staleSameHostProcess(current, r)) return;
         throw new CpfRuntimeFenceException(
                 "살아 있는 동일 instanceId가 다른 Runtime process에서 이미 사용 중입니다. " +
                         "같은 Host의 다중 Process는 cpf.runtime.instance-id/CPF_RUNTIME_INSTANCE_ID를 " +
                         "각 Process에 고유하게 지정해야 합니다: " + r.instanceId());
+    }
+
+    /**
+     * 같은 Host 에서 이미 죽은 Process 가 남긴 lease 인지 판정합니다.
+     *
+     * <p>lease 는 만료 전까지 살아 있는 것으로 간주되므로, Runtime 이 비정상 종료하면 같은 Host 에서
+     * 재기동할 때 만료를 기다려야 했다. 공개 Consumer 가 Runtime 을 멈췄다가 바로 다시 띄우는 것은
+     * 정상 사용이며, 그때마다 fence 로 막히면 Runtime 을 다시 쓸 수 없다.</p>
+     *
+     * <p>같은 Host 이고 기록된 pid 가 더 이상 살아 있지 않을 때만 승계를 허용한다. 다른 Host 의
+     * lease 나 살아 있는 pid 는 그대로 fence 한다(pid 재사용도 살아 있는 것으로 보아 보수적으로 막는다).</p>
+     */
+    static boolean staleSameHostProcess(Map<String,Object> current, CpfRuntimeInstanceRegistration incoming) {
+        String currentHost = nullable(current.get("runtime_hostname"));
+        if (!sameNullableIdentity(currentHost, incoming.runtimeHostname())) return false;
+        String currentPid = nullable(current.get("process_id"));
+        if (currentPid == null || currentPid.isBlank()) return false;
+        long pid;
+        try {
+            pid = Long.parseLong(currentPid.trim());
+        } catch (NumberFormatException notAPid) {
+            return false;
+        }
+        if (incoming.processId() != null && incoming.processId() == pid) return false;
+        return ProcessHandle.of(pid).filter(handle -> handle.isAlive()).isEmpty();
     }
 
     static boolean sameProcessIdentity(Map<String,Object> current, CpfRuntimeInstanceRegistration incoming) {

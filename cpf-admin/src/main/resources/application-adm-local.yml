@@ -13,6 +13,14 @@ spring:
       jndi-name: ${ADM_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAdminDataSource}
 
 cpf:
+  security:
+    session:
+      # local profile 은 loopback 평문 HTTP(http://127.0.0.1:8090)로 콘솔을 연다. 이때 Secure 쿠키는
+      # 브라우저가 되돌려 보내지 않으므로 XSRF-TOKEN/세션이 성립하지 않고 로그인이 항상 403
+      # (CSRF_TOKEN_MISSING)이 된다. local 에서만 기본값을 낮추며 다른 profile 은 Secure 를 유지한다.
+      # 환경변수로 덮어쓰면 그 값이 우선한다.
+      secure: ${CPF_ADM_SESSION_COOKIE_SECURE:false}
+      same-site: ${CPF_ADM_SESSION_SAME_SITE:Lax}
   adm:
     persistence:
       mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}

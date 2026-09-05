@@ -30,6 +30,8 @@ public final class CpfBootstrap {
     private static final String PLATFORM_MODULE_CODE = "CPF";
     private static final String PLATFORM_DATABASE = "cpfDB";
     private static final String PLATFORM_ASSET_ROOT = "deploy/local/db/platform";
+    private static final String VENDOR_PACK_ROOT = "deploy/local/db/vendor";
+    private static final String DOMAIN_ASSET_ROOT = "deploy/local/db/domain";
     private DbBinding platformDb;
 
     private record DbBinding(String vendor, String host, int port, String databaseName, String serviceName, String schemaName,
@@ -347,6 +349,33 @@ public final class CpfBootstrap {
         // 나중 단계에서만 넣으면, DB 만 띄우는 단계가 "다른 서비스의 필수 변수 없음"으로 실패한다.
         // 값은 이미 만든 local 전용 생성 시크릿과 같으며 저장소에 남지 않는다.
         baseEnv.put("CPF_LOCAL_MIDDLEWARE_PASSWORD", localDbPassword);
+        // Platform Runtime 이 기동 자체에 요구하는 local 전용 Secret 도 같은 방식으로 준비한다.
+        // 값은 저장소가 아니라 build/ 아래에만 남고, 환경이 이미 값을 주면 생성하지 않는다.
+        // 이것이 없으면 공개 Consumer 는 ADM 기동에서 "approval proof key must be valid Base64" 로 막힌다.
+        ensureLocalSecret(secretFile, p, "local.adm.approvalProofKeyBase64",
+                "CPF_ADM_APPROVAL_PROOF_KEY_BASE64", 32);
+    }
+
+    /**
+     * local 전용 생성 Secret 하나를 보장한다.
+     *
+     * <p>환경이 값을 주면 그대로 쓰고 저장하지 않는다. 없을 때만 build/ 아래 local secret 파일에
+     * 생성해 둔다. Source 나 Release 산출물에는 어떤 경우에도 남기지 않는다.</p>
+     */
+    private void ensureLocalSecret(Path secretFile, Properties store, String key, String envName, int byteLength)
+            throws Exception {
+        String supplied = firstNonBlank(System.getenv(envName));
+        if (!supplied.isEmpty()) { baseEnv.put(envName, supplied); return; }
+        String value = store.getProperty(key, "").trim();
+        if (value.isBlank()) {
+            byte[] bytes = new byte[byteLength]; new SecureRandom().nextBytes(bytes);
+            value = Base64.getEncoder().encodeToString(bytes);
+            store.setProperty(key, value);
+            try (Writer w = Files.newBufferedWriter(secretFile, StandardCharsets.UTF_8)) {
+                store.store(w, "Local-only generated secret. build/ is not source-controlled.");
+            }
+        }
+        baseEnv.put(envName, value);
     }
 
     private void prepareDatabase() throws Exception {
@@ -509,6 +538,21 @@ public final class CpfBootstrap {
         return new Domain("platform", PLATFORM_MODULE_CODE, null, null, Map.of(), 0, platformBinding());
     }
 
+    /**
+     * Vendor SQL Pack 의 공개 배포 경로.
+     *
+     * <p>Platform Runtime 은 module-local SQL fallback 을 지원하지 않고 외부 Pack 만 사용한다
+     * (cpf.db.resource-root). 이 자산이 없으면 어떤 Runtime 도 SqlSessionFactory 를 만들지 못하고
+     * 기동에 실패하므로, 경로를 추론하지 않고 없으면 즉시 멈춘다.</p>
+     */
+    private Path vendorPackRoot(String vendor) {
+        Path pack = root.resolve(VENDOR_PACK_ROOT).resolve(vendor);
+        if (!Files.isDirectory(pack) || !Files.isRegularFile(pack.resolve("pack.json"))) {
+            throw new IllegalStateException("DB Vendor SQL Pack is missing: " + root.relativize(pack));
+        }
+        return pack;
+    }
+
     private void applyPlatformDatabase() throws Exception {
         Domain platform = platformDomain();
         step("08", "DB Lifecycle", "PLATFORM " + PLATFORM_MODULE_CODE + " vendor=" + platform.db.vendor);
@@ -534,10 +578,18 @@ public final class CpfBootstrap {
             case "oracle" -> { url = "jdbc:oracle:thin:@//" + b.host + ":" + b.port + "/" + b.serviceName; driver = "oracle.jdbc.OracleDriver"; }
             default -> throw new IllegalStateException();
         }
+        // ADM/Gateway/Batch are Platform consumers. Their shared MyBatis SQL pack reads the
+        // canonical generic cpf.db.vendor, not a domain-specific datasource prefix.
+        // 지금까지는 One-WAS 통합 Runtime 이 batch runtime-support 설정으로 이 값을 줬기 때문에
+        // 단독 기동 경로에서는 vendor 가 비어 있었다.
+        lines.add("CPF_DB_VENDOR=" + b.vendor);
+        lines.add("CPF_DB_RESOURCE_ROOT=" + vendorPackRoot(b.vendor));
         lines.add("CPF_PLATFORM_DB_URL=" + url);
         lines.add("CPF_PLATFORM_DB_DRIVER=" + driver);
         lines.add("CPF_PLATFORM_DB_USERNAME=" + b.runtimeUser);
         lines.add("CPF_PLATFORM_DB_PASSWORD=<secret:" + b.runtimeSecretEnv + ">");
+        baseEnv.put("CPF_DB_VENDOR", b.vendor);
+        baseEnv.put("CPF_DB_RESOURCE_ROOT", vendorPackRoot(b.vendor).toString());
         baseEnv.put("CPF_PLATFORM_DB_URL", url);
         baseEnv.put("CPF_PLATFORM_DB_DRIVER", driver);
         baseEnv.put("CPF_PLATFORM_DB_USERNAME", b.runtimeUser);
@@ -580,8 +632,12 @@ public final class CpfBootstrap {
                 "SELECT format('CREATE DATABASE %I OWNER %I',"+sqlLiteral(db)+","+sqlLiteral(migration)+") WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname="+sqlLiteral(db)+")\\gexec\n";
         runChecked(List.of("docker","exec","-i","cpf-public-postgresql","psql","-v","ON_ERROR_STOP=1","-U","postgres","-d","postgres"), baseEnv, 60, setup, true);
         runChecked(List.of("docker","exec","-i","-e","PGPASSWORD="+mp,"cpf-public-postgresql","psql","-v","ON_ERROR_STOP=1","-U",migration,"-d",db), Map.of(), 60,
-                "CREATE SCHEMA IF NOT EXISTS \""+b.schemaName+"\" AUTHORIZATION \""+migration+"\"; CREATE TABLE IF NOT EXISTS cpf_bootstrap_schema_history(script_name VARCHAR(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP); GRANT USAGE ON SCHEMA \""+b.schemaName+"\" TO \""+runtime+"\";", true);
+                "CREATE SCHEMA IF NOT EXISTS \""+b.schemaName+"\" AUTHORIZATION \""+migration+"\"; CREATE TABLE IF NOT EXISTS \""+b.schemaName+"\".cpf_bootstrap_schema_history(script_name VARCHAR(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP); GRANT USAGE ON SCHEMA \""+b.schemaName+"\" TO \""+runtime+"\";"
+                // DDL 은 schema 를 한정하지 않는다. 적용 세션의 기본 schema 를 Domain schema 로 고정하지
+                // 않으면 테이블이 public 에 만들어지고 Runtime 이 자기 schema 에서 찾지 못한다.
+                + " ALTER ROLE \""+migration+"\" IN DATABASE \""+db+"\" SET search_path TO \""+b.schemaName+"\",public;", true);
         applyTrackedSql(d, db, migration, "cpf-public-postgresql", "postgresql", mp);
+        reconcilePostgresqlRuntimePrivileges(b, db, migration, runtime, mp);
     }
 
     private void applyMariaDb(Domain d) throws Exception {
@@ -607,6 +663,35 @@ public final class CpfBootstrap {
                 "CONNECT "+migration+"/\\\""+mp+"\\\"@"+service+"\nBEGIN EXECUTE IMMEDIATE 'CREATE TABLE cpf_bootstrap_schema_history (script_name VARCHAR2(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END; /\nEXIT\n";
         runChecked(List.of("docker","exec","-i","cpf-public-oracle","sqlplus","-s","/","as","sysdba"), Map.of(), 90, setup, true);
         applyTrackedSql(d, service, migration, "cpf-public-oracle", "oracle", mp);
+        reconcileOracleRuntimePrivileges(service, migration, runtime, mp);
+    }
+
+    /**
+     * The migration role owns local PostgreSQL tables.  Each bootstrap must converge both existing
+     * objects and future migration objects to the runtime role; schema USAGE alone cannot read a table.
+     */
+    private void reconcilePostgresqlRuntimePrivileges(DbBinding binding, String database, String migration,
+                                                        String runtime, String migrationPassword) throws Exception {
+        String schema = binding.schemaName;
+        String grants = "GRANT USAGE ON SCHEMA \""+schema+"\" TO \""+runtime+"\";" +
+                "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA \""+schema+"\" TO \""+runtime+"\";" +
+                "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA \""+schema+"\" TO \""+runtime+"\";" +
+                "ALTER DEFAULT PRIVILEGES IN SCHEMA \""+schema+"\" GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO \""+runtime+"\";" +
+                "ALTER DEFAULT PRIVILEGES IN SCHEMA \""+schema+"\" GRANT USAGE, SELECT ON SEQUENCES TO \""+runtime+"\";";
+        runChecked(List.of("docker", "exec", "-i", "-e", "PGPASSWORD="+migrationPassword,
+                        "cpf-public-postgresql", "psql", "-v", "ON_ERROR_STOP=1", "-U", migration, "-d", database),
+                Map.of(), 60, grants, true);
+    }
+
+    /** Oracle has no database-wide runtime DML grant; converge every migration-owned product object. */
+    private void reconcileOracleRuntimePrivileges(String service, String migration, String runtime,
+                                                   String migrationPassword) throws Exception {
+        String grants = "BEGIN " +
+                "FOR item IN (SELECT table_name FROM user_tables) LOOP EXECUTE IMMEDIATE 'GRANT SELECT, INSERT, UPDATE, DELETE ON ' || item.table_name || ' TO "+runtime+"'; END LOOP; " +
+                "FOR item IN (SELECT sequence_name FROM user_sequences) LOOP EXECUTE IMMEDIATE 'GRANT SELECT ON ' || item.sequence_name || ' TO "+runtime+"'; END LOOP; " +
+                "FOR item IN (SELECT object_name FROM user_objects WHERE object_type IN ('FUNCTION','PROCEDURE','PACKAGE')) LOOP EXECUTE IMMEDIATE 'GRANT EXECUTE ON ' || item.object_name || ' TO "+runtime+"'; END LOOP; " +
+                "END; /";
+        executeSqlFile(service, migration, "cpf-public-oracle", "oracle", grants, false, migrationPassword);
     }
 
     /** Render a PostgreSQL SQL literal without exposing a local secret in a log or evidence file. */
@@ -615,11 +700,18 @@ public final class CpfBootstrap {
     }
 
     private void applyTrackedSql(Domain d, String db, String user, String container, String vendor, String password) throws Exception {
+        String history = historyTable(vendor, d.db.schemaName);
         Path base;
+        Path shippedDomainAsset = root.resolve(DOMAIN_ASSET_ROOT).resolve(d.name).resolve(vendor);
         if (d.contract == null) {
             // Platform DDL 은 Domain Generator 산출물이 아니라 배포본에 실려 오는 정본 자산이다.
             base = root.resolve(PLATFORM_ASSET_ROOT).resolve(vendor);
             if (!Files.isDirectory(base)) throw new IllegalStateException("Platform DB asset is missing: " + root.relativize(base));
+        } else if (Files.isDirectory(shippedDomainAsset)) {
+            // Prebuilt Domain(예: Backoffice)의 스키마는 Generator 가 매번 만들지 않는다. 배포본이
+            // 싣고 온 정본 DDL 을 그대로 적용한다. 이것이 없으면 Domain DB 가 빈 채로 남아
+            // Runtime 이 자기 테이블을 찾지 못한다.
+            base = shippedDomainAsset;
         } else {
             base = root.resolve("build/cpf-local").resolve(d.name).resolve("db3").resolve(vendor);
             Files.createDirectories(base);
@@ -628,34 +720,45 @@ public final class CpfBootstrap {
         }
         List<Path> migrations;
         try(var stream=Files.list(base)){ migrations=stream.filter(p->p.getFileName().toString().startsWith("V")&&p.getFileName().toString().endsWith(".sql")).sorted().toList(); }
-        for (Path sql : migrations) applyOneTrackedSql(d, db, user, container, vendor, sql, password);
-        Path seed=base.resolve("20_product_seed.sql"); if(Files.isRegularFile(seed)) applyOneTrackedSql(d, db, user, container, vendor, seed, password);
+        for (Path sql : migrations) applyOneTrackedSql(d, db, user, container, vendor, sql, password, history);
+        Path seed=base.resolve("20_product_seed.sql"); if(Files.isRegularFile(seed)) applyOneTrackedSql(d, db, user, container, vendor, seed, password, history);
         Path verify=base.resolve("90_verify.sql"); if(Files.isRegularFile(verify)) executeSqlFile(db,user,container,vendor,Files.readString(verify,StandardCharsets.UTF_8),false,password);
     }
 
-    private void applyOneTrackedSql(Domain d, String db, String user, String container, String vendor, Path sql, String password) throws Exception {
+    private void applyOneTrackedSql(Domain d, String db, String user, String container, String vendor, Path sql, String password, String history) throws Exception {
         String name = root.relativize(sql).toString().replace('\\','/');
         String checksum = sha256(sql);
-        String existing = queryHistory(db, user, container, vendor, name, password);
+        String existing = queryHistory(db, user, container, vendor, name, password, history);
         if (!existing.isBlank()) {
             if (!existing.equalsIgnoreCase(checksum)) throw new IllegalStateException("immutable DB migration checksum mismatch: " + name);
             progress("08", "DB Lifecycle", d.systemCode + " SKIP already-applied " + sql.getFileName());
             return;
         }
         executeSqlFile(db, user, container, vendor, Files.readString(sql, StandardCharsets.UTF_8), true, password);
-        recordHistory(db, user, container, vendor, name, checksum, password);
+        recordHistory(db, user, container, vendor, name, checksum, password, history);
     }
 
-    private String queryHistory(String db, String user, String container, String vendor, String name, String password) throws Exception {
+    /**
+     * 마이그레이션 이력 테이블 이름.
+     *
+     * <p>PostgreSQL 은 search_path 에 따라 같은 이름이 다른 schema 로 해석된다. 이름을 한정하지
+     * 않으면 회차마다 다른 schema 의 이력 테이블을 보게 되어 이미 적용한 DDL 을 다시 실행한다.</p>
+     */
+    private static String historyTable(String vendor, String schemaName) {
+        return vendor.equals("postgresql") ? "\"" + schemaName + "\".cpf_bootstrap_schema_history"
+                : "cpf_bootstrap_schema_history";
+    }
+
+    private String queryHistory(String db, String user, String container, String vendor, String name, String password, String history) throws Exception {
         String safe = name.replace("'", "''");
-        if (vendor.equals("postgresql")) return run(List.of("docker","exec","-e","PGPASSWORD="+password,container,"psql","-At","-U",user,"-d",db,"-c","SELECT checksum FROM cpf_bootstrap_schema_history WHERE script_name='"+safe+"'"), Map.of(), 30, null, true, true).output.trim();
-        if (vendor.equals("mariadb")) return run(List.of("docker","exec","-e","MYSQL_PWD="+password,container,"mariadb","-N","-s","-u"+user,db,"-e","SELECT checksum FROM cpf_bootstrap_schema_history WHERE script_name='"+safe+"'"), Map.of(), 30, null, true, true).output.trim();
-        String script = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER="+db+";\nCONNECT "+user+"/\""+password+"\"@"+db+"\nSET HEADING OFF FEEDBACK OFF PAGESIZE 0\nSELECT checksum FROM cpf_bootstrap_schema_history WHERE script_name='"+safe+"';\nEXIT\n";
+        if (vendor.equals("postgresql")) return run(List.of("docker","exec","-e","PGPASSWORD="+password,container,"psql","-At","-U",user,"-d",db,"-c","SELECT checksum FROM "+history+" WHERE script_name='"+safe+"'"), Map.of(), 30, null, true, true).output.trim();
+        if (vendor.equals("mariadb")) return run(List.of("docker","exec","-e","MYSQL_PWD="+password,container,"mariadb","-N","-s","-u"+user,db,"-e","SELECT checksum FROM "+history+" WHERE script_name='"+safe+"'"), Map.of(), 30, null, true, true).output.trim();
+        String script = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER="+db+";\nCONNECT "+user+"/\""+password+"\"@"+db+"\nSET HEADING OFF FEEDBACK OFF PAGESIZE 0\nSELECT checksum FROM "+history+" WHERE script_name='"+safe+"';\nEXIT\n";
         return run(List.of("docker","exec","-i",container,"sqlplus","-s","/","as","sysdba"), Map.of(), 40, script, true, true).output.trim();
     }
 
-    private void recordHistory(String db, String user, String container, String vendor, String name, String checksum, String password) throws Exception {
-        String sql = "INSERT INTO cpf_bootstrap_schema_history(script_name,checksum) VALUES ('"+name.replace("'","''")+"','"+checksum+"');";
+    private void recordHistory(String db, String user, String container, String vendor, String name, String checksum, String password, String history) throws Exception {
+        String sql = "INSERT INTO "+history+"(script_name,checksum) VALUES ('"+name.replace("'","''")+"','"+checksum+"');";
         executeSqlFile(db, user, container, vendor, sql, false, password);
     }
 
@@ -733,6 +836,19 @@ public final class CpfBootstrap {
         pass("10", "Build/Test", full ? "FULL PASS" : "FAST PASS");
     }
 
+    /**
+     * Generated Domain Online Runtime 을 기동한다.
+     *
+     * <p>증상 근거: {@code cpf bootstrap --run} 은 {@code gradlew :online:bootRun} 으로 Runtime 을
+     * 띄우고 그 wrapper 의 pid 를 상태 파일에 적었다. wrapper 가 종료하면 상태 파일의 pid 는 이미
+     * 죽었거나 재사용된 프로세스를 가리키므로 {@code cpf stop} 이 실제 Runtime 을 멈추지 못하고
+     * "refusing to stop reused/non-CPF pid" 로 끝난다. 그 다음 기동은 포트 충돌로 막힌다.</p>
+     *
+     * <p>Runtime Lifecycle(runtimeStart)과 같은 모델로 맞춘다. 먼저 실행물을 만들고 그 실행물을
+     * 직접 띄운다. 그러면 상태 파일의 pid 가 곧 Runtime 이다.</p>
+     *
+     * <p>되돌리면 재발할 증상: bootstrap 으로 띄운 Domain Runtime 이 stop 되지 않아 반복 기동이 막힌다.</p>
+     */
     private void startRuntimes() throws Exception {
         Path runDir = logDir.resolve("runtime"); Files.createDirectories(runDir);
         Path state = root.resolve("build/cpf-bootstrap/current-runtime.properties");
@@ -742,13 +858,20 @@ public final class CpfBootstrap {
         running.setProperty("startedAt", Instant.now().toString());
         Path gradlew = root.resolve(isWindows() ? "gradlew.bat" : "gradlew");
         for (Domain d : domains) {
-            ProcessBuilder pb = new ProcessBuilder(gradlew.toString(), "-p", d.project.toString(), ":online:bootRun", "--no-daemon");
+            Path runnable = buildDomainRuntimeJar(gradlew, d);
+            ProcessBuilder pb = new ProcessBuilder(javaExecutable(), "-jar", runnable.toString());
+            pb.directory(root.toFile());
             pb.environment().putAll(baseEnv);
             pb.environment().put("SPRING_PROFILES_ACTIVE", "local");
             pb.environment().put(d.systemCode + "_ONLINE_PORT", Integer.toString(d.localOnlinePort));
+            // 한 Host 에서 Domain 을 여러 개 띄운다. instanceId 가 겹치면 두 번째 Runtime 이 Runtime
+            // Control fence 에 걸려 기동하지 못한다. Domain 별로 안정적이고 유일한 값을 준다.
+            pb.environment().put("CPF_RUNTIME_INSTANCE_ID", runtimeHostName() + "-" + d.systemCode);
             pb.redirectErrorStream(true);
             Path runtimeLog = runDir.resolve(d.systemCode + "-online.log");
             pb.redirectOutput(runtimeLog.toFile());
+            // 부모(launcher/pwsh/CI runner)가 끝날 때 표준 입력 종료가 Runtime 까지 전달되면 안 된다.
+            pb.redirectInput(new File(isWindows() ? "NUL" : "/dev/null"));
             Process process = pb.start();
             running.setProperty(d.systemCode + ".pid", Long.toString(process.pid()));
             running.setProperty(d.systemCode + ".port", Integer.toString(d.localOnlinePort));
@@ -757,6 +880,28 @@ public final class CpfBootstrap {
             waitForRuntimeHealth(d, process, runtimeLog);
         }
         pass("11", "Runtime", "started=" + domains.size() + " state=" + root.relativize(state));
+    }
+
+    /**
+     * Generated Domain Online 의 실행물을 만들어 돌려준다. 실행물을 직접 띄워야 상태 파일의 pid 가
+     * 곧 Runtime 이 된다({@link #startRuntimes()} 의 증상 근거 참고).
+     */
+    private Path buildDomainRuntimeJar(Path gradlew, Domain domain) throws Exception {
+        Map<String,String> buildEnv = new LinkedHashMap<>(baseEnv);
+        if (domain.db != null) buildEnv.put("CPF_DB_VENDOR", domain.db.vendor);
+        runChecked(List.of(gradlew.toString(), "-p", domain.project.toString(), ":online:bootJar",
+                        "--no-daemon", "--max-workers=2"),
+                buildEnv, Math.max(timeoutSeconds, 1800), null, false);
+        Path libs = domain.project.resolve("online/build/libs");
+        if (!Files.isDirectory(libs)) throw new IllegalStateException("domain runtime build output is missing: " + libs);
+        try (var files = Files.list(libs)) {
+            return files.filter(Files::isRegularFile)
+                    .filter(file -> file.getFileName().toString().endsWith(".jar"))
+                    // plain jar 는 실행물이 아니다. Spring Boot 실행 jar 만 고른다.
+                    .filter(file -> !file.getFileName().toString().endsWith("-plain.jar"))
+                    .max(java.util.Comparator.comparingLong(file -> file.toFile().lastModified()))
+                    .orElseThrow(() -> new IllegalStateException("runnable domain runtime jar is missing: " + libs));
+        }
     }
 
     private void waitForRuntimeHealth(Domain domain, Process process, Path runtimeLog) throws Exception {
@@ -872,7 +1017,7 @@ public final class CpfBootstrap {
     private Optional<ProcessHandle> runtimeProcess(Properties state) {
         String pid = state.getProperty("pid", "").trim();
         if (pid.isEmpty()) return Optional.empty();
-        return ProcessHandle.of(Long.parseLong(pid)).filter(ProcessHandle::isAlive);
+        return ProcessHandle.of(Long.parseLong(pid)).filter(handle -> handle.isAlive());
     }
 
     /**
@@ -905,12 +1050,6 @@ public final class CpfBootstrap {
         return root.resolve(slash < 0 ? owner : owner.substring(0, slash));
     }
 
-    private String runtimeGradleTask(CpfRuntimeTargets.Target target) {
-        String owner = target.owner();
-        int slash = owner.indexOf(47);
-        return slash < 0 ? "bootRun" : ":" + owner.substring(slash + 1) + ":bootRun";
-    }
-
     /**
      * Binary 로 배포된 Runtime 의 실행물을 찾는다.
      *
@@ -935,13 +1074,54 @@ public final class CpfBootstrap {
     }
 
     private List<String> runtimeCommand(CpfRuntimeTargets.Target target) throws Exception {
-        if ("binary".equals(target.provision())) {
-            return List.of(javaExecutable(), "-jar", publishedRuntimeJar(target).toString());
-        }
+        Path jar = "binary".equals(target.provision())
+                ? publishedRuntimeJar(target)
+                : buildSourceRuntimeJar(target);
+        return List.of(javaExecutable(), "-jar", jar.toString());
+    }
+
+    /**
+     * Source 로 배포된 Runtime 의 실행물을 빌드해 돌려준다.
+     *
+     * <p>증상 근거: 이전에는 {@code gradlew bootRun} 으로 띄웠다. 그 경우 Launcher 가 기록하는 pid 는
+     * Gradle wrapper 프로세스이고, wrapper 가 끝나면 상태 파일의 pid 는 이미 죽은(또는 재사용된)
+     * 프로세스를 가리킨다. 그래서 {@code cpf runtime stop} 이 실제 Runtime 을 멈추지 못하고
+     * "refusing to stop reused/non-CPF pid" 로 끝나며, 다음 기동은 포트 충돌로 막힌다.</p>
+     *
+     * <p>Binary Runtime 과 같은 모델로 맞춘다. 먼저 실행물을 만들고, 그 실행물을 직접 띄운다.
+     * 그러면 상태 파일의 pid 가 곧 Runtime 이다.</p>
+     */
+    private Path buildSourceRuntimeJar(CpfRuntimeTargets.Target target) throws Exception {
+        Path project = runtimeProjectDir(target);
         Path gradlew = root.resolve(isWindows() ? "gradlew.bat" : "gradlew");
         if (!Files.isRegularFile(gradlew)) throw new IllegalStateException("gradle wrapper is missing: " + gradlew);
-        return List.of(gradlew.toString(), "-p", runtimeProjectDir(target).toString(),
-                runtimeGradleTask(target), "--no-daemon");
+        String owner = target.owner();
+        int slash = owner.indexOf(47);
+        String task = slash < 0 ? "bootJar" : ":" + owner.substring(slash + 1) + ":bootJar";
+        step("10", "Runtime Build", target.name() + " " + task);
+        runChecked(List.of(gradlew.toString(), "-p", project.toString(), task, "--no-daemon", "--max-workers=2"),
+                baseEnv, Math.max(timeoutSeconds, 1800), null, false);
+        Path libs = root.resolve(owner.replace('/', java.io.File.separatorChar)).resolve("build/libs");
+        if (!Files.isDirectory(libs)) throw new IllegalStateException("runtime build output is missing: " + root.relativize(libs));
+        try (var files = Files.list(libs)) {
+            return files.filter(Files::isRegularFile)
+                    .filter(file -> file.getFileName().toString().endsWith(".jar"))
+                    // plain jar 는 실행물이 아니다. Spring Boot 실행 jar 만 고른다.
+                    .filter(file -> !file.getFileName().toString().endsWith("-plain.jar"))
+                    .max(java.util.Comparator.comparingLong(file -> file.toFile().lastModified()))
+                    .orElseThrow(() -> new IllegalStateException("runnable runtime jar is missing: " + root.relativize(libs)));
+        }
+    }
+
+
+    /** Runtime instanceId 의 Host 부분. 확인할 수 없으면 고정 대체값을 쓴다. */
+    private static String runtimeHostName() {
+        try {
+            String host = java.net.InetAddress.getLocalHost().getHostName();
+            return host == null || host.isBlank() ? "localhost" : host.trim();
+        } catch (Exception unavailable) {
+            return "localhost";
+        }
     }
 
     private int runtimeStart(CpfRuntimeTargets.Target target) throws Exception {
@@ -964,8 +1144,15 @@ public final class CpfBootstrap {
         if (port > 0 && !target.portEnv().isBlank()) {
             builder.environment().put(target.portEnv(), Integer.toString(port));
         }
+        // 한 Host 에서 여러 Runtime 을 띄우므로 instanceId 가 겹치면 두 번째 Runtime 이 Runtime Control
+        // fence 에 걸려 기동하지 못한다. Target 별로 안정적이고 유일한 값을 준다(재기동 시에도 같은 값).
+        builder.environment().put("CPF_RUNTIME_INSTANCE_ID",
+                envOrDefault("CPF_RUNTIME_INSTANCE_ID", runtimeHostName() + "-" + target.name()));
         builder.redirectErrorStream(true);
         builder.redirectOutput(logFile.toFile());
+        // Runtime 은 이 명령이 끝난 뒤에도 계속 떠 있어야 한다. 표준 입력을 부모에게서 물려받으면
+        // 부모(launcher/pwsh/CI runner)가 끝날 때 stream 종료가 Runtime 까지 전달될 수 있다.
+        builder.redirectInput(new File(isWindows() ? "NUL" : "/dev/null"));
         Process process = builder.start();
         Properties state = new Properties();
         state.setProperty("workspace", root.toString());

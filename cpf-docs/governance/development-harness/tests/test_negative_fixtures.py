@@ -27,6 +27,7 @@ _NEG_GROUPS={
         'mutation_generated_domain_test_launcher_removed','public_launcher_contract_positive_control',
         'runtime_startability_contract_positive_control','mutation_runtime_logging_resource_removed',
         'mutation_runtime_database_role_declaration_removed',
+        'mutation_table_lookup_identifier_case_removed',
         'public_gradle_idempotency_contract_positive_control',
         'mutation_public_launcher_shared_project_cache_reentry',
         'mutation_public_root_settings_project_cache_reentry',
@@ -464,6 +465,7 @@ _STARTABILITY_FILES=[
     'cpf-admin/src/main/java/com/cpf/admin/config/AdmJdbcConfig.java',
     'cpf-admin/src/main/resources/application.yml',
     'cpf-admin/src/main/resources/application-adm.yml',
+    'cpf-starters/messaging/reliability/jdbc/src/main/java/com/cpf/messaging/reliability/jdbc/CpfBrokerReliabilityAutoConfiguration.java',
 ]
 _IDEMPOTENCY_FILES=[
     'cpf-tools/release/open-git/open-git-surface-policy.json',
@@ -519,6 +521,19 @@ def mut_runtime_database_role_declaration_removed(root):
 _contract_mut('mutation_runtime_database_role_declaration_removed',_STARTABILITY_TEST,
               'cpf-runtime-startability-negative-',_STARTABILITY_FILES,'CPF_RUNTIME_STARTABILITY_ROOT',
               mut_runtime_database_role_declaration_removed,'선언되지 않은 DB role')
+
+
+def mut_table_lookup_identifier_case_removed(root):
+    # 저장 규칙 판정을 통째로 없애고 고정 대문자 이름만 조회하도록 되돌린다.
+    p=root/'cpf-starters/messaging/reliability/jdbc/src/main/java/com/cpf/messaging/reliability/jdbc/CpfBrokerReliabilityAutoConfiguration.java'
+    text=p.read_text(encoding='utf-8')
+    start=text.index('String pattern = metaData.storesLowerCaseIdentifiers()')
+    end=text.index(';', text.index(': table', start))+1
+    text=text[:start]+'String pattern = table;'+text[end:]
+    p.write_text(text,encoding='utf-8')
+_contract_mut('mutation_table_lookup_identifier_case_removed',_STARTABILITY_TEST,
+              'cpf-runtime-startability-negative-',_STARTABILITY_FILES,'CPF_RUNTIME_STARTABILITY_ROOT',
+              mut_table_lookup_identifier_case_removed,'식별자 대소문자 규칙을 고려하지 않는')
 
 _contract_positive('public_gradle_idempotency_contract_positive_control',_IDEMPOTENCY_TEST,
                    'cpf-public-gradle-idempotency-negative-',_IDEMPOTENCY_FILES,'CPF_PUBLIC_WORKSPACE_ROOT')

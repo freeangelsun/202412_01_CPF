@@ -2112,6 +2112,23 @@ def render_domain_binding_profile(d: DomainDefinition, profile: str) -> str:
     return "\n".join(lines)+"\n"
 
 
+PLATFORM_ROLE_DATASOURCE_YML = """  # cpf-starter-common 의 code/message 정본은 CPF Platform 스키마다.
+  # 업무 Domain Runtime 도 CPF_PLATFORM_DB role 을 요구하므로 자기 설정으로 해석할 수 있어야 한다.
+  # 선언이 없으면 단독 기동이 "CPF DataSource is required for role: CPF_PLATFORM_DB" 로 실패한다.
+  # 업무 DB(CUSTOMER_BUSINESS_DB)와는 다른 논리 role 이며 접속 정보도 별개다.
+  data:
+    persistence:
+      jdbc:
+        role-datasources:
+          cpf-platform-db:
+            enabled: true
+            url: ${CPF_PLATFORM_DB_URL:}
+            username: ${CPF_PLATFORM_DB_USERNAME:cpf_app}
+            password: ${CPF_PLATFORM_DB_PASSWORD:}
+            driver-class-name: ${CPF_PLATFORM_DB_DRIVER:}
+            pool-name: ${CPF_PLATFORM_DB_POOL_NAME:cpf-platform}
+"""
+
 def render_application_yml(d: DomainDefinition, kind: str) -> str:
     """Generated runtime 공통설정. batch는 web server를 띄우지 않는 기본 Golden Path입니다."""
     prefix=d.system_code
@@ -2140,6 +2157,7 @@ def render_application_yml(d: DomainDefinition, kind: str) -> str:
             + web_mode
             + datasource +
             "cpf:\n"
+            + PLATFORM_ROLE_DATASOURCE_YML +
             "  generated-domain:\n"
             f"    name: {d.name}\n"
             "    # 이 Domain 의 canonical SystemCode 입니다. Generator input 의 domain.systemCode 를\n"

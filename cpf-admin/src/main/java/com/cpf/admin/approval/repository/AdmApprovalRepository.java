@@ -22,6 +22,9 @@ import java.util.*;
 
 /** ADM 위험조치 승인 정본 Repository 및 기본 DB Directory Adapter. */
 @CpfRepository
+// 생성 키 컬럼을 지정하지 않으면 PostgreSQL Driver 는 삽입한 행 전체를 생성 키로 돌려주고
+// KeyHolder.getKey() 가 "contains multiple keys" 로 실패한다. Oracle 은 ROWID 를 돌려준다.
+// 세 Vendor 공통으로 안전한 방법은 키 컬럼을 명시하는 것이다.
 public class AdmApprovalRepository extends AdmBaseRepository implements AdmApprovalDirectoryPort {
     private final JdbcTemplate jdbc;
 
@@ -220,7 +223,7 @@ public class AdmApprovalRepository extends AdmBaseRepository implements AdmAppro
                     COMMAND_PAYLOAD_SNAPSHOT,APPROVAL_STATUS,CURRENT_STEP_NO,EXPIRE_AT,TRANSACTION_ID,
                     VERSION_NO,created_by,updated_by
                 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,'PENDING',?,?,?,?,?,?)
-                """, Statement.RETURN_GENERATED_KEYS);
+                """, new String[]{"approval_request_id"});
             int i=1;
             ps.setObject(i++,v.get("requestKey"));ps.setObject(i++,v.get("policyCode"));ps.setObject(i++,v.get("policyVersion"));
             ps.setObject(i++,v.get("actionType"));ps.setObject(i++,v.get("ownerModule"));ps.setObject(i++,v.get("ownerCommand"));

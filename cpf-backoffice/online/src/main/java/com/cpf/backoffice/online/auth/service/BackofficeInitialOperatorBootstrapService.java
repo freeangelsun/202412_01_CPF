@@ -18,7 +18,12 @@ import java.util.Map;
  * instance도 둘 이상의 최초 운영자를 만들지 못하게 한다.</p>
  */
 @CpfService
-public final class BackofficeInitialOperatorBootstrapService {
+// @CpfTransactional 이 있는 Bean 은 CGLIB proxy 로 감싸진다. final class 는 subclass 할 수 없어
+// "Cannot subclass final class" 로 기동이 실패한다. 또 @CpfService 는 Domain Base Class 상속을
+// 요구한다. 통합 Runtime 에서는 이 Bean 이 조립되지 않아 두 계약 위반이 모두 드러나지 않았고,
+// MBW 단독 기동에서 처음 재현됐다.
+public class BackofficeInitialOperatorBootstrapService
+        extends com.cpf.backoffice.online.base.BackofficeBaseService {
     static final String INITIAL_OPERATION_ID = "MBW-INITIAL-OPERATOR";
 
     private final BackofficeAuthRepository authRepository;

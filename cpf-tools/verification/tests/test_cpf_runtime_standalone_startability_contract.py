@@ -41,6 +41,12 @@ CLASSPATH_CONFIG = re.compile(r"^\s*config:\s*classpath:(?P<resource>\S+)\s*$")
 ROLE_REFERENCE = re.compile(r"CpfDatabaseRole\.(?P<role>[A-Z][A-Z0-9_]*)")
 CONFIG_IMPORT = re.compile(r"classpath:(?P<name>application[-A-Za-z0-9_.$}{:]*\.yml)")
 ENUM_CONSTANT = re.compile(r"^\s{4}(?P<name>[A-Z][A-Z0-9_]*)\s*,?\s*$")
+TABLE_LOOKUP = ".getTables("
+# Driver 가 알려 주는 저장 규칙을 쓰거나, 대소문자 변형을 모두 시도해야 한다.
+IDENTIFIER_CASE_GUARDS = ("storesLowerCaseIdentifiers", "storesUpperCaseIdentifiers")
+IDENTIFIER_CASE_PROBES = ("toUpperCase", "toLowerCase")
+# 생성 키는 컬럼 이름을 명시해야 세 Vendor 에서 같은 의미를 갖는다.
+GENERATED_KEY_FLAG = "RETURN_GENERATED_KEYS"
 
 
 def is_source(path: Path) -> bool:
@@ -158,6 +164,59 @@ class RuntimeStandaloneStartabilityContract(unittest.TestCase):
                     undeclared.append(f"{module.relative_to(REPO_ROOT).as_posix()} -> {role}")
         self.assertTrue(checked, "DB role 을 요구하는 Runtime 을 찾지 못했다")
         self.assertEqual([], undeclared, f"Runtime 설정에 선언되지 않은 DB role: {undeclared}")
+
+
+    def test_table_existence_checks_do_not_assume_identifier_case(self) -> None:
+        """JDBC metadata 의 table pattern 은 대소문자를 그대로 비교한다.
+
+        PostgreSQL 은 따옴표 없는 식별자를 소문자로 접어 저장하므로, 대문자 이름을 고정으로 넘기면
+        테이블이 있어도 못 찾는다. 실제로 ADM 단독 기동이 "Missing CPF broker table" 로 죽었다.
+        """
+        roots = [REPO_ROOT / "cpf-starters", REPO_ROOT / "cpf-admin/src/main",
+                 REPO_ROOT / "cpf-gateway/src/main", REPO_ROOT / "cpf-batch"]
+        checked = 0
+        unguarded: list[str] = []
+        for root in roots:
+            if not root.is_dir():
+                continue
+            for java in sorted(root.rglob("*.java")):
+                if not is_source(java) or "/test/" in java.as_posix():
+                    continue
+                text = java.read_text(encoding="utf-8")
+                if TABLE_LOOKUP not in text:
+                    continue
+                checked += 1
+                declares_rule = any(guard in text for guard in IDENTIFIER_CASE_GUARDS)
+                probes_variants = all(probe in text for probe in IDENTIFIER_CASE_PROBES)
+                if not declares_rule and not probes_variants:
+                    unguarded.append(java.relative_to(REPO_ROOT).as_posix())
+        self.assertTrue(checked, "JDBC table 존재 검사를 하나도 찾지 못했다")
+        self.assertEqual([], unguarded, f"식별자 대소문자 규칙을 고려하지 않는 table 존재 검사: {unguarded}")
+
+
+    def test_generated_keys_name_their_key_columns(self) -> None:
+        """생성 키는 컬럼을 명시해야 한다.
+
+        PostgreSQL Driver 는 컬럼을 지정하지 않으면 삽입한 행 전체를 생성 키로 돌려주고
+        KeyHolder.getKey() 가 "contains multiple keys" 로 실패한다. Oracle 은 ROWID 를 돌려준다.
+        실제로 ADM 최초 운영자 생성이 이 이유로 기동 직후 죽었다.
+        """
+        roots = [REPO_ROOT / "cpf-starters", REPO_ROOT / "cpf-admin/src/main",
+                 REPO_ROOT / "cpf-gateway/src/main", REPO_ROOT / "cpf-batch",
+                 REPO_ROOT / "cpf-backoffice/online/src/main"]
+        offenders: list[str] = []
+        scanned = 0
+        for root in roots:
+            if not root.is_dir():
+                continue
+            for java in sorted(root.rglob("*.java")):
+                if not is_source(java) or "/test/" in java.as_posix():
+                    continue
+                scanned += 1
+                if GENERATED_KEY_FLAG in java.read_text(encoding="utf-8"):
+                    offenders.append(java.relative_to(REPO_ROOT).as_posix())
+        self.assertTrue(scanned, "Runtime Source 를 하나도 읽지 못했다")
+        self.assertEqual([], offenders, f"생성 키 컬럼을 명시하지 않은 INSERT: {offenders}")
 
 
 if __name__ == "__main__":

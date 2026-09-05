@@ -16,7 +16,9 @@
 @rem SPDX-License-Identifier: Apache-2.0
 @rem
 
-@if "%DEBUG%"=="" @echo off
+@echo off
+@rem Use CPF_GRADLE_DEBUG=1 for explicit wrapper command tracing.
+@if not "%CPF_GRADLE_DEBUG%"=="" @echo on
 @rem ##########################################################################
 @rem
 @rem  Gradle startup script for Windows

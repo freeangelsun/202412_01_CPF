@@ -44,6 +44,9 @@ import java.util.function.Supplier;
  * 중복 전달을 직렬화합니다.</p>
  */
 @CpfService
+// 생성 키 컬럼을 지정하지 않으면 PostgreSQL Driver 는 삽입한 행 전체를 생성 키로 돌려주고
+// KeyHolder.getKey() 가 "contains multiple keys" 로 실패한다. Oracle 은 ROWID 를 돌려준다.
+// 세 Vendor 공통으로 안전한 방법은 키 컬럼을 명시하는 것이다.
 public class AdmAuditDeliveryService extends AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmAuditDeliveryService.class);
     private static final int DEFAULT_MAX_ATTEMPTS = 10;
@@ -78,7 +81,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                       TRANSACTION_ID,TRACE_ID,OPERATOR_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,BEFORE_DATA,CLIENT_IP,
                       OPERATION_STATUS,DELIVERY_STATUS,ATTEMPT_COUNT,MAX_ATTEMPTS,NEXT_ATTEMPT_AT,CREATED_BY,UPDATED_BY)
                     VALUES(?,?,?,?,?,?,?,?,?,'REQUESTED','PENDING',0,?,?,?,?)
-                    """, Statement.RETURN_GENERATED_KEYS);
+                    """, new String[]{"delivery_id"});
                 ps.setString(1, c.transactionId());
                 ps.setString(2, c.traceId());
                 ps.setString(3, c.operatorId());
@@ -287,7 +290,7 @@ public class AdmAuditDeliveryService extends AdmBaseService {
                           TRANSACTION_ID,TRACE_ID,OPERATOR_ID,ACTION_TYPE,TARGET_TYPE,TARGET_ID,REASON,
                           BEFORE_DATA,AFTER_DATA,DIFF_DATA,CLIENT_IP,RETENTION_UNTIL,IMMUTABLE_YN,CREATED_BY,UPDATED_BY)
                         VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'Y',?,?)
-                        """, Statement.RETURN_GENERATED_KEYS);
+                        """, new String[]{"audit_id"});
                     String operatorId = text(row.get("OPERATOR_ID"));
                     ps.setString(1, text(row.get("TRANSACTION_ID")));
                     ps.setString(2, text(row.get("TRACE_ID")));

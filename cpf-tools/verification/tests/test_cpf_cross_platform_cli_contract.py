@@ -95,8 +95,32 @@ def test_cli_command_surface_contains_required_lifecycle_and_utf8_contract():
 def test_public_windows_gradle_wrapper_is_ascii_safe_for_cmd_parser():
     wrapper=(ROOT/'cpf-tools/release/open-git/templates/gradlew.bat').read_text(encoding='utf-8')
     assert wrapper.isascii()
+    assert '@echo off' in wrapper
+    assert 'CPF_GRADLE_DEBUG' in wrapper
+    assert '%DEBUG%' not in wrapper
     assert 'project-cache-dir' in wrapper
     assert '-PcpfManagedGradleRoot=%CPF_MANAGED_GRADLE_ROOT%' in wrapper
+
+
+def test_local_bootstrap_reconciles_runtime_object_privileges_after_vendor_schema_apply():
+    bootstrap=(ROOT/'cpf-tools/runtime/bootstrap/CpfBootstrap.java').read_text(encoding='utf-8')
+    assert 'applyTrackedSql(d, db, migration, "cpf-public-postgresql", "postgresql", mp);\n        reconcilePostgresqlRuntimePrivileges' in bootstrap
+    assert 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA' in bootstrap
+    assert 'ALTER DEFAULT PRIVILEGES IN SCHEMA' in bootstrap
+    assert 'applyTrackedSql(d, service, migration, "cpf-public-oracle", "oracle", mp);\n        reconcileOracleRuntimePrivileges' in bootstrap
+    assert "SELECT table_name FROM user_tables" in bootstrap
+
+
+def test_platform_runtime_binding_projects_canonical_db_vendor_for_mandatory_mybatis_consumers():
+    bootstrap=(ROOT/'cpf-tools/runtime/bootstrap/CpfBootstrap.java').read_text(encoding='utf-8')
+    assert 'lines.add("CPF_DB_VENDOR=" + b.vendor);' in bootstrap
+    assert 'baseEnv.put("CPF_DB_VENDOR", b.vendor);' in bootstrap
+
+
+def test_vscode_gradle_import_does_not_force_shared_project_cache():
+    settings=json.loads((ROOT/'.vscode/settings.json').read_text(encoding='utf-8'))
+    arguments=str(settings.get('java.import.gradle.arguments', ''))
+    assert '--project-cache-dir' not in arguments
 
 
 def test_public_bootstrap_rejects_ambient_version_override_with_negative_mutation():

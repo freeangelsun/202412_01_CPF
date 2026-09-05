@@ -2,23 +2,24 @@
   "schemaVersion": 1,
   "status": "PASS",
   "result": "VERIFIED",
-  "generatedAt": "2026-09-05T10:09:54.568926+00:00",
-  "sourceIdentitySha256": "303275aa18a668e081b4129c16e3d98f2219d20ceefc011ca6dae10303e88ae8",
+  "generatedAt": "2026-09-05T12:28:17.098918+00:00",
+  "sourceIdentitySha256": "7c4bffcd2cc32a0092dfb512a497bc77867131ff1ec554df98a3dc7d1481308f",
   "privateRepositoryRoot": "C:\\dev\\projects\\jck\\202412_01_CPF",
-  "sourceFileCount": 8625,
-  "privateGitSha": "5c1a3f7f5890ae98ea6f7a23f43331d7773a9e07",
+  "remote": "https://github.com/cpf-team/cpf-framework.git",
+  "sourceFileCount": 8626,
+  "privateGitSha": "69bc50cfa9f0847c75e158c860de3c7655fb72e3",
   "privateGitBranch": "master",
   "privateGitStatusShort": [
-    "M cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md",
-    " M cpf-docs/governance/development-harness/current/CANONICAL_PRODUCT_REQUIREMENTS.csv",
-    " M cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md",
-    " M cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md",
-    " M cpf-docs/governance/development-harness/current/CURRENT_CANONICAL_DETAILED_BRIDGE.csv",
-    " M cpf-docs/governance/development-harness/current/CURRENT_DETAILED_REVIEW.md",
+    "M .gitattributes",
+    " M cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md",
+    " M cpf-docs/governance/development-harness/current/CONSUMER_RUNTIME_FINDING_LEDGER.csv",
     " M cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv",
-    " M cpf-docs/governance/development-harness/current/TEST_EXECUTION_LEDGER.csv",
-    " M cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md",
+    " M cpf-docs/governance/development-harness/evidence/claude/current/CLAUDE_COLLABORATION_HANDOFF.md",
     " M cpf-docs/governance/development-harness/tests/test_negative_fixtures.py",
+    " M cpf-external/online/build.gradle",
+    " M cpf-gateway/src/test/java/com/cpf/gateway/scg/CpfScgPrimaryRouteConfigurationTest.java",
+    " M cpf-member/batch/build.gradle",
+    " M cpf-member/online/build.gradle",
     " D cpf-release/binary-repository/com/cpf/batch/cpf-batch-api/1.0.0/cpf-batch-api-1.0.0.jar",
     " D cpf-release/binary-repository/com/cpf/batch/cpf-batch-api/1.0.0/cpf-batch-api-1.0.0.pom",
     " D cpf-release/binary-repository/com/cpf/common/cpf-common/1.0.0/cpf-common-1.0.0.jar",
@@ -151,17 +152,24 @@
     " D cpf-release/reports/OPEN_GIT_RELEASE_STATUS.json",
     " D cpf-release/reports/OPEN_GIT_RELEASE_STATUS.md",
     " D cpf-release/reports/OPEN_GIT_USER_GIT_COMMANDS.md",
-    " M cpf-tools/contracts/configuration/hardcoding-classification.csv",
-    " M cpf-tools/release/open-git/README.md",
+    " M cpf-tools/db/vendor/mariadb/domain-template/provision/02_principals.sql.template",
+    " M cpf-tools/db/vendor/mariadb/migration/flyway/V125__async_operation_runtime.sql",
+    " M cpf-tools/db/vendor/mariadb/migration/flyway/V133__backoffice_mbw_identity.sql",
+    " M cpf-tools/db/vendor/mariadb/migration/flyway/V80__adm_gateway_navigation_permissions.sql",
+    " M cpf-tools/db/vendor/mariadb/source/migration/flyway/V125__async_operation_runtime.sql",
+    " M cpf-tools/db/vendor/oracle/domain-template/provision/02_principals.sql.template",
+    " M cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V125__async_operation_runtime.sql",
+    " M cpf-tools/db/vendor/oracle/migration/flyway/mbwDB/V133__backoffice_mbw_identity.sql",
+    " M cpf-tools/db/vendor/postgresql/domain-template/provision/02_principals.sql.template",
+    " M cpf-tools/db/vendor/postgresql/migration/flyway/admDB/V80__adm_gateway_navigation_permissions.sql",
+    " M cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V125__async_operation_runtime.sql",
+    " M cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/V133__backoffice_mbw_identity.sql",
+    " M cpf-tools/generator/engine/cpf_domain_generator.py",
     " M cpf-tools/release/open-git/cpf_open_git.py",
-    " M cpf-tools/release/open-git/tests/test_cpf_open_git.py",
-    " M cpf-tools/runtime/bootstrap/CpfBootstrap.java",
-    " M cpf-tools/runtime/cli/contracts/cpf-command-catalog.json",
-    " M cpf-tools/verification/nxt3/verify_nxt3_config_contract.py",
-    " M cpf-tools/verification/tests/test_cpf_cross_platform_cli_contract.py",
-    " M cpf-tools/verification/tests/test_cpf_release_asset_freshness_contract.py",
-    " M cpf-tools/verification/tests/test_nxt3_config_contract_scan_scope.py",
-    "?? cpf-tools/release/open-git/tests/test_release_lfs_contract.py"
+    " M cpf-tools/release/open-git/open-git-surface-policy.json",
+    " M cpf-tools/release/open-git/tests/test_release_lfs_contract.py",
+    " M cpf-tools/release/open-git/verify_release_lfs_contract.py",
+    " M cpf-tools/verification/tests/test_cpf_release_asset_freshness_contract.py"
   ],
   "privateGitDirty": true,
   "privateMasterReleaseTracked": true,
@@ -184,31 +192,68 @@
   },
   "gitLfs": {
     "candidateRepository": {
+      "attributeEffect": {
+        "artifactCount": 9,
+        "verified": true
+      },
+      "attributePrefix": "cpf-release/binary-repository",
       "attributesRoot": "C:\\dev\\projects\\jck\\202412_01_CPF",
       "gitLfsRequired": true,
       "lfsAttributeCount": 9,
       "manifestArtifactCount": 124,
       "repository": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-release\\work\\binary-repository",
       "runtimeArtifactCount": 9,
-      "status": "PASS"
+      "status": "PASS",
+      "transportLimit": {
+        "limitBytes": 104857600,
+        "overLimitOnLfs": 0,
+        "verified": true
+      }
     },
     "publicStaging": {
+      "attributeEffect": {
+        "reason": "NOT_A_GIT_WORK_TREE",
+        "verified": false
+      },
+      "attributePrefix": "binary-repository",
       "attributesRoot": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-release\\work\\open-git-staging",
       "gitLfsRequired": true,
       "lfsAttributeCount": 9,
       "manifestArtifactCount": 124,
       "repository": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-release\\work\\open-git-staging\\binary-repository",
       "runtimeArtifactCount": 9,
-      "status": "PASS"
+      "status": "PASS",
+      "transportLimit": {
+        "limitBytes": 104857600,
+        "reason": "NOT_A_GIT_WORK_TREE",
+        "verified": false
+      }
     },
     "freshOpenGitProjection": {
+      "attributeEffect": {
+        "artifactCount": 9,
+        "verified": true
+      },
+      "attributePrefix": "binary-repository",
       "attributesRoot": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-release\\work\\open-git",
       "gitLfsRequired": true,
       "lfsAttributeCount": 9,
       "manifestArtifactCount": 124,
       "repository": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-release\\work\\open-git\\binary-repository",
       "runtimeArtifactCount": 9,
-      "status": "PASS"
+      "status": "PASS",
+      "transportLimit": {
+        "limitBytes": 104857600,
+        "overLimitOnLfs": 2,
+        "verified": true
+      }
+    },
+    "attributeProjection": {
+      "attributeFile": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-release\\work\\open-git-staging\\.gitattributes",
+      "projectedLines": 10,
+      "projectedLfsLines": 9,
+      "fromPrefix": "cpf-release/binary-repository",
+      "toPrefix": "binary-repository"
     }
   },
   "openGitFileCount": 28893,
@@ -3397,8 +3442,8 @@
   "crossPlatformCli": {
     "status": "PASS",
     "path": "bin/lib/cpf-cli.jar",
-    "sha256": "0be17f0886a563cc42f901b368a120c01666a2382fb5f6511c86331915a2f3f8",
-    "sourceIdentitySha256": "303275aa18a668e081b4129c16e3d98f2219d20ceefc011ca6dae10303e88ae8"
+    "sha256": "697bdf04a926ce29551913384836d1310def6ce2f42c3b4f79a6c15727a65914",
+    "sourceIdentitySha256": "7c4bffcd2cc32a0092dfb512a497bc77867131ff1ec554df98a3dc7d1481308f"
   },
   "sourceJarCount": 0,
   "javadocJarCount": 0,

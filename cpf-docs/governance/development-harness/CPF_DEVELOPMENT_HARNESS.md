@@ -1743,9 +1743,24 @@ tree 는 그 **projection 결과**다.
 7. Git LFS는 Fresh Build/Test/Runtime/패키징 품질 검증을 대체하지 않는다. Fresh Build 결과를
    checksum/SBOM/manifest와 실제 runtime으로 검증한 뒤에만 LFS currentization할 수 있고, 이전 LFS
    object는 다음 Release input이 아니다.
-8. LFS scope는 `runtimeTargetCatalog.binaryProvisionArtifactIds`를 `gitAttributesPathTemplate`으로
-   확장해 `.gitattributes`와 exact 대조한다. Git LFS 미설치, pointer 미물질화, pull 실패, manifest/SHA
-   불일치, 실행 JAR 손상은 각각 fail-closed한다.
+8. LFS scope는 `runtimeTargetCatalog.binaryProvisionArtifactIds`를
+   `binaryRepositoryRelativePathTemplate`으로 확장해 `.gitattributes`와 exact 대조한다. Git LFS
+   미설치, pointer 미물질화, pull 실패, manifest/SHA 불일치, 실행 JAR 손상은 각각 fail-closed한다.
+8-1. **LFS 경로 접두사는 저장소마다 다르므로 고정하지 않는다.** Development Master는
+   `releaseRoot/binaryRepositoryDirectory` 아래에서 추적하고, Open Git 공개 저장소는 checkout
+   최상위의 `binaryRepositoryDirectory`에서 추적한다. 정책이 갖는 단일 권위는 **Binary Repository
+   상대 경로 template** 하나뿐이며, 각 저장소는 자기 배치로 접두사를 붙인다. 한쪽 경로를 정답으로
+   박고 다른 쪽에 그대로 복사하면 그쪽에서는 어떤 패턴도 매칭되지 않는다(CRF-59).
+8-2. **`.gitattributes` 문자열 일치는 LFS 적용 근거가 아니다.** Git Work Tree에서는
+   `git check-attr filter`로 실제 Artifact 경로에 `lfs`가 적용되는지 확인한다. 확인하지 못한
+   상태는 SKIP이 아니라 실패다(`LFS_ATTRIBUTE_NOT_APPLIED`). Open Git Fresh Clone 단계에서는
+   이 확인이 필수이며, 문자열만 대조하고 PASS를 내는 구현은 False Green이다(CRF-59).
+8-3. **외부 호스팅의 파일당 전송 한도는 정책이 선언하고 push 전에 검사한다**
+   (`gitLfs.regularGitTransportLimitBytes`, `GIT_TRANSPORT_LIMIT_EXCEEDED`). 검사 대상은
+   `git ls-files --cached --others --exclude-standard`가 보는 **실제 전송 대상**이며 gitignore된
+   산출물은 제외한다. 이 숫자는 **외부 transport 제약일 뿐 CPF Packaging 목표치가 아니다.**
+   한도를 넘었다는 사실은 Runtime Dependency를 줄이라는 근거가 아니라 LFS로 옮기라는 뜻이다
+   (Rule 9 및 39.6.1과 함께 읽는다).
 9. binary/generated라는 이유만으로 일괄 제외하지 않으며, 임의 용량 Threshold를 코드나 정책에 숫자로
    박지 않는다. 미래의 Master 미보존 예외가 필요하면 실측된 문제와 machine-readable 근거를 별도로
    남긴다.
@@ -1863,6 +1878,31 @@ avoidable bytes
 이 결과를 함께 제시한다. LFS는 byte transport를 바꿀 뿐 dependency scope/중복/취약점/라이선스 품질 판단을
 면제하지 않는다.
 
+#### 39.6.1 Dependency Ownership 검증은 LFS 이후에도 계속한다
+
+Git LFS 는 byte transport 를 바꿀 뿐이다. Artifact 가 커도 되지만 그 안에 들어간 이유는 설명
+가능해야 한다. 매 Release Size Finding 에서 다음을 함께 측정한다.
+
+- **Wrong Scope** — test/dev 전용 dependency 가 production runtimeClasspath 에 들어왔는가
+- **Duplicate Version** — 같은 library 가 서로 다른 version 으로 공존하는가
+- **Cross-role Leakage** — 한 Runtime 이 다른 Runtime 의 실행 module 을 품는가
+- **Dual Web Stack** — Servlet 과 Reactive stack 이 함께 들어왔는가
+- **DB Driver Spread** — vendor driver 가 어느 Runtime 까지 퍼졌는가
+- **Frontend Dev Waste** — source map / dev asset / node_modules 잔재가 실렸는가
+
+판정 규칙:
+
+1. `grep` 에 안 나온다는 이유로 삭제하지 않는다. Spring 은 AutoConfiguration / SPI / Reflection /
+   ServiceLoader 로 쓰인다. 유입 경로는 `dependencyInsight` 로 특정한다.
+2. 판정은 `SUSPECT` 까지다. 제거 여부는 Source Owner 가 근거를 확인하고 결정한다.
+3. **크기를 이유로 필요한 Runtime Dependency 를 제거하지 않는다.** LFS 가 있으므로 GitHub 제한을
+   Runtime Architecture 의 목표값으로 삼지 않는다. 제거의 근거는 크기가 아니라 correctness 다.
+4. 근거가 확인된 공존은 결함이 아니다. 예: Spring Boot 4 의 Jackson 3 와 CPF Runtime 의 Jackson 2 는
+   `CpfJackson2AutoConfiguration` 이 선언한 의도된 계약이다.
+
+측정 도구는 `cpf-tools/release/open-git/report_runtime_dependency_ownership.py` 이고 결과는
+`current/RUNTIME_DEPENDENCY_OWNERSHIP.json` 이다.
+
 ### 39.7 잔여물 없음의 증명 방식
 
 이전 Release 잔여물이 새 Release 에 섞이지 않는다는 것은 두 가지로 증명한다.
@@ -1962,3 +2002,58 @@ DB Lifecycle 내 실행 순서, Domain 이름 비하드코딩, 공개 배포본 
 기존 Domain, 신규 Generated Domain, 최초 등록, bootstrap 재실행 idempotency, duplicate/conflict negative,
 Registry 누락 상태의 Runtime fail-closed, Runtime 자가 등록 불가, DB3(Oracle/PostgreSQL/MariaDB) 영향,
 Fresh Consumer bootstrap → Runtime start 까지 확인한다.
+
+## 41. Open Git Remote Gate / Git Write 승인 범위 (Mandatory)
+
+### 41.1 배경
+
+Local Release 가 VERIFIED 라는 것은 **로컬 투영본이 유효하다**는 뜻이지 **공개 저장소가 동작한다**는
+뜻이 아니다. 둘 사이에는 transport(Git/LFS), remote 수용 여부, clone 후 물질화, clone 위에서의 실제
+Consumer 실행이 남아 있다. CRF-59 는 정확히 이 구간에서 났다. Local Release VERIFIED, LFS 검증기 PASS,
+그런데 push 하면 GitHub 이 거부하는 상태였다.
+
+### 41.2 Gate 상태
+
+각 상태는 **독립적으로 기록**한다. 앞 상태가 PASS 라는 이유로 뒤 상태를 PASS 로 적지 않는다.
+
+| Gate | 의미 | PASS 근거 |
+|---|---|---|
+| `OPEN_GIT_LOCAL_RELEASE` | 로컬 Fresh Release 산출 | `OPEN_GIT_RELEASE_STATUS.json` result=VERIFIED, leakage=0 |
+| `OPEN_GIT_STAGING_CONSUMER` | staging 투영본 위 Consumer 검증 | Fresh Workspace 빌드·테스트 통과 |
+| `OPEN_GIT_REMOTE_PUSH` | remote 수용 | push 성공 + pushed SHA 확보 |
+| `OPEN_GIT_REMOTE_FRESH_CLONE` | clone 재현 | cloned SHA == pushed SHA, LFS pointer 물질화, Artifact SHA == manifest |
+| `OPEN_GIT_REMOTE_CONSUMER` | clone 위 실제 실행 | bootstrap → Target 탐색 → 기동 → status → stop |
+| `OPEN_GIT_REMOTE_FRESH_REPLAY` | 재현성 | 동일 절차 재실행이 같은 결과 |
+
+`OPEN_GIT_REMOTE_PUSH` 이전에 확인할 것: git root, remote URL, branch, status, staged 목록,
+Public Release Surface 분류, Private Source / Secret / Development Master 경로 / Harness·Evidence
+Leakage, LFS 적용 효과와 전송 한도(39.2 Rule 8-2/8-3), Source Identity, Release Candidate 상태.
+remote 가 정본과 다르면 **fail-closed** 한다.
+
+### 41.3 Git Write 승인 범위
+
+| 대상 | Add/Commit/Push | 비고 |
+|---|---|---|
+| Open Git (`cpf-team/cpf-framework`) | **승인됨** | 검증 목적 범위에서 단계마다 재질문 불요 |
+| Development Master | **금지** | 별도 사용자 승인 없이 수행하지 않는다 |
+
+Open Git 이라도 **승인 대상이 아닌 것**: force push, history rewrite, rebase 후 remote 교체,
+`reset --hard` 로 history 조작, branch 삭제, remote branch 교체, tag 생성/삭제/push,
+GitHub Release 생성/삭제, Release Asset 발행, Repository 설정 변경, Protected branch 변경.
+기존 remote history 에 대한 `git lfs migrate` 도 별도 승인이 필요하다.
+
+Git 은 그 외에는 provenance 확인용 read-only 조회만 한다. `git clean`, `git reset --hard`,
+`git restore .` 는 어떤 경우에도 쓰지 않는다.
+
+### 41.4 진입점
+
+Remote 반영은 **Gradle Task 를 정본 진입점으로 사용**한다. CLI / PowerShell / Gradle Task 가 서로
+다른 구현을 갖지 않게 하기 위한 구조이며(29.2), Task 경로 자체도 매 Release 마다 실제로 실행되어
+검증된다.
+
+```
+./gradlew cpfOpenGitCommitAndPush -PconfirmGitWrite=true -PopenGitRemote=<remote>
+```
+
+`-PconfirmGitWrite=true` 가 정확히 `true` 가 아니면 Git Write 는 수행되지 않는다. Build / Verify /
+Prepare 는 어떤 경우에도 Git 을 변경하지 않는다.

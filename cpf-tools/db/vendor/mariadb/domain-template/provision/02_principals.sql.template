@@ -38,4 +38,3 @@ GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE
 SET @cpf_migration_password = NULL;
 SET @cpf_runtime_password = NULL;
 SET @cpf_sql = NULL;
-

@@ -4,6 +4,6 @@
   "version": "1.0.0-SNAPSHOT",
   "classifier": "windows-x64",
   "archive": "cpf-generator-cli-1.0.0-SNAPSHOT-windows-x64.zip",
-  "sha256": "8e8244f73efd3f410424e7eb1d9ced383f25e24366e5a15bb0462377b898d4b9",
+  "sha256": "f383ae68b1c1f9d9d971f0cf01a2d3b24c8b7435a5bf754639853ab892189212",
   "canonicalEngine": "cpf-tools/generator/engine/cpf_domain_generator.py"
 }

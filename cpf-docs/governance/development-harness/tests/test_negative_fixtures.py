@@ -145,6 +145,9 @@ _NEG_GROUPS={
         'mutation_lfs_runtime_dropped_from_public_release',
         'mutation_payload_composition_rule_removed',
         'mutation_payload_tool_reports_only_total_size',
+        'mutation_dependency_ownership_check_removed',
+        'mutation_annotation_processor_leaks_to_production',
+        'mutation_dependency_qa_dropped_after_lfs',
         'mutation_development_gate_forced_to_full_release',
         'mutation_final_order_projects_before_build',
         'mutation_single_acceptance_statement_allowed',
@@ -1278,6 +1281,8 @@ for _launcher in sorted((ROOT/'cpf-tools/release/open-git/templates/bin').glob('
     _ASSET_FILES.append('cpf-tools/release/open-git/templates/bin/'+_launcher.name)
 _ASSET_FILES.append('cpf-tools/release/open-git/report_release_payload_composition.py')
 _ASSET_FILES.append('cpf-tools/release/open-git/report_release_binary_tracking.py')
+_ASSET_FILES.append('cpf-tools/release/open-git/report_runtime_dependency_ownership.py')
+_ASSET_FILES.append('cpf-starters/integration/resilience/build.gradle')
 _ASSET_PREFIX='cpf-release-asset-negative-'
 _ASSET_ENV='CPF_RELEASE_ASSET_ROOT'
 _ASSET_POLICY='cpf-tools/release/open-git/open-git-surface-policy.json'
@@ -1833,6 +1838,33 @@ def mut_payload_rule_removed(root):
     p.write_text(head+('### 39.7'+tail.split('### 39.7',1)[1] if '### 39.7' in tail else ''),encoding='utf-8')
 _asset_mut('mutation_payload_composition_rule_removed',mut_payload_rule_removed,
            'payload composition 으로 판정하라는 Rule 이 없다')
+
+def mut_dependency_ownership_removed(root):
+    p=root/'cpf-tools/release/open-git/report_runtime_dependency_ownership.py'
+    t=p.read_text(encoding='utf-8')
+    p.write_text(t.replace('wrongScopeDev','removedCheck').replace('duplicateVersion','removedCheck2'),
+                 encoding='utf-8')
+_asset_mut('mutation_dependency_ownership_check_removed',mut_dependency_ownership_removed,
+           'Dependency Ownership 검사 항목이 빠졌다')
+
+def mut_annotation_processor_leaks(root):
+    # compile 전용 도구가 production runtime 으로 새는 전이 차단을 없앤다.
+    p=root/'cpf-starters/integration/resilience/build.gradle'
+    t=p.read_text(encoding='utf-8')
+    start=t.index("    implementation('org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j')")
+    end=t.index('}',t.index('exclude group',start))+1
+    p.write_text(t[:start]+"    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'"+t[end:],
+                 encoding='utf-8')
+_asset_mut('mutation_annotation_processor_leaks_to_production',mut_annotation_processor_leaks,
+           'runtime 으로 새는 configuration processor 를 제외하지 않는다')
+
+def mut_dependency_qa_dropped(root):
+    p=root/'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md'
+    t=p.read_text(encoding='utf-8')
+    head,_,tail=t.partition('#### 39.6.1 Dependency Ownership')
+    p.write_text(head+('### 39.7'+tail.split('### 39.7',1)[1] if '### 39.7' in tail else ''),encoding='utf-8')
+_asset_mut('mutation_dependency_qa_dropped_after_lfs',mut_dependency_qa_dropped,
+           'Dependency Ownership 검증을 유지한다는 Rule 이 없다')
 
 def mut_payload_tool_total_only(root):
     p=root/'cpf-tools/release/open-git/report_release_payload_composition.py'

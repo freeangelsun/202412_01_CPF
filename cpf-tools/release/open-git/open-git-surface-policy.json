@@ -953,10 +953,10 @@
           "masterTracked": true,
           "publicRelease": true,
           "transport": "GIT_LFS",
-          "gitAttributesPathTemplate": "cpf-release/binary-repository/com/cpf/runtime/{artifactId}/*/{artifactId}-*.jar",
           "selection": "runtimeTargetCatalog.binaryProvisionArtifactIds",
           "transportDecisionEvidence": "cpf-docs/governance/development-harness/current/RELEASE_BINARY_TRACKING_MANIFEST.csv",
-          "note": "LFS 대상은 runtime catalog가 선언한 executable product runtime이다. 확장자·일반 경로·임의 용량 기준으로 다른 JAR에 확장하지 않는다."
+          "note": "LFS 대상은 runtime catalog가 선언한 executable product runtime이다. 확장자·일반 경로·임의 용량 기준으로 다른 JAR에 확장하지 않는다.",
+          "binaryRepositoryRelativePathTemplate": "com/cpf/runtime/{artifactId}/*/{artifactId}-*.jar"
         },
         {
           "id": "generatorDistribution",
@@ -1028,7 +1028,7 @@
         "requiredCommand": "git-lfs",
         "pointerPrefix": "version https://git-lfs.github.com/spec/v1",
         "largeArtifactClass": "LARGE_RELEASE_BINARY",
-        "attributeSource": "artifactClassification.rules[id=publicBinaryRuntimeExecutable].gitAttributesPathTemplate expanded from runtimeTargetCatalog.binaryProvisionArtifactIds",
+        "attributeSource": "artifactClassification.rules[id=publicBinaryRuntimeExecutable].binaryRepositoryRelativePathTemplate expanded from runtimeTargetCatalog.binaryProvisionArtifactIds, prefixed by each repository의 Binary Repository 위치",
         "ordinaryGitClasses": [
           "CANONICAL_RELEASE_SOURCE",
           "TRACKED_VERIFIED_RELEASE_RESULT"
@@ -1041,8 +1041,14 @@
           "LFS_DOWNLOAD_FAILED",
           "LFS_HASH_MISMATCH",
           "RELEASE_MANIFEST_MISMATCH",
-          "RUNTIME_ARTIFACT_INVALID"
-        ]
+          "RUNTIME_ARTIFACT_INVALID",
+          "LFS_ATTRIBUTE_NOT_APPLIED",
+          "GIT_TRANSPORT_LIMIT_EXCEEDED"
+        ],
+        "attributePrefixRule": "Development Master는 releaseRoot/binaryRepositoryDirectory, Open Git 공개 저장소는 checkout 최상위의 binaryRepositoryDirectory다. 한쪽 경로를 정답으로 고정하면 다른 쪽에서 어떤 패턴도 매칭되지 않고, 문자열 비교만 하는 검증은 그대로 PASS를 낸다.",
+        "attributeEffectVerification": "git check-attr filter가 실제 Artifact 경로에 lfs를 적용하는지 확인한다. .gitattributes 문자열 일치는 근거가 아니다.",
+        "regularGitTransportLimitBytes": 104857600,
+        "regularGitTransportLimitOwner": "GitHub per-file hard limit. External transport constraint only — never a CPF packaging target, never a reason to delete a required runtime dependency."
       }
     }
   },

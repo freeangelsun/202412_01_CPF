@@ -19,6 +19,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -41,6 +42,12 @@ ARTIFACT_POLICY_REL = TOOL_REL / "open-git-artifact-policy.json"
 PUBLIC_SOURCE_ALLOWLIST_REL = TOOL_REL / "open-git-public-source-allowlist.json"
 LEGACY_PUBLIC_REL = Path("cpf-tools/release/public")
 RELEASE_DIR_NAME = "cpf-release"
+# Release 성공 어휘. 쓰는 쪽과 판정하는 쪽이 각자 문자열을 들면 반드시 어긋난다(CRF-62).
+RELEASE_STATUS_PASS = "PASS"
+RELEASE_RESULT_VERIFIED = "VERIFIED"
+RELEASE_RESULT_VERIFIED_NO_CHANGES = "VERIFIED_NO_CHANGES"
+RELEASE_RESULTS_ELIGIBLE_FOR_GIT_WRITE = (
+    RELEASE_RESULT_VERIFIED, RELEASE_RESULT_VERIFIED_NO_CHANGES)
 OPEN_GIT_DIR_NAME = "open-git"
 BINARY_DIR_NAME = "binary-repository"
 REPORTS_DIR_NAME = "reports"
@@ -278,6 +285,26 @@ def _is_exact_release_root(root: Path, target: Path) -> bool:
         return False
 
 
+def _remove_tree(target: Path) -> None:
+    """읽기 전용 파일이 섞인 tree 를 지운다.
+
+    git 은 loose object 를 0444 로 쓴다. Windows 는 읽기 전용 파일 삭제를 거부하므로
+    기본 rmtree 가 WinError 5 로 멈춘다. 실패한 항목만 쓰기 가능으로 바꾸고 한 번 다시
+    시도한다. 권한이 아닌 다른 이유(사용 중 등)면 그대로 올린다.
+    """
+    def _retry_after_clearing_readonly(function, path, excinfo):
+        error = excinfo[1] if isinstance(excinfo, tuple) else excinfo
+        if not isinstance(error, PermissionError):
+            raise error
+        try:
+            os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
+        except OSError:
+            raise error from None
+        function(path)
+
+    shutil.rmtree(target, onexc=_retry_after_clearing_readonly)
+
+
 def verify_release_root_safety(root: Path) -> Path:
     """Verify the generated Release root without conflating it with Git policy.
 
@@ -297,7 +324,7 @@ def verify_release_root_safety(root: Path) -> Path:
 def clean_release_root(root: Path) -> Path:
     target = verify_release_root_safety(root)
     if target.exists():
-        shutil.rmtree(target)
+        _remove_tree(target)
     target.mkdir(parents=True, exist_ok=False)
     return target
 
@@ -380,6 +407,27 @@ def private_git_context(root: Path) -> dict[str, Any]:
     }
 
 
+def assert_canonical_remote_url(root: Path, remote: str) -> str:
+    """remote 가 승인된 공개 저장소를 가리키는지 확인한다.
+
+    build 와 push 가 같은 규칙을 써야 한다. 서로 다른 판정을 쓰면 build 는 정본을 강제하는데
+    push 는 아무 remote 나 받는 상태가 생긴다.
+    """
+    policy = load_json(root / SURFACE_POLICY_REL)
+    expected = str(policy.get("repository") or "").strip().strip("/")
+    if not expected:
+        raise OpenGitReleaseError("Open Git 정본 repository 가 정책에 선언되어 있지 않습니다.")
+    value = (remote or "").strip()
+    if not value:
+        raise OpenGitReleaseError(f"Open Git remote 가 비어 있습니다. 대상 repository={expected}")
+    normalized = value.rstrip("/").removesuffix(".git").lower()
+    expected_lower = expected.lower()
+    if not normalized.endswith("/" + expected_lower) and not normalized.endswith(":" + expected_lower):
+        raise OpenGitReleaseError(
+            f"Open Git remote target must be {expected} (actual={value})")
+    return value
+
+
 def canonical_remote(root: Path, explicit: str | None) -> str:
     policy = load_json(root / SURFACE_POLICY_REL)
     expected = str(policy.get("repository") or "").strip().strip("/")
@@ -387,11 +435,7 @@ def canonical_remote(root: Path, explicit: str | None) -> str:
     remote = (explicit or os.environ.get(env_name, "")).strip()
     if not remote:
         raise OpenGitReleaseError(f"Open Git remote is required via --remote or {env_name}; target repository={expected}")
-    normalized = remote.rstrip("/").removesuffix(".git").lower()
-    expected_lower = expected.lower()
-    if not normalized.endswith("/" + expected_lower) and not normalized.endswith(":" + expected_lower):
-        raise OpenGitReleaseError(f"Open Git remote target must be {expected}")
-    return remote
+    return assert_canonical_remote_url(root, remote)
 
 
 def artifact_rows(root: Path) -> list[dict[str, Any]]:
@@ -568,7 +612,7 @@ def sanitize_binary_repository(root: Path, raw_repo: Path, final_repo: Path, pro
     public_version = public_release_version(development_version)
 
     if final_repo.exists():
-        shutil.rmtree(final_repo)
+        _remove_tree(final_repo)
     final_repo.mkdir(parents=True)
 
     coords = _artifact_coordinate_map(root)
@@ -805,7 +849,7 @@ def _public_source_matches(root: Path, allowlist: dict[str, Any]) -> list[Path]:
 def project_optional_framework_sources(root: Path, open_git: Path, profile: str) -> dict[str, Any]:
     target = open_git / "framework-source"
     if target.exists():
-        shutil.rmtree(target)
+        _remove_tree(target)
     if profile == "binary":
         return {"profile": profile, "fileCount": 0, "target": None}
     if profile != "source":
@@ -887,7 +931,7 @@ def bundle_public_binary_repository(final_repo: Path, staging: Path) -> dict[str
         raise OpenGitReleaseError(f"final public binary repository is missing: {final_repo}")
     target = staging / BINARY_DIR_NAME
     if target.exists():
-        shutil.rmtree(target)
+        _remove_tree(target)
     shutil.copytree(final_repo, target)
     files = [p for p in target.rglob("*") if p.is_file()]
     jars = [p for p in files if p.suffix == ".jar"]
@@ -952,14 +996,69 @@ def verify_public_binary_repository_tree(repository: Path) -> None:
             raise OpenGitReleaseError(f"package manifest SHA-256 mismatch: {row['relativePath']}")
 
 
+def master_attribute_prefix() -> str:
+    """Development Master 가 Public Runtime Binary 를 실제로 추적하는 경로."""
+    return f"{RELEASE_DIR_NAME}/{BINARY_DIR_NAME}"
+
+
+def project_lfs_attributes(root: Path, staging: Path) -> dict[str, Any]:
+    """공개 저장소의 `.gitattributes` LFS scope 를 그 저장소 배치로 다시 쓴다.
+
+    증상 근거: Master 의 `.gitattributes` 를 그대로 복사한 결과, 공개 저장소에는
+    `cpf-release/binary-repository/...` 패턴만 남았다. 공개 저장소에서 Binary Repository 는
+    checkout 최상위의 `binary-repository/...` 이므로 어떤 Runtime 실행물도 LFS 대상이 되지
+    못했고, 110.8MiB 인 cpf-admin 실행물이 일반 Git blob 으로 push 되어 거부된다.
+
+    투영 저장소의 배치를 결정하는 bundle_public_binary_repository 와 붙여 둔다. 떨어뜨리면
+    둘이 서로 다른 경로를 가정하게 된다.
+
+    되돌리면 재발할 증상: Release 는 VERIFIED 인데 push 만 거부되고, 문자열만 비교하는
+    검증은 계속 PASS 를 낸다.
+    """
+    attribute_file = staging / ".gitattributes"
+    if not attribute_file.is_file():
+        raise OpenGitReleaseError(f"public projection has no .gitattributes: {attribute_file}")
+    master_prefix = master_attribute_prefix() + "/"
+    lines = attribute_file.read_text(encoding="utf-8").splitlines()
+    projected: list[str] = []
+    rewritten = 0
+    lfs_rewritten = 0
+    for line in lines:
+        # Master 는 cpf-release 아래에서 추적하고 공개 저장소는 checkout 최상위에서
+        # 추적한다. Binary Repository 를 가리키는 규칙은 LFS 든 whitespace 든 전부 같은
+        # 이동을 겪는다. LFS 줄만 옮기면 나머지 규칙이 죽은 패턴으로 남는다.
+        if line.startswith(master_prefix):
+            projected.append(BINARY_DIR_NAME + "/" + line[len(master_prefix):])
+            rewritten += 1
+            if "filter=lfs" in line:
+                lfs_rewritten += 1
+            continue
+        projected.append(line)
+    remaining = [line for line in projected if line.startswith(RELEASE_DIR_NAME + "/")]
+    if remaining:
+        raise OpenGitReleaseError(
+            f"public projection keeps a Development Master path: {remaining[:5]}")
+    if lfs_rewritten == 0:
+        raise OpenGitReleaseError(
+            "public projection has no Git LFS attribute to project; "
+            f"expected canonical Master scope under {master_prefix}")
+    attribute_file.write_text("\n".join(projected) + "\n", encoding="utf-8", newline="\n")
+    return {"attributeFile": str(attribute_file), "projectedLines": rewritten,
+            "projectedLfsLines": lfs_rewritten,
+            "fromPrefix": master_attribute_prefix(), "toPrefix": BINARY_DIR_NAME}
+
+
 def verify_release_lfs_contract(root: Path, repository: Path, attributes_root: Path, *,
-                                require_git_lfs: bool = True) -> dict[str, Any]:
+                                require_git_lfs: bool = True,
+                                attribute_prefix: str | None = None) -> dict[str, Any]:
     """Run the canonical LFS verifier without mutating an index, object, or checkout."""
     verifier = root / TOOL_REL / "verify_release_lfs_contract.py"
     if not verifier.is_file():
         raise OpenGitReleaseError(f"Git LFS release contract verifier missing: {verifier}")
     command = [sys.executable, "-B", str(verifier), "--root", str(root),
                "--repository", str(repository), "--attributes-root", str(attributes_root)]
+    if attribute_prefix is not None:
+        command += ["--attribute-prefix", attribute_prefix]
     if require_git_lfs:
         command.append("--require-git-lfs")
     output = run(command, root, capture=True)
@@ -1692,7 +1791,10 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     # 기준으로 검증하면 Gradle plugin marker version 이 어긋난다.
     binary_result = verify_binary_repository(
         root, candidate_repo, public_release_version(version), profile)
-    candidate_lfs_result = verify_release_lfs_contract(root, candidate_repo, root)
+    # candidate_repo 는 work 디렉터리다. Master 의 .gitattributes 가 선언해야 하는 것은
+    # work 경로가 아니라 Master 가 실제로 추적하는 Binary Repository 경로다.
+    candidate_lfs_result = verify_release_lfs_contract(
+        root, candidate_repo, root, attribute_prefix=master_attribute_prefix())
 
     release_stage(10, "Open Git 공개 Source 구성", "Generated Domain / Backoffice / EDU / Developer Command")
     env = dict(os.environ)
@@ -1703,6 +1805,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     currentize_public_workspace_version(staging, public_release_version(version))
     cli_result = build_cross_platform_cli(root, staging, source_identity, version)
     bundled_result = bundle_public_binary_repository(candidate_repo, staging)
+    lfs_projection = project_lfs_attributes(root, staging)
     env["CPF_MAVEN_REPOSITORY_URL"] = (staging / BINARY_DIR_NAME).resolve().as_uri()
     source_projection = project_optional_framework_sources(root, staging, profile)
     verify_open_git_tree(root, staging, profile)
@@ -1719,6 +1822,12 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     verify_cross_platform_cli(candidate_open_git, source_identity)
     open_git_lfs_result = verify_release_lfs_contract(
         root, candidate_open_git / BINARY_DIR_NAME, candidate_open_git)
+    # Fresh Clone 은 실제 Git Work Tree 다. 여기서는 .gitattributes 문자열이 아니라 git 이
+    # 적용하는 filter 를 확인할 수 있고, 확인하지 못했다면 그것은 SKIP 이 아니라 실패다.
+    if not open_git_lfs_result.get('attributeEffect', {}).get('verified'):
+        raise OpenGitReleaseError(
+            'Open Git Fresh Clone 에서 Git LFS 적용 효과를 확인하지 못했습니다: '
+            + str(open_git_lfs_result.get('attributeEffect')))
 
     release_stage(12, "Fresh Workspace 빌드·테스트", "Open Git + isolated Binary Repository")
     verifier = candidate_open_git / "tools" / ("verify-open-git-workspace.ps1" if os.name == "nt" else "verify-open-git-workspace.sh")
@@ -1743,11 +1852,12 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
 
     result = {
         "schemaVersion": 1,
-        "status": "PASS",
-        "result": "VERIFIED" if changed else "VERIFIED_NO_CHANGES",
+        "status": RELEASE_STATUS_PASS,
+        "result": RELEASE_RESULT_VERIFIED if changed else RELEASE_RESULT_VERIFIED_NO_CHANGES,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "sourceIdentitySha256": source_identity,
         "privateRepositoryRoot": str(root),
+        "remote": remote,
         "sourceFileCount": source_state.get("fileCount"),
         "privateGitSha": private_git_sha,
         "privateGitBranch": private_git.get("branch"),
@@ -1765,6 +1875,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
             "candidateRepository": candidate_lfs_result,
             "publicStaging": staging_lfs_result,
             "freshOpenGitProjection": open_git_lfs_result,
+            "attributeProjection": lfs_projection,
         },
         "openGitFileCount": open_file_count,
         "binaryFileCount": binary_file_count,
@@ -1786,7 +1897,7 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     promote_release_candidate(release, work, binary=candidate_repo, open_git=candidate_open_git,
                               reports=candidate_reports)
     # Successful release leaves only user-visible deliverables/reports/logs.
-    shutil.rmtree(work)
+    _remove_tree(work)
     return result
 
 
@@ -2024,6 +2135,26 @@ def _require_git_write_approval(approved: bool) -> None:
             "Gradle: -PconfirmGitWrite=true / CLI: --confirm-git-write")
 
 
+def assert_release_eligible_for_git_write(status: dict[str, Any]) -> str:
+    """Release 가 성공으로 끝났을 때만 Git Write 로 진입한다.
+
+    판정 어휘는 build 가 쓰는 상수 그대로다. 양쪽이 각자 문자열을 들고 있으면 반드시
+    어긋난다. 실제로 build 는 result="VERIFIED" 를 쓰는데 gate 는 ("PASS","SUCCESS",
+    "COMPLETED") 만 받아, 정상 Release 가 항상 거부됐다(CRF-62). commit 경로는 그래서 한 번도
+    성공한 적이 없다.
+
+    되돌리면 재발할 증상: Release VERIFIED 인데 Git Write 진입 자체가 불가능하다.
+    """
+    machine = str(status.get("status") or "UNKNOWN").upper()
+    verdict = str(status.get("result") or "UNKNOWN").upper()
+    if machine != RELEASE_STATUS_PASS or verdict not in RELEASE_RESULTS_ELIGIBLE_FOR_GIT_WRITE:
+        raise OpenGitReleaseError(
+            f"Open Git Release 가 성공으로 끝나지 않았습니다: status={machine} result={verdict} "
+            f"(허용: status={RELEASE_STATUS_PASS}, "
+            f"result={'/'.join(RELEASE_RESULTS_ELIGIBLE_FOR_GIT_WRITE)})")
+    return verdict
+
+
 def _open_git_write_preflight(root: Path) -> dict[str, Any]:
     """Commit/Push 직전에 대상·검증 상태를 모두 확인한다.
 
@@ -2049,10 +2180,7 @@ def _open_git_write_preflight(root: Path) -> dict[str, Any]:
     if not (open_git / ".git").exists():
         raise OpenGitReleaseError(f"Open Git 작업 Repository 가 git 저장소가 아닙니다: {open_git}")
 
-    # Release/검증 결과가 PASS 가 아니면 Git Write 로 진입하지 않는다.
-    overall = str(status.get("result") or status.get("status") or "UNKNOWN").upper()
-    if overall not in ("PASS", "SUCCESS", "COMPLETED"):
-        raise OpenGitReleaseError(f"Open Git Release 결과가 PASS 가 아닙니다: {overall}")
+    overall = assert_release_eligible_for_git_write(status)
     leakage = int(status.get("leakageCount", 0) or 0)
     if leakage:
         raise OpenGitReleaseError(f"Open Git Leakage 가 0 이 아닙니다: {leakage}")
@@ -2073,10 +2201,22 @@ def _open_git_write_preflight(root: Path) -> dict[str, Any]:
     if "origin" not in remotes:
         raise OpenGitReleaseError("Open Git remote origin 이 설정되어 있지 않습니다.")
     remote_url = _git(open_git, "remote", "get-url", "origin")
-    expected_remote = str(status.get("remote") or "").strip()
-    if expected_remote and remote_url.strip() != expected_remote:
+    # 정본 판정은 정책의 repository 다. Release Status 의 선택적 필드에 의존하면 그 필드가
+    # 비었을 때 대조가 통째로 건너뛰어지고, 어떤 remote 로도 push 가 통과한다.
+    assert_canonical_remote_url(root, remote_url)
+    recorded_remote = str(status.get("remote") or "").strip()
+    if recorded_remote and remote_url.strip() != recorded_remote:
         raise OpenGitReleaseError(
-            f"Open Git remote 가 정본과 다릅니다. expected={expected_remote} actual={remote_url}")
+            f"Open Git remote 가 Release 기록과 다릅니다. recorded={recorded_remote} actual={remote_url}")
+
+    # 검증은 work 후보에서 끝났고 실제 push 대상은 승격된 이 저장소다. 여기서 한 번 더 본다.
+    lfs = verify_release_lfs_contract(root, open_git / BINARY_DIR_NAME, open_git)
+    if not lfs.get("attributeEffect", {}).get("verified"):
+        raise OpenGitReleaseError(
+            f"Push 대상에서 Git LFS 적용 효과를 확인하지 못했습니다: {lfs.get('attributeEffect')}")
+    if not lfs.get("transportLimit", {}).get("verified"):
+        raise OpenGitReleaseError(
+            f"Push 대상에서 전송 한도를 확인하지 못했습니다: {lfs.get('transportLimit')}")
 
     changed = _git(open_git, "status", "--short")
     print("CPF Open Git Git Write 사전 점검")
@@ -2087,12 +2227,14 @@ def _open_git_write_preflight(root: Path) -> dict[str, Any]:
     print(f"Release 결과    : {overall}")
     print(f"Leakage         : {leakage}")
     print(f"Source Identity : {status.get('sourceIdentitySha256')}")
+    print(f"Git LFS 적용     : {lfs['attributeEffect']}")
+    print(f"전송 한도        : {lfs['transportLimit']}")
     print(f"변경 파일       : {len(changed.splitlines())} files")
     if changed:
         for line in changed.splitlines()[:50]:
             print(f"  {line}")
     return {"openGit": open_git, "branch": branch, "remote": remote_url,
-            "changed": changed, "status": status}
+            "changed": changed, "status": status, "gitLfs": lfs}
 
 
 def commit_release(root: Path, *, approved: bool, message: str | None = None) -> dict[str, Any]:
@@ -2164,9 +2306,19 @@ def main() -> int:
         try:
             failed_reports = release_root(root) / REPORTS_DIR_NAME
             if failed_reports.is_dir():
-                write_json(failed_reports / "OPEN_GIT_RELEASE_STATUS.json", result)
-                write_status_md(failed_reports / "OPEN_GIT_RELEASE_STATUS.md", result)
-                _append_log(f"[CPF][OPEN-GIT] FAIL {exc}")
+                # OPEN_GIT_RELEASE_STATUS 는 build 가 소유한 Release 증적이다. commit/push/check
+                # 실패로 이것을 덮어쓰면 VERIFIED 기록과 Source Identity 가 사라지고, 다음 실행은
+                # 빈 openGit 을 Path("")=="." 로 읽어 엉뚱한 오류를 낸다. 최초 실패 원인까지
+                # 함께 지워진다. 실패 기록은 각 action 이 자기 파일에 남긴다.
+                if args.action == "build":
+                    write_json(failed_reports / "OPEN_GIT_RELEASE_STATUS.json", result)
+                    write_status_md(failed_reports / "OPEN_GIT_RELEASE_STATUS.md", result)
+                else:
+                    failure = dict(result)
+                    failure["action"] = args.action
+                    failure["failedAt"] = datetime.now(timezone.utc).isoformat()
+                    write_json(failed_reports / f"OPEN_GIT_{args.action.upper()}_FAILURE.json", failure)
+                _append_log(f"[CPF][OPEN-GIT] FAIL action={args.action} {exc}")
         except Exception:
             pass
     # build 요약은 build 에서만 출력한다. Git Write 결과는 각 함수가 자체 표준 출력을 남긴다.

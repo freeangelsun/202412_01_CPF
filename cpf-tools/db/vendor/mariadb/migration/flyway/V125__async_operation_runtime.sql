@@ -35,4 +35,3 @@ CREATE INDEX ix_ops_async_operation_state ON OPS_ASYNC_OPERATION (state, submitt
 CREATE INDEX ix_ops_async_operation_tx ON OPS_ASYNC_OPERATION (transaction_id, submitted_at);
 CREATE INDEX ix_ops_async_operation_lease ON OPS_ASYNC_OPERATION (state, lease_until);
 CREATE INDEX ix_ops_async_operation_expiry ON OPS_ASYNC_OPERATION (expires_at, state);
-

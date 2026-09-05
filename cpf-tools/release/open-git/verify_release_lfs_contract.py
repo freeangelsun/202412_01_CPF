@@ -77,30 +77,56 @@ def executable_rule(authority: dict[str, Any]) -> dict[str, Any]:
     return rule
 
 
-def expected_attribute_lines(root: Path) -> set[str]:
+LFS_ATTRIBUTE_SUFFIX = " filter=lfs diff=lfs merge=lfs -text"
+
+
+def resolve_attribute_prefix(repository: Path, attributes_root: Path, explicit: str | None) -> str:
+    """LFS 패턴이 붙어야 할 Binary Repository 경로를 그 저장소 배치에서 구한다.
+
+    Master 와 Open Git 투영본은 Binary Repository 의 깊이가 다르다. Master 는
+    ``cpf-release/binary-repository`` 이고 공개 저장소는 checkout 최상위의
+    ``binary-repository`` 다. 한쪽 경로를 정답으로 박아 두면 다른 쪽에서 어떤 패턴도
+    매칭되지 않는다.
+    """
+    if explicit is not None:
+        value = explicit.strip().strip("/")
+        if not value or value.startswith("/") or ".." in Path(value).parts:
+            raise LfsContractError("RELEASE_MANIFEST_MISMATCH", f"unsafe attribute prefix={explicit!r}")
+        return value
+    try:
+        return repository.relative_to(attributes_root).as_posix()
+    except ValueError as exc:
+        raise LfsContractError(
+            "RELEASE_MANIFEST_MISMATCH",
+            f"binary repository is outside the attributes root: {repository}") from exc
+
+
+def expected_attribute_lines(root: Path, prefix: str) -> set[str]:
     authority = source_policy(root)
     rule = executable_rule(authority)
-    template = str(rule.get("gitAttributesPathTemplate") or "")
+    template = str(rule.get("binaryRepositoryRelativePathTemplate") or "")
     if "{artifactId}" not in template:
         raise LfsContractError("RELEASE_MANIFEST_MISMATCH", "LFS attribute path template is missing artifactId")
-    return {template.format(artifactId=artifact_id) + " filter=lfs diff=lfs merge=lfs -text"
+    if template.startswith("/") or ".." in Path(template).parts:
+        raise LfsContractError("RELEASE_MANIFEST_MISMATCH", f"unsafe LFS attribute template={template!r}")
+    return {f"{prefix}/{template.format(artifactId=artifact_id)}" + LFS_ATTRIBUTE_SUFFIX
             for artifact_id in binary_runtime_artifact_ids(root)}
 
 
-def verify_attributes(root: Path, attributes_root: Path) -> set[str]:
+def verify_attributes(root: Path, attributes_root: Path, prefix: str) -> set[str]:
     attribute_file = attributes_root / ".gitattributes"
     if not attribute_file.is_file():
         raise LfsContractError("RELEASE_MANIFEST_MISMATCH", f".gitattributes missing: {attribute_file}")
     lines = [line.strip() for line in attribute_file.read_text(encoding="utf-8").splitlines()
              if line.strip() and not line.lstrip().startswith("#")]
     actual = {line for line in lines if "filter=lfs" in line}
-    expected = expected_attribute_lines(root)
+    expected = expected_attribute_lines(root, prefix)
     if actual != expected:
         missing = sorted(expected - actual)
         extra = sorted(actual - expected)
         raise LfsContractError("RELEASE_MANIFEST_MISMATCH",
                                f"LFS attribute scope drift missing={missing} extra={extra}")
-    broad = {"*.jar", "**/*.jar", "cpf-release/binary-repository/**/*.jar"}
+    broad = {"*.jar", "**/*.jar", f"{prefix}/**/*.jar", f"{prefix}/**/*"}
     if {line.split(maxsplit=1)[0] for line in actual}.intersection(broad):
         raise LfsContractError("RELEASE_MANIFEST_MISMATCH", "global JAR LFS attribute is forbidden")
     return expected
@@ -201,21 +227,144 @@ def verify_git_lfs_available(*, pull: bool, checkout: Path) -> None:
             raise LfsContractError("LFS_DOWNLOAD_FAILED", result.stdout.strip() or "git lfs pull failed")
 
 
+def _git_binary() -> str:
+    git = shutil.which("git")
+    if not git:
+        raise LfsContractError("GIT_LFS_NOT_AVAILABLE", "git command is unavailable")
+    return git
+
+
+def _check_attr_filter(checkout: Path, relative_paths: list[str]) -> dict[str, str]:
+    """git 이 각 경로에 실제로 적용하는 filter 를 읽는다."""
+    if not relative_paths:
+        return {}
+    result = subprocess.run([_git_binary(), "check-attr", "filter", "--", *relative_paths],
+                            cwd=checkout, text=True, encoding="utf-8",
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    if result.returncode != 0:
+        raise LfsContractError("LFS_ATTRIBUTE_NOT_APPLIED",
+                               f"git check-attr failed: {result.stdout.strip()}")
+    applied: dict[str, str] = {}
+    for line in result.stdout.splitlines():
+        marker = ": filter: "
+        index = line.rfind(marker)
+        if index < 0:
+            continue
+        applied[line[:index]] = line[index + len(marker):].strip()
+    return applied
+
+
+def verify_attribute_effect(attributes_root: Path, prefix: str,
+                            artifacts: list[dict[str, Any]],
+                            runtime_ids: list[str]) -> dict[str, Any]:
+    """`.gitattributes` 문자열이 아니라 git 이 실제 적용하는 filter 를 확인한다.
+
+    증상 근거: Master 의 `.gitattributes` 를 그대로 복사한 공개 저장소에서 LFS 패턴은
+    ``cpf-release/binary-repository/...`` 를 가리켰고 실제 Artifact 는 최상위
+    ``binary-repository/...`` 에 있었다. 문자열만 비교하던 검증기는 PASS 를 냈고,
+    110.8MiB 인 cpf-admin 실행물이 일반 Git blob 으로 남아 push 가 거부된다.
+
+    되돌리면 재발할 증상: Release VERIFIED 인데 push 만 REJECTED 되는 조합이 되살아난다.
+    """
+    if not (attributes_root / ".git").exists():
+        return {"verified": False, "reason": "NOT_A_GIT_WORK_TREE"}
+    targets: list[str] = []
+    for artifact_id in runtime_ids:
+        for row in artifacts:
+            if str(row.get("artifactId")) != artifact_id:
+                continue
+            relative = _safe_relative(row.get("relativePath"))
+            if relative.suffix != ".jar":
+                continue
+            targets.append(f"{prefix}/{relative.as_posix()}")
+    if len(targets) != len(runtime_ids):
+        raise LfsContractError(
+            "RUNTIME_ARTIFACT_INVALID",
+            f"executable runtime artifact drift expected={len(runtime_ids)} actual={len(targets)}")
+    applied = _check_attr_filter(attributes_root, targets)
+    wrong = sorted(path for path in targets if applied.get(path) != "lfs")
+    if wrong:
+        raise LfsContractError(
+            "LFS_ATTRIBUTE_NOT_APPLIED",
+            "declared LFS scope does not apply to the actual artifact path: "
+            + ", ".join(f"{path}->{applied.get(path, 'MISSING')}" for path in wrong[:10]))
+    return {"verified": True, "artifactCount": len(targets)}
+
+
+def _pushable_paths(checkout: Path) -> list[str]:
+    """전송 대상이 되는 파일만 고른다.
+
+    filesystem 을 그대로 훑으면 gitignore 된 work/build 산출물까지 집계된다. 그 파일들은
+    push 되지 않으므로 외부 transport 한도와 무관하다. git 이 tracked 로 보거나, ignore
+    되지 않은 untracked 로 보는 것만 대상이다.
+    """
+    result = subprocess.run(
+        [_git_binary(), "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+        cwd=checkout, text=True, encoding="utf-8",
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    if result.returncode != 0:
+        raise LfsContractError("RELEASE_MANIFEST_MISMATCH",
+                               f"git ls-files failed: {result.stdout.strip()}")
+    return [value for value in result.stdout.split(chr(0)) if value]
+
+
+def verify_transport_limit(root: Path, attributes_root: Path) -> dict[str, Any]:
+    """일반 Git blob 으로 남은 파일이 외부 transport 한도를 넘는지 본다.
+
+    이 한도는 CPF Packaging 의 목표치가 아니라 호스팅이 강제하는 외부 제약이다. 이 숫자에
+    맞추려고 Runtime Architecture 를 바꾸지 않는다. 넘는 파일은 LFS 로 옮길 뿐이다.
+    """
+    classification = source_policy(root).get("artifactClassification")
+    transport = classification.get("gitLfs") if isinstance(classification, dict) else None
+    if not isinstance(transport, dict):
+        raise LfsContractError("RELEASE_MANIFEST_MISMATCH", "releaseAssetPolicy.gitLfs is missing")
+    limit = transport.get("regularGitTransportLimitBytes")
+    if not isinstance(limit, int) or limit <= 0:
+        raise LfsContractError("RELEASE_MANIFEST_MISMATCH",
+                               "gitLfs.regularGitTransportLimitBytes must be a positive integer")
+    if not (attributes_root / ".git").exists():
+        return {"verified": False, "reason": "NOT_A_GIT_WORK_TREE", "limitBytes": limit}
+    oversized: list[str] = []
+    for relative_path in _pushable_paths(attributes_root):
+        target = attributes_root / relative_path
+        try:
+            size = target.stat().st_size
+        except OSError:
+            continue
+        if size > limit:
+            oversized.append(relative_path)
+    applied = _check_attr_filter(attributes_root, sorted(oversized))
+    regular = sorted(path for path in oversized if applied.get(path) != "lfs")
+    if regular:
+        raise LfsContractError(
+            "GIT_TRANSPORT_LIMIT_EXCEEDED",
+            f"file exceeds the {limit} byte regular Git transport limit without Git LFS: "
+            + ", ".join(regular[:10]))
+    return {"verified": True, "limitBytes": limit, "overLimitOnLfs": len(oversized)}
+
+
 def verify(root: Path, repository: Path, attributes_root: Path, *, require_git_lfs: bool,
-           pull_if_checkout: bool) -> dict[str, Any]:
+           pull_if_checkout: bool, attribute_prefix: str | None = None) -> dict[str, Any]:
     root = root.resolve()
     repository = repository.resolve()
     attributes_root = attributes_root.resolve()
-    expected = verify_attributes(root, attributes_root)
+    prefix = resolve_attribute_prefix(repository, attributes_root, attribute_prefix)
+    expected = verify_attributes(root, attributes_root, prefix)
     if require_git_lfs:
         verify_git_lfs_available(pull=pull_if_checkout, checkout=attributes_root)
     artifacts = load_manifest(repository)
+    runtime_ids = binary_runtime_artifact_ids(root)
     verify_runtime_artifacts(root, repository, artifacts)
+    effect = verify_attribute_effect(attributes_root, prefix, artifacts, runtime_ids)
+    transport = verify_transport_limit(root, attributes_root)
     return {
         "status": "PASS",
-        "runtimeArtifactCount": len(binary_runtime_artifact_ids(root)),
+        "runtimeArtifactCount": len(runtime_ids),
         "manifestArtifactCount": len(artifacts),
         "lfsAttributeCount": len(expected),
+        "attributePrefix": prefix,
+        "attributeEffect": effect,
+        "transportLimit": transport,
         "repository": str(repository),
         "attributesRoot": str(attributes_root),
         "gitLfsRequired": require_git_lfs,
@@ -229,11 +378,14 @@ def main() -> int:
     parser.add_argument("--attributes-root", type=Path, required=True)
     parser.add_argument("--require-git-lfs", action="store_true")
     parser.add_argument("--pull-if-checkout", action="store_true")
+    parser.add_argument("--attribute-prefix", default=None,
+                        help="Binary Repository 의 저장소 내 상대 경로. 생략하면 실제 배치에서 구한다.")
     args = parser.parse_args()
     try:
         print(json.dumps(verify(args.root, args.repository, args.attributes_root,
                                  require_git_lfs=args.require_git_lfs,
-                                 pull_if_checkout=args.pull_if_checkout), ensure_ascii=False, sort_keys=True))
+                                 pull_if_checkout=args.pull_if_checkout,
+                                 attribute_prefix=args.attribute_prefix), ensure_ascii=False, sort_keys=True))
         return 0
     except LfsContractError as exc:
         print(f"CPF_RELEASE_LFS=FAIL {exc}", file=sys.stderr)

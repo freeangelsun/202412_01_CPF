@@ -1,10 +1,10 @@
 # CPF Open Git Release Status
 
 - Status: **VERIFIED**
-- Source Identity: `303275aa18a668e081b4129c16e3d98f2219d20ceefc011ca6dae10303e88ae8`
+- Source Identity: `7c4bffcd2cc32a0092dfb512a497bc77867131ff1ec554df98a3dc7d1481308f`
 - Private Repository Root: `C:\dev\projects\jck\202412_01_CPF`
 - Private Git Branch: `master`
-- Private Git SHA: `5c1a3f7f5890ae98ea6f7a23f43331d7773a9e07`
+- Private Git SHA: `69bc50cfa9f0847c75e158c860de3c7655fb72e3`
 - Private Working Tree Dirty: True
 - Private cpf-release Tracked: True
 - Platform Version: `1.0.0-SNAPSHOT`
@@ -19,16 +19,16 @@
 ## Private Git Status --short
 
 ```text
-M cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md
- M cpf-docs/governance/development-harness/current/CANONICAL_PRODUCT_REQUIREMENTS.csv
- M cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md
- M cpf-docs/governance/development-harness/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md
- M cpf-docs/governance/development-harness/current/CURRENT_CANONICAL_DETAILED_BRIDGE.csv
- M cpf-docs/governance/development-harness/current/CURRENT_DETAILED_REVIEW.md
+M .gitattributes
+ M cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md
+ M cpf-docs/governance/development-harness/current/CONSUMER_RUNTIME_FINDING_LEDGER.csv
  M cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv
- M cpf-docs/governance/development-harness/current/TEST_EXECUTION_LEDGER.csv
- M cpf-docs/governance/development-harness/product/CPF_PRODUCT_ARCHITECTURE_AND_REQUIREMENTS.md
+ M cpf-docs/governance/development-harness/evidence/claude/current/CLAUDE_COLLABORATION_HANDOFF.md
  M cpf-docs/governance/development-harness/tests/test_negative_fixtures.py
+ M cpf-external/online/build.gradle
+ M cpf-gateway/src/test/java/com/cpf/gateway/scg/CpfScgPrimaryRouteConfigurationTest.java
+ M cpf-member/batch/build.gradle
+ M cpf-member/online/build.gradle
  D cpf-release/binary-repository/com/cpf/batch/cpf-batch-api/1.0.0/cpf-batch-api-1.0.0.jar
  D cpf-release/binary-repository/com/cpf/batch/cpf-batch-api/1.0.0/cpf-batch-api-1.0.0.pom
  D cpf-release/binary-repository/com/cpf/common/cpf-common/1.0.0/cpf-common-1.0.0.jar
@@ -161,17 +161,24 @@ M cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md
  D cpf-release/reports/OPEN_GIT_RELEASE_STATUS.json
  D cpf-release/reports/OPEN_GIT_RELEASE_STATUS.md
  D cpf-release/reports/OPEN_GIT_USER_GIT_COMMANDS.md
- M cpf-tools/contracts/configuration/hardcoding-classification.csv
- M cpf-tools/release/open-git/README.md
+ M cpf-tools/db/vendor/mariadb/domain-template/provision/02_principals.sql.template
+ M cpf-tools/db/vendor/mariadb/migration/flyway/V125__async_operation_runtime.sql
+ M cpf-tools/db/vendor/mariadb/migration/flyway/V133__backoffice_mbw_identity.sql
+ M cpf-tools/db/vendor/mariadb/migration/flyway/V80__adm_gateway_navigation_permissions.sql
+ M cpf-tools/db/vendor/mariadb/source/migration/flyway/V125__async_operation_runtime.sql
+ M cpf-tools/db/vendor/oracle/domain-template/provision/02_principals.sql.template
+ M cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V125__async_operation_runtime.sql
+ M cpf-tools/db/vendor/oracle/migration/flyway/mbwDB/V133__backoffice_mbw_identity.sql
+ M cpf-tools/db/vendor/postgresql/domain-template/provision/02_principals.sql.template
+ M cpf-tools/db/vendor/postgresql/migration/flyway/admDB/V80__adm_gateway_navigation_permissions.sql
+ M cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V125__async_operation_runtime.sql
+ M cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/V133__backoffice_mbw_identity.sql
+ M cpf-tools/generator/engine/cpf_domain_generator.py
  M cpf-tools/release/open-git/cpf_open_git.py
- M cpf-tools/release/open-git/tests/test_cpf_open_git.py
- M cpf-tools/runtime/bootstrap/CpfBootstrap.java
- M cpf-tools/runtime/cli/contracts/cpf-command-catalog.json
- M cpf-tools/verification/nxt3/verify_nxt3_config_contract.py
- M cpf-tools/verification/tests/test_cpf_cross_platform_cli_contract.py
+ M cpf-tools/release/open-git/open-git-surface-policy.json
+ M cpf-tools/release/open-git/tests/test_release_lfs_contract.py
+ M cpf-tools/release/open-git/verify_release_lfs_contract.py
  M cpf-tools/verification/tests/test_cpf_release_asset_freshness_contract.py
- M cpf-tools/verification/tests/test_nxt3_config_contract_scan_scope.py
-?? cpf-tools/release/open-git/tests/test_release_lfs_contract.py
 ```
 
 ## Paths

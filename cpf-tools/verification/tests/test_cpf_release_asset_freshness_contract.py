@@ -221,18 +221,26 @@ class AxisIndependence(unittest.TestCase):
                        "evidence", "reason", "meaning", "intent", "scopeConflictNote",
                        "operatorEditableNote", "disabledRowNote", "unknownArtifactNote")
     THRESHOLD_KEY_HINTS = ("threshold", "maxsize", "sizelimit", "limitbytes", "cutoff")
+    # 외부 호스팅이 강제하는 전송 제약. 우리가 고른 판정 기준이 아니므로 금지 대상과 구분하되,
+    # 소유 선언(<key>Owner)이 함께 있을 때만 예외로 인정한다.
+    EXTERNAL_TRANSPORT_KEYS = ("regularGitTransportLimitBytes",)
 
     def test_no_size_threshold_is_hardcoded(self) -> None:
         """임의 용량 기준을 정책에 숫자로 박지 않는다.
 
         실측 근거(예: "2026-09-05 실측 111.3MB")는 금지 대상이 아니다. 금지하는 것은
         "50MB 이상 제외" 같은 판정 기준이다. 기준을 숫자로 박으면 실측 없이 결론이 나온다.
+        외부 호스팅이 강제하는 전송 제약은 우리가 고른 기준이 아니므로 별도 계약으로 다룬다
+        (test_external_transport_limit_declares_that_it_is_not_a_packaging_target).
         """
         offenders: list[str] = []
 
         def walk(node, path: str) -> None:
             if isinstance(node, dict):
                 for key, value in node.items():
+                    if key in self.EXTERNAL_TRANSPORT_KEYS:
+                        walk(value, f"{path}.{key}")
+                        continue
                     if any(hint in key.lower() for hint in self.THRESHOLD_KEY_HINTS):
                         offenders.append(f"{path}.{key}")
                     walk(value, f"{path}.{key}")
@@ -248,6 +256,57 @@ class AxisIndependence(unittest.TestCase):
 
         walk(authority(), "releaseAssetPolicy")
         self.assertEqual([], offenders, f"임의 용량 기준이 하드코딩됐다: {offenders}")
+
+    def test_external_transport_limit_declares_that_it_is_not_a_packaging_target(self) -> None:
+        """CRF-59. 외부 전송 한도는 소유가 선언될 때만 예외다.
+
+        선언이 사라지면 그 숫자는 다시 "우리가 고른 판정 기준"이 되고, Runtime Dependency 를
+        용량만으로 지우는 근거로 오용된다. 예외를 인정하는 대신 근거를 강제한다.
+        """
+        classification = authority().get("artifactClassification")
+        self.assertIsInstance(classification, dict, "artifactClassification이 없다")
+        transport = classification.get("gitLfs")
+        self.assertIsInstance(transport, dict, "gitLfs 계약이 없다")
+        for key in self.EXTERNAL_TRANSPORT_KEYS:
+            if key not in transport:
+                continue
+            self.assertIsInstance(transport[key], int, f"{key}는 정수여야 한다")
+            self.assertGreater(transport[key], 0, f"{key}는 양수여야 한다")
+            owner = str(transport.get(key.replace("Bytes", "") + "Owner") or "")
+            self.assertTrue(owner.strip(), f"{key}의 소유 선언이 없다")
+            lowered = owner.lower()
+            self.assertIn("external", lowered,
+                          f"{key}가 외부 제약임을 선언하지 않았다: {owner}")
+            self.assertIn("never a cpf", lowered,
+                          f"{key}가 CPF 목표치가 아님을 선언하지 않았다: {owner}")
+
+    def test_transport_limit_failure_is_fail_closed(self) -> None:
+        """CRF-59. 전송 한도 위반과 LFS 미적용은 각각 fail-closed 코드를 갖는다."""
+        transport = authority()["artifactClassification"]["gitLfs"]
+        codes = transport.get("failClosedCodes")
+        self.assertIsInstance(codes, list, "failClosedCodes가 없다")
+        for code in ("LFS_ATTRIBUTE_NOT_APPLIED", "GIT_TRANSPORT_LIMIT_EXCEEDED"):
+            self.assertIn(code, codes, f"{code}가 fail-closed 목록에 없다")
+
+    def test_lfs_scope_template_is_binary_repository_relative(self) -> None:
+        """CRF-59. LFS scope template은 저장소 배치에 독립이어야 한다.
+
+        Master 경로를 template에 박으면 공개 저장소로 그대로 복사됐을 때 어떤 패턴도
+        매칭되지 않고, 110.8MiB 실행물이 일반 Git blob으로 남는다.
+        """
+        rules = authority()["artifactClassification"]["rules"]
+        matches = [row for row in rules if row.get("id") == "publicBinaryRuntimeExecutable"]
+        self.assertEqual(1, len(matches), "publicBinaryRuntimeExecutable 규칙이 하나여야 한다")
+        rule = matches[0]
+        self.assertNotIn("gitAttributesPathTemplate", rule,
+                         "저장소 절대 경로 template이 남아 있다")
+        template = str(rule.get("binaryRepositoryRelativePathTemplate") or "")
+        self.assertIn("{artifactId}", template, "template에 artifactId가 없다")
+        self.assertFalse(template.startswith("/"), "template은 상대 경로여야 한다")
+        layout = policy()
+        for owned in (layout["releaseRoot"], layout["binaryRepositoryDirectory"]):
+            self.assertFalse(template.startswith(str(owned) + "/"),
+                             f"template이 저장소 배치({owned})를 품고 있다: {template}")
 
     def test_size_evidence_is_recorded_where_an_exception_exists(self) -> None:
         """예외를 두었다면 그 근거가 실측으로 남아 있어야 한다."""
@@ -654,6 +713,52 @@ class PayloadCompositionContract(unittest.TestCase):
         text = read(HARNESS)
         self.assertIn("thin JAR / fat JAR Architecture", text,
                       "포장 방식 변경이 Product Contract 결정이라는 선언이 없다")
+
+
+class DependencyOwnershipContract(unittest.TestCase):
+    """LFS 채택은 Dependency 품질 검증을 대체하지 않는다(Harness §39.6)."""
+
+    OWNERSHIP_TOOL = "cpf-tools/release/open-git/report_runtime_dependency_ownership.py"
+
+    def test_ownership_tool_exists(self) -> None:
+        self.assertTrue((REPO_ROOT / self.OWNERSHIP_TOOL).is_file(),
+                        "Dependency Ownership 분석 도구가 없다")
+
+    def test_tool_checks_every_required_dimension(self) -> None:
+        text = read(REPO_ROOT / self.OWNERSHIP_TOOL)
+        for field in ("wrongScopeTest", "wrongScopeDev", "duplicateVersion",
+                      "dualWebStack", "crossRoleRuntimeModules", "frontendWaste"):
+            self.assertIn(field, text, f"Dependency Ownership 검사 항목이 빠졌다: {field}")
+
+    def test_tool_measures_and_never_deletes(self) -> None:
+        """grep 한 번으로 '안 쓰니 삭제' 하지 않는다. 이 도구는 측정만 한다.
+
+        보고서(--out)를 쓰는 것은 측정의 일부다. 금지하는 것은 Artifact/Source 변경이다.
+        """
+        text = read(REPO_ROOT / self.OWNERSHIP_TOOL)
+        for forbidden in ("os.remove", "unlink(", "shutil.move", "shutil.rmtree", "zipfile.ZipFile(.*'w'"):
+            self.assertNotIn(forbidden, text,
+                             f"분석 도구가 Artifact/Source 를 변경한다: {forbidden}")
+        writes = re.findall(r"(\w+)\.write_text\(", text)
+        self.assertEqual(["out"], sorted(set(writes)),
+                         f"보고서 출력 외의 파일 쓰기가 있다: {sorted(set(writes))}")
+        self.assertIn("SUSPECT", text, "판정을 SUSPECT 로 남기지 않고 단정한다")
+
+    def test_annotation_processor_never_reaches_production_runtime(self) -> None:
+        """compile 전용 도구가 production 실행물에 실리면 Wrong Scope 다."""
+        starter = REPO_ROOT / "cpf-starters/integration/resilience/build.gradle"
+        if not starter.is_file():
+            self.skipTest("resilience starter 가 이 배포 범위에 없다")
+        text = read(starter)
+        self.assertIn("spring-boot-configuration-processor", text,
+                      "configuration processor 전이 차단이 사라졌다")
+        self.assertIn("exclude group: 'org.springframework.boot'", text,
+                      "runtime 으로 새는 configuration processor 를 제외하지 않는다")
+
+    def test_harness_keeps_dependency_qa_after_lfs(self) -> None:
+        text = read(HARNESS)
+        self.assertIn("Dependency Ownership", text,
+                      "LFS 채택 후에도 Dependency Ownership 검증을 유지한다는 Rule 이 없다")
 
 
 class HarnessAndRegistryRelation(unittest.TestCase):

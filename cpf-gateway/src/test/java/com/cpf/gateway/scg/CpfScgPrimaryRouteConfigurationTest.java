@@ -12,7 +12,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.servlet.function.RequestPredicate;
 import org.springframework.web.servlet.function.ServerRequest;
 
-@SuppressWarnings("deprecation")
 class CpfScgPrimaryRouteConfigurationTest {
     @Test
     void platformOpenApiAndSwaggerRequestsNeverEnterBusinessGatewayRouting() {

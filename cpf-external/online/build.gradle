@@ -104,4 +104,3 @@ tasks.register('prepareCpfVendorResources') {
 }
 sourceSets.main.resources.srcDir(cpfVendorResourceRoot)
 tasks.named('processResources') { dependsOn tasks.named('prepareCpfVendorResources') }
-

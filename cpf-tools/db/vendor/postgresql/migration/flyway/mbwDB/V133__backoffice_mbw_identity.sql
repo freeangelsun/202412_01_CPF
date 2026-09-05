@@ -58,4 +58,3 @@ UPDATE MBW_MENU SET route_path = REPLACE(route_path, '/bza', '/backoffice') WHER
 UPDATE MBW_MENU SET api_path = REPLACE(api_path, '/api/bza', '/api/v1/backoffice') WHERE api_path LIKE '/api/bza%';
 UPDATE MBW_PERMISSION SET menu_code = REPLACE(menu_code, 'BZA_', 'MBW_') WHERE menu_code LIKE 'BZA_%';
 UPDATE MBW_PERMISSION SET api_pattern = REPLACE(api_pattern, '/api/bza', '/api/v1/backoffice') WHERE api_pattern LIKE '/api/bza%';
-

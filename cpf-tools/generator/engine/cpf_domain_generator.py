@@ -2646,6 +2646,13 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
     for rel in list(files):
         if rel.endswith((".java",".kt")):
             files[rel]=ensure_java_korean_contract_comments(files[rel])
+    # 파일 끝의 빈 줄은 git 의 whitespace 검사가 오류(exit=2)로 잡고, 공개 Release 의
+    # `git diff --cached --check` 가 거기서 막힌다. template 마다 줄바꿈을 세지 않고
+    # 여기 한 곳에서 정규화한다. hash 계산(_expected_hashes)과 실제 쓰기(write_text)가
+    # 같은 내용을 보게 하려면 두 경로가 갈라지기 전인 이 지점이어야 한다.
+    for rel in list(files):
+        text=files[rel]
+        if text.strip(): files[rel]=text.rstrip("\n")+"\n"
     return files,deps
 
 def normalized_bytes(content: str) -> bytes:

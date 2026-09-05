@@ -28,6 +28,10 @@
 /cpf-docs/work/BASE_SHA.txt export-subst
 # Public Runtime catalog(provision=binary) executable artifacts only use LFS.
 # Do not widen this to *.jar: library/starter JARs and all metadata stay in regular Git.
+# 생성 Release Artifact 는 CPF 가 쓴 Source 가 아니다. Gradle maven-publish 의 XML writer 가
+# 내는 들여쓰기 공백까지 source whitespace 검사로 잡으면 Release Commit 이 막힌다.
+# .gitattributes 는 줄 끝 주석을 지원하지 않으므로 설명은 항상 별도 줄에 둔다.
+cpf-release/binary-repository/** -whitespace
 cpf-release/binary-repository/com/cpf/runtime/cpf-admin/*/cpf-admin-*.jar filter=lfs diff=lfs merge=lfs -text
 cpf-release/binary-repository/com/cpf/runtime/cpf-gateway/*/cpf-gateway-*.jar filter=lfs diff=lfs merge=lfs -text
 cpf-release/binary-repository/com/cpf/runtime/cpf-batch-control-plane/*/cpf-batch-control-plane-*.jar filter=lfs diff=lfs merge=lfs -text

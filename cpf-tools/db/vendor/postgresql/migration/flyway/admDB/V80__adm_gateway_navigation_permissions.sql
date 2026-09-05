@@ -143,4 +143,3 @@ INSERT INTO adm_role_api_permission (role_id,api_permission_id,allow_yn,created_
  ('ADM_VIEWER','API_GATEWAY_CONNECTION_TEST','N','SYSTEM','SYSTEM'),
  ('ADM_VIEWER','API_GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')
 ON CONFLICT (role_id,api_permission_id) DO UPDATE SET allow_yn=EXCLUDED.allow_yn,updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-

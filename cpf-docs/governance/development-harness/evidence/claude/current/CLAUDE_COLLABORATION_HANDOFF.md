@@ -206,6 +206,97 @@ Acceptance A("Master checkout 만으로 Current Verified Deliverable 을 확인�
 
 ---
 
+## L-10. Dependency Ownership 분석 (CRF-56 / 57 / 58) — Codex 가 LFS Writer 인 동안 수행
+
+**역할 분담:** Codex 가 Git LFS 구현(.gitattributes, verify_release_lfs_contract.py, policy/engine)의
+Source Writer 였다. Harness §93/§94 에 따라 나는 Writer 를 피하고 분석·검증을 맡았다. Codex 의 LFS
+validator 는 PASS(LFS 9 / runtime 9 / manifest 124)이고 내 asset 계약과 충돌 없음을 먼저 확인했다.
+
+**LFS 채택은 Dependency 품질 검증을 대체하지 않는다**(Steering §26). 새 분석기
+`cpf-tools/release/open-git/report_runtime_dependency_ownership.py` 로 9개 Runtime 실행물 내부를 재고
+분석했다. 결과: `current/RUNTIME_DEPENDENCY_OWNERSHIP.json`.
+
+| ID | 판정 | 내용 |
+| --- | --- | --- |
+| **CRF-56** | **수정함** | compile 전용 `spring-boot-configuration-processor`(146KB)가 production Runtime 6종에 배포. CPF 선언은 전부 `annotationProcessor` 로 옳았고, 외부 `spring-cloud-circuitbreaker-resilience4j:5.0.2` 가 runtime 스코프로 흘린 것. `cpf-starters/integration/resilience/build.gradle` 에서 해당 module 만 exclude. 수정 후 runtimeClasspath 에서 소멸 확인 |
+| **CRF-57** | **결함 아님** | Jackson 2(2.21.4)+3(3.1.4) 공존은 `CpfJackson2AutoConfiguration` 이 명시한 의도된 계약. CPF 소스 153파일이 Jackson 2 사용. `REQUIRED_BY_PRODUCT_CONTRACT` 로 종결 |
+| **CRF-58** | **보존 결정** | HTTP/3 QUIC native 5플랫폼 11.68MB/Runtime × 6. CPF 는 HTTP/3 미설정이나, LFS 로 크기 제약이 해소됐고 Steering §27 이 크기를 이유로 한 제거를 금지한다. upstream opt-in 기능이므로 근거와 함께 보존 |
+
+**지켜야 할 판정 규칙 (Harness §39.6.1 로 정본화)**
+1. `grep` 결과로 삭제하지 않는다. 유입 경로는 `dependencyInsight` 로 특정한다.
+2. 판정은 `SUSPECT` 까지. 제거는 Source Owner 결정.
+3. **크기를 이유로 필요한 Dependency 를 제거하지 않는다.** LFS 가 있으므로 GitHub 제한은
+   Runtime Architecture 의 목표값이 아니다.
+4. 근거가 확인된 공존은 결함이 아니다.
+
+**주의:** `report_runtime_dependency_ownership.py` 는 측정 전용이다. Artifact/Source 를 바꾸지 않는다
+(계약 `test_tool_measures_and_never_deletes` 가 강제).
+
+**아직 안 된 것:** CRF-56 수정은 Source 단계까지다. 실행물 반영은 다음 Fresh Release 에서 확인해야
+한다(기존 실행물은 수정 전 빌드). 분석기를 다시 돌리면 그때 `wrongScopeDev` 가 비어야 한다.
+
+---
+
+## L-11 CRF-59 — 공개 저장소 LFS scope 가 적용되지 않았다 (False Green)
+
+**증상.** Open Git 공개 저장소에서 Runtime 실행물 9종이 전부 LFS 대상이 아니었다.
+
+```
+$ git check-attr filter -- binary-repository/com/cpf/runtime/cpf-admin/1.0.0/cpf-admin-1.0.0.jar
+binary-repository/com/cpf/runtime/cpf-admin/1.0.0/cpf-admin-1.0.0.jar: filter: unspecified
+```
+
+`cpf-admin-1.0.0.jar` 116,214,604 byte(110.8MiB), `cpf-local-runtime-1.0.0-local-web.jar`
+116,516,941 byte(111.1MiB). GitHub 파일당 한도 100MiB 초과. **push 하면 거부된다.**
+그런데 Release 는 `VERIFIED`, LFS 검증기는 `PASS` 였다.
+
+**직접 원인.** `.gitattributes` 의 LFS 패턴이 `cpf-release/binary-repository/...` 로 고정돼 있고,
+공개 저장소로 그대로 복사됐다. 공개 저장소의 Binary Repository 는 checkout 최상위의
+`binary-repository/...` 이므로 어떤 패턴도 매칭되지 않는다.
+
+**왜 검증을 통과했나.** 검증기가 `.gitattributes` **문자열**이 정책 template 과 같은지만 봤다.
+문자열은 양쪽 다 `cpf-release/binary-repository/...` 라 일치했다. git 이 실제로 filter 를
+적용하는지는 묻지 않았다.
+
+**수정.**
+
+| 대상 | 내용 |
+| --- | --- |
+| `open-git-surface-policy.json` | `gitAttributesPathTemplate` → `binaryRepositoryRelativePathTemplate` (저장소 배치 독립 단일 권위), `regularGitTransportLimitBytes` + 소유 선언, failClosedCodes 2건 |
+| `cpf_open_git.py` | `project_lfs_attributes` (투영본 scope 재작성), `master_attribute_prefix`, Fresh Clone 적용 효과 fail-closed, push preflight LFS gate |
+| `verify_release_lfs_contract.py` | `resolve_attribute_prefix`, `verify_attribute_effect`(git check-attr), `verify_transport_limit`(git ls-files 기준) |
+
+**실측.** 수정 후 공개 투영본 `attributeEffect={verified:true,artifactCount:9}`,
+`transportLimit={limitBytes:104857600,overLimitOnLfs:2,verified:true}`. Master 측은
+`attributePrefix=cpf-release/binary-repository` 로 동일 통과.
+
+**되돌리면 재발할 증상.** Release VERIFIED / push REJECTED 조합. 45분짜리 Release 를 마친 뒤
+push 단계에서야 거부되고, 검증기는 계속 PASS 를 낸다.
+
+**지켜야 할 규칙 (Harness §39.2 Rule 8-1/8-2/8-3 으로 정본화)**
+1. LFS 경로 접두사는 저장소마다 다르다. 한쪽 경로를 template 에 박고 복사하지 마라.
+2. `.gitattributes` 문자열 일치는 적용 근거가 아니다. Git Work Tree 에서는 `git check-attr` 로
+   확인하고, 확인하지 못한 상태는 SKIP 이 아니라 **실패**다.
+3. 외부 전송 한도는 정책이 선언하고 push 전에 검사한다. 검사 대상은
+   `git ls-files --cached --others --exclude-standard` 가 보는 실제 전송 대상이다.
+4. 한도 초과는 **Dependency 를 지우라는 뜻이 아니라 LFS 로 옮기라는 뜻**이다(§39.6.1과 동일).
+
+## L-12 CRF-60 — 불필요한 deprecation 억제
+
+`CpfScgPrimaryRouteConfigurationTest` 의 `@SuppressWarnings("deprecation")` 제거.
+spring-webmvc 7.0.8 의 `ServerRequest.java` 에 `@Deprecated` 가 0건이다. upstream 이 deprecation 을
+해제했는데 억제만 남아 JDT 가 `Unnecessary @SuppressWarnings` 경고를 냈다.
+
+## L-13 VS Code — 구버전 language server 좀비
+
+`init.gradle does not exist` 오류의 실체는 Product 결함이 아니었다. redhat.java 확장이
+1.55.0 → 1.56.0 으로 올라가면서 **1.55.0 language server(PID 42420)가 종료되지 않고 남았고**,
+자기 globalStorage(`redhat.java/1.55.0/config_win`)는 삭제된 상태로 1.56.0 서버와 같은 JDT
+workspace 를 물고 있었다. 좀비 프로세스를 종료해야 해소된다. 확장 업데이트 후 Problems 에
+없어진 경로가 보이면 **먼저 language server 프로세스 목록을 확인**하라.
+
+---
+
 ## 다음 작업자 주의
 
 1. Runtime Group/Target 목록을 CLI Source, launcher, README, help 에 복제하지 마라. catalog 가 정본이다.

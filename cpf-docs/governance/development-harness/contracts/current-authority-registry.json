@@ -12,14 +12,17 @@
     "cpf-docs/governance/development-harness/current/CONTROL_EXECUTION_LEDGER.csv",
     "cpf-docs/governance/development-harness/current/CURRENT_MERGE_CONTROL_STATE.json",
     "cpf-docs/governance/development-harness/current/CURRENT_GARBAGE_DECISIONS.csv",
-    "cpf-docs/governance/development-harness/current/DELETE_MANIFEST.csv"
+    "cpf-docs/governance/development-harness/current/DELETE_MANIFEST.csv",
+    "cpf-docs/governance/development-harness/current/CONSUMER_RUNTIME_FINDING_LEDGER.csv"
   ],
   "generatedProjections": [
     "cpf-docs/governance/development-harness/PRODUCT_CONFORMANCE_REPORT.json",
     "cpf-docs/governance/development-harness/current/CURRENT_DETAILED_REVIEW.md",
     "cpf-docs/governance/development-harness/current/CURRENT_DEVELOPMENT_STATUS.md",
     "cpf-docs/governance/development-harness/current/CURRENT_WORK_REQUEST_AND_STATUS.md",
-    "cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv"
+    "cpf-docs/governance/development-harness/current/REQUIREMENT_STATUS.csv",
+    "cpf-docs/governance/development-harness/current/PUBLIC_LAUNCHER_WRAPPER_INVENTORY.csv",
+    "cpf-docs/governance/development-harness/current/RELEASE_ASSET_INVENTORY.csv"
   ],
   "historicalProvenance": [
     "cpf-docs/governance/development-harness/current/CODEX_FINDING_CLOSURE.csv",

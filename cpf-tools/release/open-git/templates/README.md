@@ -67,11 +67,13 @@ Runtime 운영의 공식 진입점은 `cpf` 하나입니다. Windows와 Linux가
 | 단위 | 예 |
 | --- | --- |
 | 전체 | `cpf start all` · `cpf status all` · `cpf stop all` |
-| Platform | `cpf start platform` (ADM, Gateway) |
+| Platform | `cpf start platform` · `cpf start admin` · `cpf start gateway` |
 | 업무 Domain | `cpf start domains` |
 | Backoffice Stack | `cpf start backoffice-stack` (MBW → Backoffice Web 순서) |
 | Batch | `cpf start batch` |
-| 개별 Runtime | `cpf start admin` · `cpf restart batch-worker` · `cpf log backoffice` |
+| 개별 Runtime | `cpf start admin` · `cpf start backoffice` · `cpf start backoffice-web` |
+| | `cpf restart batch-worker` · `cpf status backoffice-web` · `cpf start education` |
+| | `cpf start local-runtime` (하나의 WAS 로 통합 실행) · `cpf log backoffice` |
 
 ```powershell
 .\cpf.cmd start platform
@@ -110,8 +112,11 @@ Generated Domain은 만들면 곧바로 대상에 포함됩니다. 예를 들어
 | Runtime | Target | 기본 Port | Port 환경변수 | 접속 URL |
 | --- | --- | --- | --- | --- |
 | ADM 운영 콘솔 | `admin` | 8090 | `ADM_SERVER_PORT` | http://127.0.0.1:8090/adm/ |
+| API Gateway | `gateway` | 8070 | `GWY_SERVER_PORT` | http://127.0.0.1:8070/actuator/health |
 | MBW 업무 Domain | `backoffice` | 8091 | `MBW_ONLINE_PORT` | http://127.0.0.1:8091/actuator/health |
 | Backoffice Web(MBW Channel Front) | `backoffice-web` | 8092 | `MBW_WEB_PORT` | http://127.0.0.1:8092/mbw/ |
+| EDU 교육/샘플 Runtime | `education` | 8099 | `EDU_SERVER_PORT` | http://127.0.0.1:8099/actuator/health |
+| 1-WAS 통합 Local Runtime | `local-runtime` | 8080 | `CPF_LOCAL_RUNTIME_PORT` | http://127.0.0.1:8080/actuator/health |
 
 Port를 바꾸려면 해당 환경변수를 설정한 뒤 기동합니다(예: `ADM_SERVER_PORT=18090`).
 

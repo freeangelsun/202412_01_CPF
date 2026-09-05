@@ -1,0 +1,173 @@
+{
+  "contract": "CPF_SERVICE_REGISTRY_PROVISIONING",
+  "schemaVersion": 1,
+  "intent": [
+    "Runtime Control Agent 는 자기 service_id 가 중앙 Registry(OPS_SERVICE)에 등록되어 있어야 기동한다. 이 fail-closed 계약은 유지한다.",
+    "사용자가 만든 Generated Domain 의 service 를 누가 등록하는지가 정해져 있지 않으면 그 Domain 은 영원히 기동할 수 없다.",
+    "등록의 실행 주체는 cpf bootstrap 의 Platform DB provisioning lifecycle 이고, 등록 규칙의 정본은 이 계약이다.",
+    "Generator, ADM, Runtime 어느 한 곳의 임시 부가기능으로 구현하지 않는다.",
+    "Domain 이름을 하드코딩하지 않는다. Workspace 에서 발견된 모든 Generated Domain 에 같은 규칙을 적용한다.",
+    "Runtime 은 service 와 endpoint 가 모두 등록되어 있어야 기동한다. 둘 다 같은 lifecycle 로 맞춘다."
+  ],
+  "executor": "cpf bootstrap platform database provisioning lifecycle",
+  "owner": "canonical service registry provisioning contract (this file)",
+  "table": "OPS_SERVICE",
+  "keyColumn": "service_id",
+  "appliesTo": {
+    "selector": "everyDiscoveredGeneratedDomain",
+    "discovery": "cpf-tools/runtime/cpf-runtime-target-catalog.json#discovery.domain",
+    "note": "Domain 이름/SystemCode 목록을 이 계약에도, 실행 코드에도 복제하지 않는다."
+  },
+  "profileInvariant": true,
+  "profileNote": "local/dev/stg/test/prod 가 같은 lifecycle 계약을 쓴다. 환경 차이는 DB endpoint/credential 뿐이다.",
+  "valueSources": {
+    "service_id": {
+      "from": "domainContract",
+      "key": "cpf.domain.systemCode",
+      "transform": "NONE"
+    },
+    "service_name": {
+      "from": "domainContract",
+      "key": "cpf.domain.name",
+      "transform": "NONE"
+    },
+    "service_type": {
+      "from": "contractConstant",
+      "value": "INTERNAL"
+    },
+    "owner_module_code": {
+      "from": "domainContract",
+      "key": "cpf.domain.systemCode",
+      "transform": "NONE"
+    },
+    "use_yn": {
+      "from": "contractConstant",
+      "value": "Y"
+    },
+    "created_by": {
+      "from": "contractConstant",
+      "value": "CPF_BOOTSTRAP"
+    },
+    "updated_by": {
+      "from": "contractConstant",
+      "value": "CPF_BOOTSTRAP"
+    }
+  },
+  "transformPolicy": {
+    "allowed": [
+      "NONE"
+    ],
+    "forbidden": [
+      "TRUNCATE",
+      "INFER",
+      "FALLBACK",
+      "CONCATENATE"
+    ],
+    "note": "값은 canonical 계약에서 그대로 가져온다. 이름을 잘라내거나 유추하거나 임시로 조합하지 않는다."
+  },
+  "reconcile": {
+    "order": [
+      "validate",
+      "reconcile",
+      "failClosed"
+    ],
+    "absent": "REGISTER",
+    "identicalContract": "IDEMPOTENT_PASS",
+    "conflict": "FAIL_CLOSED",
+    "neverOverwriteExistingRow": true,
+    "idempotentOnRerun": true,
+    "conflictColumns": [
+      "owner_module_code",
+      "service_type"
+    ],
+    "operatorEditableColumns": [
+      "service_name",
+      "description"
+    ],
+    "operatorEditableNote": "표시용 값이 다르면 운영자가 바꾼 것이다. provisioning 이 덮어쓰지 않는다.",
+    "disabledRow": "FAIL_CLOSED",
+    "disabledRowNote": "use_yn='N' 은 운영자가 의도적으로 내린 상태다. provisioning 이 조용히 다시 켜지 않는다.",
+    "runtimeSelfRegistration": "FORBIDDEN"
+  },
+  "statements": {
+    "select": "runtime/cpf/repository/service-registry-select.sql",
+    "insert": "runtime/cpf/repository/service-registry-insert.sql",
+    "root": "deploy/local/db/vendor/{vendor}",
+    "canonicalRoot": "cpf-tools/db/vendor/{vendor}",
+    "note": "SQL 은 vendor pack 이 정본이다. 실행 코드에 SQL 문자열을 복제하지 않는다."
+  },
+  "officialDbVendors": [
+    "mariadb",
+    "oracle",
+    "postgresql"
+  ],
+  "requiredValidator": "cpf-tools/verification/tests/test_cpf_service_registry_provisioning_contract.py",
+  "harnessRule": "cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md#40",
+  "endpointTable": {
+    "table": "OPS_SERVICE_ENDPOINT",
+    "keyColumn": "endpoint_code",
+    "scopeColumn": "service_id",
+    "codeAuthority": {
+      "owner": "cpf-starters/platform-operations/runtime-control",
+      "property": "cpf.runtime.control.agent.endpoint-code",
+      "defaultPattern": "{service_id}_API",
+      "note": "endpoint code 의 정본은 Runtime Control 의 기본값이다. provisioning 이 새 규칙을 만들지 않고 같은 값을 쓴다."
+    },
+    "valueSources": {
+      "endpoint_code": {
+        "from": "runtimeControlContract",
+        "pattern": "{service_id}_API"
+      },
+      "service_id": {
+        "from": "domainContract",
+        "key": "cpf.domain.systemCode",
+        "transform": "NONE"
+      },
+      "endpoint_name": {
+        "from": "contractTemplate",
+        "pattern": "{service_id} API Endpoint",
+        "note": "Platform seed 와 같은 표기 규칙이다."
+      },
+      "endpoint_type": {
+        "from": "contractConstant",
+        "value": "HTTP"
+      },
+      "base_url": {
+        "from": "contractTemplate",
+        "pattern": "http://127.0.0.1:{cpf.domain.localOnlinePort}",
+        "note": "운영자가 ADM 에서 환경별로 바꾸는 기본값이다. provisioning 은 최초 1회만 넣는다."
+      },
+      "use_yn": {
+        "from": "contractConstant",
+        "value": "Y"
+      },
+      "created_by": {
+        "from": "contractConstant",
+        "value": "CPF_BOOTSTRAP"
+      },
+      "updated_by": {
+        "from": "contractConstant",
+        "value": "CPF_BOOTSTRAP"
+      }
+    },
+    "reconcile": {
+      "absent": "REGISTER",
+      "present": "IDEMPOTENT_PASS",
+      "neverOverwriteExistingRow": true,
+      "disabledRow": "FAIL_CLOSED",
+      "scopeConflict": "FAIL_CLOSED",
+      "scopeConflictNote": "같은 endpoint_code 가 다른 service 에 속해 있으면 덮어쓰지 않고 멈춘다.",
+      "operatorEditableColumns": [
+        "endpoint_name",
+        "base_url",
+        "context_path",
+        "default_timeout_ms",
+        "default_retry_count"
+      ]
+    },
+    "statements": {
+      "select": "runtime/cpf/repository/service-endpoint-select.sql",
+      "insert": "runtime/cpf/repository/service-endpoint-insert.sql"
+    }
+  }
+}

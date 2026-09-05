@@ -32,6 +32,7 @@ _NEG_GROUPS={
         'mutation_public_launcher_shared_project_cache_reentry',
         'mutation_public_root_settings_project_cache_reentry',
         'mutation_ide_separate_project_cache_reentry',
+        'mutation_release_cleanup_before_prerequisite_check',
         'consumer_regression_contract_positive_control',
         'mutation_finding_ledger_collapsed_into_one',
         'mutation_public_runtime_lifecycle_delegates_internal_engine',
@@ -83,11 +84,87 @@ _NEG_GROUPS={
         'mutation_stop_keeps_start_order',
         'mutation_unsupported_capability_silently_passed',
         'mutation_launcher_verb_parity_broken',
+        'mutation_powershell_wrapper_target_translation_removed',
         'mutation_launcher_reimplements_command_parsing',
         'mutation_readme_command_not_in_cli',
+        'mutation_public_runtime_left_undocumented',
+        'mutation_public_runtime_not_obtainable',
         'mutation_lifecycle_verb_not_public',
         'mutation_harness_lifecycle_cli_rule_removed',
         'mutation_registry_validator_relation_removed',
+    },
+    'RELEASE_ASSET': {
+        'release_asset_freshness_contract_positive_control',
+        'mutation_release_asset_authority_removed',
+        'mutation_produced_asset_declaration_removed',
+        'mutation_produced_asset_becomes_release_input',
+        'mutation_release_asset_axis_declaration_removed',
+        'mutation_release_asset_classification_unmapped',
+        'mutation_release_asset_classified_by_path_name',
+        'mutation_release_asset_classified_by_extension',
+        'mutation_tracked_result_becomes_release_input',
+        'mutation_tracked_result_exempted_from_fresh_regeneration',
+        'mutation_public_surface_inferred_from_master_tracking',
+        'mutation_untracked_result_forced_out_of_public_release',
+        'mutation_tracking_exception_reason_removed',
+        'mutation_tracking_exception_evidence_reduced',
+        'mutation_size_threshold_hardcoded',
+        'mutation_canonical_source_regenerated_by_release_engine',
+        'mutation_canonical_source_reuses_previous_release_output',
+        'mutation_canonical_source_verification_reduced',
+        'mutation_launcher_reclassified_as_tracked_result',
+        'mutation_release_engine_generates_launcher_body',
+        'mutation_release_engine_classifies_by_extension',
+        'mutation_generator_input_declaration_removed',
+        'mutation_promotion_before_verification',
+        'mutation_artifact_set_currentized_non_atomically',
+        'mutation_release_clean_uses_git_clean',
+        'mutation_release_clean_protects_no_repository_authority',
+        'mutation_previous_release_residue_allowed',
+        'mutation_release_destroys_before_prerequisites',
+        'mutation_engine_generates_before_cleaning_release_root',
+        'mutation_engine_reads_previous_release_as_input',
+        'mutation_engine_publishes_outside_isolated_staging',
+        'mutation_publisher_targets_open_git_tree',
+        'mutation_gitignore_blanket_excludes_release_artifacts',
+        'mutation_gitignore_excludes_release_metadata_too',
+        'mutation_unknown_artifact_silently_allowed',
+        'mutation_tracking_exception_without_measured_evidence',
+        'mutation_size_threshold_replaces_measurement',
+        'mutation_untracked_artifact_dropped_from_public_release',
+        'mutation_payload_composition_rule_removed',
+        'mutation_payload_tool_reports_only_total_size',
+        'mutation_development_gate_forced_to_full_release',
+        'mutation_final_order_projects_before_build',
+        'mutation_single_acceptance_statement_allowed',
+        'mutation_previous_release_copy_kept_in_working_tree',
+        'mutation_harness_release_asset_rule_removed',
+        'mutation_release_asset_registry_relation_removed',
+    },
+    'SERVICE_REGISTRY': {
+        'service_registry_provisioning_contract_positive_control',
+        'mutation_service_registry_contract_removed',
+        'mutation_service_registry_owner_becomes_the_generator',
+        'mutation_service_registry_required_column_unprovided',
+        'mutation_service_registry_identity_inferred_from_domain_name',
+        'mutation_service_registry_transform_allows_fallback',
+        'mutation_service_registry_targets_enumerated_domains',
+        'mutation_service_registry_conflict_overwrites_existing_row',
+        'mutation_service_registry_disabled_row_silently_enabled',
+        'mutation_service_registry_runtime_self_registration_allowed',
+        'mutation_service_registry_rerun_not_idempotent',
+        'mutation_service_registry_profile_specific_behaviour',
+        'mutation_service_registry_vendor_sql_removed',
+        'mutation_service_endpoint_provisioning_removed',
+        'mutation_service_endpoint_code_diverges_from_runtime',
+        'mutation_service_endpoint_scope_conflict_overwrites',
+        'mutation_service_endpoint_reconcile_not_wired',
+        'mutation_service_registry_sql_duplicated_in_bootstrap',
+        'mutation_service_registry_reconcile_not_wired_into_bootstrap',
+        'mutation_service_registry_domain_name_hardcoded_in_bootstrap',
+        'mutation_service_registry_contract_not_projected_to_public',
+        'mutation_harness_service_registry_rule_removed',
+        'mutation_service_registry_registry_relation_removed',
     },
 }
 def _enabled(name):
@@ -672,11 +749,12 @@ _consumer_mut('mutation_finding_ledger_collapsed_into_one',mut_finding_ledger_co
               '직접 Root Cause 가 중복된 Finding')
 
 # CRF-11 공개 Profile 의 runtime lifecycle 을 내부 엔진 위임으로 되돌린다.
+# Lifecycle selector 를 profile 별로 다른 engine 에 위임하도록 되돌린다.
 _consumer_mut('mutation_public_runtime_lifecycle_delegates_internal_engine',
               lambda root: _sub(root,'cpf-tools/runtime/cli/java/CpfCli.java',
-                                'if (!internalEnabled()) return requireJava25Then(() -> runClass(root, "CpfBootstrap"',
-                                'if (false) return requireJava25Then(() -> runClass(root, "CpfBootstrap"'),
-              '공개 Profile 의 runtime lifecycle 이 공개 CLI 안에서 처리되지 않는다')
+                                'return requireJava25Then(() -> runClass(root, "CpfBootstrap", forwarded));',
+                                'return requireJava25Then(() -> internalRuntime(root, action, forwarded));'),
+              'Lifecycle selector가 canonical Java engine으로 가지 않는다')
 
 # CRF-14 ADM 이 요구하는 CmnCryptoService 공급을 없앤다.
 _consumer_mut('mutation_security_common_crypto_service_unregistered',
@@ -905,10 +983,14 @@ _CLI_FILES=[
     'cpf-tools/runtime/cpf-runtime-target-catalog.json',
     'cpf-tools/runtime/cli/java/CpfCli.java',
     'cpf-tools/runtime/cli/java/CpfRuntimeTargets.java',
+    'cpf-tools/runtime/cli/java/CpfGeneratorLauncher.java',
     'cpf-tools/runtime/bootstrap/CpfBootstrap.java',
     'cpf-tools/release/open-git/templates/README.md',
     'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md',
     'cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv',
+    'cpf-tools/release/open-git/templates/build.gradle',
+    'cpf-tools/release/open-git/open-git-surface-policy.json',
+    'cpf-tools/release/open-git/cpf_open_git.py',
 ]
 for _script in sorted((ROOT/'cpf-tools/release/open-git/templates/bin').glob('cpf*')):
     _CLI_FILES.append('cpf-tools/release/open-git/templates/bin/'+_script.name)
@@ -1061,6 +1143,12 @@ def mut_launcher_verb_parity(root):
 _cli_mut('mutation_launcher_verb_parity_broken',mut_launcher_verb_parity,
          'Windows/Linux wrapper 의미가 다르다')
 
+def mut_powershell_target_translation(root):
+    _cli_sub(root,'cpf-tools/release/open-git/templates/bin/cpf-start.ps1',
+             "@('--target', $Target)","@($Target)")
+_cli_mut('mutation_powershell_wrapper_target_translation_removed',mut_powershell_target_translation,
+         '-Target 을 --target 으로 넘기지 않는다')
+
 def mut_launcher_reimplements_parsing(root):
     p=root/'cpf-tools/release/open-git/templates/bin/cpf.sh'
     p.write_text(p.read_text(encoding='utf-8')
@@ -1074,6 +1162,27 @@ def mut_readme_command_not_in_cli(root):
                  +chr(10)+'```bash'+chr(10)+'./bin/cpf launch all'+chr(10)+'```'+chr(10),encoding='utf-8')
 _cli_mut('mutation_readme_command_not_in_cli',mut_readme_command_not_in_cli,
          'README 가 CLI 에 없는 명령을 안내한다')
+
+def mut_public_runtime_undocumented(root):
+    # 배포되는 Runtime 하나의 실행 안내를 README 에서 지운다.
+    p=root/'cpf-tools/release/open-git/templates/README.md'
+    text=p.read_text(encoding='utf-8')
+    kept=[l for l in text.splitlines(True) if 'cpf start education' not in l and 'EDU_SERVER_PORT' not in l]
+    p.write_text(''.join(kept),encoding='utf-8')
+_cli_mut('mutation_public_runtime_left_undocumented',mut_public_runtime_undocumented,
+         'README 가 배포되는 Runtime 의 실행 방법을 알려주지 않는다')
+
+def mut_public_runtime_not_obtainable(root):
+    # binary 공개 Runtime 의 발행 좌표를 지운다. 공개로 표시했는데 실행물을 얻을 길이 없다.
+    import json as _json
+    p=root/_CLI_CATALOG
+    model=_json.loads(p.read_text(encoding='utf-8'))
+    for entry in model['runtimes']:
+        if entry.get('provision')=='binary' and entry.get('publicationClass')=='PUBLIC_RUNTIME':
+            entry['artifactId']=''
+    p.write_text(_json.dumps(model,ensure_ascii=False,indent=2)+chr(10),encoding='utf-8')
+_cli_mut('mutation_public_runtime_not_obtainable',mut_public_runtime_not_obtainable,
+         '공개 Runtime 인데 배포본에서 얻을 수 없다')
 
 def mut_lifecycle_verb_not_public(root):
     _cli_sub(root,'cpf-tools/runtime/cli/java/CpfCli.java',
@@ -1110,6 +1219,576 @@ def mut_ide_separate_project_cache(root):
 _contract_mut('mutation_ide_separate_project_cache_reentry',_SHELL_TEST,
               'cpf-ide-project-cache-negative-',_SHELL_FILES,'CPF_DEVELOPER_SHELL_ROOT',
               mut_ide_separate_project_cache,'IDE import 가 CLI 와 다른 project cache 를 쓰면')
+
+# 파괴적 재생성은 모든 전제조건 확인 뒤에만 수행한다(CRF-49).
+_OPEN_GIT_TASK_TEST=ROOT/'cpf-tools/verification/tests/test_cpf_open_git_task_contract.py'
+_OPEN_GIT_TASK_FILES=[
+    'cpf-tools/release/open-git/cpf_open_git.py',
+    'cpf-tools/release/open-git/cpf-open-git.ps1',
+    'cpf-tools/build/cpf-root-conventions.gradle',
+]
+
+def mut_release_cleanup_before_prerequisite(root):
+    # remote 확인을 다시 삭제 뒤로 옮긴다.
+    p=root/'cpf-tools/release/open-git/cpf_open_git.py'
+    t=p.read_text(encoding='utf-8')
+    line='    remote = canonical_remote(root, remote_arg)'+chr(10)
+    if line not in t: raise AssertionError('remote 확인 지점을 찾지 못했다')
+    t=t.replace(line,'',1)
+    marker='    version = platform_version(root)'+chr(10)
+    if marker not in t: raise AssertionError('version 확인 지점을 찾지 못했다')
+    p.write_text(t.replace(marker,marker+line,1),encoding='utf-8')
+_contract_mut('mutation_release_cleanup_before_prerequisite_check',_OPEN_GIT_TASK_TEST,
+              'cpf-open-git-task-negative-',_OPEN_GIT_TASK_FILES,'CPF_OPEN_GIT_TASK_ROOT',
+              mut_release_cleanup_before_prerequisite,
+              '확인하기 전에 직전 Release 산출물을 삭제한다')
+
+# Release Asset 보존 / Fresh 재생성 계약(Harness 39).
+# "Master 에 저장한다" 와 "다음 Release 에 재사용한다" 를 섞는 되돌림을 각각 잡는다.
+_ASSET_TEST=ROOT/'cpf-tools/verification/tests/test_cpf_release_asset_freshness_contract.py'
+_ASSET_FILES=[
+    'cpf-tools/release/open-git/open-git-surface-policy.json',
+    'cpf-tools/release/open-git/cpf_open_git.py',
+    'cpf-tools/db/canonical/platform-schema.json',
+    '.gitignore',
+    'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md',
+    'cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv',
+]
+for _launcher in sorted((ROOT/'cpf-tools/release/open-git/templates/bin').glob('cpf*')):
+    _ASSET_FILES.append('cpf-tools/release/open-git/templates/bin/'+_launcher.name)
+_ASSET_FILES.append('cpf-tools/release/open-git/report_release_payload_composition.py')
+_ASSET_FILES.append('cpf-tools/release/open-git/report_release_binary_tracking.py')
+_ASSET_PREFIX='cpf-release-asset-negative-'
+_ASSET_ENV='CPF_RELEASE_ASSET_ROOT'
+_ASSET_POLICY='cpf-tools/release/open-git/open-git-surface-policy.json'
+_ASSET_CANONICAL='CANONICAL_RELEASE_SOURCE'
+_ASSET_TRACKED='TRACKED_VERIFIED_RELEASE_RESULT'
+_ASSET_UNTRACKED='UNTRACKED_RELEASE_RESULT'
+
+def _asset_mut(name, mutate, expected):
+    _contract_mut(name,_ASSET_TEST,_ASSET_PREFIX,_ASSET_FILES,_ASSET_ENV,mutate,expected)
+
+def _asset_model(root):
+    import json as _json
+    return _json.loads((root/_ASSET_POLICY).read_text(encoding='utf-8'))
+
+def _asset_write(root, model):
+    import json as _json
+    (root/_ASSET_POLICY).write_text(_json.dumps(model,ensure_ascii=False,indent=2)+chr(10),encoding='utf-8')
+
+def _asset_edit(root, mutate):
+    model=_asset_model(root); mutate(model['releaseAssetPolicy']); _asset_write(root,model)
+
+_contract_positive('release_asset_freshness_contract_positive_control',_ASSET_TEST,
+                   _ASSET_PREFIX,_ASSET_FILES,_ASSET_ENV)
+
+def mut_authority_removed(root):
+    model=_asset_model(root); model.pop('releaseAssetPolicy',None); _asset_write(root,model)
+_asset_mut('mutation_release_asset_authority_removed',mut_authority_removed,
+           'Release Asset 분류 정본')
+
+def mut_produced_assets_removed(root):
+    model=_asset_model(root); model.pop('releaseProducedAssets',None); _asset_write(root,model)
+_asset_mut('mutation_produced_asset_declaration_removed',mut_produced_assets_removed,
+           'Release 엔진 생성 자산 선언이 없다')
+
+def mut_produced_asset_as_input(root):
+    model=_asset_model(root)
+    for asset in model['releaseProducedAssets']['assets']:
+        asset['releaseAssetClass']=_ASSET_CANONICAL
+    _asset_write(root,model)
+_asset_mut('mutation_produced_asset_becomes_release_input',mut_produced_asset_as_input,
+           '엔진 생성 자산이 다음 Release 의 입력 권한을 갖는다')
+
+_asset_mut('mutation_release_asset_axis_declaration_removed',
+           lambda root: _asset_edit(root, lambda a: a['axes'].pop('releaseInputAuthority',None)),
+           'Release Asset 축 선언이 없다')
+
+_asset_mut('mutation_release_asset_classification_unmapped',
+           lambda root: _asset_edit(root, lambda a: a['classificationMapping'].pop('OPEN_GIT_USER_SCRIPT',None)),
+           'Release Asset 부류가 없는 classification')
+
+def _map_set(key, value):
+    def apply(a): a['classificationMapping'][key]=value
+    return apply
+
+_asset_mut('mutation_release_asset_classified_by_path_name',
+           lambda root: _asset_edit(root,_map_set('bin/cpf',_ASSET_CANONICAL)),
+           '경로로 분류한 항목이 있다')
+
+_asset_mut('mutation_release_asset_classified_by_extension',
+           lambda root: _asset_edit(root,_map_set('.jar',_ASSET_TRACKED)),
+           '확장자로 분류한 항목이 있다')
+
+# 보존과 입력을 섞는 되돌림.
+def _class_set(name, key, value):
+    def apply(a): a['classes'][name][key]=value
+    return apply
+
+_asset_mut('mutation_tracked_result_becomes_release_input',
+           lambda root: _asset_edit(root,_class_set(_ASSET_TRACKED,'releaseInputAuthority',True)),
+           '다음 Release 의 입력으로 쓴다')
+
+_asset_mut('mutation_tracked_result_exempted_from_fresh_regeneration',
+           lambda root: _asset_edit(root,_class_set(_ASSET_TRACKED,'freshRegenerationRequired',False)),
+           'Fresh 재생성 의무를 면제받는다')
+
+_asset_mut('mutation_public_surface_inferred_from_master_tracking',
+           lambda root: _asset_edit(root,_class_set(_ASSET_TRACKED,'publicRelease',True)),
+           '공개 여부를 Master 보존 여부로 정한다')
+
+_asset_mut('mutation_untracked_result_forced_out_of_public_release',
+           lambda root: _asset_edit(root,_class_set(_ASSET_UNTRACKED,'publicRelease',False)),
+           'Master 미보존이 공개 배포 제외로 연결된다')
+
+_asset_mut('mutation_tracking_exception_reason_removed',
+           lambda root: _asset_edit(root,_class_set(_ASSET_UNTRACKED,'trackingExceptionReasonRequired',False)),
+           'Master 보존 제외에 이유를 요구하지 않는다')
+
+def mut_exception_evidence_reduced(root):
+    def apply(a):
+        evidence=a['classes'][_ASSET_UNTRACKED]['trackingExceptionEvidence']
+        a['classes'][_ASSET_UNTRACKED]['trackingExceptionEvidence']=[
+            e for e in evidence if e!='clonePullImpact']
+    _asset_edit(root,apply)
+_asset_mut('mutation_tracking_exception_evidence_reduced',mut_exception_evidence_reduced,
+           '보존 제외 근거 항목이 빠졌다')
+
+def mut_size_threshold_hardcoded(root):
+    def apply(a): a['classes'][_ASSET_UNTRACKED]['sizeThreshold']='50MB 이상 제외'
+    _asset_edit(root,apply)
+_asset_mut('mutation_size_threshold_hardcoded',mut_size_threshold_hardcoded,
+           '임의 용량 기준이 하드코딩됐다')
+
+# Canonical Source 를 Release 가 다시 만들거나 지난 출력을 이어 쓰는 되돌림.
+_asset_mut('mutation_canonical_source_regenerated_by_release_engine',
+           lambda root: _asset_edit(root,_class_set(_ASSET_CANONICAL,'freshRegenerationRequired',True)),
+           '사람이 작성한 정본을 Release 가 다시 코드 생성한다')
+
+_asset_mut('mutation_canonical_source_reuses_previous_release_output',
+           lambda root: _asset_edit(root,_class_set(_ASSET_CANONICAL,'reusePreviousReleaseOutput',True)),
+           '지난 Release tree 의 파일을 그대로 이어 쓴다')
+
+def mut_canonical_verification_reduced(root):
+    def apply(a):
+        checks=a['classes'][_ASSET_CANONICAL]['verificationPolicy']
+        a['classes'][_ASSET_CANONICAL]['verificationPolicy']=[
+            c for c in checks if c!='freshConsumerExecution']
+    _asset_edit(root,apply)
+_asset_mut('mutation_canonical_source_verification_reduced',mut_canonical_verification_reduced,
+           '매 Release 검증 항목이 빠졌다')
+
+def mut_launcher_reclassified(root):
+    model=_asset_model(root)
+    for key in ('sourceRules','templateRules'):
+        for rule in model.get(key,[]):
+            if str(rule.get('target','')).startswith('bin/cpf'):
+                rule['releaseAssetClass']=_ASSET_TRACKED
+    _asset_write(root,model)
+_asset_mut('mutation_launcher_reclassified_as_tracked_result',mut_launcher_reclassified,
+           '공개 launcher 가 정본 Source 부류가 아니다')
+
+def mut_engine_generates_launcher(root):
+    p=root/'cpf-tools/release/open-git/cpf_open_git.py'
+    p.write_text(p.read_text(encoding='utf-8')
+                 +chr(10)+'def _emit_launcher(path):'+chr(10)
+                 +'    path.write_text("#!/usr/bin/env sh")'+chr(10),encoding='utf-8')
+_asset_mut('mutation_release_engine_generates_launcher_body',mut_engine_generates_launcher,
+           'Release 엔진이 launcher 본문을 생성한다')
+
+def mut_engine_classifies_by_extension(root):
+    p=root/'cpf-tools/release/open-git/cpf_open_git.py'
+    p.write_text(p.read_text(encoding='utf-8')
+                 +chr(10)+'def _classify(name):'+chr(10)
+                 +'    if name.endswith(".jar"): return "IGNORE"'+chr(10)
+                 +'    return "TRACK"'+chr(10),encoding='utf-8')
+_asset_mut('mutation_release_engine_classifies_by_extension',mut_engine_classifies_by_extension,
+           'Release 엔진이 확장자로 보존/공개 정책을 정한다')
+
+def mut_generator_input_removed(root):
+    model=_asset_model(root)
+    key=model['releaseAssetPolicy'].get('generatorInputKey','generatorInput')
+    for rule in model.get('templateRules',[]):
+        rule.pop(key,None)
+    _asset_write(root,model)
+_asset_mut('mutation_generator_input_declaration_removed',mut_generator_input_removed,
+           '생성 입력을 선언한 자산이 하나도 없다')
+
+def mut_promotion_before_verification(root):
+    def apply(a):
+        a['classes'][_ASSET_TRACKED]['currentizationOrder']=[
+            'generate','currentizeTrackedSnapshot','verify','promote']
+    _asset_edit(root,apply)
+_asset_mut('mutation_promotion_before_verification',mut_promotion_before_verification,
+           '검증 전에 tracked 결과를 덮어쓴다')
+
+_asset_mut('mutation_artifact_set_currentized_non_atomically',
+           lambda root: _asset_edit(root,_class_set(_ASSET_TRACKED,'atomicArtifactSet',False)),
+           '반쪽 상태를 허용한다')
+
+# Clean Workspace 계약의 되돌림.
+def mut_clean_uses_git_clean(root):
+    def apply(a):
+        a['cleanWorkspace']['forbiddenCommands']=[
+            c for c in a['cleanWorkspace']['forbiddenCommands'] if c!='git clean']
+    _asset_edit(root,apply)
+_asset_mut('mutation_release_clean_uses_git_clean',mut_clean_uses_git_clean,
+           '광범위 destructive 명령이 금지되지 않았다')
+
+def mut_clean_protects_nothing(root):
+    def apply(a):
+        a['cleanWorkspace']['protectedPaths']=[
+            p for p in a['cleanWorkspace']['protectedPaths'] if p!='.gitignore']
+    _asset_edit(root,apply)
+_asset_mut('mutation_release_clean_protects_no_repository_authority',mut_clean_protects_nothing,
+           '보호 경로가 빠졌다')
+
+def mut_residue_allowed(root):
+    def apply(a): a['cleanWorkspace']['previousResidueAllowed']=True
+    _asset_edit(root,apply)
+_asset_mut('mutation_previous_release_residue_allowed',mut_residue_allowed,
+           '이전 Release 잔여물이 새 Release 에 살아남는 것을 허용한다')
+
+def mut_destroy_before_prerequisites(root):
+    def apply(a): a['cleanWorkspace']['prerequisitesBeforeDestruction']=False
+    _asset_edit(root,apply)
+_asset_mut('mutation_release_destroys_before_prerequisites',mut_destroy_before_prerequisites,
+           '전제조건 확인 전에 직전 Release 를 지우는 계약이다')
+
+def mut_generate_before_clean(root):
+    # 삭제를 생성 뒤로 옮긴다. 이전 Release 잔여물이 새 Release 에 섞인다.
+    p=root/'cpf-tools/release/open-git/cpf_open_git.py'
+    t=p.read_text(encoding='utf-8')
+    line='    release = clean_release_root(root)'+chr(10)
+    if line not in t: raise AssertionError('clean 지점을 찾지 못했다')
+    t=t.replace(line,'    release = _release_root_without_cleaning(root)'+chr(10),1)
+    p.write_text(t,encoding='utf-8')
+_asset_mut('mutation_engine_generates_before_cleaning_release_root',mut_generate_before_clean,
+           'Release 재생성 지점을 찾지 못했다')
+
+def mut_engine_reads_previous_release(root):
+    p=root/'cpf-tools/release/open-git/cpf_open_git.py'
+    t=p.read_text(encoding='utf-8')
+    marker='    release_stage(3, '
+    if marker not in t: raise AssertionError('stage 3 지점을 찾지 못했다')
+    t=t.replace(marker,'    previous_release = root / "cpf-release" / "open-git"'+chr(10)+marker,1)
+    p.write_text(t,encoding='utf-8')
+_asset_mut('mutation_engine_reads_previous_release_as_input',mut_engine_reads_previous_release,
+           '이전 Release 결과를 입력으로 읽는다')
+
+def mut_publish_outside_staging(root):
+    p=root/'cpf-tools/release/open-git/cpf_open_git.py'
+    t=p.read_text(encoding='utf-8')
+    line='    raw_repo = work / "binary-repository-raw"'
+    if line not in t: raise AssertionError('staging repository 지점을 찾지 못했다')
+    p.write_text(t.replace(line,'    raw_repo = release / "binary-repository"',1),encoding='utf-8')
+_asset_mut('mutation_engine_publishes_outside_isolated_staging',mut_publish_outside_staging,
+           '발행이 격리 staging repository 를 쓰지 않는다')
+
+def mut_publisher_targets_open_git(root):
+    def apply(a):
+        a['publicationRouting']['forbiddenDirectTargets']=[
+            t for t in a['publicationRouting']['forbiddenDirectTargets'] if t!='openGitWorkingTree']
+    _asset_edit(root,apply)
+_asset_mut('mutation_publisher_targets_open_git_tree',mut_publisher_targets_open_git,
+           '발행 대상 금지 목록에 없다')
+
+def mut_gitignore_blanket(root):
+    p=root/'.gitignore'
+    p.write_text(p.read_text(encoding='utf-8')+chr(10)+'*.jar'+chr(10),encoding='utf-8')
+_asset_mut('mutation_gitignore_blanket_excludes_release_artifacts',mut_gitignore_blanket,
+           'Current Verified Release Artifact 까지 일괄 제외한다')
+
+# Gate 분리와 Acceptance 의 되돌림.
+def mut_development_gate_full(root):
+    def apply(a): a['developmentGate']='FULL_FRESH_EVERY_TIME'
+    _asset_edit(root,apply)
+_asset_mut('mutation_development_gate_forced_to_full_release',mut_development_gate_full,
+           '개발 중에도 전체 Gate 를 반복하는 계약이다')
+
+def mut_project_before_build(root):
+    def apply(a):
+        order=a['finalReleaseCandidateOrder']
+        order.remove('canonicalPublicSourceProjection')
+        order.insert(order.index('freshBuild'),'canonicalPublicSourceProjection')
+    _asset_edit(root,apply)
+_asset_mut('mutation_final_order_projects_before_build',mut_project_before_build,
+           '투영이 Fresh Build 보다 먼저 온다')
+
+def mut_single_acceptance(root):
+    def apply(a): a['acceptance']['bothMustHold']=False
+    _asset_edit(root,apply)
+_asset_mut('mutation_single_acceptance_statement_allowed',mut_single_acceptance,
+           '두 Acceptance 중 하나만 만족해도 되는 계약이다')
+
+def mut_previous_release_copy(root):
+    (root/'release-previous').mkdir(parents=True,exist_ok=True)
+    (root/'release-previous'/'keep.txt').write_text('old release copy',encoding='utf-8')
+_asset_mut('mutation_previous_release_copy_kept_in_working_tree',mut_previous_release_copy,
+           '과거 Release 사본이 Working Tree 에 있다')
+
+def mut_harness_asset_rule_removed(root):
+    p=root/'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md'
+    p.write_text(p.read_text(encoding='utf-8').split('## 39. Release Asset')[0],encoding='utf-8')
+_asset_mut('mutation_harness_release_asset_rule_removed',mut_harness_asset_rule_removed,
+           'Current Harness 에 Release Asset 계약이 없다')
+
+def mut_asset_registry_relation_removed(root):
+    p=root/'cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv'
+    p.write_text(p.read_text(encoding='utf-8').replace('test_cpf_release_asset_freshness_contract','REMOVED'),
+                 encoding='utf-8')
+_asset_mut('mutation_release_asset_registry_relation_removed',mut_asset_registry_relation_removed,
+           'Registry 가 이 계약 Validator 를 참조하지 않는다')
+
+# Service Registry provisioning 계약(Harness 40).
+# "누가 등록하는가" 가 흐려지면 사용자가 만든 Domain 이 영원히 기동하지 못한다.
+_SVC_TEST=ROOT/'cpf-tools/verification/tests/test_cpf_service_registry_provisioning_contract.py'
+_SVC_FILES=[
+    'cpf-tools/db/canonical/service-registry-provisioning.json',
+    'cpf-tools/db/canonical/platform-schema.json',
+    'cpf-tools/runtime/bootstrap/CpfBootstrap.java',
+    'cpf-tools/release/open-git/open-git-surface-policy.json',
+    'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md',
+    'cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv',
+    'cpf-starters/platform-operations/runtime-control/src/main/java/com/cpf/platform/operations/runtimecontrol/CpfRuntimeControlAgentAutoConfiguration.java',
+]
+for _vendor in ('mariadb','oracle','postgresql'):
+    for _name in ('service-registry-select.sql','service-registry-insert.sql',
+                  'service-endpoint-select.sql','service-endpoint-insert.sql'):
+        _SVC_FILES.append('cpf-tools/db/vendor/'+_vendor+'/runtime/cpf/repository/'+_name)
+# 실재하는 Generated Domain 계약이 있어야 "이름을 복제하지 않는다" 를 실제로 판정할 수 있다.
+for _contract in sorted(ROOT.glob('cpf-*/gradle.properties')):
+    if 'cpf.domain.contractVersion=1' in _contract.read_text(encoding='utf-8').replace(' ',''):
+        _SVC_FILES.append(_contract.parent.name+'/gradle.properties')
+_SVC_PREFIX='cpf-service-registry-negative-'
+_SVC_ENV='CPF_SERVICE_REGISTRY_ROOT'
+_SVC_CONTRACT='cpf-tools/db/canonical/service-registry-provisioning.json'
+_SVC_BOOTSTRAP='cpf-tools/runtime/bootstrap/CpfBootstrap.java'
+
+def _svc_mut(name, mutate, expected):
+    _contract_mut(name,_SVC_TEST,_SVC_PREFIX,_SVC_FILES,_SVC_ENV,mutate,expected)
+
+def _svc_model(root):
+    import json as _json
+    return _json.loads((root/_SVC_CONTRACT).read_text(encoding='utf-8'))
+
+def _svc_write(root, model):
+    import json as _json
+    (root/_SVC_CONTRACT).write_text(_json.dumps(model,ensure_ascii=False,indent=2)+chr(10),encoding='utf-8')
+
+def _svc_edit(root, mutate):
+    model=_svc_model(root); mutate(model); _svc_write(root,model)
+
+_contract_positive('service_registry_provisioning_contract_positive_control',_SVC_TEST,
+                   _SVC_PREFIX,_SVC_FILES,_SVC_ENV)
+
+def mut_svc_contract_removed(root):
+    (root/_SVC_CONTRACT).unlink()
+_svc_mut('mutation_service_registry_contract_removed',mut_svc_contract_removed,
+         'Service Registry provisioning 계약 정본이 없다')
+
+_svc_mut('mutation_service_registry_owner_becomes_the_generator',
+         lambda root: _svc_edit(root, lambda m: m.__setitem__('executor','cpf domain-new generator')),
+         '등록의 실행 주체가 bootstrap 이 아니다')
+
+def mut_svc_required_column_unprovided(root):
+    _svc_edit(root, lambda m: m['valueSources'].pop('service_name',None))
+_svc_mut('mutation_service_registry_required_column_unprovided',mut_svc_required_column_unprovided,
+         '필수 column 에 값을 주지 않는다')
+
+def mut_svc_identity_inferred(root):
+    def apply(m):
+        m['valueSources']['service_id']={'from':'domainContract','key':'cpf.domain.name','transform':'NONE'}
+    _svc_edit(root,apply)
+_svc_mut('mutation_service_registry_identity_inferred_from_domain_name',mut_svc_identity_inferred,
+         'canonical SystemCode 가 아니다')
+
+def mut_svc_transform_fallback(root):
+    def apply(m):
+        m['transformPolicy']['allowed']=['NONE','FALLBACK']
+        m['transformPolicy']['forbidden']=[x for x in m['transformPolicy']['forbidden'] if x!='FALLBACK']
+    _svc_edit(root,apply)
+_svc_mut('mutation_service_registry_transform_allows_fallback',mut_svc_transform_fallback,
+         '금지 변환 선언이 빠졌다')
+
+def mut_svc_targets_enumerated(root):
+    import re as _re
+    names=[]
+    for properties in root.glob('cpf-*/gradle.properties'):
+        text=properties.read_text(encoding='utf-8')
+        m=_re.search(r'^cpf\\.domain\\.systemCode\\s*=\\s*(\\S+)',text,_re.M)
+        if m: names.append(m.group(1))
+    if not names: names=['MBR']
+    _svc_edit(root, lambda m: m['appliesTo'].__setitem__('enumeratedDomains',names))
+_svc_mut('mutation_service_registry_targets_enumerated_domains',mut_svc_targets_enumerated,
+         '계약이 특정 Domain 이름을 담고 있다')
+
+_svc_mut('mutation_service_registry_conflict_overwrites_existing_row',
+         lambda root: _svc_edit(root, lambda m: m['reconcile'].__setitem__('neverOverwriteExistingRow',False)),
+         '기존 Registry row 를 덮어쓸 수 있는 계약이다')
+
+_svc_mut('mutation_service_registry_disabled_row_silently_enabled',
+         lambda root: _svc_edit(root, lambda m: m['reconcile'].__setitem__('disabledRow','AUTO_ENABLE')),
+         '조용히 다시 켠다')
+
+_svc_mut('mutation_service_registry_runtime_self_registration_allowed',
+         lambda root: _svc_edit(root, lambda m: m['reconcile'].__setitem__('runtimeSelfRegistration','ALLOWED')),
+         'Runtime 자가 등록을 허용한다')
+
+_svc_mut('mutation_service_registry_rerun_not_idempotent',
+         lambda root: _svc_edit(root, lambda m: m['reconcile'].__setitem__('idempotentOnRerun',False)),
+         'bootstrap 재실행이 안전하다고 선언하지 않았다')
+
+_svc_mut('mutation_service_registry_profile_specific_behaviour',
+         lambda root: _svc_edit(root, lambda m: m.__setitem__('profileInvariant',False)),
+         'profile 별로 다른 lifecycle 을 쓰는 계약이다')
+
+def mut_endpoint_provisioning_removed(root):
+    _svc_edit(root, lambda m: m.pop('endpointTable',None))
+_svc_mut('mutation_service_endpoint_provisioning_removed',mut_endpoint_provisioning_removed,
+         'endpoint provisioning 계약이 없다')
+
+def mut_endpoint_code_diverges(root):
+    def apply(m):
+        m['endpointTable']['valueSources']['endpoint_code']['pattern']='{service_id}_ENDPOINT'
+    _svc_edit(root,apply)
+_svc_mut('mutation_service_endpoint_code_diverges_from_runtime',mut_endpoint_code_diverges,
+         'Runtime Control 과 다른 endpoint code 를 쓴다')
+
+def mut_endpoint_scope_overwrites(root):
+    _svc_edit(root, lambda m: m['endpointTable']['reconcile'].__setitem__('scopeConflict','OVERWRITE'))
+_svc_mut('mutation_service_endpoint_scope_conflict_overwrites',mut_endpoint_scope_overwrites,
+         '같은 endpoint_code 가 다른 service 에 있어도 넘어간다')
+
+def mut_endpoint_not_wired(root):
+    p=root/_SVC_BOOTSTRAP
+    t=p.read_text(encoding='utf-8')
+    line='        int endpoints = reconcileServiceEndpoints(model);'+chr(10)
+    if line not in t: raise AssertionError('endpoint 정합 호출을 찾지 못했다')
+    p.write_text(t.replace(line,'        int endpoints = 0;'+chr(10),1),encoding='utf-8')
+_svc_mut('mutation_service_endpoint_reconcile_not_wired',mut_endpoint_not_wired,
+         'endpoint 정합이 service 정합과 같은 lifecycle 에 있지 않다')
+
+def mut_svc_vendor_sql_removed(root):
+    (root/'cpf-tools/db/vendor/oracle/runtime/cpf/repository/service-registry-insert.sql').unlink()
+_svc_mut('mutation_service_registry_vendor_sql_removed',mut_svc_vendor_sql_removed,
+         'vendor pack 에 없는 Service Registry SQL')
+
+def mut_svc_sql_duplicated(root):
+    p=root/_SVC_BOOTSTRAP
+    p.write_text(p.read_text(encoding='utf-8')
+                 +chr(10)+'// duplicated authority'+chr(10)
+                 +'final class CpfServiceRegistrySqlCopy { static final String INSERT = "INSERT INTO OPS_SERVICE(service_id) VALUES (?)"; }'+chr(10),
+                 encoding='utf-8')
+_svc_mut('mutation_service_registry_sql_duplicated_in_bootstrap',mut_svc_sql_duplicated,
+         'Service Registry SQL 을 코드에 복제한다')
+
+def mut_svc_not_wired(root):
+    p=root/_SVC_BOOTSTRAP
+    t=p.read_text(encoding='utf-8')
+    p.write_text(t.replace('        reconcileServiceRegistry();'+chr(10),'',1),encoding='utf-8')
+_svc_mut('mutation_service_registry_reconcile_not_wired_into_bootstrap',mut_svc_not_wired,
+         'DB Lifecycle 이 Service Registry 를 맞추지 않는다')
+
+def mut_svc_domain_hardcoded(root):
+    import re as _re
+    names=[]
+    for properties in root.glob('cpf-*/gradle.properties'):
+        text=properties.read_text(encoding='utf-8')
+        m=_re.search(r'^cpf\\.domain\\.systemCode\\s*=\\s*(\\S+)',text,_re.M)
+        if m: names.append(m.group(1))
+    if not names: names=['MBR']
+    p=root/_SVC_BOOTSTRAP
+    t=p.read_text(encoding='utf-8')
+    marker='            String serviceId = d.systemCode;'
+    if marker not in t: raise AssertionError('reconcile 본문을 찾지 못했다')
+    p.write_text(t.replace(marker,marker+chr(10)
+                           +'            if (serviceId.equals("'+names[0]+'")) serviceId = serviceId.trim();',1),
+                 encoding='utf-8')
+_svc_mut('mutation_service_registry_domain_name_hardcoded_in_bootstrap',mut_svc_domain_hardcoded,
+         'reconcile 이 Domain 이름을 하드코딩한다')
+
+def mut_svc_not_projected(root):
+    import json as _json
+    p=root/'cpf-tools/release/open-git/open-git-surface-policy.json'
+    policy=_json.loads(p.read_text(encoding='utf-8'))
+    for key in ('sourceRules','templateRules'):
+        policy[key]=[r for r in policy.get(key,[])
+                     if str(r.get('target',''))!='config/service-registry-provisioning.json']
+    p.write_text(_json.dumps(policy,ensure_ascii=False,indent=2)+chr(10),encoding='utf-8')
+_svc_mut('mutation_service_registry_contract_not_projected_to_public',mut_svc_not_projected,
+         'provisioning 계약이 공개 배포본에 투영되지 않는다')
+
+def mut_svc_harness_rule_removed(root):
+    p=root/'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md'
+    p.write_text(p.read_text(encoding='utf-8').split('## 40. Service Registry')[0],encoding='utf-8')
+_svc_mut('mutation_harness_service_registry_rule_removed',mut_svc_harness_rule_removed,
+         'Current Harness 에 Service Registry provisioning 계약이 없다')
+
+def mut_svc_registry_relation_removed(root):
+    p=root/'cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv'
+    p.write_text(p.read_text(encoding='utf-8').replace('test_cpf_service_registry_provisioning_contract','REMOVED'),
+                 encoding='utf-8')
+_svc_mut('mutation_service_registry_registry_relation_removed',mut_svc_registry_relation_removed,
+         'Registry 가 이 계약 Validator 를 참조하지 않는다')
+
+# 사용자 결정(A) 이후의 tracking 예외 계약. 크기 하나로 결론내지 않는다는 규칙을 지킨다.
+
+def _asset_rule(model, rule_id):
+    for rule in model['artifactClassification']['rules']:
+        if rule['id'] == rule_id: return rule
+    raise AssertionError('rule not found: ' + rule_id)
+
+def mut_gitignore_excludes_metadata(root):
+    # binary-repository 전체를 다시 제외한다. POM/checksum/manifest 까지 사라진다.
+    p=root/'.gitignore'
+    p.write_text(p.read_text(encoding='utf-8')+chr(10)+'/cpf-release/binary-repository/'+chr(10),encoding='utf-8')
+_asset_mut('mutation_gitignore_excludes_release_metadata_too',mut_gitignore_excludes_metadata,
+           'Current Verified Release Artifact 까지 일괄 제외한다')
+
+def mut_unknown_artifact_allowed(root):
+    _asset_edit(root, lambda a: a['artifactClassification'].__setitem__('unknownArtifact','ALLOW'))
+_asset_mut('mutation_unknown_artifact_silently_allowed',mut_unknown_artifact_allowed,
+           '분류가 없는 Artifact 를 통과시킨다')
+
+def mut_exception_without_evidence(root):
+    def apply(a):
+        rule=_asset_rule(a,'publicBinaryRuntimeExecutable')
+        rule['trackingExceptionReason']='binary 라서 제외한다'
+        rule['evidence']=''
+    _asset_edit(root,apply)
+_asset_mut('mutation_tracking_exception_without_measured_evidence',mut_exception_without_evidence,
+           '예외 사유에 실측치가 없다')
+
+def mut_threshold_replaces_measurement(root):
+    def apply(a):
+        _asset_rule(a,'publicBinaryRuntimeExecutable')['sizeThresholdMb']='50MB 이상 제외'
+    _asset_edit(root,apply)
+_asset_mut('mutation_size_threshold_replaces_measurement',mut_threshold_replaces_measurement,
+           '임의 용량 기준이 하드코딩됐다')
+
+def mut_untracked_dropped_from_public(root):
+    def apply(a):
+        _asset_rule(a,'publicBinaryRuntimeExecutable')['publicRelease']=False
+    _asset_edit(root,apply)
+_asset_mut('mutation_untracked_artifact_dropped_from_public_release',mut_untracked_dropped_from_public,
+           'Master 미보존이 공개 배포 제외로 연결된다')
+
+def mut_payload_rule_removed(root):
+    p=root/'cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md'
+    text=p.read_text(encoding='utf-8')
+    head,_,tail=text.partition('### 39.6 Release Size Finding')
+    p.write_text(head+('### 39.7'+tail.split('### 39.7',1)[1] if '### 39.7' in tail else ''),encoding='utf-8')
+_asset_mut('mutation_payload_composition_rule_removed',mut_payload_rule_removed,
+           'payload composition 으로 판정하라는 Rule 이 없다')
+
+def mut_payload_tool_total_only(root):
+    p=root/'cpf-tools/release/open-git/report_release_payload_composition.py'
+    t=p.read_text(encoding='utf-8')
+    p.write_text(t.replace('duplicateEmbeddedDependencyBytes','totalBytesOnly')
+                  .replace('ossSeparatelyVendoredBytes','totalBytesOnly2'),encoding='utf-8')
+_asset_mut('mutation_payload_tool_reports_only_total_size',mut_payload_tool_total_only,
+           '보고 항목이 빠졌다')
 
 failed=[x for x in checks if not x[1]]
 print(f'NEGATIVE_FIXTURES_FINAL={len(checks)-len(failed)}/{len(checks)} PASS group={_NEG_GROUP}',flush=True)

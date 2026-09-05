@@ -969,9 +969,26 @@ def verify_public_readme(open_git: Path) -> None:
         catalog = load_json(catalog_path)
         ports = {str(entry.get("target")): entry for entry in catalog.get("runtimes", [])}
         missing_doc: list[str] = []
-        for name in ("admin", "backoffice", "backoffice-web"):
+        # 문서화 대상은 catalog 가 정한다. Gate 가 이름 배열을 들고 있으면 새 Public Runtime 이
+        # 문서 없이 통과하거나, 사라진 Runtime 때문에 Gate 가 영원히 실패한다.
+        #
+        # owner 디렉터리 존재로 판정하지 않는다. ADM/Gateway 는 Source 가 아니라 Binary Repository 로
+        # 배포되므로 그 조건에서는 영원히 문서화 대상에서 빠진다. 공개 여부는 publicationClass 다.
+        documented_targets = sorted(
+            str(entry.get("target"))
+            for entry in catalog.get("runtimes", [])
+            if entry.get("capability") == "http-server"
+            and entry.get("publicLifecycle") is not False
+            and str(entry.get("publicationClass", "")) == "PUBLIC_RUNTIME"
+        )
+        for name in documented_targets:
             entry = ports.get(name) or {}
-            if f"--target {name}" not in text and f"-Target {name}" not in text:
+            # 사용자 Golden Path 는 `cpf start <target>` 위치 인자다. 하위 호환 wrapper 의
+            # --target/-Target 형태도 같은 의미이므로 둘 다 인정한다.
+            documented = (f"--target {name}" in text or f"-Target {name}" in text
+                          or any(f"cpf {verb} {name}" in text
+                                 for verb in ("start", "stop", "restart", "status", "health", "log")))
+            if not documented:
                 missing_doc.append(f"{name}:launcher")
             port = entry.get("port")
             if port is not None and str(port) not in text:
@@ -1085,12 +1102,17 @@ def verify_public_consumer_runtime_surface(open_git: Path) -> dict[str, Any]:
     catalog = load_json(catalog_path)
     runtimes = {str(entry.get("target")): entry for entry in catalog.get("runtimes", [])}
 
-    # 공개 Consumer 의 필수 실행 표면. ADM 은 Platform 운영 콘솔이고, Backoffice Web 은 ADM 이
-    # 아니라 MBW Channel Front 이므로 MBW 와 함께 실행 가능해야 한다.
-    required_targets = ("admin", "backoffice", "backoffice-web")
-    missing = [name for name in required_targets if name not in runtimes]
-    if missing:
-        raise OpenGitReleaseError(f"public consumer runtime target missing from catalog: {missing}")
+    # 공개 Consumer 의 필수 실행 표면은 catalog 가 정한다. 여기에 이름 배열을 두면 새 Public
+    # Runtime 이 검사 없이 배포되거나, 이름이 바뀐 Runtime 때문에 Gate 가 영원히 실패한다.
+    required_targets = tuple(sorted(
+        str(entry.get("target"))
+        for entry in catalog.get("runtimes", [])
+        if str(entry.get("publicationClass", "")) == "PUBLIC_RUNTIME"
+        and entry.get("capability") == "http-server"
+        and entry.get("publicLifecycle") is not False
+    ))
+    if not required_targets:
+        raise OpenGitReleaseError("public consumer runtime target set is empty in the published catalog")
 
     unavailable: list[str] = []
     for name in required_targets:
@@ -1548,6 +1570,17 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     if profile not in {"binary", "source"}:
         raise OpenGitReleaseError(f"unsupported Open Git release profile: {profile}")
 
+    # 파괴적 재생성보다 먼저 확인할 수 있는 전제조건은 전부 여기서 확인한다.
+    #
+    # 증상 근거: remote 미설정으로 02단계에서 실패했는데, 01단계가 이미 cpf-release 전체를 지운 뒤였다.
+    # 그래서 한 번의 사소한 전제조건 누락으로 유효한 Release 산출물(open-git 트리와 binary-repository)을
+    # 통째로 잃었다. 이 확인들은 Release 디렉터리를 전혀 필요로 하지 않으므로 삭제 전에 할 수 있다.
+    #
+    # 되돌리면 재발할 증상: 설정 하나가 빠졌을 뿐인데 직전 배포본이 사라진다.
+    if skip_build:
+        raise OpenGitReleaseError("--skip-build is reserved for tests and cannot create a production Open Git release")
+    remote = canonical_remote(root, remote_arg)
+
     # Every accepted build attempt invalidates the previous generated release first.
     # Safety checks run before deletion and cleanup is restricted to exact <CPF_ROOT>/cpf-release.
     release_stage(1, "Release 작업공간 안전 확인", "이전 생성물 전체 재생성 준비")
@@ -1569,15 +1602,12 @@ def build_release(root: Path, remote_arg: str | None, generator_artifacts: str |
     source_state = canonical_source_state(root)
     source_identity = str(source_state["contentSha256"])
     version = platform_version(root)
-    remote = canonical_remote(root, remote_arg)
 
     release_stage(3, "공개 Artifact 정책 확인", f"profile={profile} / sources.jar=DENY / javadoc.jar=DENY")
     verify_artifact_catalog_contract(root)
 
     backend = _legacy_backend(root)
     backend.run = lambda cmd, cwd, capture=False, env=None: run(cmd, Path(cwd), capture=capture, env=env)
-    if skip_build:
-        raise OpenGitReleaseError("--skip-build is reserved for tests and cannot create a production Open Git release")
 
     release_stage(4, "Private Release 사전검증", "Secret / Leakage / Canonical release prerequisites")
     backend.private_gates(root, sys.executable)

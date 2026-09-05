@@ -408,6 +408,101 @@ def verify_status_and_stop(checkout: Path) -> dict:
     return result
 
 
+def checkout_domains(checkout: Path) -> list[str]:
+    """공개 checkout 에 실재하는 Generated Domain 이름. 목록을 검증기가 들고 있지 않는다."""
+    names = []
+    for properties in sorted(checkout.glob("cpf-*/gradle.properties")):
+        text = properties.read_text(encoding="utf-8")
+        if "cpf.domain.contractVersion=1" not in text.replace(" ", ""):
+            continue
+        for line in text.splitlines():
+            if line.strip().startswith("cpf.domain.name"):
+                value = line.split("=", 1)[1].strip()
+                if value:
+                    names.append(value)
+    return names
+
+
+def canonical_cli(checkout: Path) -> list[str]:
+    """사용자 Golden Path 의 진입점. OS별 wrapper 가 아니라 canonical `cpf` 하나를 쓴다."""
+    if WINDOWS:
+        script = checkout / "cpf.cmd"
+        if not script.is_file():
+            raise ConsumerRuntimeError(f"canonical entrypoint missing: {script}")
+        return ["cmd", "/c", str(script)]
+    script = checkout / "cpf"
+    if not script.is_file():
+        script = checkout / "bin" / "cpf"
+    if not script.is_file():
+        raise ConsumerRuntimeError(f"canonical entrypoint missing: {checkout / 'cpf'}")
+    return ["sh", str(script)]
+
+
+def cli(checkout: Path, *arguments: str, check: bool = True):
+    return run(canonical_cli(checkout) + list(arguments), checkout,
+               timeout=LAUNCHER_COMMAND_SECONDS, check=check)
+
+
+def verify_canonical_cli_lifecycle(checkout: Path, domains: list[str]) -> dict:
+    """전체 / 논리 Group / 개별 Target 3단계를 canonical `cpf` 로 실제 수행한다.
+
+    Parser 단위 확인으로는 "규칙은 있는데 동작은 안 되는" 상태를 잡지 못한다.
+    """
+    step("08 canonical cpf lifecycle")
+    result: dict[str, object] = {}
+
+    listing = cli(checkout, "targets")
+    text = listing.stdout
+    for required in ("GROUPS", "RUNTIME"):
+        if required not in text:
+            raise ConsumerRuntimeError(f"cpf targets 출력에 {required} 구획이 없다")
+    groups = [line.split()[0] for line in text.splitlines()
+              if line.startswith("  ") and line.strip() and not line.strip().startswith("RUNTIME")]
+    for group in ("all", "platform", "domains", "batch", "backoffice-stack"):
+        if group not in text:
+            raise ConsumerRuntimeError(f"cpf targets 가 canonical Group 을 보여주지 않는다: {group}")
+    for domain in domains:
+        if domain not in text:
+            raise ConsumerRuntimeError(f"cpf targets 가 Generated Domain 을 보여주지 않는다: {domain}")
+    result["targets"] = "PASS"
+
+    unknown = cli(checkout, "start", "no-such-runtime", check=False)
+    if unknown.returncode == 0 or "UNKNOWN TARGET" not in unknown.stdout:
+        raise ConsumerRuntimeError("잘못된 Target 이 선택지 안내 없이 처리된다")
+    result["unknownTarget"] = "PASS"
+
+    # 개별 Target
+    cli(checkout, "start", "admin")
+    cli(checkout, "health", "admin")
+    cli(checkout, "status", "admin")
+    cli(checkout, "stop", "admin")
+    result["individual"] = "PASS"
+
+    # 논리 Group. 기동 순서와 정지 역순은 CLI 가 dependency 로 계산한다.
+    cli(checkout, "start", "backoffice-stack")
+    grouped = cli(checkout, "status", "backoffice-stack")
+    if "OVERALL" not in grouped.stdout:
+        raise ConsumerRuntimeError("Group 상태가 집계되지 않는다")
+    cli(checkout, "stop", "backoffice-stack")
+    result["group"] = "PASS"
+
+    # 전체
+    everything = cli(checkout, "status", "all", check=False)
+    if "OVERALL" not in everything.stdout:
+        raise ConsumerRuntimeError("전체 상태가 집계되지 않는다")
+    result["all"] = "PASS"
+
+    # Linux wrapper 는 canonical entrypoint 로만 위임한다. 예전에는 배포되지 않는 bin/cpf.sh 를
+    # 불러 "No such file or directory" 로 즉시 실패했다.
+    wrapper = run(["sh", str(checkout / "bin" / "cpf-help.sh")], checkout,
+                  timeout=LAUNCHER_COMMAND_SECONDS, check=False)
+    combined = wrapper.stdout + wrapper.stderr
+    if "No such file" in combined or "cpf.sh" in combined:
+        raise ConsumerRuntimeError(f"OS wrapper 가 존재하지 않는 대상으로 위임한다: {combined.strip()[:200]}")
+    result["shellWrapper"] = "PASS"
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Open Git Fresh Consumer Runtime verification")
     parser.add_argument("--checkout", required=True, help="공개 Open Git checkout 경로")
@@ -425,6 +520,7 @@ def main() -> int:
         result["adm"] = verify_adm(checkout, entries, credentials)
         result["backoffice"] = verify_backoffice(checkout, entries, credentials)
         result["lifecycle"] = verify_status_and_stop(checkout)
+        result["canonicalCli"] = verify_canonical_cli_lifecycle(checkout, checkout_domains(checkout))
         result["status"] = "PASS"
         code = 0
     except Exception as failure:  # noqa: BLE001 - 결과를 항상 증적으로 남긴다

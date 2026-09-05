@@ -1,0 +1,199 @@
+{
+  "status": "UNVERIFIED",
+  "counts": {
+    "PASS": 23,
+    "FAIL": 0,
+    "UNVERIFIED": 4
+  },
+  "checks": [
+    {
+      "name": "git_diff_check",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 0.66,
+      "log": "cpf-docs/work/evidence/current/verify-all/git_diff_check.log"
+    },
+    {
+      "name": "generator_gate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 2.94,
+      "log": "cpf-docs/work/evidence/current/verify-all/generator_gate.log"
+    },
+    {
+      "name": "generated_domain_minimal_ia",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 0.76,
+      "log": "cpf-docs/work/evidence/current/verify-all/generated_domain_minimal_ia.log"
+    },
+    {
+      "name": "layout_gate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 9.01,
+      "log": "cpf-docs/work/evidence/current/verify-all/layout_gate.log"
+    },
+    {
+      "name": "garbage_sweep_gate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 20.59,
+      "log": "cpf-docs/work/evidence/current/verify-all/garbage_sweep_gate.log"
+    },
+    {
+      "name": "hygiene_gate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 9.79,
+      "log": "cpf-docs/work/evidence/current/verify-all/hygiene_gate.log"
+    },
+    {
+      "name": "query_boundary_gate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 5.4,
+      "log": "cpf-docs/work/evidence/current/verify-all/query_boundary_gate.log"
+    },
+    {
+      "name": "korean_comment_gate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 4.98,
+      "log": "cpf-docs/work/evidence/current/verify-all/korean_comment_gate.log"
+    },
+    {
+      "name": "adm_dangerous_approval_boundary",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 0.09,
+      "log": "cpf-docs/work/evidence/current/verify-all/adm_dangerous_approval_boundary.log"
+    },
+    {
+      "name": "fixed_length_closure",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 0.1,
+      "log": "cpf-docs/work/evidence/current/verify-all/fixed_length_closure.log"
+    },
+    {
+      "name": "python_compile",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 0.21,
+      "log": "cpf-docs/work/evidence/current/verify-all/python_compile.log"
+    },
+    {
+      "name": "gradle_help",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 19.56,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_help.log"
+    },
+    {
+      "name": "gradle_qualityGate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 124.75,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_qualityGate.log"
+    },
+    {
+      "name": "gradle_aggregateQualityBuild",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 307.45,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_aggregateQualityBuild.log"
+    },
+    {
+      "name": "gradle_publicationGate",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 42.05,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_publicationGate.log"
+    },
+    {
+      "name": "gradle_qa34IntegrationTest",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 13.53,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_qa34IntegrationTest.log"
+    },
+    {
+      "name": "gradle_generated_projects",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 14.02,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_generated_projects.log"
+    },
+    {
+      "name": "gradle_generated_cpf-external_mariadb",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 31.76,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_generated_cpf-external_mariadb.log"
+    },
+    {
+      "name": "gradle_generated_cpf-member_mariadb",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 37.17,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_generated_cpf-member_mariadb.log"
+    },
+    {
+      "name": "gradle_generated_cpf-external_postgresql",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 39.09,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_generated_cpf-external_postgresql.log"
+    },
+    {
+      "name": "gradle_generated_cpf-member_postgresql",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 35.21,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_generated_cpf-member_postgresql.log"
+    },
+    {
+      "name": "gradle_generated_cpf-external_oracle",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 30.4,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_generated_cpf-external_oracle.log"
+    },
+    {
+      "name": "gradle_generated_cpf-member_oracle",
+      "status": "PASS",
+      "rc": 0,
+      "seconds": 40.12,
+      "log": "cpf-docs/work/evidence/current/verify-all/gradle_generated_cpf-member_oracle.log"
+    },
+    {
+      "name": "db3_live",
+      "status": "UNVERIFIED",
+      "rc": 127,
+      "seconds": 0.01,
+      "log": "cpf-docs/work/evidence/current/verify-all/db3_live.log"
+    },
+    {
+      "name": "redis_valkey_live",
+      "status": "UNVERIFIED",
+      "rc": 127,
+      "seconds": 0.0,
+      "log": "cpf-docs/work/evidence/current/verify-all/redis_valkey_live.log"
+    },
+    {
+      "name": "multi_instance_reconcile",
+      "status": "UNVERIFIED",
+      "rc": 127,
+      "seconds": 0.0,
+      "log": "cpf-docs/work/evidence/current/verify-all/multi_instance_reconcile.log"
+    },
+    {
+      "name": "process_kill_recovery",
+      "status": "UNVERIFIED",
+      "rc": 127,
+      "seconds": 0.0,
+      "log": "cpf-docs/work/evidence/current/verify-all/process_kill_recovery.log"
+    }
+  ]
+}

@@ -1697,3 +1697,246 @@ Capability 계약, Generated Domain 동적 발견, CLI Source 의 Target/Group �
 공개 명령 집합, 위치 인자 selector, 잘못된 Target 안내, Group 결과 집계와 부분 실패 노출, 역순 정지,
 pid 단독 판정 금지, dependency cycle fail-closed, Windows/Linux wrapper 의미 일치, wrapper 자체 명령
 해석 없음, README/help parity, Harness Rule 존재, Registry 관계 존재.
+
+## 39. Release Asset 보존 / Open Git Fresh 재생성 계약 (Mandatory)
+
+### 39.1 배경과 핵심 분리
+
+두 질문을 반드시 따로 판단한다.
+
+- **QUESTION A** — 이 Asset 을 Development Master Git 에 보존할 것인가? (`masterTracked`)
+- **QUESTION B** — 다음 Open Git Release 를 만들 때 다시 Fresh 생성해야 하는가? (`freshRegenerationRequired`)
+
+둘은 독립이다. 다음 단순화는 전부 틀렸다.
+
+```
+generated 니까 Git 저장 금지        (X)
+Git 에 있으니까 Release 에서 재사용  (X)
+binary 니까 무조건 Git 제외          (X)
+text 니까 무조건 Git 포함            (X)
+```
+
+`cpf-release/open-git` 은 정본이 아니다. Development Master 의 canonical source 가 정본이고 Open Git
+tree 는 그 **projection 결과**다.
+
+### 39.2 영구 Rule
+
+1. Development Master 는 용량/운영성/보안상 **실질적인 문제가 없는 Current Verified Release Asset 을
+   가능한 범위에서 함께 보존한다.**
+2. **Master Git 보존 여부와 Open Git Fresh 재생성 여부는 독립된 계약이다.**
+3. Master Git 에 보존된 Generated/Release Artifact 는 **다음 Fresh Release 의 Build/Generation 입력으로
+   사용하지 않는다.**
+4. Open Git Release 는 항상 **Clean Isolated Release Workspace** 에서 Canonical Source 기준으로 다시
+   Build/Generate/Projection 하여 생성한다.
+5. Release 의 Clean 은 `git clean` / `git reset --hard` / `git restore .` 가 아니라 **승인된 generated
+   release root 또는 isolated staging** 을 대상으로 한다. Canonical Source, `.git`, Harness, Product
+   Source 는 건드리지 않는다.
+6. **실측된 문제가 확인된 Asset 만** machine-readable exception 으로 Master tracking 에서 제외한다.
+   binary/generated 라는 이유만으로 일괄 제외하지 않으며, 임의 용량 Threshold 를 코드나 정책에
+   숫자로 박지 않는다.
+7. Tracked Current Release Result 는 Audit/Diff/Review/Current Deliverable 보존용이며
+   **Fresh Build Cache 가 아니다.**
+8. 사용자 Steering 은 Source 에만 적용하지 않고 Harness/Validator/Negative Mutation/Registry 에
+   영구 반영한다.
+
+### 39.3 Asset 분류
+
+정본 metadata 는 `cpf-tools/release/open-git/open-git-surface-policy.json` 의 `releaseAssetPolicy` 다.
+분류는 **파일명/확장자/폴더명이 아니라 투영 규칙의 metadata** 에서 파생한다.
+
+| 부류 | masterTracked | publicRelease | releaseInputAuthority | freshRegenerationRequired |
+| --- | --- | --- | --- | --- |
+| `CANONICAL_RELEASE_SOURCE` | true | Surface Policy | **true** | false (대신 매 Release Fresh Projection) |
+| `TRACKED_VERIFIED_RELEASE_RESULT` | true | Surface Policy | **false** | true |
+| `UNTRACKED_RELEASE_RESULT` | false (사유 필수) | true | false | true |
+| `TRANSIENT_RELEASE_OUTPUT` | false | false | false | true |
+
+- **CANONICAL_RELEASE_SOURCE** — 사람이 지속 관리하는 정본(`bin/cpf*`, 공개 Gradle workspace,
+  공개 config/schema/template, Runtime/Product Catalog, Release Policy/Engine). Release 엔진이 이 본문을
+  문자열로 생성하지 않는다. 다시 코드 생성(RE-GENERATE)은 하지 않지만, **지난 Release 출력을 이어
+  쓰지도 않는다.** Clean Workspace 로 Canonical Source 에서 **Fresh Projection** 한다.
+- **TRACKED_VERIFIED_RELEASE_RESULT** — 현재 Release 상태 보존 가치가 있어 Master 에 함께 두는 결과
+  (JAR, native generator, POM, Sources/Javadoc, SBOM, Checksum, Manifest, 검증된 binary repository 등).
+  보존하되 **다음 Release 의 원재료로 쓰지 않는다.** 승격은 `GENERATED → STAGED → VERIFIED →
+  PROMOTED_CURRENT_RELEASE` 이며 currentize 는 `generate → verify → promote → currentize` 순서다.
+  논리 Artifact Set 단위로 원자적으로 갱신한다(새 JAR + 옛 SBOM 혼합 금지).
+- **UNTRACKED_RELEASE_RESULT** — 실측된 Repository 운영 문제로 Master 에 두지 않는 공개 자산.
+  `trackingExceptionReason` 과 실측 근거(현재 크기, Release Set 크기, repository 성장, clone/pull 영향,
+  hosting 제약, 대안)를 남긴다. **Master 미보존이 공개 제외를 뜻하지 않는다.**
+- **TRANSIENT_RELEASE_OUTPUT** — build/tmp/cache/staging/temporary clone/PID/failed output 등. 제품
+  자산이 아니다.
+
+`.gitignore` 는 형식이 아니라 용도로 만든다. `cpf-release/**`, `*.jar`, `*.zip` 처럼 Current Verified
+Release Artifact 까지 일괄 제외하는 규칙을 두지 않는다.
+
+### 39.4 Gate 분리
+
+개발 중에는 **영향도 기반 Targeted/Fast Gate**(`developmentGate=IMPACT_TARGETED`)를 쓴다. UNKNOWN 을
+NO_IMPACT 로 자동 처리하지 않는다. Source 가 안정된 뒤 Final Release Candidate 에서만 전체를
+**한 번**(`finalReleaseCandidateGate=FULL_FRESH_ONCE`) 수행한다.
+
+```
+Source Freeze → Current Source Identity → Clean Release Workspace
+→ Fresh Build → Fresh Test → Fresh Publication → Fresh Generator → Fresh Generated Source
+→ Canonical Public Source Fresh Projection → Fresh Binary Repository → POM/Sources/Javadoc
+→ Fresh SBOM → Fresh Checksum → Fresh Manifest → Leakage 0 → Release Candidate
+→ Tracked Result 비교/현행화 → Fresh Consumer → Evidence
+```
+
+발행 경로는 `isolatedStaging → verification → promotionOrProjection` 이다. Publisher 의 출력 경로를
+tracked release tree 나 Open Git working tree 로 **직접 지정하지 않는다**(§37 과 같은 계약).
+
+### 39.5 Acceptance
+
+다음 두 문장이 **동시에** 참이어야 한다.
+
+- A. Development Master checkout 만으로 현재 CPF Release 구조와 적정 크기의 Current Verified
+  Deliverable 을 충분히 확인할 수 있다.
+- B. Master 에 보존된 이전 Release Result 를 Fresh Release 입력에서 완전히 배제해도 Canonical Source
+  만으로 Open Git Release 를 Clean/Fresh 재생성할 수 있다.
+
+하나라도 거짓이면 미완료다.
+
+Working Tree 에는 Current Release 하나만 둔다. `release-old/`, `release-previous/`, `backup-release/`
+같은 과거 사본을 누적하지 않는다. 과거 Release 는 Git History 가 담당한다.
+
+### 39.6 Release Size Finding 은 payload composition 으로 판정한다
+
+Release 산출물이 크다는 사실만으로 "대용량 바이너리"라고 판정하지 않는다. 크기를 근거로 어떤 결정을
+내리기 전에 byte 를 다음으로 분해해 보고한다.
+
+1. CPF 자체 개발 Artifact
+2. OSS dependency 의 별도 repository 복제본
+3. executable/fat JAR 내부에 포함된 OSS dependency
+4. 동일 dependency 의 Runtime 별 중복
+5. Sources/Javadoc/POM/metadata
+6. Release 에 실제 필요한 파일
+7. Fresh Consumer 에만 필요한 파일
+8. Offline Consumer 를 위해 필요한 파일
+
+보고 항목은 다음 이름을 쓴다.
+
+```
+CPF authored binary bytes
+OSS separately vendored bytes
+OSS embedded-in-fat-jar bytes
+duplicate embedded dependency estimated bytes
+metadata/docs bytes
+required public payload bytes
+avoidable bytes
+```
+
+원칙:
+
+1. Maven Central 등 공개 OSS repository 에서 정상 resolve 되는 dependency 를 CPF 공개
+   binary-repository 에 **불필요하게 중복 저장하지 않는다.**
+2. 다만 Product Contract 가 완전 Offline/Fresh Consumer 를 요구해 dependency bundling 이 필요하면
+   **임의로 제거하지 않는다.** Offline 요구 여부는 공개 Workspace 의 repository 선언으로 확인한다.
+3. fat JAR 내부 dependency 와 OSS JAR 별도 복제는 **구분해서 계산**한다. 둘은 다른 문제다.
+4. CPF 자체 코드 크기와 OSS 포함 크기를 **분리해서** 보고한다.
+5. 같은 OSS dependency 가 여러 fat JAR 에 반복 포함되어 용량을 키우는지 **측정**한다.
+6. 분석만으로 thin JAR / fat JAR Architecture 를 **바꾸지 않는다.** 포장 방식 변경은 Product Contract
+   결정이며 사용자 판단 사항이다.
+
+측정 도구는 `cpf-tools/release/open-git/report_release_payload_composition.py` 이고 결과는
+`current/RELEASE_PAYLOAD_COMPOSITION.json` 이다. tracking 예외를 논의할 때는 이 결과를 함께 제시한다.
+
+### 39.7 잔여물 없음의 증명 방식
+
+이전 Release 잔여물이 새 Release 에 섞이지 않는다는 것은 두 가지로 증명한다.
+
+1. **구조적 증명** — Release 엔진은 어떤 생성보다 먼저 Release Root 를 비운다. 이 순서를 계약으로
+   고정하고, 순서를 뒤집는 negative mutation 이 FAIL 하는 것을 확인한다. 전제조건 확인은 그 삭제보다도
+   앞에 온다(§39.2 Rule 5, CRF-51).
+2. **실행 증명** — Fresh Consumer 가 실제로 생성된 배포본만으로 bootstrap/기동/업무거래/정지를 수행한다.
+
+매 mutation 마다 전체 Release 를 반복 실행하지 않는다. 그것은 검증 강도가 아니라 시간만 늘린다.
+
+### 39.8 Required validator
+
+`cpf-tools/verification/tests/test_cpf_release_asset_freshness_contract.py` 가 이 계약을 강제하고,
+`cpf-tools/release/open-git/report_release_asset_inventory.py` 가 전수 분류(`current/RELEASE_ASSET_INVENTORY.csv`)와
+tracking 상태를 산출한다. 대응 negative mutation group 은 `RELEASE_ASSET` 이다. 자동 검증 범위: 4분류와 4축 선언, 규칙별 부류 파생, 경로/확장자 분류
+금지, 축 독립성, tracked 결과의 입력 권한 부재, 공개 여부의 Master 비추론, tracking exception 실측 근거,
+용량 Threshold 하드코딩 금지, Canonical Source 의 Fresh Projection 과 이전 출력 재사용 금지, Release
+엔진의 launcher 본문 생성 금지와 확장자 기반 판단 금지, 생성 입력 실재, 승격 순서와 원자적 현행화,
+Clean 대상/금지 명령/보호 경로/잔여물 금지/전제조건 선행, 발행 경로, `.gitignore` 일괄 제외 금지,
+Gate 분리와 최종 순서, 두 Acceptance 동시 성립, Current-only.
+
+## 40. Service Registry Provisioning 계약 (Mandatory)
+
+### 40.1 배경
+
+Runtime Control Agent 는 자기 `service_id` 가 중앙 Registry(`OPS_SERVICE`)에 등록되어 있어야 기동한다.
+이 fail-closed 계약 자체는 옳다. 그러나 **사용자가 만든 Generated Domain 의 service 를 누가 등록하는지**가
+정해져 있지 않았다. Platform seed 는 ADM/BAT/CEC/EDU/MBW 만 담고 있었고, Backoffice(MBW)는 seed 에
+들어 있어서 우연히 통과했을 뿐이다. 그 결과 `cpf domain-new` 로 Domain 을 만든 사용자는
+`Runtime Agent service가 중앙 Registry에 등록되어 있지 않습니다: <SystemCode>` 로 **영원히 기동할 수 없었다.**
+
+### 40.2 계약
+
+1. **등록의 실행 주체는 `cpf bootstrap` 의 Platform DB provisioning lifecycle** 이다. 등록 **규칙의 Owner** 는
+   canonical Service Registry provisioning 계약이다. Generator, ADM, Runtime 어느 한 곳의 임시 부가기능으로
+   구현하지 않는다.
+2. **Domain 생성(`cpf domain-new`)은 Platform DB 가용성에 의존하지 않는다.** 오프라인/신규 개발환경에서도
+   Domain Source 생성은 가능해야 하며, 생성 시점에 DB 접속이나 등록을 강제하지 않는다.
+3. `cpf bootstrap` 은 Workspace 의 Generated Domain 을 **canonical Domain Catalog/Contract 에서 동적으로
+   발견**한다. Domain 이름이나 SystemCode 를 계약·코드 어디에도 복제하지 않는다. 신규 Domain 도 Source
+   수정 없이 자동 포함된다.
+4. Platform DB provisioning 단계에서 각 Generated Domain 의 canonical service metadata 를 Registry 와
+   **reconcile** 한다. 순서는 `validate → reconcile → fail-closed` 다.
+   - 없으면 **등록**한다.
+   - 같은 계약으로 이미 있으면 **idempotent PASS** 다. 재실행이 중복 INSERT 를 만들지 않는다.
+   - 같은 key 인데 소유/종류가 다르면 **덮어쓰지 않고 fail-closed** 한다.
+   - 운영자가 내려둔 상태(`use_yn='N'`)를 provisioning 이 조용히 다시 켜지 않는다. fail-closed 다.
+   - 표시용 값(`service_name`, `description`)이 다르면 운영자가 바꾼 것이다. 덮어쓰지 않는다.
+5. **Runtime 자가 등록은 금지한다.** "Registry 에 등록되어 있어야 기동 가능하다" 는 fail-closed 계약을
+   유지하며, Runtime 이 자기 `service_id` 가 없다고 Registry 를 임의로 바꾸지 않는다.
+6. **ADM 수동 등록은 Golden Path 가 아니다.** ADM 은 조회/운영/승인 UI 일 수 있으나, 신규 Generated
+   Domain 을 실행하기 위해 사용자가 매번 ADM 에 먼저 접속해 등록하게 하지 않는다.
+7. `cpf domain-new` 에서 즉시 등록하지 않는다. Source 생성과 Platform DB provisioning lifecycle 을 분리한다.
+8. `service_id` 와 ownership 값은 **canonical Domain/Service Contract 에서 그대로** 가져온다. 이름
+   truncation / inference / fallback / 임시 문자열 조합을 금지하고, 특정 Domain 전용 분기를 두지 않는다.
+9. local/dev/stg/test/prod 가 **같은 lifecycle 계약**을 쓴다. 특정 profile 에서만 auto-register 하거나
+   prod 에서만 수동 등록하는 기능 차이를 만들지 않는다. Profile 차이는 DB endpoint/credential/resource 뿐이다.
+10. provisioning 기능을 bootstrap 전용 임시 함수로 만들지 않는다. SQL 정본은 vendor pack 하나이고, 실행
+    코드는 그 SQL 을 읽어 쓴다. 중복 SQL / 중복 등록 로직을 두지 않는다.
+
+### 40.3 정본 흐름
+
+```
+cpf domain-new
+→ Canonical Generated Domain Source/metadata 생성
+→ cpf bootstrap
+→ Workspace Domain discovery
+→ Platform DB provisioning
+→ OPS_SERVICE validate / reconcile / register
+→ Domain DB/schema provisioning
+→ Runtime prerequisite verification
+→ Runtime start
+```
+
+### 40.4 정본 위치
+
+| 대상 | 정본 |
+| --- | --- |
+| 등록 규칙 | `cpf-tools/db/canonical/service-registry-provisioning.json` |
+| SQL | `cpf-tools/db/vendor/{vendor}/runtime/cpf/repository/service-registry-*.sql` (3 vendor) |
+| 실행 | `cpf-tools/runtime/bootstrap/CpfBootstrap.java#reconcileServiceRegistry` |
+| 공개 투영 | `config/service-registry-provisioning.json`, `deploy/local/db/vendor/{vendor}/**` |
+
+### 40.5 Required validator
+
+`cpf-tools/verification/tests/test_cpf_service_registry_provisioning_contract.py` 가 이 계약을 강제한다.
+자동 검증 범위: 실행 주체/Owner 분리, 대상 table·key 의 schema 일치, 기본값 없는 NOT NULL column 전량 공급,
+값 출처의 정본성과 변환 금지, identity/ownership 의 SystemCode 유래, 대상 집합의 동적 발견과 이름 비복제,
+reconcile 순서와 등록/idempotent/충돌 fail-closed, 운영자 편집값 비덮어쓰기, 비활성 행 fail-closed,
+Runtime 자가 등록 금지, profile 무차별, vendor 3종 SQL 실재와 이름 붙은 parameter, 실행 코드의 SQL 비복제,
+DB Lifecycle 내 실행 순서, Domain 이름 비하드코딩, 공개 배포본 투영. 대응 negative mutation group 은
+`SERVICE_REGISTRY` 다.
+
+### 40.6 실행 검증
+
+기존 Domain, 신규 Generated Domain, 최초 등록, bootstrap 재실행 idempotency, duplicate/conflict negative,
+Registry 누락 상태의 Runtime fail-closed, Runtime 자가 등록 불가, DB3(Oracle/PostgreSQL/MariaDB) 영향,
+Fresh Consumer bootstrap → Runtime start 까지 확인한다.

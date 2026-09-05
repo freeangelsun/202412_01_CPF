@@ -406,116 +406,142 @@
     {
       "source": "cpf-tools/db/generated/current/mariadb/cpf-platform-schema.sql",
       "target": "deploy/local/db/platform/mariadb/V1__cpf_platform_schema.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/mariadb/non-table-objects.sql",
       "target": "deploy/local/db/platform/mariadb/V2__cpf_platform_objects.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/mariadb/cpf-platform-seed.sql",
       "target": "deploy/local/db/platform/mariadb/20_product_seed.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/mariadb/cpf-platform-verify.sql",
       "target": "deploy/local/db/platform/mariadb/90_verify.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/oracle/cpf-platform-schema.sql",
       "target": "deploy/local/db/platform/oracle/V1__cpf_platform_schema.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/oracle/non-table-objects.sql",
       "target": "deploy/local/db/platform/oracle/V2__cpf_platform_objects.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/oracle/cpf-platform-seed.sql",
       "target": "deploy/local/db/platform/oracle/20_product_seed.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/oracle/cpf-platform-verify.sql",
       "target": "deploy/local/db/platform/oracle/90_verify.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/postgresql/cpf-platform-schema.sql",
       "target": "deploy/local/db/platform/postgresql/V1__cpf_platform_schema.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/postgresql/non-table-objects.sql",
       "target": "deploy/local/db/platform/postgresql/V2__cpf_platform_objects.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/postgresql/cpf-platform-seed.sql",
       "target": "deploy/local/db/platform/postgresql/20_product_seed.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/postgresql/cpf-platform-verify.sql",
       "target": "deploy/local/db/platform/postgresql/90_verify.sql",
-      "classification": "OPEN_GIT_DEPLOY_ASSET"
+      "classification": "OPEN_GIT_DEPLOY_ASSET",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/mariadb/backoffice-schema.sql",
       "target": "deploy/local/db/domain/backoffice/mariadb/V1__backoffice_domain_schema.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/mariadb/backoffice-seed.sql",
       "target": "deploy/local/db/domain/backoffice/mariadb/20_product_seed.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/mariadb/backoffice-verify.sql",
       "target": "deploy/local/db/domain/backoffice/mariadb/90_verify.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/oracle/backoffice-schema.sql",
       "target": "deploy/local/db/domain/backoffice/oracle/V1__backoffice_domain_schema.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/oracle/backoffice-seed.sql",
       "target": "deploy/local/db/domain/backoffice/oracle/20_product_seed.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/oracle/backoffice-verify.sql",
       "target": "deploy/local/db/domain/backoffice/oracle/90_verify.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/postgresql/backoffice-schema.sql",
       "target": "deploy/local/db/domain/backoffice/postgresql/V1__backoffice_domain_schema.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/postgresql/backoffice-seed.sql",
       "target": "deploy/local/db/domain/backoffice/postgresql/20_product_seed.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
     },
     {
       "source": "cpf-tools/db/generated/current/postgresql/backoffice-verify.sql",
       "target": "deploy/local/db/domain/backoffice/postgresql/90_verify.sql",
       "classification": "OPEN_GIT_DEPLOY_ASSET",
-      "option": "backoffice"
+      "option": "backoffice",
+      "generatorInput": "cpf-tools/db/canonical"
+    },
+    {
+      "source": "cpf-tools/db/canonical/service-registry-provisioning.json",
+      "target": "config/service-registry-provisioning.json",
+      "classification": "OPEN_GIT_USER_CONFIG"
     }
   ],
   "allowedClassifications": [
@@ -606,6 +632,413 @@
     ],
     "optionalPrebuiltDomains": [
       "backoffice"
+    ]
+  },
+  "releaseAssetPolicy": {
+    "contract": "CPF_RELEASE_ASSET_AUTHORITY",
+    "intent": [
+      "Development Master 는 용량/운영성/보안상 실질적 문제가 없는 Current Verified Release Asset 을 가능한 범위에서 함께 보존한다.",
+      "Master Git 보존 여부와 Open Git Fresh 재생성 여부는 서로 독립된 계약이다.",
+      "Master 에 보존된 Generated/Release Artifact 는 다음 Fresh Release 의 Build/Generation 입력으로 쓰지 않는다.",
+      "Open Git Release 는 항상 Clean Isolated Release Workspace 에서 Canonical Source 기준으로 다시 만든다.",
+      "cpf-release/open-git 은 정본이 아니라 projection 결과다. 정본은 Development Master 의 canonical source 다.",
+      "분류는 파일명/확장자/폴더명이 아니라 투영 규칙의 metadata 에서 파생한다.",
+      "Artifact 분류는 확장자나 임의 크기 기준이 아니라 canonical Runtime metadata 에서 파생한다. 분류가 없으면 UNKNOWN 이며 FAIL CLOSED 다."
+    ],
+    "axes": {
+      "masterTracked": "Development Master Git 에 보존하는가",
+      "publicRelease": "Open Git 공개 배포본에 포함하는가",
+      "releaseInputAuthority": "Fresh Release 의 생성 입력으로 쓸 수 있는가",
+      "freshRegenerationRequired": "Final Fresh Release 에서 다시 만들어야 하는가"
+    },
+    "independenceRules": [
+      "masterTracked=true 가 releaseInputAuthority=true 를 뜻하지 않는다.",
+      "masterTracked=false 가 publicRelease=false 를 뜻하지 않는다.",
+      "masterTracked=true 가 publicRelease=true 를 뜻하지 않는다.",
+      "generated 라는 이유만으로 masterTracked=false 로 만들지 않는다.",
+      "binary 라는 이유만으로 masterTracked=false 로 만들지 않는다.",
+      "text 라는 이유만으로 masterTracked=true 로 만들지 않는다."
+    ],
+    "classes": {
+      "CANONICAL_RELEASE_SOURCE": {
+        "meaning": "다음 Release 의 실제 입력으로 쓰는 Canonical Source. 사람이 지속 관리하는 정본.",
+        "examples": [
+          "bin/cpf launcher",
+          "공개 Gradle workspace",
+          "공개 config/schema/template",
+          "Runtime/Product Catalog",
+          "Release Policy",
+          "Release Engine"
+        ],
+        "masterTracked": true,
+        "publicRelease": "BY_SURFACE_POLICY",
+        "releaseInputAuthority": true,
+        "freshRegenerationRequired": false,
+        "projectionPolicy": "FRESH_PROJECTION_FROM_CANONICAL",
+        "mustNotBeGeneratedByReleaseEngine": true,
+        "reusePreviousReleaseOutput": false,
+        "verificationPolicy": [
+          "projectionCompleteness",
+          "exactByteSha256",
+          "executableBit",
+          "lineEnding",
+          "readmeCliParity",
+          "windowsLinuxParity",
+          "freshConsumerExecution"
+        ],
+        "promotionPolicy": "NOT_APPLICABLE"
+      },
+      "TRACKED_VERIFIED_RELEASE_RESULT": {
+        "meaning": "Canonical Source 에서 생성됐지만 현재 Release 상태 보존 가치가 있어 Master 에 함께 두는 결과.",
+        "examples": [
+          "current verified JAR",
+          "native generator executable",
+          "POM",
+          "Sources/Javadoc JAR",
+          "SBOM",
+          "Checksum",
+          "Artifact/Package Manifest",
+          "verified public binary repository"
+        ],
+        "masterTracked": true,
+        "publicRelease": "BY_SURFACE_POLICY",
+        "releaseInputAuthority": false,
+        "freshRegenerationRequired": true,
+        "projectionPolicy": "REGENERATED_NOT_COPIED",
+        "roles": [
+          "currentReleaseVisibility",
+          "changeReview",
+          "diff",
+          "audit",
+          "qa",
+          "previousCurrentComparison",
+          "releaseTroubleshooting",
+          "historicalProvenance"
+        ],
+        "neverUsedAs": "FRESH_BUILD_CACHE",
+        "verificationPolicy": [
+          "currentSourceIdentity",
+          "freshVsTrackedComparison",
+          "checksum",
+          "manifest",
+          "leakageZero",
+          "freshConsumerExecution"
+        ],
+        "promotionPolicy": "PROMOTE_AFTER_VERIFICATION",
+        "promotionStates": [
+          "GENERATED",
+          "STAGED",
+          "VERIFIED",
+          "PROMOTED_CURRENT_RELEASE"
+        ],
+        "currentizationOrder": [
+          "generate",
+          "verify",
+          "promote",
+          "currentizeTrackedSnapshot"
+        ],
+        "atomicArtifactSet": true
+      },
+      "UNTRACKED_RELEASE_RESULT": {
+        "meaning": "공개 배포본에는 들어가지만 실측된 Repository 운영 문제로 Master 에 두지 않는 결과.",
+        "masterTracked": false,
+        "publicRelease": true,
+        "releaseInputAuthority": false,
+        "freshRegenerationRequired": true,
+        "trackingExceptionReasonRequired": true,
+        "trackingExceptionEvidence": [
+          "assetCurrentSize",
+          "releaseSetSize",
+          "repositoryGrowth",
+          "clonePullImpact",
+          "hostingCapability",
+          "binaryChurn",
+          "alternatives"
+        ],
+        "verificationPolicy": [
+          "currentSourceIdentity",
+          "checksum",
+          "manifest",
+          "leakageZero",
+          "freshConsumerExecution"
+        ],
+        "promotionPolicy": "NOT_TRACKED"
+      },
+      "TRANSIENT_RELEASE_OUTPUT": {
+        "meaning": "현재 Release 의 제품 자산이 아닌 중간 산출물.",
+        "examples": [
+          "build",
+          "tmp",
+          "cache",
+          "temporary staging",
+          "temporary publication repository",
+          "fresh consumer temporary clone",
+          "unpack directory",
+          "working directory",
+          "pid",
+          "runtime temp",
+          "failed release output",
+          "test fixture output",
+          "temporary logs"
+        ],
+        "masterTracked": false,
+        "publicRelease": false,
+        "releaseInputAuthority": false,
+        "freshRegenerationRequired": true,
+        "promotionPolicy": "NEVER"
+      }
+    },
+    "classificationMapping": {
+      "OPEN_GIT_USER_DOC": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_USER_SCRIPT": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_USER_CONFIG": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_BOOTSTRAP": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_BACKOFFICE_SOURCE": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_EDUCATION_SOURCE": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_EDUCATION_BUILD": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_PUBLIC_DOC": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_PUBLIC_DOC_ASSET": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_DEPLOY_ASSET": "CANONICAL_RELEASE_SOURCE",
+      "OPEN_GIT_GENERATED_DOMAIN_SOURCE": "CANONICAL_RELEASE_SOURCE",
+      "PUBLIC_GENERATED_SOURCE": "TRACKED_VERIFIED_RELEASE_RESULT",
+      "PUBLIC_RELEASE_METADATA": "TRACKED_VERIFIED_RELEASE_RESULT",
+      "OPEN_GIT_CLI_BINARY": "TRACKED_VERIFIED_RELEASE_RESULT"
+    },
+    "ruleOverrideKey": "releaseAssetClass",
+    "generatorInputKey": "generatorInput",
+    "cleanWorkspace": {
+      "meaning": "Fresh Release 의 Clean 은 git clean 이 아니다.",
+      "allowedTargets": [
+        "approvedGeneratedReleaseRoot",
+        "isolatedStagingWorkspace"
+      ],
+      "forbiddenCommands": [
+        "git clean",
+        "git reset --hard",
+        "git restore ."
+      ],
+      "protectedPaths": [
+        ".git",
+        ".github",
+        ".gitignore",
+        ".gitattributes",
+        ".editorconfig",
+        "canonicalSource",
+        "developmentHarness",
+        "productSource"
+      ],
+      "previousResidueAllowed": false,
+      "prerequisitesBeforeDestruction": true
+    },
+    "publicationRouting": {
+      "forbiddenDirectTargets": [
+        "trackedReleaseTree",
+        "openGitWorkingTree"
+      ],
+      "canonicalOrder": [
+        "isolatedStaging",
+        "verification",
+        "promotionOrProjection"
+      ]
+    },
+    "developmentGate": "IMPACT_TARGETED",
+    "finalReleaseCandidateGate": "FULL_FRESH_ONCE",
+    "finalReleaseCandidateOrder": [
+      "sourceFreeze",
+      "currentSourceIdentity",
+      "cleanReleaseWorkspace",
+      "freshBuild",
+      "freshTest",
+      "freshPublication",
+      "freshGenerator",
+      "freshGeneratedSource",
+      "canonicalPublicSourceProjection",
+      "freshBinaryRepository",
+      "pomSourcesJavadoc",
+      "freshSbom",
+      "freshChecksum",
+      "freshManifest",
+      "leakageZero",
+      "releaseCandidate",
+      "trackedResultComparisonAndCurrentization",
+      "freshConsumer",
+      "evidence"
+    ],
+    "acceptance": {
+      "masterCheckoutShowsCurrentDeliverable": "Development Master checkout 만으로 현재 Release 구조와 적정 크기의 Current Verified Deliverable 을 확인할 수 있다.",
+      "freshReleaseWithoutTrackedResult": "Master 에 보존된 이전 Release Result 를 Fresh Release 입력에서 완전히 배제해도 Canonical Source 만으로 재생성할 수 있다.",
+      "bothMustHold": true
+    },
+    "currentOnly": {
+      "meaning": "Working Tree 에는 Current Release 하나만 둔다. 과거 Release 는 Git History 가 담당한다.",
+      "forbiddenSiblingPatterns": [
+        "release-old",
+        "release-previous",
+        "release-backup",
+        "release-copy",
+        "backup-release"
+      ]
+    },
+    "artifactClassification": {
+      "contract": "CPF_RELEASE_ARTIFACT_CLASSIFICATION",
+      "unknownArtifact": "FAIL_CLOSED",
+      "unknownArtifactNote": "새 Artifact 가 분류 없이 등장하면 통과시키지 않는다. 확장자만 보고 자동 제외하지 않는다.",
+      "derivedFrom": {
+        "authority": "cpf-tools/runtime/cpf-runtime-target-catalog.json",
+        "selector": "runtimes[provision=binary].artifactId",
+        "note": "크기 threshold 를 쓰지 않는다. Public Binary Runtime 의 실행물이라는 성격으로 분류한다."
+      },
+      "rules": [
+        {
+          "id": "publicBinaryRuntimeExecutable",
+          "match": {
+            "root": "cpf-release/binary-repository/com/cpf/runtime",
+            "artifactIdFrom": "runtimeTargetCatalog.binaryProvisionArtifactIds",
+            "fileKind": "executable-runtime-jar"
+          },
+          "assetClass": "UNTRACKED_RELEASE_RESULT",
+          "masterTracked": false,
+          "publicRelease": true,
+          "trackingExceptionReason": "Spring Boot executable runtime jar 은 의존성 전체를 담고 있어 재빌드마다 blob 이 통째로 바뀐다. 2026-09-05 실측: 9개 합계 679MB, 최대 111.3MB / 111.0MB 로 GitHub 파일당 100MB 하드 제한을 초과해 push 자체가 거부되며, 회차마다 .git(현재 183MB)이 수백 MB 씩 증가한다.",
+          "measuredAt": "2026-09-05",
+          "evidence": "cpf-docs/governance/development-harness/current/RELEASE_BINARY_TRACKING_MANIFEST.csv",
+          "reevaluation": "크기가 줄거나 저장 방식이 바뀌어 실질적인 Git 운영 문제가 사라지면 예외를 재평가한다. 이 예외를 \"JAR 은 저장하지 않는다\" 는 일반 규칙으로 확대하지 않는다."
+        },
+        {
+          "id": "generatorDistribution",
+          "match": {
+            "root": "cpf-release/binary-repository/com/cpf/tooling",
+            "fileKind": "generator-distribution-archive"
+          },
+          "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+          "masterTracked": true,
+          "publicRelease": true,
+          "note": "Windows/Linux Generator 배포본. 2026-09-05 실측 8.0MB / 7.7MB 로 Git 운영 문제가 없어 보존한다. binary 라는 이유만으로 제외하지 않는다."
+        },
+        {
+          "id": "releaseMetadata",
+          "match": {
+            "root": "cpf-release/binary-repository",
+            "fileKind": "pom|checksum|manifest|module-metadata|maven-metadata"
+          },
+          "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+          "masterTracked": true,
+          "publicRelease": true,
+          "note": "적정 크기의 Current Verified Release Metadata 는 Master 에서 보존한다."
+        },
+        {
+          "id": "libraryArtifact",
+          "match": {
+            "root": "cpf-release/binary-repository",
+            "fileKind": "library-jar"
+          },
+          "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+          "masterTracked": true,
+          "publicRelease": true,
+          "note": "Runtime 실행물이 아닌 라이브러리 jar 은 크기 문제가 없어 보존한다."
+        },
+        {
+          "id": "releaseReport",
+          "match": {
+            "root": "cpf-release/reports",
+            "fileKind": "any"
+          },
+          "assetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+          "masterTracked": true,
+          "publicRelease": false,
+          "note": "Release 검수용 Current Metadata 다. 공개 배포본에는 넣지 않는다."
+        }
+      ],
+      "trackedManifest": "cpf-docs/governance/development-harness/current/RELEASE_BINARY_TRACKING_MANIFEST.csv",
+      "trackedManifestColumns": [
+        "artifact_path",
+        "coordinate",
+        "version",
+        "size_bytes",
+        "sha256",
+        "source_identity",
+        "master_tracked",
+        "public_release",
+        "asset_class",
+        "tracking_exception_reason"
+      ],
+      "gitLfs": {
+        "adopted": false,
+        "reason": "별도 저장 인프라/운영 계약을 추가하는 Architecture 결정이므로 이번 Release closure 에 도입하지 않는다."
+      }
+    }
+  },
+  "releaseProducedAssets": {
+    "contract": "CPF_RELEASE_PRODUCED_ASSETS",
+    "intent": [
+      "Release 엔진이 만들어 내는 자산의 부류도 metadata 로 선언한다.",
+      "이 자산들은 Master 보존 여부와 무관하게 매 Fresh Release 에서 Current Source 기준으로 다시 만든다.",
+      "path 는 공개 배포본(Open Git tree) 기준 상대 경로 또는 Release 작업 영역 표기다."
+    ],
+    "assets": [
+      {
+        "name": "publicBinaryRepository",
+        "path": "binary-repository",
+        "producedBy": "sanitize_binary_repository",
+        "releaseAssetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+        "note": "staging repository 를 입력으로 하는 투영 결과. 발행 대상으로 직접 지정하지 않는다."
+      },
+      {
+        "name": "publicCliJar",
+        "path": "bin/lib/cpf-cli.jar",
+        "producedBy": "build_public_cli_jar",
+        "releaseAssetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+        "note": "canonical Java Source 를 javac 로 다시 빌드한다. 지난 Release jar 를 복사하지 않는다."
+      },
+      {
+        "name": "generatorDistribution",
+        "path": "binary-repository/com/cpf/**/cpf-generator-cli-*",
+        "producedBy": "publish_generator_distributions",
+        "releaseAssetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+        "note": "Windows/Linux OS matrix 를 매 Final Release 에서 다시 만든다."
+      },
+      {
+        "name": "artifactChecksum",
+        "path": "binary-repository/**/*.sha256",
+        "producedBy": "publish/sanitize",
+        "releaseAssetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+        "note": "최종 artifact byte 에서 매번 다시 계산한다."
+      },
+      {
+        "name": "artifactManifest",
+        "path": "binary-repository/**/*.json",
+        "producedBy": "publish/sanitize",
+        "releaseAssetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+        "note": "Current Source Identity 와 다르면 stale 이다."
+      },
+      {
+        "name": "publicWorkspaceMetadata",
+        "path": ".cpf-public",
+        "producedBy": "prepare-cpf-public-workspace",
+        "releaseAssetClass": "TRACKED_VERIFIED_RELEASE_RESULT",
+        "note": "공개 Workspace 분류/Source Identity 기록."
+      },
+      {
+        "name": "releaseReport",
+        "path": "cpf-release/reports",
+        "producedBy": "cpf_open_git",
+        "releaseAssetClass": "TRANSIENT_RELEASE_OUTPUT",
+        "note": "Release 실행 보고서. 제품 자산이 아니다."
+      },
+      {
+        "name": "releaseLog",
+        "path": "cpf-release/logs",
+        "producedBy": "cpf_open_git",
+        "releaseAssetClass": "TRANSIENT_RELEASE_OUTPUT",
+        "note": "Release 실행 로그."
+      },
+      {
+        "name": "releaseWork",
+        "path": "cpf-release/work",
+        "producedBy": "cpf_open_git",
+        "releaseAssetClass": "TRANSIENT_RELEASE_OUTPUT",
+        "note": "staging repository, generator native work, open-git staging 등 중간 산출물."
+      }
     ]
   }
 }

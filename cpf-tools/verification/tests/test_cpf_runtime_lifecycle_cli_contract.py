@@ -32,6 +32,7 @@ TARGETS_SOURCE = REPO_ROOT / "cpf-tools/runtime/cli/java/CpfRuntimeTargets.java"
 BOOTSTRAP_SOURCE = REPO_ROOT / "cpf-tools/runtime/bootstrap/CpfBootstrap.java"
 README = REPO_ROOT / "cpf-tools/release/open-git/templates/README.md"
 LAUNCHER_DIR = REPO_ROOT / "cpf-tools/release/open-git/templates/bin"
+SURFACE_POLICY = REPO_ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"
 HARNESS = REPO_ROOT / "cpf-docs/governance/development-harness/CPF_DEVELOPMENT_HARNESS.md"
 WORK_ITEM_REGISTRY = REPO_ROOT / "cpf-docs/governance/development-harness/current/CURRENT_WORK_ITEM_REGISTRY.csv"
 
@@ -40,6 +41,10 @@ REQUIRED_GROUPS = ("all", "platform", "domains", "batch", "backoffice-stack")
 CLI_SOURCES = ("cpf-tools/runtime/cli/java/CpfCli.java",
                "cpf-tools/runtime/cli/java/CpfRuntimeTargets.java",
                "cpf-tools/runtime/bootstrap/CpfBootstrap.java")
+
+
+def NL_JOIN(lines) -> str:
+    return "\n".join(lines)
 
 
 def read(path: Path) -> str:
@@ -359,6 +364,28 @@ class LauncherParity(unittest.TestCase):
         self.assertEqual([], offenders,
                          f"wrapper 가 자체 명령 목록을 갖고 있다: {offenders}")
 
+    def test_powershell_wrappers_translate_the_expected_parameter(self) -> None:
+        """PowerShell 사용자는 -Target 을 기대한다. wrapper 가 canonical CLI 의 --target 으로 넘겨야 한다.
+
+        이 변환이 없으면 README 를 그대로 복사한 명령이 'target is required' 로 실패한다.
+        같은 계약을 Release Gate 도 확인하지만, 여기서 먼저 잡아야 긴 Release 를 반복하지 않는다.
+        """
+        broken: list[str] = []
+        checked = 0
+        for script in sorted(LAUNCHER_DIR.glob("cpf-*.ps1")):
+            verb = self._delegated_verb(read(script))
+            if verb not in LIFECYCLE_VERBS:
+                continue
+            checked += 1
+            # 주석에 적힌 설명은 동작이 아니다. 실행 줄만 본다.
+            code = NL_JOIN(line for line in read(script).splitlines()
+                           if not line.strip().startswith("#"))
+            if "$Target" not in code or "--target" not in code:
+                broken.append(script.name)
+        self.assertTrue(checked, "Lifecycle PowerShell wrapper 를 하나도 찾지 못했다")
+        self.assertEqual([], broken,
+                         f"PowerShell wrapper 가 -Target 을 --target 으로 넘기지 않는다: {broken}")
+
     def test_wrapper_verbs_are_real_cli_commands(self) -> None:
         public = read(CLI_SOURCE).split("Set<String> PUBLIC = Set.of(", 1)[1].split(");", 1)[0]
         unknown = []
@@ -400,6 +427,47 @@ class DocumentationParity(unittest.TestCase):
                 continue
             unknown.append(f"{verb} {selector}")
         self.assertEqual([], unknown, f"README 가 존재하지 않는 대상을 안내한다: {unknown}")
+
+    def test_every_public_http_runtime_is_documented(self) -> None:
+        """배포되는데 실행 방법이 문서에 없으면 실행 가능한 배포가 아니다.
+
+        Release Gate 도 같은 것을 보지만, 여기서 먼저 잡아야 긴 Release 를 반복하지 않는다.
+        """
+        text = read(README)
+        missing: list[str] = []
+        for row in static_targets():
+            if row["capability"] != "http-server" or not row.get("publicLifecycle", True):
+                continue
+            if row.get("publicationClass") != "PUBLIC_RUNTIME":
+                continue
+            # provision 은 실행물을 어디서 얻는지일 뿐이다. binary Runtime(ADM/Gateway)도
+            # 공개 운영 대상이므로 실행 방법이 문서에 있어야 한다.
+            name = str(row["target"])
+            documented = any(f"cpf {verb} {name}" in text for verb in LIFECYCLE_VERBS)
+            if not documented:
+                missing.append(f"{name}:launcher")
+            port = row.get("port")
+            if port and str(port) not in text:
+                missing.append(f"{name}:port{port}")
+            port_env = str(row.get("portEnv", ""))
+            if port_env and port_env not in text:
+                missing.append(f"{name}:{port_env}")
+        self.assertEqual([], missing,
+                         f"README 가 배포되는 Runtime 의 실행 방법을 알려주지 않는다: {missing}")
+
+    def test_release_engine_never_carries_a_runtime_name_list(self) -> None:
+        """Release Gate 가 대상 이름을 들고 있으면 새 Runtime 이 검사 없이 배포된다."""
+        engine = REPO_ROOT / "cpf-tools/release/open-git/cpf_open_git.py"
+        code = NL_JOIN(line for line in read(engine).splitlines()
+                       if not line.strip().startswith("#"))
+        names = {row["target"] for row in static_targets()}
+        offenders: list[str] = []
+        for literal in re.findall(r"\(([^()]{0,200}?)\)", code, re.S):
+            hits = [name for name in names if f'"{name}"' in literal]
+            if len(hits) >= 2:
+                offenders.append(str(sorted(hits)))
+        self.assertEqual([], offenders,
+                         f"Release 엔진이 Runtime 이름 목록을 들고 있다: {offenders}")
 
     def test_readme_leads_with_the_canonical_entrypoint(self) -> None:
         text = read(README)
@@ -631,12 +699,42 @@ class PublicBuildSurfaceBoundary(unittest.TestCase):
         self.assertEqual([], leaked,
                          f"공개 Build graph 가 Binary-only Runtime 을 끌어온다: {leaked}")
 
-    def test_binary_only_runtime_still_has_a_public_lifecycle(self) -> None:
-        """실행은 공개다. Build 를 막았다고 운영까지 막으면 안 된다."""
+    def test_public_binary_runtime_still_has_a_public_lifecycle(self) -> None:
+        """실행은 공개다. Source Build 를 막았다고 운영까지 막으면 안 된다(ADM/Gateway).
+
+        내부 개발 보조 Runtime 은 공개 배포본에 실리지 않으므로 이 요구의 대상이 아니다.
+        구분 기준은 publicationClass 이며 경로나 이름이 아니다.
+        """
         blocked = [row["target"] for row in static_targets()
-                   if row["buildSurface"] == "private-binary" and not row["publicLifecycle"]]
+                   if row["buildSurface"] == "private-binary"
+                   and row.get("publicationClass") == "PUBLIC_RUNTIME"
+                   and not row["publicLifecycle"]]
         self.assertEqual([], blocked,
-                         f"Binary-only Runtime 인데 Lifecycle 조차 공개되지 않는다: {blocked}")
+                         f"공개 Binary Runtime 인데 Lifecycle 이 공개되지 않는다: {blocked}")
+
+    def test_public_runtime_is_actually_obtainable_in_the_release(self) -> None:
+        """공개로 표시했는데 배포본에서 얻을 수 없으면 문서/Gate 가 헛돈다.
+
+        owner 경로로 공개 여부를 추론하지 않는다. cpf-tools 소유인 1-WAS 통합 Local Runtime 도
+        실행물이 공개 Binary Repository 로 발행되므로 공개 Runtime 이다. 판단 기준은
+        source 는 투영 여부, binary 는 발행 좌표 존재다.
+        """
+        projected = {str(rule.get("target", "")) for rule in
+                     (json.loads(read(SURFACE_POLICY)).get("sourceRules", [])
+                      + json.loads(read(SURFACE_POLICY)).get("templateRules", []))}
+        unobtainable: list[str] = []
+        for row in static_targets():
+            if row.get("publicationClass") != "PUBLIC_RUNTIME":
+                continue
+            owner = str(row["owner"])
+            if row["provision"] == "source":
+                if not any(target == owner or target.startswith(owner + "/")
+                           for target in projected):
+                    unobtainable.append(f"{row['target']}(source:{owner})")
+            elif not str(row.get("artifactId", "")).strip():
+                unobtainable.append(f"{row['target']}(binary: artifactId 없음)")
+        self.assertEqual([], unobtainable,
+                         f"공개 Runtime 인데 배포본에서 얻을 수 없다: {unobtainable}")
 
 
 class HarnessAndRegistryRelation(unittest.TestCase):

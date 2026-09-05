@@ -103,7 +103,12 @@ logs/
 *.orig
 *.rej
 *.patch
-*.zip
+# Archive 는 형식이 아니라 용도로 판단한다. 임시/작업 archive 만 제외하고,
+# Current Verified Release 산출물은 Release Asset Policy 가 tracking 여부를 정한다.
+/tmp/**/*.zip
+/temp/**/*.zip
+**/build/**/*.zip
+**/.gradle/**/*.zip
 *.7z
 *.tar
 *.gz
@@ -148,5 +153,11 @@ Thumbs.db
 !cpf-tools/release/open-git/templates/bin/
 !cpf-tools/release/open-git/templates/bin/**
 
-# CPF Open Git release output (generated, never private-source tracked)
-/cpf-release/
+# CPF Open Git Release 산출물은 부류별로 판단한다(Harness 39). 형식이나 폴더 하나로 일괄 제외하지 않는다.
+#  - TRANSIENT_RELEASE_OUTPUT      : 중간 산출물. 제품 자산이 아니다.
+#  - projection 결과(open-git tree) : Canonical Source 에서 언제든 재생성된다. Master 에 두면
+#                                     공개 Source 전체가 이중으로 쌓인다.
+#  - TRACKED_VERIFIED_RELEASE_RESULT: Current 검증본. 용량 예외가 승인된 항목만 아래에서 제외한다.
+/cpf-release/work/
+/cpf-release/logs/
+/cpf-release/open-git/

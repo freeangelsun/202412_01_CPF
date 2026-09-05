@@ -173,6 +173,15 @@
       "id": "batch-no-remote-kafka",
       "path": "cpf-tools/verification/tools/verify-cpf-batch-no-remote-kafka.py",
       "required": true
+    },
+    {
+      "id": "release-asset-inventory",
+      "path": "cpf-tools/release/open-git/report_release_asset_inventory.py",
+      "args": [
+        "--out",
+        "cpf-docs/governance/development-harness/current/RELEASE_ASSET_INVENTORY.csv"
+      ],
+      "required": true
     }
   ]
 }

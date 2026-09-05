@@ -11,11 +11,17 @@ Open Git Release 는 최종 사용자가 직접 수행하는 공식 lifecycle �
 from __future__ import annotations
 
 import io
+import os
 import re
+import sys
 from functools import lru_cache
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+# negative mutation 은 격리 사본에서 같은 계약을 다시 돌린다.
+ROOT = Path(os.environ.get("CPF_OPEN_GIT_TASK_ROOT") or Path(__file__).resolve().parents[3])
 CONVENTIONS = ROOT / "cpf-tools/build/cpf-root-conventions.gradle"
 WRAPPER = ROOT / "cpf-tools/release/open-git/cpf-open-git.ps1"
 ENGINE = ROOT / "cpf-tools/release/open-git/cpf_open_git.py"
@@ -121,3 +127,44 @@ def test_wrapper_exposes_every_action_and_the_approval_switch() -> None:
         assert expectation in wrapper, expectation
     # PowerShell 자동 변수와 겹치는 이름을 쓰지 않는다(경고 0 규칙).
     assert re.search(r"(?m)^\s*\[string\]\$Profile\b", wrapper) is None
+
+
+def test_prerequisites_resolve_before_previous_release_is_deleted() -> None:
+    """전제조건 확인이 파괴적 재생성보다 먼저 온다.
+
+    증상 근거: remote 미설정으로 02단계에서 실패했는데 01단계가 이미 cpf-release 전체를 지운 뒤였다.
+    사소한 설정 누락 한 번으로 유효한 Release 산출물을 통째로 잃었다.
+    """
+    text = _text("cpf-tools/release/open-git/cpf_open_git.py")
+    body = text.split("def build_release(", 1)
+    assert len(body) == 2, "build_release 진입점을 찾지 못했다"
+    body = body[1]
+    cleanup = body.find("clean_release_root(")
+    remote = body.find("canonical_remote(")
+    assert remote >= 0, "remote 전제조건 확인이 없다"
+    assert cleanup >= 0, "Release 재생성 지점을 찾지 못했다"
+    assert remote < cleanup, (
+        "remote 전제조건을 확인하기 전에 직전 Release 산출물을 삭제한다")
+    skip = body.find("--skip-build is reserved")
+    assert 0 <= skip < cleanup, (
+        "--skip-build 거절이 삭제보다 뒤에 있어 잘못된 호출도 산출물을 지운다")
+
+
+def test_release_cleanup_is_restricted_to_the_release_root() -> None:
+    text = _text("cpf-tools/release/open-git/cpf_open_git.py")
+    assert "def clean_release_root(" in text, "Release 재생성 범위 함수가 없다"
+
+if __name__ == "__main__":
+    # negative fixture 가 이 파일을 직접 실행한다. pytest 없이도 같은 계약을 판정해야 한다.
+    failures = []
+    for _name, _fn in sorted(dict(globals()).items()):
+        if not _name.startswith("test_") or not callable(_fn):
+            continue
+        try:
+            _fn()
+        except Exception as failure:  # noqa: BLE001 - 계약 위반을 그대로 보고한다
+            failures.append(f"{_name}: {failure}")
+    for _failure in failures:
+        print("FAIL " + _failure)
+    print(f"OPEN_GIT_TASK_CONTRACT={'FAIL' if failures else 'PASS'}")
+    raise SystemExit(1 if failures else 0)

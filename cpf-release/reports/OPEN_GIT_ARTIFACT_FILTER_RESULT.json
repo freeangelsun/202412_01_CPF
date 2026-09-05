@@ -1,0 +1,102 @@
+{
+  "mode": "ALLOWLIST_FAIL_CLOSED",
+  "publicVersion": "1.0.0",
+  "developmentVersion": "1.0.0-SNAPSHOT",
+  "admittedGradleModuleMetadata": false,
+  "admittedMavenMetadata": false,
+  "counters": {
+    "denied-classifier-jar": 64,
+    "checksum-sidecar": 1400,
+    "jar": 58,
+    "gradle-module-metadata": 48,
+    "pom": 60,
+    "maven-metadata": 120,
+    "generator-distribution-manifest": 2,
+    "generator-distribution": 2,
+    "generator-distribution-checksum": 2
+  },
+  "admittedArtifacts": 124,
+  "droppedArtifacts": 1632,
+  "droppedSample": [
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-javadoc.jar",
+      "kind": "denied-classifier-jar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-javadoc.jar.md5",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-javadoc.jar.sha1",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-javadoc.jar.sha256",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-javadoc.jar.sha512",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-sources.jar",
+      "kind": "denied-classifier-jar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-sources.jar.md5",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-sources.jar.sha1",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-sources.jar.sha256",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1-sources.jar.sha512",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.jar.md5",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.jar.sha1",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.jar.sha256",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.jar.sha512",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.module",
+      "kind": "gradle-module-metadata"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.module.md5",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.module.sha1",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.module.sha256",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.module.sha512",
+      "kind": "checksum-sidecar"
+    },
+    {
+      "path": "com/cpf/batch/cpf-batch-api/1.0.0-SNAPSHOT/cpf-batch-api-1.0.0-20260905.081055-1.pom.md5",
+      "kind": "checksum-sidecar"
+    }
+  ]
+}

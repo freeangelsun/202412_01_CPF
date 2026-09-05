@@ -31,6 +31,7 @@ public final class CpfBootstrap {
     private static final String PLATFORM_DATABASE = "cpfDB";
     private static final String PLATFORM_ASSET_ROOT = "deploy/local/db/platform";
     private static final String VENDOR_PACK_ROOT = "deploy/local/db/vendor";
+    private static final String SERVICE_REGISTRY_CONTRACT = "config/service-registry-provisioning.json";
     private static final String DOMAIN_ASSET_ROOT = "deploy/local/db/domain";
     private DbBinding platformDb;
 
@@ -386,7 +387,7 @@ public final class CpfBootstrap {
         if (!Files.isRegularFile(compose)) throw new IllegalStateException("local compose asset missing: " + compose);
         for (String vendor : vendors) {
             String service = switch (vendor) { case "postgresql" -> "cpf-postgresql"; case "mariadb" -> "cpf-mariadb"; case "oracle" -> "cpf-oracle"; default -> throw new IllegalStateException(); };
-            String container = switch (vendor) { case "postgresql" -> "cpf-public-postgresql"; case "mariadb" -> "cpf-public-mariadb"; default -> "cpf-public-oracle"; };
+            String container = containerFor(vendor);
             step("06", "Database", "START vendor=" + vendor);
             runChecked(List.of("docker", "compose", "-f", compose.toString(), "up", "-d", service), baseEnv, timeoutSeconds, null, true);
             waitForHealthy(container);
@@ -610,6 +611,9 @@ public final class CpfBootstrap {
         }
         if (applied==0) skip("08", "DB Lifecycle", "no persistent domain selected");
         else pass("08", "DB Lifecycle", "persistentDomains=" + applied);
+        // Platform schema/seed 적용 뒤에 Service Registry 를 맞춘다. 순서가 뒤집히면 OPS_SERVICE 가
+        // 아직 없는 상태에서 등록을 시도하게 된다.
+        reconcileServiceRegistry();
     }
 
     private String localSecret(String envName) {
@@ -773,6 +777,246 @@ public final class CpfBootstrap {
         runChecked(List.of("docker","exec","-i",container,"sqlplus","-s","/","as","sysdba"), Map.of(), 120, script, true);
     }
 
+    /** 승인된 Local DB 컨테이너 이름. 이 매핑은 한 곳에만 둔다. */
+    private static String containerFor(String vendor) {
+        return switch (vendor) {
+            case "postgresql" -> "cpf-public-postgresql";
+            case "mariadb" -> "cpf-public-mariadb";
+            default -> "cpf-public-oracle";
+        };
+    }
+
+    /**
+     * Generated Domain 의 service 를 중앙 Registry(OPS_SERVICE)와 맞춘다.
+     *
+     * <p>증상 근거: 사용자가 만든 Domain 을 기동하면 Runtime Control Agent 가
+     * "Runtime Agent service가 중앙 Registry에 등록되어 있지 않습니다: EXS" 로 죽었다. Platform seed 는
+     * ADM/BAT/CEC/EDU/MBW 만 담고 있고 사용자가 만든 Domain 을 등록하는 경로가 어디에도 없었다.
+     * Backoffice(MBW)는 seed 에 들어 있어서 우연히 통과했을 뿐이다.</p>
+     *
+     * <p>등록 규칙의 정본은 {@code config/service-registry-provisioning.json} 이고 SQL 정본은 vendor
+     * pack 이다. 이 메서드는 그 계약을 실행하기만 한다. Domain 이름을 하드코딩하지 않고 Workspace 에서
+     * 발견한 Domain 전부에 같은 규칙을 적용한다.</p>
+     *
+     * <p>Runtime 자가 등록은 금지다. "등록되어 있어야 기동한다" 는 fail-closed 계약을 유지한다.
+     * 이미 있는 행은 덮어쓰지 않는다. 소유가 다르거나 운영자가 내려둔 상태면 멈춘다.</p>
+     *
+     * <p>되돌리면 재발할 증상: 새로 만든 Generated Domain 이 영원히 기동하지 못한다.</p>
+     */
+    private void reconcileServiceRegistry() throws Exception {
+        if (platformDb == null) return;
+        Path contract = root.resolve(SERVICE_REGISTRY_CONTRACT);
+        if (!Files.isRegularFile(contract)) {
+            throw new IllegalStateException("service registry provisioning contract is missing: "
+                    + root.relativize(contract));
+        }
+        String model = Files.readString(contract, StandardCharsets.UTF_8);
+        String serviceType = contractConstant(model, "service_type");
+        String useYn = contractConstant(model, "use_yn");
+        String actor = contractConstant(model, "created_by");
+        int registered = 0;
+        int unchanged = 0;
+        for (Domain d : domains) {
+            if (d.contract == null) continue;
+            String serviceId = d.systemCode;
+            String existing = queryServiceRegistry(serviceId);
+            if (existing.isBlank()) {
+                applyServiceRegistryStatement("service-registry-insert.sql", Map.of(
+                        "serviceId", serviceId, "serviceName", d.name, "serviceType", serviceType,
+                        "ownerModuleCode", serviceId, "useYn", useYn,
+                        "createdBy", actor, "updatedBy", actor));
+                registered++;
+                progress("08", "Service Registry", serviceId + " REGISTERED");
+                continue;
+            }
+            String[] parts = existing.split("[|]", -1);
+            if (parts.length < 3) {
+                throw new IllegalStateException("service registry row is not readable: service_id=" + serviceId);
+            }
+            String actualType = parts[0].trim();
+            String actualOwner = parts[1].trim();
+            String actualUse = parts[2].trim();
+            // 소유·종류가 다르면 같은 key 를 다른 주체가 쓰고 있다는 뜻이다. 덮어쓰지 않고 멈춘다.
+            if (!serviceType.equalsIgnoreCase(actualType) || !serviceId.equalsIgnoreCase(actualOwner)) {
+                throw new IllegalStateException("service registry ownership conflict: service_id=" + serviceId
+                        + " expected(type=" + serviceType + ",owner=" + serviceId + ")"
+                        + " actual(type=" + actualType + ",owner=" + actualOwner + ")");
+            }
+            // use_yn 이 다르면 운영자가 의도적으로 내린 상태다. provisioning 이 조용히 다시 켜지 않는다.
+            if (!useYn.equalsIgnoreCase(actualUse)) {
+                throw new IllegalStateException("service registry entry is disabled by an operator: service_id="
+                        + serviceId + " use_yn=" + actualUse + "; enable it before starting the runtime");
+            }
+            unchanged++;
+            progress("08", "Service Registry", serviceId + " ALREADY_REGISTERED");
+        }
+        int endpoints = reconcileServiceEndpoints(model);
+        pass("08", "Service Registry", "registered=" + registered + " unchanged=" + unchanged
+                + " endpoints=" + endpoints + " contract=" + root.relativize(contract));
+    }
+
+    /**
+     * Runtime 은 service 뿐 아니라 endpoint 도 등록되어 있어야 기동한다.
+     *
+     * <p>증상 근거: service 를 등록한 뒤에도 EXS 가
+     * "Runtime Agent endpoint가 중앙 Registry에 등록되어 있지 않습니다: EXS/EXS_API" 로 죽었다.</p>
+     *
+     * <p>endpoint code 의 정본은 Runtime Control 의 {@code cpf.runtime.control.agent.endpoint-code}
+     * 기본값이다. provisioning 이 새 규칙을 만들지 않고 계약에 적힌 그 값을 그대로 쓴다.</p>
+     */
+    private int reconcileServiceEndpoints(String model) throws Exception {
+        String section = endpointSection(model);
+        String codePattern = patternValue(section, "endpoint_code");
+        String namePattern = patternValue(section, "endpoint_name");
+        String baseUrlPattern = patternValue(section, "base_url");
+        String endpointType = contractConstant(section, "endpoint_type");
+        String useYn = contractConstant(section, "use_yn");
+        String actor = contractConstant(section, "created_by");
+        int registered = 0;
+        for (Domain d : domains) {
+            if (d.contract == null) continue;
+            String serviceId = d.systemCode;
+            String endpointCode = codePattern.replace("{service_id}", serviceId);
+            String existing = queryServiceEndpoint(endpointCode);
+            if (existing.isBlank()) {
+                String baseUrl = baseUrlPattern
+                        .replace("{cpf.domain.localOnlinePort}", Integer.toString(d.localOnlinePort));
+                applyServiceRegistryStatement("service-endpoint-insert.sql", Map.of(
+                        "endpointCode", endpointCode, "serviceId", serviceId,
+                        "endpointName", namePattern.replace("{service_id}", serviceId),
+                        "endpointType", endpointType, "baseUrl", baseUrl,
+                        "useYn", useYn, "createdBy", actor, "updatedBy", actor));
+                registered++;
+                progress("08", "Service Registry", endpointCode + " ENDPOINT_REGISTERED");
+                continue;
+            }
+            String[] parts = existing.split("[|]", -1);
+            if (parts.length < 2) {
+                throw new IllegalStateException("service endpoint row is not readable: endpoint_code=" + endpointCode);
+            }
+            // 같은 endpoint_code 가 다른 service 에 속해 있으면 덮어쓰지 않고 멈춘다.
+            if (!serviceId.equalsIgnoreCase(parts[0].trim())) {
+                throw new IllegalStateException("service endpoint scope conflict: endpoint_code=" + endpointCode
+                        + " expected service_id=" + serviceId + " actual=" + parts[0].trim());
+            }
+            if (!useYn.equalsIgnoreCase(parts[1].trim())) {
+                throw new IllegalStateException("service endpoint is disabled by an operator: endpoint_code="
+                        + endpointCode + " use_yn=" + parts[1].trim() + "; enable it before starting the runtime");
+            }
+            progress("08", "Service Registry", endpointCode + " ENDPOINT_ALREADY_REGISTERED");
+        }
+        return registered;
+    }
+
+    /** endpoint provisioning 구간. 계약 안에서 service 구간과 값이 섞이지 않게 잘라 쓴다. */
+    private static String endpointSection(String model) {
+        int start = model.indexOf("\"endpointTable\"");
+        if (start < 0) {
+            throw new IllegalStateException("service registry provisioning contract has no endpointTable section");
+        }
+        return model.substring(start);
+    }
+
+    /** 계약이 선언한 값 패턴. 실행 코드가 규칙을 새로 만들지 않는다. */
+    private static String patternValue(String model, String column) {
+        Matcher matcher = Pattern.compile(
+                "\"" + column + "\"\\s*:\\s*\\{[^{}]*\"pattern\"\\s*:\\s*\"([^\"]*)\"",
+                Pattern.DOTALL).matcher(model);
+        if (!matcher.find()) {
+            throw new IllegalStateException("service registry provisioning contract has no pattern for " + column);
+        }
+        return matcher.group(1);
+    }
+
+    private String queryServiceEndpoint(String endpointCode) throws Exception {
+        String sql = serviceRegistrySql("service-endpoint-select.sql", Map.of("endpointCode", endpointCode));
+        DbBinding b = platformDb;
+        String container = containerFor(b.vendor);
+        String password = localSecret(b.migrationSecretEnv);
+        if (b.vendor.equals("postgresql")) {
+            return run(List.of("docker","exec","-e","PGPASSWORD="+password,container,"psql","-At","-U",
+                    b.migrationUser,"-d",b.databaseName,"-c",sql), Map.of(), 30, null, true, true).output.trim();
+        }
+        if (b.vendor.equals("mariadb")) {
+            return run(List.of("docker","exec","-e","MYSQL_PWD="+password,container,"mariadb","-N","-s",
+                    "-u"+b.migrationUser,b.databaseName,"-e",sql), Map.of(), 30, null, true, true).output.trim();
+        }
+        String script = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER=" + b.databaseName
+                + ";\nCONNECT " + b.migrationUser + "/\"" + password + "\"@" + b.serviceName
+                + "\nSET HEADING OFF FEEDBACK OFF PAGESIZE 0\n" + sql + ";\nEXIT\n";
+        return run(List.of("docker","exec","-i",container,"sqlplus","-s","/","as","sysdba"),
+                Map.of(), 40, script, true, true).output.trim();
+    }
+
+    /** provisioning 계약의 고정값. 실행 코드가 값을 새로 만들지 않는다. */
+    private static String contractConstant(String model, String column) {
+        Matcher matcher = Pattern.compile(
+                "\"" + column + "\"\\s*:\\s*\\{[^{}]*\"value\"\\s*:\\s*\"([^\"]*)\"",
+                Pattern.DOTALL).matcher(model);
+        if (!matcher.find()) {
+            throw new IllegalStateException("service registry provisioning contract has no constant for " + column);
+        }
+        return matcher.group(1);
+    }
+
+    /** vendor pack 의 SQL 정본을 읽어 이름 붙은 parameter 를 채운다. SQL 을 코드에 복제하지 않는다. */
+    private String serviceRegistrySql(String statement, Map<String,String> parameters) throws Exception {
+        Path sql = root.resolve(VENDOR_PACK_ROOT).resolve(platformDb.vendor)
+                .resolve("runtime/cpf/repository").resolve(statement);
+        if (!Files.isRegularFile(sql)) {
+            throw new IllegalStateException("service registry SQL is missing from the vendor pack: "
+                    + root.relativize(sql));
+        }
+        StringBuilder body = new StringBuilder();
+        for (String line : Files.readString(sql, StandardCharsets.UTF_8).split("\\R")) {
+            if (line.trim().startsWith("--")) continue;
+            body.append(line).append(' ');
+        }
+        String rendered = body.toString().trim();
+        // 미바인딩 검사는 치환 "전" 템플릿에서 한다. 치환한 뒤 콜론을 세면 값 안의 콜론
+        // (예: http://127.0.0.1:18081)을 parameter 로 오판한다.
+        Matcher named = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(rendered);
+        List<String> unbound = new ArrayList<>();
+        while (named.find()) {
+            if (!parameters.containsKey(named.group(1))) unbound.add(named.group(1));
+        }
+        if (!unbound.isEmpty()) {
+            throw new IllegalStateException("service registry SQL has unbound parameters: "
+                    + statement + " " + unbound);
+        }
+        for (Map.Entry<String,String> entry : parameters.entrySet()) {
+            rendered = rendered.replace(":" + entry.getKey(), sqlLiteral(entry.getValue()));
+        }
+        return rendered;
+    }
+
+    private String queryServiceRegistry(String serviceId) throws Exception {
+        String sql = serviceRegistrySql("service-registry-select.sql", Map.of("serviceId", serviceId));
+        DbBinding b = platformDb;
+        String container = containerFor(b.vendor);
+        String password = localSecret(b.migrationSecretEnv);
+        if (b.vendor.equals("postgresql")) {
+            return run(List.of("docker","exec","-e","PGPASSWORD="+password,container,"psql","-At","-U",
+                    b.migrationUser,"-d",b.databaseName,"-c",sql), Map.of(), 30, null, true, true).output.trim();
+        }
+        if (b.vendor.equals("mariadb")) {
+            return run(List.of("docker","exec","-e","MYSQL_PWD="+password,container,"mariadb","-N","-s",
+                    "-u"+b.migrationUser,b.databaseName,"-e",sql), Map.of(), 30, null, true, true).output.trim();
+        }
+        String script = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER=" + b.databaseName
+                + ";\nCONNECT " + b.migrationUser + "/\"" + password + "\"@" + b.serviceName
+                + "\nSET HEADING OFF FEEDBACK OFF PAGESIZE 0\n" + sql + ";\nEXIT\n";
+        return run(List.of("docker","exec","-i",container,"sqlplus","-s","/","as","sysdba"),
+                Map.of(), 40, script, true, true).output.trim();
+    }
+
+    private void applyServiceRegistryStatement(String statement, Map<String,String> parameters) throws Exception {
+        String sql = serviceRegistrySql(statement, parameters);
+        DbBinding b = platformDb;
+        executeSqlFile(b.vendor.equals("oracle") ? b.serviceName : b.databaseName, b.migrationUser,
+                containerFor(b.vendor), b.vendor, sql + ";", false, localSecret(b.migrationSecretEnv));
+    }
+
     private void writeRuntimeEnvironment() throws Exception {
         Path env = logDir.resolve("runtime.env");
         Files.write(env, bindDomainRuntimeEnvironment(), StandardCharsets.UTF_8);
@@ -877,7 +1121,18 @@ public final class CpfBootstrap {
             running.setProperty(d.systemCode + ".port", Integer.toString(d.localOnlinePort));
             running.setProperty(d.systemCode + ".log", runtimeLog.toString());
             storePropertiesAtomic(state, running, "CPF local runtime process state. Stop uses only this current state.");
-            waitForRuntimeHealth(d, process, runtimeLog);
+            try {
+                waitForRuntimeHealth(d, process, runtimeLog);
+            } catch (Exception failure) {
+                // 앞서 기동한 Runtime 은 그대로 떠 있다. 상태 파일에 pid 가 남아 있으므로 stop 으로
+                // 정리할 수 있다. 그 사실을 알려주지 않으면 사용자는 남은 프로세스를 모른 채
+                // 다음 기동에서 포트 충돌만 보게 된다.
+                System.out.println("CPF_RUNTIME=PARTIAL_START failed=" + d.systemCode
+                        + " started=" + running.stringPropertyNames().stream()
+                                .filter(key -> key.endsWith(".pid")).count()
+                        + " next=cpf stop");
+                throw failure;
+            }
         }
         pass("11", "Runtime", "started=" + domains.size() + " state=" + root.relativize(state));
     }

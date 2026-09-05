@@ -1,0 +1,169 @@
+{
+  "status": "PASS",
+  "measuredAt": "on-disk bytes; fat jar 내부는 압축 해제 기준",
+  "onDiskTotalBytes": 732994792,
+  "cpfAuthoredBinaryBytes": 39486631,
+  "cpfAuthoredDetail": {
+    "standaloneLibraryJarBytes": 4012845,
+    "embeddedInFatJarBytes": 35473786
+  },
+  "ossSeparatelyVendoredBytes": 0,
+  "ossEmbeddedInFatJarBytes": 682805200,
+  "duplicateEmbeddedDependencyBytes": 566881072,
+  "metadataBytes": 223759,
+  "docsBytes": 0,
+  "generatorDistributionBytes": 16555686,
+  "fatJarOnDiskBytes": 712202502,
+  "fatJarCount": 9,
+  "fatJars": [
+    {
+      "artifact": "cpf-local-runtime",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-local-runtime/1.0.0/cpf-local-runtime-1.0.0-local-web.jar",
+      "onDiskBytes": 116663162,
+      "cpfBytes": 3662843,
+      "ossBytes": 113200463,
+      "embeddedCount": 186
+    },
+    {
+      "artifact": "cpf-admin",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-admin/1.0.0/cpf-admin-1.0.0.jar",
+      "onDiskBytes": 116360829,
+      "cpfBytes": 8628039,
+      "ossBytes": 111117907,
+      "embeddedCount": 184
+    },
+    {
+      "artifact": "cpf-gateway",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-gateway/1.0.0/cpf-gateway-1.0.0.jar",
+      "onDiskBytes": 88490199,
+      "cpfBytes": 3951514,
+      "ossBytes": 85228897,
+      "embeddedCount": 157
+    },
+    {
+      "artifact": "cpf-local-batch-runtime",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-local-batch-runtime/1.0.0/cpf-local-batch-runtime-1.0.0-local-batch.jar",
+      "onDiskBytes": 87106604,
+      "cpfBytes": 3428745,
+      "ossBytes": 83875546,
+      "embeddedCount": 160
+    },
+    {
+      "artifact": "cpf-batch-worker",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-batch-worker/1.0.0/cpf-batch-worker-1.0.0.jar",
+      "onDiskBytes": 82375312,
+      "cpfBytes": 3713422,
+      "ossBytes": 79013077,
+      "embeddedCount": 150
+    },
+    {
+      "artifact": "cpf-batch-center-cut",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-batch-center-cut/1.0.0/cpf-batch-center-cut-1.0.0.jar",
+      "onDiskBytes": 67370362,
+      "cpfBytes": 2852135,
+      "ossBytes": 64723635,
+      "embeddedCount": 122
+    },
+    {
+      "artifact": "cpf-batch-scheduler",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-batch-scheduler/1.0.0/cpf-batch-scheduler-1.0.0.jar",
+      "onDiskBytes": 59192594,
+      "cpfBytes": 3087056,
+      "ossBytes": 56340587,
+      "embeddedCount": 111
+    },
+    {
+      "artifact": "cpf-batch-control-plane",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-batch-control-plane/1.0.0/cpf-batch-control-plane-1.0.0.jar",
+      "onDiskBytes": 50321163,
+      "cpfBytes": 3408996,
+      "ossBytes": 47422234,
+      "embeddedCount": 91
+    },
+    {
+      "artifact": "cpf-batch-agent",
+      "path": "cpf-release/binary-repository/com/cpf/runtime/cpf-batch-agent/1.0.0/cpf-batch-agent-1.0.0.jar",
+      "onDiskBytes": 44322277,
+      "cpfBytes": 2741036,
+      "ossBytes": 41882854,
+      "embeddedCount": 80
+    }
+  ],
+  "topDuplicateDependencies": [
+    {
+      "dependency": "ojdbc11-23.26.2.0.0.jar",
+      "copies": 9,
+      "duplicateBytes": 61745096
+    },
+    {
+      "dependency": "bcprov-jdk18on-1.81.1.jar",
+      "copies": 6,
+      "duplicateBytes": 44750760
+    },
+    {
+      "dependency": "tomcat-embed-core-11.0.22.jar",
+      "copies": 9,
+      "duplicateBytes": 28795584
+    },
+    {
+      "dependency": "spring-web-7.0.8.jar",
+      "copies": 9,
+      "duplicateBytes": 17750920
+    },
+    {
+      "dependency": "aspectjweaver-1.9.25.1.jar",
+      "copies": 9,
+      "duplicateBytes": 17525288
+    },
+    {
+      "dependency": "spring-core-7.0.8.jar",
+      "copies": 9,
+      "duplicateBytes": 16284424
+    },
+    {
+      "dependency": "jackson-databind-3.1.4.jar",
+      "copies": 9,
+      "duplicateBytes": 15525432
+    },
+    {
+      "dependency": "netty-codec-native-quic-4.2.15.Final-linux-x86_64.jar",
+      "copies": 6,
+      "duplicateBytes": 13732915
+    },
+    {
+      "dependency": "jackson-databind-2.21.4.jar",
+      "copies": 9,
+      "duplicateBytes": 13623032
+    },
+    {
+      "dependency": "netty-codec-native-quic-4.2.15.Final-linux-aarch_64.jar",
+      "copies": 6,
+      "duplicateBytes": 13009455
+    },
+    {
+      "dependency": "netty-codec-native-quic-4.2.15.Final-osx-x86_64.jar",
+      "copies": 6,
+      "duplicateBytes": 12531045
+    },
+    {
+      "dependency": "netty-codec-native-quic-4.2.15.Final-osx-aarch_64.jar",
+      "copies": 6,
+      "duplicateBytes": 11779450
+    },
+    {
+      "dependency": "hibernate-validator-9.1.0.Final.jar",
+      "copies": 9,
+      "duplicateBytes": 11232672
+    },
+    {
+      "dependency": "spring-context-7.0.8.jar",
+      "copies": 9,
+      "duplicateBytes": 11187872
+    },
+    {
+      "dependency": "spring-boot-4.1.0.jar",
+      "copies": 9,
+      "duplicateBytes": 11133216
+    }
+  ]
+}

@@ -555,8 +555,9 @@ batch/gateway는 `@Primary`(`batDataSource`/`batTransactionManager`/`batJdbcTemp
 
 ### 26.7 VS Code Problems 0건은 절대 규칙이다
 
-이 저장소의 IDE(Buildship/JDT) classpath는 각 project의 `build/classes/java/main` 과
-`build/libs/*.jar` 를 직접 참조한다. 따라서 build 산출물을 지우는 순간 VS Code Problems 에
+이 저장소의 IDE(Buildship/JDT) classpath는 각 project의 Gradle `build/classes/java/main` 과
+`build/libs/*.jar` 를 직접 참조한다. JDT compiler output은 별도 `build/ide/classes`에 있어야 한다.
+따라서 Gradle build 산출물을 지우는 순간 VS Code Problems 에
 `code 964 missing required library` 가 수백 건 발생한다.
 
 - **`gradlew clean` 을 실행하지 않는다.** 빌드 캐시 측정 같은 목적이라도 금지한다.
@@ -565,6 +566,22 @@ batch/gateway는 `@Primary`(`batDataSource`/`batTransactionManager`/`batJdbcTemp
 - `cpfVerifyIdeClasspathReady` 는 compile output 과 **jar 산출물**을 함께 검사한다
   (`scope=all-java-projects+jar-artifacts`). compile output 만 보던 초판은 jar 이 없는 상태에서도
   PASS 를 냈고, 그래서 같은 오류가 반복해서 되살아났다.
+- Gradle Java project 는 Gradle compiler output `build/classes/java/{sourceSet}`과 JDT compiler output을
+  **공유하지 않는다**. 공식 Eclipse/Buildship model의 source output은 `build/ide/classes/{sourceSet}`,
+  default output은 `build/ide/classes/default`로 고정한다. JDT 기본값인 `bin/main`, `bin/test`,
+  `bin/default` 는 사용하지 않는다. CPF의 `bin/` 은 Batch launcher/config 등 추적 Product Source일 수 있어
+  Java workspace clean이 이를 지우게 하면 즉시 FAIL이다. 또한 JDT와 Gradle이 `build/classes/java`를 공유하면
+  비동기 JDT compile이 Gradle test의 classpath를 교체해 존재하는 class의 `NoClassDefFoundError`를 만들 수 있으므로
+  즉시 FAIL이다. `cpfPrepareIdeClasspath`은 source-empty project를 포함해 isolated JDT output directory를
+  materialize하고, `cpfVerifyIdeClasspathModel`/`cpfVerifyIdeClasspathReady`는 Gradle output, jar, Eclipse model,
+  isolated JDT output을 모두 fail-closed로 검사한다. Isolation 전 JDT가 Gradle `classes/java/main`에 남긴 resource
+  copy는 archive 직전에 **동일 hash인 `resources/main` 소유본일 때만** 제거한다. `DuplicatesStrategy.EXCLUDE`로
+  다른 source의 중복을 숨기지 않으며 서로 다른 byte의 duplicate는 archive가 FAIL해야 한다.
+- 현재 VS Code Gradle Build Server는 named-pipe 연결 실패 뒤 Eclipse model을 무시하고 기본 `bin/*`을
+  강제하는 결함이 실측되었으므로 사용하지 않는다(`java.gradle.buildServer.enabled: off`). 이것은 compiler/JDT
+  진단을 끄는 설정이 아니라 official Gradle Eclipse model을 실제로 반영하는 importer 선택이다. Build Server를
+  다시 켜려면 fresh Java workspace에서 `bin/*` output 0, tracked Source 변화 0, Problems Error/Warning 0을
+  자동 검증하는 회귀 증적을 먼저 추가해야 한다.
 
 ### 26.8 Runtime 검증기는 "대상 조립에 실제로 존재하는 거래"를 구동한다
 
@@ -1574,11 +1591,18 @@ Gradle 의 OutputsCleaner 가 서로의 산출물을 등록되지 않은 것으�
 2. 공개 launcher 와 settings 는 Composite 전체에 하나의 project cache 를 강제하지 않는다. 각 Build 는
    자기 기본 위치를 쓴다.
 3. 검증은 한 번 실행으로 끝내지 않는다. 최소 2회 연속 실행으로 확인한다.
+4. **하나의 Build Tree 에는 하나의 project cache 만 둔다.** 같은 Source Tree 를 IDE 와 CLI 가 서로 다른
+   `--project-cache-dir` 로 빌드하면 stale-output registry 가 두 벌 생기고, 각 registry 가 상대의
+   `build/classes` 를 등록되지 않은 산출물로 보고 지운다. 내부 개발 환경에서 이 형태가
+   VS Code `code 964 missing required library` 재발의 원인이었다. 사용자/머신에 묶인 절대경로와 legacy
+   작업 경로를 금지하는 규칙은 그대로 유지하되, 그 해법으로 별도 cache 를 만들지 않는다.
 
 ### 36.3 Required validator
 
-`cpf-tools/verification/tests/test_cpf_public_gradle_workspace_idempotency_contract.py` 와 대응 negative
-mutation 이 이 계약을 강제한다.
+`cpf-tools/verification/tests/test_cpf_public_gradle_workspace_idempotency_contract.py` 가 공개 Workspace
+계약을, `cpf-tools/verification/tests/test_cpf_developer_shell_contract.py` 의
+`test_vscode_gradle_import_shares_the_single_project_cache` 가 내부 개발 환경 계약을 강제한다. 각각 대응
+negative mutation 을 둔다.
 
 ## 37. 공개 Binary Repository 생성 경로 계약 (Mandatory)
 
@@ -1609,3 +1633,67 @@ fail-closed 로 공개 좌표에 투영하는 단계다. 이 둘을 분리해 �
 `cpf-tools/release/open-git/cpf_open_git.py` 의 stage 5/8 분리와
 `cpf-tools/release/public/publish-cpf-public-repository.py` 의 staging repository 인자가 이 계약의
 구현이다. 공개 저장소 경로를 발행 대상으로 넘기는 명령은 문서/스크립트/증적 어디에도 남기지 않는다.
+
+## 38. Runtime Lifecycle CLI 계약 (Mandatory)
+
+### 38.1 배경
+
+Runtime 운영이 OS별 script, Gradle Project, 내부 Module 구조에 흩어져 있으면 사용자는 "어떤 파일을
+실행하지"를 먼저 풀어야 한다. Batch 처럼 구성요소가 여러 개인 Runtime 은 이름을 전부 외워야 하고,
+Generated Domain 은 만들 때마다 launcher 를 고쳐야 한다. 이것은 기능 부족이 아니라 Product UX 결함이다.
+
+### 38.2 계약
+
+1. CPF Public Runtime 은 **전체 / 논리 그룹 / 개별 Target** 세 수준에서 일관된 Lifecycle CLI 를
+   제공한다. 사용자는 내부 Module, Gradle Project, Private Source, OS-specific wrapper 구조를 알 필요
+   없이 canonical `cpf` 명령으로 `start` `stop` `restart` `status` `health` `log` 를 수행할 수 있어야 한다.
+2. Runtime Group 과 Generated Domain Target 은 **canonical machine-readable authority** 에서 파생한다.
+   대상 목록을 CLI Source, launcher, README, help 텍스트에 복제하지 않는다. 정본은
+   `cpf-tools/runtime/cpf-runtime-target-catalog.json` 의 `runtimes` / `dynamicRuntimes` /
+   `runtimeGroups` / `startOrderContract` 다.
+3. Group 은 **대상 집합만** 정하고 `dependsOn` 은 그 집합 안의 실행 순서만 정한다. Group 이 의존
+   대상을 자동으로 끌어오면 사용자가 요청하지 않은 Runtime 이 올라간다. 순환 의존은 fail-closed 한다.
+   정지는 기동 순서의 역순이다.
+4. Group 이름과 Runtime target 이름은 같은 문자열을 쓰지 않는다. 하나의 이름이 두 의미를 가지면
+   사용자와 검증기가 서로 다른 것을 가리킨다. Runtime 이 하나뿐인 대상에는 Group 을 만들지 않는다.
+5. 특정 Target 에서 의미 없는 Capability 는 조용히 무시하지 않고 `UNSUPPORTED` 로 알린다. Group 실행
+   결과는 Target 별로 표시하고, 일부 실패를 전체 성공으로 숨기지 않는다(`OVERALL FAIL`).
+   상태 집계는 pid 존재만으로 HEALTHY 로 판정하지 않으며 부분 장애는 `DEGRADED` 다.
+6. Windows 와 Linux 는 같은 Target 이름, 같은 옵션, 같은 Lifecycle, 같은 Group 을 쓴다. OS별 wrapper 는
+   canonical entrypoint 로 위임하는 thin wrapper 이며 **자체 명령 해석을 갖지 않는다.**
+7. Public Source Development Surface 와 Binary-only Runtime Surface 를 구분한다. Binary-only Runtime 은
+   실행 가능하지만 Private Source Build/Test Task 는 Public Distribution 에 존재해서는 안 된다.
+8. Profile(local/dev/stg/test/prod)은 동일한 Lifecycle CLI 계약을 쓴다. 환경 차이는 endpoint, resource,
+   secret, infrastructure config 에 한정하며 명령이나 Group 구성이 달라지지 않는다.
+9. timeout, retry, port, host, URL, runtime enablement, target membership 은 Source 에 하드코딩하지
+   않고 canonical 설정에서 읽는다.
+
+### 38.3 사용자 Steering 반영 계약
+
+사용자가 개발/Architecture/QA/Product Contract/운영 UX 에 대한 새 Steering 을 주면 해당 Source 수정에
+그치지 않는다. 다음까지 닫아야 완료다.
+
+```
+User Steering
+→ Current Harness Rule
+→ Product / Runtime / CLI Contract
+→ Machine-readable Canonical Authority
+→ Validator
+→ Negative Mutation
+→ CURRENT_WORK_ITEM_REGISTRY.csv
+→ Consumer → Test → Runtime → Evidence
+```
+
+Rule 문장만 추가하고 Validator/Negative Mutation/Registry 연결이 없으면 완료가 아니다. 다음 세션이나
+다른 Agent 가 과거 대화를 기억하지 못해도 Current Harness 만 읽으면 같은 Product Contract 를 재현할 수
+있어야 한다.
+
+### 38.4 Required validator
+
+`cpf-tools/verification/tests/test_cpf_runtime_lifecycle_cli_contract.py` 가 이 계약의 구현이다.
+자동 검증 범위: canonical Group 존재, Group/Target 이름 충돌 없음, Group 중복 없음, metadata 파생,
+Runtime 별 Group metadata 존재, dependency 실재와 순환 없음, Channel Front 기동 순서, Lifecycle
+Capability 계약, Generated Domain 동적 발견, CLI Source 의 Target/Group 이름 분기·목록 복제 없음,
+공개 명령 집합, 위치 인자 selector, 잘못된 Target 안내, Group 결과 집계와 부분 실패 노출, 역순 정지,
+pid 단독 판정 금지, dependency cycle fail-closed, Windows/Linux wrapper 의미 일치, wrapper 자체 명령
+해석 없음, README/help parity, Harness Rule 존재, Registry 관계 존재.

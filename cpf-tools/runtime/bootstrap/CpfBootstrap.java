@@ -973,27 +973,196 @@ public final class CpfBootstrap {
      *
      * <p>되돌리면 재발할 증상: 공개 사용자가 Clone 과 bootstrap 까지 마치고도 어떤 Runtime 도
      * 기동하지 못한다.</p>
+     *
+     * <p>사용자 제어 단위는 전체(all) / 논리 Group / 개별 Target 3단계다. 세 단계 모두 같은 동사를
+     * 쓰고 같은 결과 형식을 낸다. 대상 집합은 canonical Runtime Target Catalog 가 정한다.</p>
+     *
+     * <p>증상 근거: 이전에는 개별 Target 하나만 받았고 사용자는 Batch 구성요소 이름을 전부 알아야
+     * Batch 를 띄울 수 있었다. Group 목록을 여기에 배열로 두면 Runtime 이 늘 때마다 이 파일을
+     * 고쳐야 하므로 metadata 에서만 파생한다.</p>
      */
     private int runtimeLifecycle(Map<String,String> options) throws Exception {
         String action = options.getOrDefault("action", "").trim();
         String requested = options.getOrDefault("target", "").trim();
         if (action.isEmpty()) throw new IllegalArgumentException("runtime action is required");
+        if (action.equals("targets")) return runtimeTargets();
         if (requested.isEmpty()) throw new IllegalArgumentException("runtime --target is required");
-        CpfRuntimeTargets.Target target = null;
-        for (CpfRuntimeTargets.Target row : CpfRuntimeTargets.resolveAll(root)) {
-            if (row.name().equals(requested)) { target = row; break; }
+        Optional<List<CpfRuntimeTargets.Target>> selected = CpfRuntimeTargets.select(root, requested);
+        if (selected.isEmpty()) return unknownSelector(requested);
+        List<CpfRuntimeTargets.Target> targets = selected.get();
+        boolean group = CpfRuntimeTargets.isGroup(root, requested);
+        if (!group) return runtimeAction(action, targets.get(0));
+        if (targets.isEmpty()) {
+            System.out.println("CPF_RUNTIME_GROUP=" + requested + " action=" + action + " targets=0");
+            System.out.println("OVERALL             EMPTY");
+            return 0;
         }
-        if (target == null) throw new IllegalStateException("unknown runtime target=" + requested);
-        final CpfRuntimeTargets.Target resolved = target;
+        // stop 계열은 기동 순서의 역순이다. Channel Front 를 먼저 내려야 업무 Runtime 이 요청을
+        // 받는 중에 사라지지 않는다.
+        List<CpfRuntimeTargets.Target> ordered = new ArrayList<>(targets);
+        if (action.equals("stop")) java.util.Collections.reverse(ordered);
+        if (action.equals("status")) return runtimeGroupStatus(requested, ordered);
+        System.out.println("CPF_RUNTIME_GROUP=" + requested + " action=" + action + " targets=" + ordered.size());
+        Map<String,String> results = new LinkedHashMap<>();
+        boolean failed = false;
+        for (CpfRuntimeTargets.Target target : ordered) {
+            String outcome;
+            if (!supports(action, target)) {
+                outcome = "UNSUPPORTED";
+            } else {
+                try {
+                    outcome = runtimeAction(action, target, true) == 0 ? "PASS" : "FAIL";
+                } catch (Exception failure) {
+                    // 일부 실패를 전체 PASS 로 숨기지 않는다. 어떤 Target 이 왜 실패했는지 남긴다.
+                    outcome = "FAIL";
+                    System.out.println("CPF_RUNTIME_ERROR target=" + target.name() + " message=" + failure.getMessage());
+                }
+            }
+            if (outcome.equals("FAIL")) failed = true;
+            results.put(target.name(), outcome);
+        }
+        for (Map.Entry<String,String> row : results.entrySet()) {
+            System.out.println(String.format(Locale.ROOT, "%-20s %s", row.getKey(), row.getValue()));
+        }
+        System.out.println(String.format(Locale.ROOT, "%-20s %s", "OVERALL", failed ? "FAIL" : "PASS"));
+        return failed ? 1 : 0;
+    }
+
+    /**
+     * Group / 전체 상태 집계.
+     *
+     * <p>pid 존재만으로 HEALTHY 로 보고하지 않는다. Target 별 canonical health contract 를 쓴다.
+     * 일부만 살아 있으면 DEGRADED 이고, 그것을 PASS 로 덮지 않는다.</p>
+     */
+    private int runtimeGroupStatus(String selector, List<CpfRuntimeTargets.Target> targets) throws Exception {
+        System.out.println("CPF_RUNTIME_GROUP=" + selector + " action=status targets=" + targets.size());
+        int running = 0;
+        int unhealthy = 0;
+        for (CpfRuntimeTargets.Target target : targets) {
+            Properties state = runtimeState(target);
+            Optional<ProcessHandle> handle = runtimeProcess(state);
+            String runState = handle.isPresent() ? "RUNNING" : "STOPPED";
+            String health = "";
+            if (handle.isPresent()) {
+                running++;
+                int port = Integer.parseInt(state.getProperty("port", Integer.toString(target.port())));
+                if ("http-server".equals(target.capability()) && port > 0 && !target.healthPath().isBlank()) {
+                    boolean ok = probeHealth(URI.create("http://127.0.0.1:" + port + target.healthPath())) == 200;
+                    health = ok ? "HEALTHY" : "UNHEALTHY";
+                    if (!ok) unhealthy++;
+                } else {
+                    // catalog 계약상 HTTP 200 이 준비 완료가 아닌 capability 는 거짓 HEALTHY 를 만들지 않는다.
+                    health = "CONTRACT_" + target.capability().toUpperCase(Locale.ROOT).replace('-', '_');
+                }
+            }
+            System.out.println(String.format(Locale.ROOT, "%-20s %-10s %s", target.name(), runState, health));
+        }
+        String overall;
+        if (running == 0) overall = "STOPPED";
+        else if (unhealthy > 0 || running < targets.size()) overall = "DEGRADED";
+        else overall = "HEALTHY";
+        System.out.println(String.format(Locale.ROOT, "%-20s %s", "OVERALL", overall));
+        return overall.equals("DEGRADED") ? 1 : 0;
+    }
+
+    private int runtimeAction(String action, CpfRuntimeTargets.Target target) throws Exception {
+        return runtimeAction(action, target, false);
+    }
+
+    private int runtimeAction(String action, CpfRuntimeTargets.Target target, boolean grouped) throws Exception {
+        if (!supports(action, target)) {
+            // 의미 없는 Capability 를 조용히 성공 처리하지 않는다.
+            System.out.println("CPF_RUNTIME=UNSUPPORTED target=" + target.name()
+                    + " action=" + action + " capability=" + target.capability());
+            return 0;
+        }
         return switch (action) {
-            case "start" -> runtimeStart(resolved);
-            case "stop" -> runtimeStop(resolved, true);
-            case "status" -> runtimeStatus(resolved);
-            case "health" -> runtimeHealth(resolved);
-            case "log" -> runtimeLog(resolved);
-            case "restart" -> { runtimeStop(resolved, false); yield runtimeStart(resolved); }
+            case "start" -> runtimeStart(target);
+            case "stop" -> runtimeStop(target, true);
+            case "status" -> runtimeStatus(target);
+            case "health" -> runtimeHealth(target);
+            case "log" -> runtimeLog(target, grouped);
+            case "restart" -> { runtimeStop(target, false); yield runtimeStart(target); }
             default -> throw new IllegalArgumentException("unsupported runtime action=" + action);
         };
+    }
+
+    /**
+     * Capability 별 Lifecycle 지원 여부. catalog 의 lifecycleCapabilities 가 정본이다.
+     *
+     * <p>one-shot Runtime 은 실행하고 끝나므로 stop/restart 가 의미 없다. 성공으로 위장하면
+     * 사용자는 멈췄다고 믿는다.</p>
+     */
+    private boolean supports(String action, CpfRuntimeTargets.Target target) throws Exception {
+        String capability = target.capability();
+        String block = capabilityBlock(capability);
+        if (block.isEmpty()) return true;
+        if (action.equals("health")) return true;
+        Matcher matcher = Pattern.compile("\"" + action + "\"\\s*:\\s*(true|false)").matcher(block);
+        return !matcher.find() || Boolean.parseBoolean(matcher.group(1));
+    }
+
+    private String capabilityBlock(String capability) throws Exception {
+        String json = Files.readString(CpfRuntimeTargets.catalogPath(root), StandardCharsets.UTF_8);
+        int section = json.indexOf("\"lifecycleCapabilities\"");
+        if (section < 0) return "";
+        int start = json.indexOf("\"" + capability + "\"", section);
+        if (start < 0) return "";
+        int end = json.indexOf('}', start);
+        return end < 0 ? "" : json.substring(start, end);
+    }
+
+    /**
+     * 실행 가능한 Group 과 Runtime 을 한 화면에 보여준다.
+     *
+     * <p>사용자가 무엇을 띄울 수 있는지 알아내려고 내부 Gradle Project 나 script 폴더를 뒤지게 하지
+     * 않는다. 내부 Owner 경로는 공개 화면에 넣지 않는다.</p>
+     */
+    private int runtimeTargets() throws Exception {
+        System.out.println("GROUPS");
+        for (CpfRuntimeTargets.Group group : CpfRuntimeTargets.groups(root)) {
+            System.out.println(String.format(Locale.ROOT, "  %-20s %s", group.name(), group.label()));
+        }
+        System.out.println();
+        System.out.println(String.format(Locale.ROOT, "  %-20s %-22s %-10s %-10s %-8s %s",
+                "RUNTIME", "GROUP", "STATE", "HEALTH", "PORT", "PROVISION"));
+        for (CpfRuntimeTargets.Target target : CpfRuntimeTargets.resolveAll(root)) {
+            Properties state = runtimeState(target);
+            Optional<ProcessHandle> handle = runtimeProcess(state);
+            int port = Integer.parseInt(state.getProperty("port", Integer.toString(target.port())));
+            String running = handle.isPresent() ? "RUNNING" : "STOPPED";
+            String health = "-";
+            if (handle.isPresent() && "http-server".equals(target.capability())
+                    && port > 0 && !target.healthPath().isBlank()) {
+                health = probeHealth(URI.create("http://127.0.0.1:" + port + target.healthPath())) == 200
+                        ? "HEALTHY" : "UNHEALTHY";
+            }
+            String groups = target.runtimeGroups().isEmpty() ? "-" : String.join(",", target.runtimeGroups());
+            System.out.println(String.format(Locale.ROOT, "  %-20s %-22s %-10s %-10s %-8s %s",
+                    target.name(), groups, running, health, port > 0 ? Integer.toString(port) : "-",
+                    target.provision()));
+        }
+        return 0;
+    }
+
+    /** 잘못된 Target 은 stacktrace 가 아니라 선택 가능한 목록으로 안내한다. */
+    private int unknownSelector(String requested) throws Exception {
+        System.out.println("UNKNOWN TARGET: " + requested);
+        System.out.println();
+        System.out.println("Available groups:");
+        for (CpfRuntimeTargets.Group group : CpfRuntimeTargets.groups(root)) {
+            System.out.println("  " + group.name());
+        }
+        System.out.println();
+        System.out.println("Available runtimes:");
+        for (CpfRuntimeTargets.Target target : CpfRuntimeTargets.resolveAll(root)) {
+            System.out.println("  " + target.name());
+        }
+        System.out.println();
+        System.out.println("See:");
+        System.out.println("  cpf targets");
+        System.out.println("  cpf start --help");
+        return 2;
     }
 
     private Path runtimeStateFile(CpfRuntimeTargets.Target target) {
@@ -1259,7 +1428,17 @@ public final class CpfBootstrap {
         return code == 200 ? 0 : 1;
     }
 
+    /**
+     * Runtime 로그 열람.
+     *
+     * <p>Group 으로 여러 Runtime 로그를 볼 때 출처 없이 섞으면 읽을 수 없다. Group 실행에서는 줄마다
+     * Target 을 앞에 붙인다. 단일 Target 은 원문 그대로 둔다(도구로 다시 파싱하는 경우가 있다).</p>
+     */
     private int runtimeLog(CpfRuntimeTargets.Target target) throws Exception {
+        return runtimeLog(target, false);
+    }
+
+    private int runtimeLog(CpfRuntimeTargets.Target target, boolean prefixed) throws Exception {
         Path logFile = runtimeLogFile(target);
         if (!Files.isRegularFile(logFile)) {
             System.out.println("CPF_RUNTIME_LOG=ABSENT target=" + target.name());
@@ -1267,7 +1446,10 @@ public final class CpfBootstrap {
         }
         List<String> lines = Files.readAllLines(logFile, StandardCharsets.UTF_8);
         int limit = workspaceInt("cpf.runtime.log-lines");
-        for (String line : lines.subList(Math.max(0, lines.size() - limit), lines.size())) System.out.println(line);
+        String prefix = prefixed ? "[" + target.name() + "] " : "";
+        for (String line : lines.subList(Math.max(0, lines.size() - limit), lines.size())) {
+            System.out.println(prefix + line);
+        }
         return 0;
     }
 
@@ -1335,7 +1517,19 @@ public final class CpfBootstrap {
         return java.toString();
     }
 
-    private static Path locateRoot(){ Path p=Path.of(System.getProperty("user.dir")).toAbsolutePath(); while(p!=null){ if(Files.isRegularFile(p.resolve("settings.gradle"))&&Files.isDirectory(p.resolve("config"))) return p; p=p.getParent(); } throw new IllegalStateException("CPF Public Workspace root not found"); }
+    /** Public Workspace와 Development Master 모두 같은 Runtime Lifecycle catalog를 소비한다. */
+    private static Path locateRoot(){
+        Path p=Path.of(System.getProperty("user.dir")).toAbsolutePath();
+        while(p!=null){
+            if(Files.isRegularFile(p.resolve("settings.gradle"))){
+                boolean publicWorkspace=Files.isRegularFile(p.resolve("config/cpf-workspace.properties"));
+                boolean developmentMaster=Files.isRegularFile(p.resolve("cpf-tools/runtime/cpf-runtime-target-catalog.json"));
+                if(publicWorkspace||developmentMaster) return p;
+            }
+            p=p.getParent();
+        }
+        throw new IllegalStateException("CPF Runtime Workspace root not found");
+    }
     private static String readDefaultTimeout(Path root){ Properties p=new Properties(); Path f=root.resolve("config/cpf-workspace.properties"); try{ if(Files.isRegularFile(f)) try(Reader r=Files.newBufferedReader(f)){p.load(r);} }catch(Exception ignored){} return p.getProperty("cpf.bootstrap.timeout-seconds","300"); }
     private static Map<String,String> parseArgs(String[] args){ Map<String,String> m=new LinkedHashMap<>(); String command="bootstrap"; List<String> positional=new ArrayList<>(); for(int i=0;i<args.length;i++){ String a=args[i]; if(!a.startsWith("--")&&!a.startsWith("-")){positional.add(a);continue;} if(a.equals("--db")&&i+1<args.length)m.put("db",args[++i]); else if(a.equals("--timeout")&&i+1<args.length)m.put("timeout",args[++i]); else if(a.equals("--run"))m.put("run","true"); else if(a.equals("--full"))m.put("full","true"); else if(a.equals("--confirm-local-reset"))m.put("confirm-local-reset","true"); else if(a.equals("--target")&&i+1<args.length)m.put("target",args[++i]); else throw new IllegalArgumentException("unknown option="+a);} // runtime 처럼 "명령 + 동작" 두 단어를 쓰는 진입점이 있으므로 위치 인자를 순서대로 해석한다.
         if(!positional.isEmpty())command=positional.get(0); if(positional.size()>1)m.put("action",positional.get(1)); if(positional.size()>2)throw new IllegalArgumentException("unexpected argument="+positional.get(2)); m.put("command",command); return m; }

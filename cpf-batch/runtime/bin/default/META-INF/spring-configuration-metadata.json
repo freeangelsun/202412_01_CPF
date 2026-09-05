@@ -1,0 +1,51 @@
+{
+  "groups": [
+    {
+      "name": "cpf.batch.execution",
+      "type": "com.cpf.batch.execution.CpfBatchExecutionProperties",
+      "sourceType": "com.cpf.batch.execution.CpfBatchExecutionProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "cpf.batch.execution.default-chunk-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.cpf.batch.execution.CpfBatchExecutionProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "cpf.batch.execution.executor-core-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.cpf.batch.execution.CpfBatchExecutionProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "cpf.batch.execution.executor-max-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.cpf.batch.execution.CpfBatchExecutionProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "cpf.batch.execution.executor-queue-capacity",
+      "type": "java.lang.Integer",
+      "sourceType": "com.cpf.batch.execution.CpfBatchExecutionProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "cpf.batch.execution.max-materialized-jobs",
+      "type": "java.lang.Integer",
+      "sourceType": "com.cpf.batch.execution.CpfBatchExecutionProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "cpf.batch.execution.max-partition-count",
+      "type": "java.lang.Integer",
+      "sourceType": "com.cpf.batch.execution.CpfBatchExecutionProperties",
+      "defaultValue": 0
+    }
+  ],
+  "hints": [],
+  "ignored": {
+    "properties": []
+  }
+}

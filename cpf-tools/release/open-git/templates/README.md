@@ -40,30 +40,67 @@ Linux:
 .\cpf.cmd domain-sync
 .\cpf.cmd build
 .\cpf.cmd test
-.\cpf.cmd stop
+.\cpf.cmd targets
+.\cpf.cmd stop all
 ```
 
 Windows: `.\cpf.cmd reset --confirm-local-reset` / Linux: `./bin/cpf reset --confirm-local-reset`
 
 ## Runtime 실행
 
-Target만 바꾸면 모든 Runtime을 같은 방법으로 실행합니다. 사용 가능한 Target은 help로 확인합니다.
+Runtime 운영의 공식 진입점은 `cpf` 하나입니다. Windows와 Linux가 같은 명령과 같은 의미를 씁니다.
+내부 Module, Gradle Project, OS별 script 구조를 알 필요가 없습니다.
+
+무엇을 실행할 수 있는지 먼저 확인합니다.
 
 ```powershell
-.\bin\cpf-help.ps1
-.\bin\cpf-start.ps1  -Target gateway
-.\bin\cpf-status.ps1 -Target gateway
-.\bin\cpf-stop.ps1   -Target gateway
+.\cpf.cmd targets
 ```
 
 ```bash
-./bin/cpf-help.sh
-./bin/cpf-start.sh  --target gateway
-./bin/cpf-status.sh --target gateway
-./bin/cpf-stop.sh   --target gateway
+./bin/cpf targets
 ```
 
-전체를 함께 띄우려면 `all`, 일상 개발 구성만 띄우려면 `dev` Target을 사용합니다.
+`targets`는 실행 가능한 **논리 Group**과 **개별 Runtime**을 상태·Health·Port와 함께 보여줍니다.
+제어 단위는 전체 / Group / 개별 Runtime 세 가지이며 모두 같은 동사를 씁니다.
+
+| 단위 | 예 |
+| --- | --- |
+| 전체 | `cpf start all` · `cpf status all` · `cpf stop all` |
+| Platform | `cpf start platform` (ADM, Gateway) |
+| 업무 Domain | `cpf start domains` |
+| Backoffice Stack | `cpf start backoffice-stack` (MBW → Backoffice Web 순서) |
+| Batch | `cpf start batch` |
+| 개별 Runtime | `cpf start admin` · `cpf restart batch-worker` · `cpf log backoffice` |
+
+```powershell
+.\cpf.cmd start platform
+.\cpf.cmd status all
+.\cpf.cmd stop all
+```
+
+```bash
+./bin/cpf start platform
+./bin/cpf status all
+./bin/cpf stop all
+```
+
+사용 가능한 동사는 `start` `stop` `restart` `status` `health` `log` 입니다.
+Group 실행은 Runtime 사이의 의존 순서를 따르고, 정지는 그 역순으로 진행합니다.
+일부 Runtime만 실패하면 전체를 성공으로 보고하지 않고 `OVERALL FAIL`로 표시합니다.
+
+Generated Domain은 만들면 곧바로 대상에 포함됩니다. 예를 들어 `cpf domain-new order --system-code ORD`
+뒤에는 launcher를 고치지 않아도 `cpf start order`, `cpf status order`가 동작합니다.
+
+명령 예시는 CLI 안에서도 볼 수 있습니다.
+
+```bash
+./bin/cpf help
+./bin/cpf start --help
+```
+
+`bin/`의 `cpf-start.*`, `cpf-stop.*` 같은 OS별 script는 `cpf`를 부르는 얇은 wrapper이며 하위 호환으로
+남아 있습니다. 기본 사용법은 `cpf`입니다.
 
 ## 운영 콘솔(ADM)과 업무 백오피스(MBW + Backoffice Web) 실행
 
@@ -101,14 +138,14 @@ ADM은 모든 Profile에서 같은 **최초 1회 Initial Operator Bootstrap** �
 $env:CPF_ADM_BOOTSTRAP_OPERATOR_ID = Read-Host '최초 운영자 ID'
 $env:CPF_ADM_BOOTSTRAP_OPERATOR_NAME = Read-Host '최초 운영자 이름'
 $env:CPF_ADM_BOOTSTRAP_PASSWORD = Read-Host '초기 비밀번호' -MaskInput
-.\bin\cpf-start.ps1 -Target admin
+.\cpf.cmd start admin
 ```
 
 ```bash
 read -rp '최초 운영자 ID: ' CPF_ADM_BOOTSTRAP_OPERATOR_ID; export CPF_ADM_BOOTSTRAP_OPERATOR_ID
 read -rp '최초 운영자 이름: ' CPF_ADM_BOOTSTRAP_OPERATOR_NAME; export CPF_ADM_BOOTSTRAP_OPERATOR_NAME
 read -rsp '초기 비밀번호: ' CPF_ADM_BOOTSTRAP_PASSWORD; export CPF_ADM_BOOTSTRAP_PASSWORD
-./bin/cpf-start.sh --target admin
+./bin/cpf start admin
 ```
 
 브라우저에서 http://127.0.0.1:8090/adm/ 로 접속해 방금 만든 계정으로 실제 로그인합니다.
@@ -129,9 +166,8 @@ $env:CPF_MBW_JWT_SECRET = Read-Host '32자 이상 MBW JWT Secret' -MaskInput
 $env:MBW_WEB_MODE = 'DIRECT'
 $env:MBW_DIRECT_BASE_URI = 'http://127.0.0.1:8082'
 $env:MBW_WEB_SECURE_COOKIES = 'false'
-.\bin\cpf-start.ps1 -Target backoffice
-.\bin\cpf-start.ps1 -Target backoffice-web
-.\bin\cpf-status.ps1 -Target backoffice-web
+.\cpf.cmd start backoffice-stack
+.\cpf.cmd status backoffice-stack
 ```
 
 ```bash
@@ -143,9 +179,8 @@ read -rsp '32자 이상 MBW JWT Secret: ' CPF_MBW_JWT_SECRET; export CPF_MBW_JWT
 export MBW_WEB_MODE=DIRECT
 export MBW_DIRECT_BASE_URI=http://127.0.0.1:8082
 export MBW_WEB_SECURE_COOKIES=false
-./bin/cpf-start.sh  --target backoffice
-./bin/cpf-start.sh  --target backoffice-web
-./bin/cpf-status.sh --target backoffice-web
+./bin/cpf start backoffice-stack
+./bin/cpf status backoffice-stack
 ```
 
 브라우저에서 http://127.0.0.1:8092/mbw/ 로 접속해 MBW 최초 운영자로 로그인합니다. 로그인 후 Browser
@@ -155,16 +190,14 @@ session Cookie와 CSRF token이 발급되고, Backoffice Web이 인증된 MBW �
 
 ```powershell
 .\bin\cpf-health.ps1 -Target admin
-.\bin\cpf-stop.ps1   -Target backoffice-web
-.\bin\cpf-stop.ps1   -Target backoffice
-.\bin\cpf-stop.ps1   -Target admin
+.\cpf.cmd stop backoffice-stack
+.\cpf.cmd stop admin
 ```
 
 ```bash
 ./bin/cpf-health.sh --target admin
-./bin/cpf-stop.sh   --target backoffice-web
-./bin/cpf-stop.sh   --target backoffice
-./bin/cpf-stop.sh   --target admin
+./bin/cpf stop backoffice-stack
+./bin/cpf stop admin
 ```
 
 ### Profile

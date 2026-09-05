@@ -10,4 +10,3 @@ cpf:
   agent:
     require-signature: true
     allowed-client-subjects: ${CPF_AGENT_ALLOWED_CLIENT_SUBJECTS}
-

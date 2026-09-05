@@ -16,7 +16,10 @@
 @rem SPDX-License-Identifier: Apache-2.0
 @rem
 
-@if "%DEBUG%"=="" @echo off
+@rem Keep normal developer output readable even when an unrelated parent process sets DEBUG.
+@rem CPF_GRADLE_DEBUG=1 is the only supported opt-in for wrapper command tracing.
+@echo off
+@if not "%CPF_GRADLE_DEBUG%"=="" @echo on
 @rem ##########################################################################
 @rem
 @rem  Gradle startup script for Windows

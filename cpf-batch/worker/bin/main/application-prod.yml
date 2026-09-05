@@ -1,0 +1,10 @@
+server:
+  port: ${CPF_PORT}
+cpf:
+  framework:
+    was-id: ${CPF_WAS_ID}
+  runtime:
+    role: WORKER
+  batch:
+    control:
+      base-url: ${CPF_BATCH_CONTROL_BASE_URL}

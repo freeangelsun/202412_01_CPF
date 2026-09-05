@@ -12,3 +12,13 @@ cpf:
             password: ${CPF_PLATFORM_DB_PASSWORD:}
             driver-class-name: ${CPF_PLATFORM_DB_DRIVER:org.mariadb.jdbc.Driver}
             pool-name: ${CPF_PLATFORM_DB_POOL_NAME:cpf-platform}
+---
+spring:
+  config:
+    activate:
+      on-profile: local | test
+cpf:
+  security:
+    secret:
+      environment:
+        enabled: true

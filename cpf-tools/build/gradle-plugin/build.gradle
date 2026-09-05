@@ -1,6 +1,7 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
+    id 'eclipse'
 }
 
 def platform = new Properties()
@@ -17,6 +18,17 @@ java {
     // supported compile-time Java API. Keep sources for internal/local publication only.
     if (!providers.gradleProperty('cpfPublicBinaryRepository').isPresent()) {
         withSourcesJar()
+    }
+}
+
+// This included build is imported by VS Code independently of the root Build.
+// Keep JDT output isolated from Gradle's canonical build tree; JDT's default bin/* can otherwise
+// leave generated class files beside the CPF build-tool Source after a Java workspace clean, and
+// a shared Gradle output can race an executing Gradle test.
+eclipse {
+    classpath {
+        baseSourceOutputDir.set(layout.buildDirectory.dir('ide/classes'))
+        defaultOutputDir = layout.buildDirectory.dir('ide/classes/default').get().asFile
     }
 }
 

@@ -1,0 +1,31 @@
+﻿file,classification,delegates_to,public_projected,own_command_parsing,disposition
+bin/cpf,CANONICAL_ENTRYPOINT,,YES,YES,유지. 사용자 Golden Path 의 정본 진입점이다.
+bin/cpf-bootstrap.ps1,PRIVATE_INTERNAL,cpf bootstrap,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-bootstrap.sh,PRIVATE_INTERNAL,cpf bootstrap,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-build.ps1,PRIVATE_INTERNAL,cpf build,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-build.sh,PRIVATE_INTERNAL,cpf build,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-domain-new.ps1,PRIVATE_INTERNAL,cpf domain-new,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-domain-new.sh,PRIVATE_INTERNAL,cpf domain-new,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-domain-sync.ps1,PRIVATE_INTERNAL,cpf domain-sync,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-domain-sync.sh,PRIVATE_INTERNAL,cpf domain-sync,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-health.ps1,CANONICAL_THIN_WRAPPER,cpf health,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-health.sh,CANONICAL_THIN_WRAPPER,cpf health,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-help.ps1,CANONICAL_THIN_WRAPPER,cpf targets,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-help.sh,CANONICAL_THIN_WRAPPER,cpf targets,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-log.ps1,CANONICAL_THIN_WRAPPER,cpf log,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-log.sh,CANONICAL_THIN_WRAPPER,cpf log,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-reset.ps1,PRIVATE_INTERNAL,cpf reset,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-reset.sh,PRIVATE_INTERNAL,cpf reset,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-restart.ps1,CANONICAL_THIN_WRAPPER,cpf restart,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-restart.sh,CANONICAL_THIN_WRAPPER,cpf restart,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-start.ps1,CANONICAL_THIN_WRAPPER,cpf start,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-start.sh,CANONICAL_THIN_WRAPPER,cpf start,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-status.ps1,CANONICAL_THIN_WRAPPER,cpf status,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-status.sh,CANONICAL_THIN_WRAPPER,cpf status,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-stop.ps1,CANONICAL_THIN_WRAPPER,cpf stop,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-stop.sh,CANONICAL_THIN_WRAPPER,cpf stop,YES,NO,유지. canonical 동사로 위임하는 OS 호환 wrapper.
+bin/cpf-test.ps1,PRIVATE_INTERNAL,cpf test,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf-test.sh,PRIVATE_INTERNAL,cpf test,NO,NO,공개 투영 대상 아님. 내부 template 로만 유지.
+bin/cpf.cmd,CANONICAL_ENTRYPOINT,,YES,NO,유지. 사용자 Golden Path 의 정본 진입점이다.
+bin/cpf.ps1,CANONICAL_ENTRYPOINT,,YES,NO,유지. 사용자 Golden Path 의 정본 진입점이다.
+bin/cpf.sh,LEGACY_COMPAT,,NO,NO,자체 CLI 를 갖고 있었고 공개 배포 대상도 아니었다(CRF-47). thin delegate 로 축소. 외부 참조 확인 후 Delete Manifest 등록 대상.

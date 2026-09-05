@@ -1,8 +1,14 @@
 from pathlib import Path
 import json
+import os
 import re
+import sys
 
-ROOT = Path(__file__).resolve().parents[3]
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+# negative mutation 은 격리된 사본에서 계약을 다시 돌린다. 그때 이 값으로 검사 대상을 옮긴다.
+ROOT = Path(os.environ.get("CPF_DEVELOPER_SHELL_ROOT") or Path(__file__).resolve().parents[3])
 CONVENTION = ROOT / 'cpf-tools/build/cpf-root-conventions.gradle'
 PS1 = ROOT / 'cpf-tools/build/tools/cpf-dev.ps1'
 SH = ROOT / 'cpf-tools/build/tools/cpf-dev.sh'
@@ -85,14 +91,35 @@ def test_gradle_run_aliases_use_logical_project_tree():
         assert legacy not in text
 
 
-def test_vscode_gradle_import_uses_current_portable_project_cache():
+def test_vscode_gradle_import_shares_the_single_project_cache():
+    """IDE 와 CLI 는 하나의 Gradle project cache 를 공유한다.
+
+    증상 근거: IDE import 에만 별도 --project-cache-dir 를 주면 같은 build tree 에 stale-output
+    registry 가 두 벌 생긴다. 두 registry 는 서로가 만든 build/classes 를 모르는 산출물로 보고
+    지우므로, IDE 와 CLI 를 번갈아 쓰면 VS Code 에 code 964 missing required library 가 반복된다.
+    이것은 Harness 36 이 공개 Workspace 에서 확인한 것과 같은 기전이다.
+
+    금지 사항은 그대로다. 사용자/머신에 묶인 절대경로와 legacy cpf-docs/work 경로는 쓰지 않는다.
+    """
     settings = json.loads(VSCODE_SETTINGS.read_text(encoding='utf-8'))
     arguments = settings.get('java.import.gradle.arguments', '')
-    expected = (
-        '--project-cache-dir '
-        'cpf-docs/governance/development-harness/evidence/platform/current/generated/gradle/project-cache'
-    )
-    assert arguments == expected
+    assert '--project-cache-dir' not in arguments, (
+        'IDE import 가 CLI 와 다른 project cache 를 쓰면 서로의 build 산출물을 지운다: ' + arguments)
     normalized = arguments.replace('\\', '/').lower()
     assert 'cpf-docs/work/' not in normalized
     assert not re.search(r'[a-z]:/', normalized), 'workspace-local absolute path must not be canonical'
+
+if __name__ == "__main__":
+    # negative fixture 가 이 파일을 직접 실행한다. pytest 없이도 같은 계약을 판정해야 한다.
+    failures = []
+    for _name, _fn in sorted(dict(globals()).items()):
+        if not _name.startswith("test_") or not callable(_fn):
+            continue
+        try:
+            _fn()
+        except Exception as failure:  # noqa: BLE001 - 계약 위반을 그대로 보고한다
+            failures.append(f"{_name}: {failure}")
+    for _failure in failures:
+        print("FAIL " + _failure)
+    print(f"DEVELOPER_SHELL_CONTRACT={'FAIL' if failures else 'PASS'}")
+    raise SystemExit(1 if failures else 0)

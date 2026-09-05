@@ -835,7 +835,7 @@ plugins {{ id 'base' }}
 // root 에 base plugin 만 적용하면 :test 가 없어 "Task with path ':test' not found" 로 실패한다.
 // 다중 Project Domain 도 단일 Project Domain 과 같은 진입점을 제공해야 한다.
 tasks.register('test') {{
-    group = 'verification'
+    group = '15. CPF 테스트'
     description = '이 Domain 의 모든 하위 Project Test 를 실행합니다.'
     dependsOn subprojects.collect {{ "${{it.path}}:test" }}
 }}

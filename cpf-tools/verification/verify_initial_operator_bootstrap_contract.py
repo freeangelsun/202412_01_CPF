@@ -7,10 +7,16 @@ false-green을 막는다. 이 validator는 secret 값 자체를 읽거나 출력
 
 from __future__ import annotations
 
+# Windows cp949 콘솔에서 한글 진단이 깨지지 않도록 자기 stdout/stderr 를 고정한다.
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import argparse
 import json
 import re
-import sys
 from pathlib import Path
 
 

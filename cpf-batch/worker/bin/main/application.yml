@@ -1,0 +1,64 @@
+spring:
+  config:
+    import:
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
+      - optional:classpath:application-bat-runtime.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+  application:
+    name: cpf-batch-worker
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+server:
+  port: ${CPF_PORT:8182}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+cpf:
+  logging:
+    # 일반 Runtime 로그는 Application/Instance별 경로로 분리하며 Transaction Evidence와 혼용하지 않습니다.
+    enabled: true
+    root: ${CPF_LOG_ROOT:logs}
+    instance-id: ${CPF_RUNTIME_INSTANCE_ID:${HOSTNAME:local}}
+    maintenance-interval: ${CPF_LOG_MAINTENANCE_INTERVAL:1h}
+    files:
+      runtime:
+        # 전체 Runtime 흐름을 기록하는 기본 파일입니다. Console 출력도 함께 유지됩니다.
+        enabled: true
+        file-name: runtime.log
+        rolling: DAILY
+        compress-after-days: 5
+        delete-after-days: 365
+      error:
+        # ERROR 이상을 별도 파일에도 기록하여 운영 장애 탐색 경로를 명확히 합니다.
+        enabled: true
+        file-name: error.log
+        level: ERROR
+        rolling: DAILY
+        compress-after-days: 5
+        delete-after-days: 365
+  # Runtime 거래 식별용 System Code입니다. CPF Platform DB의 Schema/Table Prefix는 이 값과 무관하게 Canonical 고정입니다.
+  system-code: BAT
+  # Architecture Role 정본: cpf-tools/governance/cpf-product-surface-policy.json (Harness 30.16)
+  architecture-role: BATCH_RUNTIME
+  framework:
+    module-id: BAT
+    was-id: ${CPF_WAS_ID:}
+  runtime:
+    role: WORKER
+  batch:
+    control:
+      base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
+    runtime:
+      heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}
+    # 승인 Script/Path Alias는 고객 설치 환경에서 dotted property로 명시합니다.
+    # 미설정 시 WorkerOperationalProperties의 빈 Catalog 기본값이 fail-closed 합니다.
+    worker:
+      max-concurrency: ${CPF_BAT_WORKER_MAX_CONCURRENCY:1}

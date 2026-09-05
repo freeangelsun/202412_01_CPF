@@ -37,7 +37,8 @@
       "runtimeMode": "full",
       "excludedRoles": [],
       "includeDomains": true,
-      "includeBatch": true
+      "includeBatch": true,
+      "note": "Local Bootstrap 전용 집계다. 사용자 Lifecycle Group 은 runtimeGroups 가 정본이다."
     },
     "DEV": {
       "label": "개발",
@@ -114,7 +115,14 @@
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "CPF 운영 관리 Runtime",
       "artifactId": "cpf-admin",
-      "healthPath": "/adm/api/health"
+      "healthPath": "/adm/api/health",
+      "architectureRole": "CONTROL_PLANE_RUNTIME",
+      "runtimeGroups": [
+        "platform"
+      ],
+      "dependsOn": [],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "gateway",
@@ -126,7 +134,14 @@
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "API Gateway Runtime",
       "artifactId": "cpf-gateway",
-      "healthPath": "/actuator/health"
+      "healthPath": "/actuator/health",
+      "architectureRole": "EDGE_RUNTIME",
+      "runtimeGroups": [
+        "platform"
+      ],
+      "dependsOn": [],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "batch-control",
@@ -137,7 +152,12 @@
       "provision": "binary",
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "Batch Control Plane",
-      "artifactId": "cpf-batch-control-plane"
+      "artifactId": "cpf-batch-control-plane",
+      "architectureRole": "BATCH_RUNTIME",
+      "runtimeGroups": [],
+      "dependsOn": [],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "batch-scheduler",
@@ -149,7 +169,14 @@
       "provision": "binary",
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "Batch Scheduler",
-      "artifactId": "cpf-batch-scheduler"
+      "artifactId": "cpf-batch-scheduler",
+      "architectureRole": "BATCH_RUNTIME",
+      "runtimeGroups": [],
+      "dependsOn": [
+        "batch-control"
+      ],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "batch-worker",
@@ -161,7 +188,14 @@
       "provision": "binary",
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "Batch Worker",
-      "artifactId": "cpf-batch-worker"
+      "artifactId": "cpf-batch-worker",
+      "architectureRole": "BATCH_RUNTIME",
+      "runtimeGroups": [],
+      "dependsOn": [
+        "batch-control"
+      ],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "batch-center-cut",
@@ -173,7 +207,14 @@
       "provision": "binary",
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "Center-Cut Runner",
-      "artifactId": "cpf-batch-center-cut"
+      "artifactId": "cpf-batch-center-cut",
+      "architectureRole": "BATCH_RUNTIME",
+      "runtimeGroups": [],
+      "dependsOn": [
+        "batch-control"
+      ],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "batch-agent",
@@ -185,7 +226,14 @@
       "provision": "binary",
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "Batch Agent",
-      "artifactId": "cpf-batch-agent"
+      "artifactId": "cpf-batch-agent",
+      "architectureRole": "BATCH_RUNTIME",
+      "runtimeGroups": [],
+      "dependsOn": [
+        "batch-control"
+      ],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "local-runtime",
@@ -198,7 +246,14 @@
       "aggregateAlias": "ALL",
       "description": "1-WAS 통합 Local Runtime",
       "artifactId": "cpf-local-runtime",
-      "healthPath": "/actuator/health"
+      "healthPath": "/actuator/health",
+      "architectureRole": "LOCAL_DEV_RUNTIME",
+      "runtimeGroups": [
+        "local"
+      ],
+      "dependsOn": [],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "local-batch",
@@ -209,7 +264,14 @@
       "provision": "binary",
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "통합 Local Batch Runtime",
-      "artifactId": "cpf-local-batch-runtime"
+      "artifactId": "cpf-local-batch-runtime",
+      "architectureRole": "LOCAL_DEV_RUNTIME",
+      "runtimeGroups": [
+        "local"
+      ],
+      "dependsOn": [],
+      "publicLifecycle": true,
+      "buildSurface": "private-binary"
     },
     {
       "target": "backoffice",
@@ -224,7 +286,15 @@
       "component": "domain",
       "description": "업무 백오피스 Domain Runtime",
       "artifactId": "cpf-backoffice",
-      "healthPath": "/actuator/health"
+      "healthPath": "/actuator/health",
+      "architectureRole": "BUSINESS_DOMAIN_RUNTIME",
+      "runtimeGroups": [
+        "domains",
+        "backoffice"
+      ],
+      "dependsOn": [],
+      "publicLifecycle": true,
+      "buildSurface": "public-source"
     },
     {
       "target": "backoffice-web",
@@ -239,7 +309,16 @@
       "portFinding": "Previously defaulted to 8090 and collided with admin; 8092 continues the MBW block after backoffice online 8091.",
       "description": "업무 백오피스 Web(BFF) Runtime",
       "artifactId": "cpf-backoffice-web",
-      "healthPath": "/actuator/health"
+      "healthPath": "/actuator/health",
+      "architectureRole": "CHANNEL_FRONT_RUNTIME",
+      "runtimeGroups": [
+        "backoffice"
+      ],
+      "dependsOn": [
+        "backoffice"
+      ],
+      "publicLifecycle": true,
+      "buildSurface": "public-source"
     },
     {
       "target": "education",
@@ -252,12 +331,17 @@
       "publicationClass": "PUBLIC_RUNTIME",
       "description": "교육/샘플 Runtime",
       "artifactId": "cpf-education",
-      "healthPath": "/actuator/health"
+      "healthPath": "/actuator/health",
+      "architectureRole": "EDUCATION_RUNTIME",
+      "runtimeGroups": [],
+      "dependsOn": [],
+      "publicLifecycle": true,
+      "buildSurface": "public-source"
     }
   ],
   "dynamicRuntimes": {
     "source": "discovery.domain",
-    "targetPattern": "{domainName}-{module}",
+    "targetPattern": "{domainName}",
     "capabilityByModule": {
       "online": "http-server",
       "batch": "one-shot"
@@ -267,6 +351,19 @@
     "note": "Generated Domain targets appear and disappear with the domain itself. No launcher, help text or catalog entry may hardcode a domain name.",
     "healthPathByModule": {
       "online": "/actuator/health"
+    },
+    "architectureRole": "BUSINESS_DOMAIN_RUNTIME",
+    "dependsOn": [],
+    "publicLifecycle": true,
+    "buildSurface": "public-source",
+    "primaryModule": "online",
+    "nonPrimaryTargetPattern": "{domainName}-{module}",
+    "targetNameContract": "primaryModule 은 Domain 이름 자체를 Target 이름으로 쓴다. 나머지 module 은 {domainName}-{module} 이다. 사용자가 module 이름을 알아야 Domain 을 띄울 수 있으면 안 된다.",
+    "runtimeGroupsByModule": {
+      "online": [
+        "domains"
+      ],
+      "batch": []
     }
   },
   "portPolicy": {
@@ -276,5 +373,70 @@
   },
   "identityContract": "systemCode 는 architectureRole 이 hasSystemCode=true 인 Runtime 에만 존재한다. PLATFORM_CONTROL_PLANE/GATEWAY/CHANNEL_FRONT/TOPOLOGY/BATCH_CONTROL_PLANE/FRAMEWORK_INTERNAL 은 System Identity 를 갖지 않으며, Module Code/DB Prefix/topology 이름을 SystemCode 로 승격하지 않는다. 정본: cpf-tools/governance/cpf-product-surface-policy.json",
   "artifactIdContract": "artifactId 는 cpf-tools/release/cpf-final-artifact-catalog.json 의 ownerPath 대응 artifactId 와 같아야 한다. provision=binary Runtime 은 이 좌표로 Binary Repository 에서 실행물을 찾는다. 이름을 추론하지 않는다.",
-  "healthPathContract": "http-server Runtime 은 healthPath 를 catalog 에 선언해야 한다. Launcher 는 경로를 추론하지 않고 이 값만 쓴다. 선언이 없으면 기동 완료를 판정할 수 없으므로 fail-closed 로 중단한다. worker/one-shot 은 lifecycleCapabilities 가 정한 readiness 계약을 따르며 단순 HTTP 200 을 성공으로 취급하지 않는다."
+  "healthPathContract": "http-server Runtime 은 healthPath 를 catalog 에 선언해야 한다. Launcher 는 경로를 추론하지 않고 이 값만 쓴다. 선언이 없으면 기동 완료를 판정할 수 없으므로 fail-closed 로 중단한다. worker/one-shot 은 lifecycleCapabilities 가 정한 readiness 계약을 따르며 단순 HTTP 200 을 성공으로 취급하지 않는다.",
+  "runtimeGroups": {
+    "contract": "CPF_RUNTIME_GROUP_AUTHORITY",
+    "intent": [
+      "Runtime Group 은 사용자가 내부 Runtime 이름을 외우지 않고도 운영할 수 있게 하는 논리 단위다.",
+      "Group 소속은 Runtime metadata(runtimeGroups / architectureRole)에서 파생한다. CLI/launcher/문서에 대상 목록을 복제하지 않는다.",
+      "Group 은 선택 집합만 정한다. dependsOn 은 선택된 집합의 실행 순서를 정할 뿐 대상을 추가하지 않는다.",
+      "Group 이름과 Runtime target 이름은 같은 문자열을 쓰지 않는다. 같으면 하나의 이름이 두 의미를 갖는다.",
+      "단일 Runtime 이면 Group 을 만들지 않는다. Group 하나에 Runtime 하나면 이름만 늘고 의미가 없다.",
+      "한 Runtime 의 Group 소속은 한 가지 방법으로만 표현한다. runtimeGroups 와 architectureRole 이 같은 Group 을 두 번 가리키면 어느 쪽이 정본인지 알 수 없다."
+    ],
+    "membershipKeys": [
+      "runtimeGroups",
+      "architectureRole"
+    ],
+    "groups": [
+      {
+        "group": "all",
+        "label": "전체 Runtime",
+        "selector": "every-resolved-target"
+      },
+      {
+        "group": "platform",
+        "label": "Platform Runtime",
+        "selector": "runtimeGroups",
+        "value": "platform"
+      },
+      {
+        "group": "domains",
+        "label": "업무 Domain Runtime",
+        "selector": "runtimeGroups",
+        "value": "domains"
+      },
+      {
+        "group": "batch",
+        "label": "Batch Platform Runtime",
+        "selector": "architectureRole",
+        "value": "BATCH_RUNTIME"
+      },
+      {
+        "group": "backoffice-stack",
+        "label": "Backoffice 업무 Runtime + Channel Front",
+        "selector": "runtimeGroups",
+        "value": "backoffice"
+      },
+      {
+        "group": "local-support",
+        "label": "Local 개발 보조 Runtime",
+        "selector": "runtimeGroups",
+        "value": "local"
+      }
+    ]
+  },
+  "startOrderContract": {
+    "rule": "dependsOn 위상정렬. 순환이 있으면 fail-closed. 동순위는 architectureRoleOrder, 그 다음 이름 순.",
+    "architectureRoleOrder": [
+      "CONTROL_PLANE_RUNTIME",
+      "EDGE_RUNTIME",
+      "BATCH_RUNTIME",
+      "BUSINESS_DOMAIN_RUNTIME",
+      "CHANNEL_FRONT_RUNTIME",
+      "EDUCATION_RUNTIME",
+      "LOCAL_DEV_RUNTIME"
+    ],
+    "stopRule": "start 순서의 역순으로 정지한다."
+  }
 }

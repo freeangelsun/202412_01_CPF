@@ -2,7 +2,10 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import groovy.json.JsonSlurper
+import groovy.io.FileType
+import java.nio.file.Files
 
 /*
  * CPF Root Build Convention.
@@ -236,11 +239,61 @@ version = ext.cpfPlatformVersion
 // dependency-assembly Java projects have no bytecode by design, so Fresh Buildship import must
 // materialize only their canonical Gradle classes/java/main directory. This is not a fake API or
 // IDE-only output: it is the declared Java output location and remains removable by clean.
+//
+// Buildship/JDT's own defaults are projectDir/bin/main, bin/test and bin/default. CPF Batch
+// intentionally owns bin/ as product launcher/config Source, so that default can overwrite or
+// delete tracked Source during an IDE clean. JDT output must also be isolated from Gradle's
+// build/classes/java tree: sharing it lets an asynchronous Java workspace build replace Gradle
+// classes while Gradle is executing tests, which presents as transient NoClassDefFoundError.
+// Apply the official Gradle Eclipse model to every Java project and use build/ide/classes only
+// for JDT. No per-user VS Code outputPath can solve this because the Java extension deliberately
+// ignores it for Gradle projects.
+def cpfConfigureEclipseOutput = { target ->
+    if (target.plugins.hasPlugin('java')) {
+        target.pluginManager.apply('eclipse')
+        def eclipseClasspath = target.extensions.getByType(EclipseModel).classpath
+        eclipseClasspath.baseSourceOutputDir.set(target.layout.buildDirectory.dir('ide/classes'))
+        eclipseClasspath.defaultOutputDir = target.layout.buildDirectory.dir('ide/classes/default').get().asFile
+    }
+}
+
+// Before JDT output isolation, the Java workspace compiler copied resources into Gradle's
+// classes/java/main directory. Gradle owns resources/main, so an identical copy creates a
+// duplicate archive entry and must not be hidden with DuplicatesStrategy.EXCLUDE. Remove only
+// byte-identical non-class copies immediately before an archive is assembled; a different file
+// remains a fail-closed duplicate for the archive task to report.
+def cpfPurgeStaleJdtResourceCopies = { target ->
+    def classOutput = target.layout.buildDirectory.dir('classes/java/main').get().asFile
+    def resourceOutput = target.layout.buildDirectory.dir('resources/main').get().asFile
+    if (!classOutput.isDirectory() || !resourceOutput.isDirectory()) return
+    def removed = 0
+    classOutput.eachFileRecurse(FileType.FILES) { candidate ->
+        if (candidate.name.endsWith('.class')) return
+        def relative = classOutput.toPath().relativize(candidate.toPath())
+        def canonicalResource = resourceOutput.toPath().resolve(relative).toFile()
+        if (canonicalResource.isFile() && Files.mismatch(candidate.toPath(), canonicalResource.toPath()) == -1L) {
+            if (!candidate.delete()) {
+                throw new GradleException("CPF stale JDT resource copy could not be removed: ${candidate}")
+            }
+            removed++
+        }
+    }
+    if (removed > 0) {
+        println "CPF_STALE_JDT_RESOURCE_COPIES_PURGED project=${target.path} count=${removed}"
+    }
+}
+cpfConfigureEclipseOutput(rootProject)
 gradle.afterProject { target, state ->
-    if (target != rootProject && target.plugins.hasPlugin('java') && target.sourceSets.main.java.files.empty) {
-        def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
-        if (!output.isDirectory() && !output.mkdirs() && !output.isDirectory()) {
-            throw new GradleException("CPF source-empty canonical compile output could not be created: ${target.path} -> ${output}")
+    if (target != rootProject && target.plugins.hasPlugin('java')) {
+        cpfConfigureEclipseOutput(target)
+        target.tasks.withType(Jar).configureEach {
+            doFirst { cpfPurgeStaleJdtResourceCopies(target) }
+        }
+        if (target.sourceSets.main.java.files.empty) {
+            def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
+            if (!output.isDirectory() && !output.mkdirs() && !output.isDirectory()) {
+                throw new GradleException("CPF source-empty canonical compile output could not be created: ${target.path} -> ${output}")
+            }
         }
     }
 }
@@ -264,6 +317,13 @@ tasks.register('cpfPrepareIdeClasspath') {
         def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
         def compiled = javaProjects.findAll { !it.sourceSets.main.java.files.empty }
         def sourceEmpty = javaProjects.findAll { it.sourceSets.main.java.files.empty }
+        javaProjects.each { target -> cpfPurgeStaleJdtResourceCopies(target) }
+        javaProjects.each { target ->
+            def ideOutput = target.layout.buildDirectory.dir('ide/classes/main').get().asFile
+            if (!ideOutput.isDirectory() && !ideOutput.mkdirs() && !ideOutput.isDirectory()) {
+                throw new GradleException("CPF IDE-isolated output could not be created: ${target.path} -> ${ideOutput}")
+            }
+        }
         sourceEmpty.each { target ->
             def output = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile
             if (!output.isDirectory() && !output.mkdirs() && !output.isDirectory()) {
@@ -298,11 +358,15 @@ tasks.register('cpfVerifyIdeClasspathReady') {
             def hasSource = !target.sourceSets.main.allSource.files.empty
             (!hasSource || archive.isFile()) ? null : "${target.path}:jar-missing=${archive}"
         }.findAll { it != null }
-        def failures = missing + jarMissing
+        def ideMissing = javaProjects.collect { target ->
+            def output = target.layout.buildDirectory.dir('ide/classes/main').get().asFile
+            output.isDirectory() ? null : "${target.path}:ide-output-missing=${output}"
+        }.findAll { it != null }
+        def failures = missing + jarMissing + ideMissing
         if (!failures.isEmpty()) {
             throw new GradleException("CPF IDE classpath readiness failed:\n - ${failures.join('\\n - ')}")
         }
-        println "CPF_IDE_CLASSPATH_READY_GATE=PASS scope=all-java-projects+jar-artifacts"
+        println "CPF_IDE_CLASSPATH_READY_GATE=PASS scope=all-java-projects+gradle-outputs+jar-artifacts+isolated-jdt-outputs"
     }
 }
 
@@ -311,6 +375,19 @@ tasks.register('cpfVerifyIdeClasspathModel') {
     doLast {
         def javaProjects = subprojects.findAll { it.plugins.hasPlugin('java') }
         def failures = []
+        // Root is also imported as a Java project by VS Code. It has no product source-set output
+        // to materialize, but its JDT default output must not reintroduce root/bin/default.
+        ([rootProject] + javaProjects).findAll { it.plugins.hasPlugin('java') }.each { target ->
+            def eclipseClasspath = target.extensions.getByType(EclipseModel).classpath
+            def eclipseBase = target.layout.buildDirectory.dir('ide/classes').get().asFile.canonicalFile
+            def eclipseDefault = target.layout.buildDirectory.dir('ide/classes/default').get().asFile.canonicalFile
+            if (eclipseClasspath.baseSourceOutputDir.get().asFile.canonicalFile != eclipseBase) {
+                failures << "${target.path}:non-canonical-eclipse-source-output=${eclipseClasspath.baseSourceOutputDir.get().asFile}"
+            }
+            if (eclipseClasspath.defaultOutputDir.canonicalFile != eclipseDefault) {
+                failures << "${target.path}:non-canonical-eclipse-default-output=${eclipseClasspath.defaultOutputDir}"
+            }
+        }
         javaProjects.each { target ->
             def actual = target.tasks.named('compileJava', JavaCompile).get().destinationDirectory.get().asFile.canonicalFile
             def canonical = target.layout.buildDirectory.dir('classes/java/main').get().asFile.canonicalFile

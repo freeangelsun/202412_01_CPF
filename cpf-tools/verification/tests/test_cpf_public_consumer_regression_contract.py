@@ -29,6 +29,7 @@ FINDING_LEDGER = REPO_ROOT / "cpf-docs/governance/development-harness/current/CO
 OPEN_GIT_SURFACE_POLICY = REPO_ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"
 CLI_SOURCE = REPO_ROOT / "cpf-tools/runtime/cli/java/CpfCli.java"
 BOOTSTRAP_SOURCE = REPO_ROOT / "cpf-tools/runtime/bootstrap/CpfBootstrap.java"
+SECURITY_COMMON_AUTOCONFIG = REPO_ROOT / "cpf-starters/security/src/main/java/com/cpf/security/common/CpfSecurityCommonAutoConfiguration.java"
 SECURITY_AUTOCONFIG_IMPORTS = REPO_ROOT / "cpf-starters/security/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports"
 JDBC_AUTOCONFIG_IMPORTS = REPO_ROOT / "cpf-starters/data/persistence/jdbc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports"
 ADM_PROFILE = REPO_ROOT / "cpf-admin/src/main/resources/application-adm.yml"
@@ -99,18 +100,25 @@ class PublicRuntimeLifecycleContract(unittest.TestCase):
 
     def test_public_runtime_lifecycle_is_self_contained(self) -> None:
         cli = read(CLI_SOURCE)
-        self.assertIn("if (!internalEnabled()) return requireJava25Then(() -> runClass(root, \"CpfBootstrap\"", cli,
-                      "공개 Profile 의 runtime lifecycle 이 공개 CLI 안에서 처리되지 않는다")
+        self.assertIn('return requireJava25Then(() -> runClass(root, "CpfBootstrap", listing));', cli,
+                      "targets가 canonical Java Lifecycle engine으로 가지 않는다")
+        self.assertIn('return requireJava25Then(() -> runClass(root, "CpfBootstrap", forwarded));', cli,
+                      "Lifecycle selector가 canonical Java engine으로 가지 않는다")
+        self.assertNotIn('internalRuntime(root, action, forwarded)', cli,
+                         "INTERNAL profile이 구형 Python engine으로 갈라져 Group 계약을 잃는다")
         bootstrap = read(BOOTSTRAP_SOURCE)
         for action in ("start", "stop", "status", "health", "log", "restart"):
             self.assertIn(f'case "{action}"', bootstrap,
                           f"공개 Runtime Lifecycle 에 {action} 동작이 없다")
 
-    def test_runtime_environment_carries_db_vendor_and_pack(self) -> None:
-        bootstrap = read(BOOTSTRAP_SOURCE)
-        self.assertIn('baseEnv.put("CPF_DB_VENDOR"', bootstrap,
+    def test_runtime_environment_carries_db_vendor(self) -> None:
+        """CRF-17."""
+        self.assertIn('baseEnv.put("CPF_DB_VENDOR"', read(BOOTSTRAP_SOURCE),
                       "Runtime 환경에 DB vendor 를 전달하지 않는다")
-        self.assertIn('baseEnv.put("CPF_DB_RESOURCE_ROOT"', bootstrap,
+
+    def test_runtime_environment_carries_vendor_pack_root(self) -> None:
+        """CRF-18."""
+        self.assertIn('baseEnv.put("CPF_DB_RESOURCE_ROOT"', read(BOOTSTRAP_SOURCE),
                       "Runtime 환경에 Vendor SQL Pack 경로를 전달하지 않는다")
 
     def test_bootstrap_prepares_local_only_runtime_secrets(self) -> None:
@@ -128,11 +136,28 @@ class PublicRuntimeLifecycleContract(unittest.TestCase):
                       "instanceId 가 Target 별로 유일하지 않다")
 
     def test_source_runtime_runs_its_built_artifact(self) -> None:
-        """bootRun 으로 띄우면 상태 파일의 pid 가 Runtime 이 아니라 Gradle wrapper 가 된다."""
+        """CRF-42. cpf runtime start 가 실행물을 만들어 그 실행물을 직접 띄운다."""
         bootstrap = read(BOOTSTRAP_SOURCE)
         self.assertIn("buildSourceRuntimeJar(", bootstrap,
                       "source Runtime 을 실행물로 만들어 띄우지 않는다")
-        self.assertNotIn("bootRun", "\n".join(executable_lines(bootstrap)),
+        command = bootstrap.split("private List<String> runtimeCommand(", 1)
+        self.assertEqual(2, len(command), "runtimeCommand 진입점을 찾지 못했다")
+        self.assertIn('javaExecutable(), "-jar"', command[1][:600],
+                      "runtimeCommand 가 실행물을 직접 띄우지 않는다")
+
+    def test_bootstrap_domain_runtime_runs_its_built_artifact(self) -> None:
+        """CRF-45. cpf bootstrap --run 도 같은 모델이어야 상태 파일의 pid 가 곧 Runtime 이다."""
+        bootstrap = read(BOOTSTRAP_SOURCE)
+        self.assertIn("buildDomainRuntimeJar(", bootstrap,
+                      "bootstrap 이 Generated Domain Runtime 을 실행물로 만들어 띄우지 않는다")
+        body = bootstrap.split("private void startRuntimes()", 1)
+        self.assertEqual(2, len(body), "startRuntimes 진입점을 찾지 못했다")
+        self.assertIn('javaExecutable(), "-jar"', body[1][:1600],
+                      "bootstrap 이 Gradle wrapper 를 Runtime pid 로 기록한다")
+
+    def test_no_runtime_is_started_through_gradle_bootrun(self) -> None:
+        """어느 경로로도 wrapper pid 를 Runtime pid 로 기록하지 않는다."""
+        self.assertNotIn("bootRun", "\n".join(executable_lines(read(BOOTSTRAP_SOURCE))),
                          "source Runtime 이 여전히 bootRun 으로 기동된다")
 
 
@@ -166,10 +191,20 @@ class PublicRuntimeAssetContract(unittest.TestCase):
 class StarterAutoConfigurationContract(unittest.TestCase):
     """CRF-14 / CRF-32 / CRF-20"""
 
-    def test_security_common_services_come_from_autoconfiguration(self) -> None:
+    def test_security_common_autoconfiguration_is_registered(self) -> None:
         registered = read(SECURITY_AUTOCONFIG_IMPORTS)
         self.assertIn("com.cpf.security.common.CpfSecurityCommonAutoConfiguration", registered,
                       "CMN 보안 Service 가 AutoConfiguration 으로 공급되지 않는다")
+
+    def test_security_common_provides_crypto_service(self) -> None:
+        """CRF-14. ADM 단독 기동이 CmnCryptoService bean 없음으로 실패했다."""
+        self.assertIn("CmnCryptoService cmnCryptoService(", read(SECURITY_COMMON_AUTOCONFIG),
+                      "CmnCryptoService 를 공급하지 않는다")
+
+    def test_security_common_provides_jwt_service(self) -> None:
+        """CRF-32. MBW 단독 기동이 CmnJwtService bean 없음으로 실패했다."""
+        self.assertIn("CmnJwtService cmnJwtService(", read(SECURITY_COMMON_AUTOCONFIG),
+                      "CmnJwtService 를 공급하지 않는다")
 
     def test_platform_role_primary_is_provided_by_starter(self) -> None:
         registered = read(JDBC_AUTOCONFIG_IMPORTS)
@@ -186,11 +221,19 @@ class ControlPlaneRuntimeContract(unittest.TestCase):
                       "SystemCode 가 없는 Platform Runtime 이 Service Identity 를 명시하지 않는다")
 
     def test_control_plane_surface_is_exempt_from_business_headers(self) -> None:
-        profile = read(ADM_PROFILE)
-        self.assertIn("management-root-paths:", profile,
+        """CRF-25. 관리 API 가 업무 System6 Header 를 요구해 400 으로 거절됐다."""
+        self.assertIn("management-root-paths:", read(ADM_PROFILE),
                       "Control Plane Surface 가 업무 Header 강제 대상에서 제외되지 않는다")
-        self.assertIn("- /adm", profile,
+
+    def test_control_plane_spa_root_is_listed(self) -> None:
+        """CRF-27. SPA 진입 경로가 목록에 없으면 화면 자체를 열 수 없다."""
+        self.assertIn("- /adm", read(ADM_PROFILE),
                       "ADM Surface 가 업무 Header 강제 제외 목록에 없다")
+
+    def test_control_plane_runtime_declares_platform_db_role(self) -> None:
+        """CRF-13."""
+        self.assertIn("cpf-platform-db:", read(ADM_PROFILE),
+                      "Control Plane Runtime 이 자기 설정으로 CPF_PLATFORM_DB role 을 해석하지 못한다")
 
     def test_local_profile_allows_loopback_cookie(self) -> None:
         local = read(ADM_LOCAL_PROFILE)
@@ -203,19 +246,33 @@ class ControlPlaneRuntimeContract(unittest.TestCase):
             self.assertIn("Autowired", text,
                           f"다중 생성자 Bean 이 주입 생성자를 명시하지 않는다: {path.name}")
 
-    def test_bootstrap_runners_open_managed_context(self) -> None:
-        for path in (ADM_BOOTSTRAP_INITIALIZER, MBW_BOOTSTRAP_RUNNER):
-            text = read(path)
-            self.assertIn("CpfContexts.bind(", text,
-                          f"ApplicationRunner 가 관리 실행 Context 를 열지 않는다: {path.name}")
-            self.assertIn("newRoot(", text,
-                          f"관리 실행 Root Context 생성이 없다: {path.name}")
+    @staticmethod
+    def _assert_opens_managed_context(case: unittest.TestCase, path) -> None:
+        text = read(path)
+        case.assertIn("CpfContexts.bind(", text,
+                      f"ApplicationRunner 가 관리 실행 Context 를 열지 않는다: {path.name}")
+        case.assertIn("newRoot(", text,
+                      f"관리 실행 Root Context 생성이 없다: {path.name}")
+
+    def test_control_plane_bootstrap_runner_opens_managed_context(self) -> None:
+        """CRF-24."""
+        self._assert_opens_managed_context(self, ADM_BOOTSTRAP_INITIALIZER)
+
+    def test_business_domain_bootstrap_runner_opens_managed_context(self) -> None:
+        """CRF-43."""
+        self._assert_opens_managed_context(self, MBW_BOOTSTRAP_RUNNER)
 
 
 class BusinessDomainRuntimeContract(unittest.TestCase):
     """CRF-31 / CRF-33 / CRF-34 / CRF-35 / CRF-37 / CRF-40 / CRF-44"""
 
+    def test_business_domain_declares_platform_db_role(self) -> None:
+        """CRF-30. 업무 Domain Runtime 도 code/message 정본 때문에 CPF_PLATFORM_DB 를 요구한다."""
+        self.assertIn("cpf-platform-db:", read(MBW_CONFIG),
+                      "업무 Domain Runtime 이 자기 설정으로 CPF_PLATFORM_DB role 을 해석하지 못한다")
+
     def test_business_domain_declares_domain_persistence(self) -> None:
+        """CRF-31."""
         config = read(MBW_CONFIG)
         self.assertIn("generated-domain:", config, "Business Domain 선언이 없다")
         self.assertIn("persistence:", config,
@@ -247,17 +304,39 @@ class BusinessDomainRuntimeContract(unittest.TestCase):
         self.assertIn("extends", text.split("class BackofficeInitialOperatorBootstrapService", 1)[1][:200],
                       "@CpfService 가 Domain Base Class 를 상속하지 않는다")
 
+    @staticmethod
+    def _check_expression(constraint_name: str) -> str:
+        """Runtime Role 정본은 Platform Registry 의 check 제약이다.
+
+        BAT_* 의 runtime_role 은 Batch Platform 전용 열거이며 cpf.runtime.role 과 다른 namespace 다.
+        이름으로 지목하지 않으면 다른 namespace 의 제약을 정본으로 착각한다.
+        """
+        model = json.loads(read(PLATFORM_SCHEMA_JSON))
+        for table in model.get("tables", []):
+            for check in (table.get("checkConstraints") or table.get("checks") or []):
+                if check.get("name") == constraint_name:
+                    return str(check.get("expression", ""))
+        raise AssertionError(f"정본 check 제약을 찾지 못했다: {constraint_name}")
+
     def test_runtime_role_uses_canonical_values(self) -> None:
-        """Runtime Role 정본은 Platform Registry 의 check 제약이다."""
-        schema = read(PLATFORM_SCHEMA_JSON)
-        match = re.search(r"runtime_role IN \(([^)]*)\)", schema)
-        self.assertIsNotNone(match, "Runtime Role 정본 제약을 찾지 못했다")
+        expression = self._check_expression("ck_ops_runtime_instance_role")
+        match = re.search(r"runtime_role IN \(([^)]*)\)", expression)
+        self.assertIsNotNone(match, "Runtime Role 허용값 목록을 찾지 못했다")
         allowed = {value.strip().strip("'") for value in match.group(1).split(",")}
         config = read(MBW_CONFIG)
         role = re.search(r"^\s*runtime:\s*\n(?:\s*#.*\n)*\s*role:\s*(\S+)", config, re.M)
         self.assertIsNotNone(role, "Runtime Role 선언을 찾지 못했다")
         self.assertIn(role.group(1), allowed,
                       f"Runtime Role 이 정본 제약 밖의 값이다: {role.group(1)} not in {sorted(allowed)}")
+
+    def test_batch_runtime_role_stays_a_separate_namespace(self) -> None:
+        """SystemCode/Service Identity 처럼 Runtime Role 도 namespace 가 섞이면 안 된다."""
+        platform = self._check_expression("ck_ops_runtime_instance_role")
+        batch = self._check_expression("ck_bat_runtime_instance_role")
+        self.assertIn("'APPLICATION'", platform,
+                      "Platform Runtime Registry 가 업무 Domain Runtime 의 role 을 받지 못한다")
+        self.assertNotIn("'APPLICATION'", batch,
+                         "Batch Platform 전용 role 열거가 Platform Runtime role 과 합쳐졌다")
 
     def test_channel_front_provides_jackson2_object_mapper(self) -> None:
         text = read(CHANNEL_FRONT_JSON_CONFIG)
@@ -286,8 +365,8 @@ class InitialOperatorBootstrapContract(unittest.TestCase):
             path = REPO_ROOT / f"cpf-tools/db/vendor/{vendor}/runtime/backoffice/repository/auth-bootstrap-operator.sql"
             self.assertTrue(path.is_file(), f"{vendor} 최초 운영자 생성 SQL 이 없다")
             sql = read(path)
-            self.assertNotIn("0, 'Y', :passwordExpireAt", sql,
-                             f"{vendor} 최초 운영자가 강제 비밀번호 변경 상태로 생성된다")
+            self.assertIn("0, 'N', :passwordExpireAt", sql,
+                          f"{vendor} 최초 운영자가 강제 비밀번호 변경 상태로 생성된다")
 
 
 class CanonicalDatabaseContract(unittest.TestCase):

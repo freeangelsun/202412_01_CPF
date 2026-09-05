@@ -792,3 +792,67 @@ Generator Release PASS나 SPA bundle 존재는 이 Root Cause의 PASS evidence�
 maker/checker/secret-file security boundary를 약화시키지 않는 **local first-operator canonical provisioning
 policy**를 Product Contract/Harness에 확정한 뒤, `bootstrap → provision → runtime → real login/CSRF/BFF→MBW
 transaction → File/DB lineage → cleanup → Fresh Replay`와 negative mutation까지 연결해야 한다.
+
+### C-34. Codex continuation — VS Code JDT output 보호와 INTERNAL Lifecycle engine 보정
+
+**읽기 시작 기준:** Git `master`, `8ab6ad64e888892c8d43c07592a112157f5dec09`; 이미 존재하던 Claude
+working change는 보존했다. Full Runtime/Release 실행 중이 아닌 상태에서만 아래 Source를 보정했다.
+
+**VS Code/JDT Root Cause와 처리:** Java Language Server의 Gradle Build Server 경로는 named-pipe connection
+실패 후 official Gradle Eclipse model을 무시하고 88개 project에 `bin/main`, `bin/test`, `bin/default`를
+기본 output으로 넣었다. CPF Batch의 `bin/`은 launcher/config Product Source여서 Java workspace clean이
+`cpf-batch/agent/bin/main` 및 `runtime-support/bin/main`의 tracked YAML/XML을 실제 삭제했다. 삭제된 Agent
+3개 Source와 Claude의 `application-bat-runtime.yml` local/test secret change는 HEAD+직전 diff로 즉시 복구했다.
+
+이 기록의 처음 보정은 `bin/*` Source 손상을 막았지만 JDT와 Gradle output을 함께 쓰는 중간 상태였다.
+해당 중간 상태는 C-35에서 **폐기·대체**되었으며 다음 작업자가 `build/classes/java`를 JDT output으로 다시
+사용해서는 안 된다.
+
+**실측:** Root/Included Build의 `eclipseClasspath` generated model은 `build/classes/java/main`, `test`,
+`default`만 출력했다. Java server restart(창 reload 아님) 뒤 JDT workspace 126 project에서
+`bin/main|bin/test|bin/default = 0`, project marker directory `0`을 확인했다. Targeted static regression
+`101 passed`와 `cpfVerifyIdeClasspathModel` PASS도 확인했다. 단, Independent Reviewer standard가 요구하는
+Fresh exported `CPF_VSCODE_PROBLEMS_*.json`은 아직 없으므로 VS Code Error=0/Warning=0 final evidence나
+Full Runtime precondition으로 승격하지 않는다.
+
+**CLI Root Cause/처리 (CRF-49):** `cpf targets`/`cpf status platform` INTERNAL profile이 legacy
+`cpf_local_runtime.py`로 위임되어 `invalid choice: targets` exit 2였다. `CpfCli` selector는 profile과
+무관하게 `CpfBootstrap`으로 통일하고, Bootstrap root discovery는 Development Master의 runtime target
+catalog도 인정하도록 보정했다. Java25 isolated runtime test와 consumer regression을 추가했다. Actual Windows
+Java25 `cpf targets`, `cpf status platform`은 exit 0 PASS. Fresh Open Git Consumer lifecycle은 아직 수행하지
+않았으므로 `CRF-49`와 `WP-CLI01`은 `SOURCE_FIXED_TARGETED_PENDING`/`진행` 상태다.
+
+**다음 작업자 주의:** 이전 JDT가 남긴 untracked `bin` class/resource copies는 Product Source가 아니며 새
+model은 더 만들지 않는다. tracked `cpf-batch/**/bin` Source를 generic delete/clean 대상으로 취급하지 말 것.
+Fresh Problems JSON export → verifier PASS → source identity 고정 후에만 Open Git Consumer/Full Runtime을
+시작한다. One-WAS logging/DB3/Browser/Performance는 이 기록으로 PASS 처리할 수 없다.
+
+### C-35. Codex continuation — Open Git Release가 적발한 JDT/Gradle output race (CRF-50)
+
+**실제 Release failure:** 2026-09-05 `cpf release open-git build --profile binary`는 Stage 05/14에서 FAIL했다
+(16m19s; 886 actionable tasks, commit/push 미실행). ADM test는 93건 `NoClassDefFoundError`, Education test는
+59개 source package/class를 못 찾았고, Domain-call MVC test는 `-parameters` 정보가 없는 class 때문에
+`IllegalArgumentException`을 냈다. 이어서 IDE repair는 Backoffice Web `static/mbw/index.html` 및 messaging
+schema `META-INF/cpf/runtime-capability.properties` duplicate archive entry도 적발했다.
+
+**공통 Root Cause:** JDT가 `build/classes/java`를 Gradle과 공유하면서 Gradle test/processor output을 비동기로
+교체·resource copy했다. Source는 존재하고 Gradle의 JavaCompile은 이미 `-parameters`를 사용했으므로 각 오류를
+Controller/ADM/Education 기능 결함으로 개별 완화하면 안 됐다.
+
+**Current Source 보정:** official Eclipse model은 Root, 모든 Java subproject, Included Build에서 JDT output을
+`build/ide/classes/{main,test,default}`로만 지정한다. pre-isolation JDT가 남긴 class-output resource는
+`resources/main`과 `Files.mismatch == -1`인 동일 copy만 archive 직전에 제거한다. class file 또는 byte가 다른
+duplicate는 삭제/완화하지 않아 archive가 fail-closed 한다. Harness §26.7, IDE model/readiness gate, static
+validator와 shared-output negative mutation이 이 계약을 강제한다. Java Language Server만 재기동했고 VS Code
+창 reload는 하지 않았다.
+
+**Targeted Evidence:** `test_cpf_vscode_classpath_output_contract.py` + IDE/resource policy suite **18 passed**;
+`cpfVerifyIdeClasspathModel` 및 `cpfVerifyIdeClasspathReady` PASS; Java25
+`:apps:backoffice-web:jar :internal:integration:http:test --rerun-tasks` PASS(1m43s),
+`:apps:admin:test :apps:education:test --rerun-tasks` PASS(4m44s). Restart 뒤 physical JDT output은
+`build/ide/classes`에 생성되고 prior `bin/main|bin/test|bin/default=0`, project marker=0을 확인했다.
+
+**정확한 상태:** CRF-50은 `SOURCE_FIXED_TARGETED_PENDING`이다. 이 targeted PASS는 새로운 exact Source의
+Open Git Stage 01–14, Fresh Consumer login/transaction, VS Code Fresh Problems JSON 0/0, DB3/One-WAS logging,
+Browser/Performance/Full Runtime PASS가 아니다. 다음 단계는 이 Current Source 그대로 Release를 재실행하고
+결과를 Consumer Runtime으로 이어가는 것이다.

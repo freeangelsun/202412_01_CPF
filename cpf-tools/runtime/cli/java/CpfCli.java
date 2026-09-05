@@ -26,8 +26,9 @@ public final class CpfCli {
     private static final int EXIT_TIMEOUT = 124;
     private static final Duration COMMAND_TIMEOUT = Duration.ofMinutes(45);
     private static final Set<String> PUBLIC = Set.of(
-            "bootstrap", "domain-new", "domain-sync", "build", "test", "run", "stop", "reset", "status", "doctor", "version", "help",
-            "runtime");
+            "bootstrap", "domain-new", "domain-sync", "build", "test", "reset", "doctor", "version", "help",
+            "targets", "start", "stop", "restart", "status", "health", "log",
+            "run", "runtime");
     private static final Set<String> INTERNAL_NAMESPACES = Set.of("dev", "verify", "publish", "release");
     private static final Set<String> RUNTIME_ACTIONS = Set.of("start", "stop", "status", "health", "restart", "log");
 
@@ -56,9 +57,12 @@ public final class CpfCli {
                 case "doctor" -> doctor(root, argv);
                 case "bootstrap" -> requireJava25Then(() -> internalEnabled() ? internalBootstrap(root, argv) : bootstrap(root, argv, false));
                 case "run" -> requireJava25Then(() -> internalEnabled() ? internalRuntime(root, "start", argv) : bootstrap(root, argv, true));
-                case "stop" -> requireJava25Then(() -> internalEnabled() ? internalRuntime(root, "stop", argv) : bootstrapCommand(root, "stop", argv));
                 case "reset" -> requireJava25Then(() -> internalEnabled() ? internalReset(root, argv) : reset(root, argv));
-                case "status" -> internalEnabled() ? internalRuntime(root, "status", argv) : status(root);
+                case "targets" -> runtimeLifecycle(root, concat(List.of("targets"), argv));
+                // 사용자 Golden Path 는 동사 하나다. 내부적으로는 같은 Runtime Lifecycle 로 간다.
+                case "start", "restart", "health", "log" -> runtimeLifecycle(root, concat(List.of(command), argv));
+                case "stop" -> stopCommand(root, argv);
+                case "status" -> statusCommand(root, argv);
                 case "runtime" -> runtimeLifecycle(root, argv);
                 case "domain-new" -> requireJava25Then(() -> domainNew(root, argv));
                 case "domain-sync" -> requireJava25Then(() -> generator(root, concat(List.of("domain", "sync"), argv)));
@@ -88,7 +92,7 @@ public final class CpfCli {
      * 갈라지지 않는다. Target 목록은 canonical Runtime Target Catalog 하나에서만 온다.</p>
      */
     private static int runtimeLifecycle(Path root, List<String> args) throws Exception {
-        if (args.isEmpty()) return usage("cpf runtime targets|start|stop|status|health|restart|log [--target <target>]");
+        if (args.isEmpty()) return usage("cpf targets | cpf start|stop|restart|status|health|log <target|group>");
         String action = normalize(args.remove(0));
         String target = null;
         List<String> rest = new ArrayList<>();
@@ -96,44 +100,112 @@ public final class CpfCli {
             String token = args.get(index);
             if (("--target".equals(token) || "-t".equals(token)) && index + 1 < args.size()) {
                 target = args.get(++index);
+            } else if (target == null && !token.startsWith("-")) {
+                // 사용자 Golden Path 는 위치 인자다. --target 은 기존 launcher 호환으로 남긴다.
+                target = token;
             } else {
                 rest.add(token);
             }
         }
+        if (rest.remove("--help") || rest.remove("-h")) return lifecycleHelp(action);
         try {
-            List<CpfRuntimeTargets.Target> targets = CpfRuntimeTargets.resolveAll(root);
-            if (action.equals("targets") || action.equals("help")) {
-                System.out.println("CPF Runtime Targets");
-                for (CpfRuntimeTargets.Target row : targets) System.out.println(row.describe());
-                System.out.println("  " + String.format("%-20s %s", "all", "전체 Local Runtime"));
-                System.out.println("  " + String.format("%-20s %s", "dev", "일상 개발 구성 Runtime"));
-                return EXIT_OK;
+            if (action.equals("help")) return lifecycleHelp("start");
+            if (action.equals("targets")) {
+                List<String> listing = new ArrayList<>(List.of("runtime", "targets"));
+                // INTERNAL/PUBLIC 모두 같은 Java Lifecycle engine을 쓴다. INTERNAL python local-runtime
+                // engine에는 targets/group contract가 없어 여기로 보내면 즉시 exit 2가 된다.
+                return requireJava25Then(() -> runClass(root, "CpfBootstrap", listing));
             }
             if (!RUNTIME_ACTIONS.contains(action)) {
                 return usage("unsupported runtime action=" + action);
             }
             if (target == null || target.isBlank()) {
-                fail("CPF-CLI-RUNTIME-TARGET", "--target is required for runtime " + action);
+                // 대상을 안 주면 실패가 아니라 무엇을 고를 수 있는지 보여준다.
+                fail("CPF-CLI-RUNTIME-TARGET", "target is required: cpf " + action + " <target|group>");
+                printSelectors(root);
                 return EXIT_USAGE;
             }
             String requested = target.trim();
-            boolean aggregate = requested.equalsIgnoreCase("all") || requested.equalsIgnoreCase("dev");
-            if (!aggregate && targets.stream().noneMatch(row -> row.name().equals(requested))) {
-                fail("CPF-CLI-RUNTIME-TARGET", "unknown runtime target=" + requested
-                        + "; run 'cpf runtime targets' to list available targets");
-                return EXIT_USAGE;
-            }
             List<String> forwarded = new ArrayList<>(List.of("runtime", action, "--target", requested));
             forwarded.addAll(rest);
-            // 공개 배포본에는 내부 python 엔진(cpf-tools/**)이 실리지 않는다. 공개 Profile 에서
-            // 내부 엔진으로 위임하면 Fresh Consumer 는 어떤 Runtime 도 기동하지 못한다.
-            if (!internalEnabled()) return requireJava25Then(() -> runClass(root, "CpfBootstrap", forwarded));
-            return requireJava25Then(() -> internalRuntime(root, action, forwarded));
+            // INTERNAL/PUBLIC이 다른 engine으로 갈라지면 Group/Target/exit 계약도 갈라진다.
+            // Lifecycle selector는 canonical Java engine 하나로 실행한다.
+            return requireJava25Then(() -> runClass(root, "CpfBootstrap", forwarded));
         } catch (IOException failure) {
             // Catalog 부재/손상은 설정 결함이므로 prerequisite 실패로 구분해 보고한다.
             fail("CPF-CLI-RUNTIME-CATALOG", failure.getMessage());
             return EXIT_PREREQUISITE;
         }
+    }
+
+    /**
+     * {@code cpf stop} 은 대상이 없으면 Workspace 전체 정지(기존 계약)이고, 대상이 있으면
+     * 그 Runtime/Group 정지다. 두 의미가 같은 동사를 쓰므로 여기서 한 번만 갈라 놓는다.
+     */
+    private static int stopCommand(Path root, List<String> args) throws Exception {
+        if (hasSelector(args)) return runtimeLifecycle(root, concat(List.of("stop"), args));
+        return requireJava25Then(() -> internalEnabled()
+                ? internalRuntime(root, "stop", args) : bootstrapCommand(root, "stop", args));
+    }
+
+    private static int statusCommand(Path root, List<String> args) throws Exception {
+        if (hasSelector(args)) return runtimeLifecycle(root, concat(List.of("status"), args));
+        return internalEnabled() ? internalRuntime(root, "status", args) : status(root);
+    }
+
+    private static boolean hasSelector(List<String> args) {
+        for (String token : args) {
+            if (!token.startsWith("-")) return true;
+            if ("--target".equals(token) || "-t".equals(token)) return true;
+        }
+        return false;
+    }
+
+    /** 선택 가능한 Group/Runtime 을 보여준다. 사용자가 README 를 찾아보게 하지 않는다. */
+    private static void printSelectors(Path root) {
+        try {
+            System.out.println("Available groups:");
+            for (CpfRuntimeTargets.Group group : CpfRuntimeTargets.groups(root)) {
+                System.out.println("  " + group.name());
+            }
+            System.out.println("Available runtimes:");
+            for (CpfRuntimeTargets.Target row : CpfRuntimeTargets.resolveAll(root)) {
+                System.out.println("  " + row.name());
+            }
+            System.out.println("See: cpf targets");
+        } catch (IOException failure) {
+            fail("CPF-CLI-RUNTIME-CATALOG", failure.getMessage());
+        }
+    }
+
+    /** Lifecycle 동사별 사용 예. 사용자가 기본 명령을 알기 위해 문서를 검색하지 않아도 된다. */
+    private static int lifecycleHelp(String action) {
+        String verb = RUNTIME_ACTIONS.contains(action) ? action : "start";
+        System.out.println("cpf " + verb + " <target|group>");
+        System.out.println();
+        // Group/Runtime 이름은 catalog 가 정본이다. 예제 목록을 여기에 복제하면 Runtime 이 늘 때마다
+        // help 만 옛날 이름을 안내하게 된다.
+        try {
+            System.out.println("Group:");
+            for (CpfRuntimeTargets.Group group : CpfRuntimeTargets.groups(workspaceRoot())) {
+                System.out.println(String.format("  cpf %-8s %-18s %s", verb, group.name(), group.label()));
+            }
+            System.out.println("개별 Runtime:");
+            for (CpfRuntimeTargets.Target row : CpfRuntimeTargets.resolveAll(workspaceRoot())) {
+                System.out.println(String.format("  cpf %-8s %s", verb, row.name()));
+            }
+        } catch (Exception failure) {
+            System.out.println("  (Runtime Target Catalog 를 읽을 수 없습니다: " + failure.getMessage() + ")");
+        }
+        System.out.println();
+        System.out.println("무엇을 실행할 수 있는지: cpf targets");
+        return EXIT_OK;
+    }
+
+    /** 첫 Group 이름. help 예제에 쓰는 값이며 catalog 에서 온다. */
+    private static String firstGroupName() throws Exception {
+        List<CpfRuntimeTargets.Group> groups = CpfRuntimeTargets.groups(workspaceRoot());
+        return groups.isEmpty() ? "" : groups.get(0).name();
     }
 
     private static int help() {
@@ -142,9 +214,22 @@ public final class CpfCli {
         System.out.println("  cpf bootstrap [--db oracle|postgresql|mariadb]");
         System.out.println("  cpf domain-new <domain> [SYSTEM_CODE]");
         System.out.println("  cpf domain-sync [domain]");
-        System.out.println("  cpf build | test | run | stop | reset | status");
-        System.out.println("  cpf runtime targets");
-        System.out.println("  cpf runtime start|stop|status|health|restart|log --target <target>");
+        System.out.println("  cpf build | test | reset");
+        System.out.println("Runtime lifecycle (전체 / 논리 Group / 개별 Target):");
+        System.out.println("  cpf targets");
+        System.out.println("  cpf start|stop|restart|status|health|log <target|group>");
+        // 예제 대상은 catalog 에서 만든다. 이름 목록을 help 에 복제하지 않는다.
+        try {
+            StringBuilder line = new StringBuilder("  Group:");
+            for (CpfRuntimeTargets.Group group : CpfRuntimeTargets.groups(workspaceRoot())) {
+                line.append(' ').append(group.name());
+            }
+            System.out.println(line);
+            System.out.println("  예: cpf start " + firstGroupName() + "   cpf status " + firstGroupName());
+        } catch (Exception failure) {
+            System.out.println("  (Runtime Target Catalog 를 읽을 수 없습니다)");
+        }
+        System.out.println("  cpf start --help    동사별 사용 예");
         System.out.println("  cpf doctor [--json] [--strict] [--non-interactive]");
         if (internalEnabled()) {
             System.out.println("Internal namespaces:");

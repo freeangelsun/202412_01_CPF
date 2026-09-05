@@ -3,11 +3,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +32,8 @@ final class CpfRuntimeTargets {
      * 으로 죽는다. Release 는 이 위치로 공개 Catalog 를 투영한다.</p>
      */
     private static final String PUBLIC_CATALOG_RELATIVE = "config/cpf-runtime-target-catalog.json";
+    private static final Pattern GROUP_ENTRY = Pattern.compile(
+            "\\{[^{}]*\"group\"\\s*:\\s*\"([^\"]+)\"[^{}]*\\}", Pattern.DOTALL);
     private static final Pattern ENTRY = Pattern.compile(
             "\\{[^{}]*\"target\"\\s*:\\s*\"([^\"]+)\"[^{}]*\\}", Pattern.DOTALL);
 
@@ -36,11 +41,20 @@ final class CpfRuntimeTargets {
 
     /** 하나의 실행 Target. */
     record Target(String name, String owner, String capability, String provision, String description,
-                  String artifactId, int port, String portEnv, String healthPath) {
-        String describe() {
-            return String.format(Locale.ROOT, "  %-20s %s", name, description == null ? "" : description);
+                  String artifactId, int port, String portEnv, String healthPath,
+                  String architectureRole, List<String> runtimeGroups, List<String> dependsOn,
+                  String buildSurface) {
+        /** Group 소속 판정. metadata 만 본다. 이름으로 추론하지 않는다. */
+        boolean memberOf(String selector, String value) {
+            if ("every-resolved-target".equals(selector)) return true;
+            if ("runtimeGroups".equals(selector)) return runtimeGroups.contains(value);
+            if ("architectureRole".equals(selector)) return architectureRole.equals(value);
+            return false;
         }
     }
+
+    /** 사용자에게 노출되는 논리 Runtime Group. catalog 가 정본이다. */
+    record Group(String name, String label, String selector, String value) { }
 
     static Path catalogPath(Path root) {
         Path canonical = root.resolve(CATALOG_RELATIVE);
@@ -110,7 +124,9 @@ final class CpfRuntimeTargets {
             }
             targets.add(new Target(name, owner, field(block, "capability"),
                     provision, field(block, "description"), field(block, "artifactId"),
-                    number(block, "port"), field(block, "portEnv"), field(block, "healthPath")));
+                    number(block, "port"), field(block, "portEnv"), field(block, "healthPath"),
+                    field(block, "architectureRole"), stringArray(block, "runtimeGroups"),
+                    stringArray(block, "dependsOn"), field(block, "buildSurface")));
         }
         return targets;
     }
@@ -141,27 +157,48 @@ final class CpfRuntimeTargets {
                 Path settings = dir.resolve("settings.gradle");
                 String settingsText = Files.isRegularFile(settings)
                         ? Files.readString(settings, StandardCharsets.UTF_8) : "";
-                for (Map.Entry<String, String> module : moduleCapabilities().entrySet()) {
+                for (Map.Entry<String, String> module : moduleCapabilities(root).entrySet()) {
                     String name = module.getKey();
                     if (!settingsText.contains("include '" + name + "'")) continue;
                     if (!Files.isDirectory(dir.resolve(name))) continue;
                     // Domain Runtime 의 Port 는 Bootstrap 이 Domain 상태에서 배정한다. catalog 에
                     // 고정 Port 를 두면 Domain 을 추가할 때마다 catalog 를 고쳐야 한다.
-                    targets.add(new Target(domain + "-" + name, dir.getFileName() + "/" + name,
+                    String dynamic = dynamicSection(root);
+                    // 사용자에게 Domain 은 하나의 Runtime 이다. primary module 은 Domain 이름을
+                    // 그대로 쓰고, 성격이 다른 나머지 module 만 이름을 붙여 구분한다.
+                    boolean primary = name.equals(field(dynamic, "primaryModule"));
+                    String targetName = primary ? domain : domain + "-" + name;
+                    targets.add(new Target(targetName, dir.getFileName() + "/" + name,
                             module.getValue(), "source",
                             "Generated Domain " + domain + " " + name + " Runtime",
-                            "", 0, "online".equals(name) ? systemCode + "_ONLINE_PORT" : "",
-                            dynamicHealthPath(root, name)));
+                            "", 0, primary ? systemCode + "_ONLINE_PORT" : "",
+                            dynamicHealthPath(root, name),
+                            field(dynamic, "architectureRole"),
+                            moduleGroups(dynamic, name),
+                            stringArray(dynamic, "dependsOn"), field(dynamic, "buildSurface")));
                 }
             }
         }
         return targets;
     }
 
-    private static Map<String, String> moduleCapabilities() {
+    /**
+     * Domain module 과 그 Runtime Capability. catalog 의 dynamicRuntimes.capabilityByModule 이 정본이다.
+     *
+     * <p>여기에 module 목록을 복제하면 catalog 와 두 벌이 되고, 한쪽만 고칠 때 Target 이 조용히
+     * 사라진다.</p>
+     */
+    private static Map<String, String> moduleCapabilities(Path root) throws IOException {
+        String dynamic = dynamicSection(root);
+        int start = dynamic.indexOf("\"capabilityByModule\"");
+        if (start < 0) throw new IOException("dynamicRuntimes.capabilityByModule is missing");
+        int end = dynamic.indexOf('}', start);
+        if (end < 0) throw new IOException("dynamicRuntimes.capabilityByModule is malformed");
         Map<String, String> capabilities = new LinkedHashMap<>();
-        capabilities.put("online", "http-server");
-        capabilities.put("batch", "one-shot");
+        Matcher matcher = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"")
+                .matcher(dynamic.substring(dynamic.indexOf('{', start) + 1, end));
+        while (matcher.find()) capabilities.put(matcher.group(1), matcher.group(2));
+        if (capabilities.isEmpty()) throw new IOException("dynamicRuntimes.capabilityByModule declares no module");
         return capabilities;
     }
 
@@ -175,6 +212,155 @@ final class CpfRuntimeTargets {
         int end = json.indexOf('}', start);
         if (end < 0) return "";
         return field(json.substring(start, end), module);
+    }
+
+    /**
+     * 사용자에게 노출되는 Group 목록.
+     *
+     * <p>catalog 의 runtimeGroups.groups 만 읽는다. CLI/launcher/문서가 Group 이름을 복제하면
+     * Runtime 이 늘어날 때마다 세 곳을 고쳐야 하고 결국 서로 어긋난다.</p>
+     */
+    static List<Group> groups(Path root) throws IOException {
+        String json = Files.readString(catalogPath(root), StandardCharsets.UTF_8);
+        // 개별 Runtime 도 runtimeGroups 키를 가지므로 authority 는 contract 표식으로 찾는다.
+        int start = json.indexOf("CPF_RUNTIME_GROUP_AUTHORITY");
+        if (start < 0) throw new IOException("Runtime Target Catalog has no runtimeGroups authority");
+        int listStart = json.indexOf("\"groups\"", start);
+        if (listStart < 0) throw new IOException("Runtime Group authority has no groups section");
+        List<Group> groups = new ArrayList<>();
+        Matcher matcher = GROUP_ENTRY.matcher(json.substring(listStart));
+        while (matcher.find()) {
+            String block = matcher.group(0);
+            groups.add(new Group(matcher.group(1), field(block, "label"),
+                    field(block, "selector"), field(block, "value")));
+        }
+        if (groups.isEmpty()) throw new IOException("Runtime Group authority declares no group");
+        return groups;
+    }
+
+    /** architectureRole 별 기동 우선순위. 동순위 정렬의 기준이며 catalog 가 정본이다. */
+    private static List<String> architectureRoleOrder(Path root) throws IOException {
+        String json = Files.readString(catalogPath(root), StandardCharsets.UTF_8);
+        int start = json.indexOf("\"architectureRoleOrder\"");
+        if (start < 0) return List.of();
+        int end = json.indexOf(']', start);
+        if (end < 0) return List.of();
+        List<String> order = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\"([^\"]+)\"").matcher(json.substring(json.indexOf('[', start) + 1, end));
+        while (matcher.find()) order.add(matcher.group(1));
+        return order;
+    }
+
+    /**
+     * 선택자(Group 이름 또는 Runtime target 이름)를 실행 순서가 정해진 Target 목록으로 바꾼다.
+     *
+     * <p>Group 은 대상 집합만 정하고 dependsOn 은 그 집합 안의 순서만 정한다. Group 이 의존 대상을
+     * 자동으로 끌어오면 {@code cpf start domains} 가 Platform 까지 띄우게 되어 사용자가 요청하지 않은
+     * Runtime 이 올라간다.</p>
+     *
+     * @return 기동 순서대로 정렬된 Target. 알 수 없는 선택자면 빈 Optional.
+     */
+    static Optional<List<Target>> select(Path root, String selector) throws IOException {
+        String requested = selector == null ? "" : selector.trim();
+        if (requested.isEmpty()) return Optional.empty();
+        List<Target> all = resolveAll(root);
+        for (Group group : groups(root)) {
+            if (!group.name().equalsIgnoreCase(requested)) continue;
+            List<Target> selected = new ArrayList<>();
+            for (Target target : all) {
+                if (target.memberOf(group.selector(), group.value())) selected.add(target);
+            }
+            return Optional.of(startOrder(selected, architectureRoleOrder(root)));
+        }
+        for (Target target : all) {
+            if (target.name().equals(requested)) return Optional.of(List.of(target));
+        }
+        return Optional.empty();
+    }
+
+    /** 요청한 이름이 Group 이면 true. 결과 집계 방식이 달라지므로 CLI 가 구분해야 한다. */
+    static boolean isGroup(Path root, String selector) throws IOException {
+        for (Group group : groups(root)) {
+            if (group.name().equalsIgnoreCase(selector == null ? "" : selector.trim())) return true;
+        }
+        return false;
+    }
+
+    /**
+     * dependsOn 위상정렬. 순환이면 fail-closed 한다.
+     *
+     * <p>선택 집합 밖의 의존은 순서 계산에서 무시한다. 그 Runtime 은 이번 요청 대상이 아니다.</p>
+     */
+    static List<Target> startOrder(List<Target> selected, List<String> roleOrder) {
+        Map<String, Target> byName = new LinkedHashMap<>();
+        for (Target target : selected) byName.put(target.name(), target);
+        List<Target> pending = new ArrayList<>(selected);
+        pending.sort((a, b) -> {
+            int left = roleOrder.indexOf(a.architectureRole());
+            int right = roleOrder.indexOf(b.architectureRole());
+            if (left < 0) left = roleOrder.size();
+            if (right < 0) right = roleOrder.size();
+            return left != right ? Integer.compare(left, right) : a.name().compareTo(b.name());
+        });
+        List<Target> ordered = new ArrayList<>();
+        Set<String> placed = new LinkedHashSet<>();
+        while (!pending.isEmpty()) {
+            boolean progressed = false;
+            for (Iterator<Target> it = pending.iterator(); it.hasNext(); ) {
+                Target candidate = it.next();
+                boolean ready = true;
+                for (String dependency : candidate.dependsOn()) {
+                    if (byName.containsKey(dependency) && !placed.contains(dependency)) { ready = false; break; }
+                }
+                if (!ready) continue;
+                ordered.add(candidate);
+                placed.add(candidate.name());
+                it.remove();
+                progressed = true;
+                // 준비된 첫 후보 하나만 배치하고 처음부터 다시 훑는다. 한 번의 통과에서 여러 개를
+                // 잡으면 의존이 늦게 풀린 Target 이 목록 끝으로 밀려 순서 의미가 깨진다.
+                break;
+            }
+            if (!progressed) {
+                List<String> cycle = new ArrayList<>();
+                for (Target target : pending) cycle.add(target.name());
+                throw new IllegalStateException("runtime dependency cycle: " + cycle);
+            }
+        }
+        return ordered;
+    }
+
+    /**
+     * module 별 Group 소속.
+     *
+     * <p>같은 Domain 이라도 online 과 batch 는 사용자에게 다른 성격이다. {@code cpf start domains}
+     * 가 one-shot batch 까지 실행하면 사용자가 요청하지 않은 작업이 돈다.</p>
+     */
+    private static List<String> moduleGroups(String dynamic, String module) {
+        int start = dynamic.indexOf("\"runtimeGroupsByModule\"");
+        if (start < 0) return List.of();
+        int end = dynamic.indexOf('}', start);
+        if (end < 0) return List.of();
+        return stringArray(dynamic.substring(start, end), module);
+    }
+
+    /** JSON 배열 필드를 읽는다. 배열이 없으면 빈 목록이다. */
+    private static List<String> stringArray(String block, String key) {
+        Matcher array = Pattern.compile("\"" + key + "\"\\s*:\\s*\\[([^\\]]*)\\]").matcher(block);
+        if (!array.find()) return List.of();
+        List<String> values = new ArrayList<>();
+        Matcher element = Pattern.compile("\"([^\"]+)\"").matcher(array.group(1));
+        while (element.find()) values.add(element.group(1));
+        return List.copyOf(values);
+    }
+
+    /** dynamicRuntimes 블록 원문. Generated Domain 의 group metadata 정본이다. */
+    private static String dynamicSection(Path root) throws IOException {
+        String json = Files.readString(catalogPath(root), StandardCharsets.UTF_8);
+        int start = json.indexOf("\"dynamicRuntimes\"");
+        if (start < 0) return "";
+        int end = json.indexOf("\"portPolicy\"", start);
+        return end < 0 ? json.substring(start) : json.substring(start, end);
     }
 
     private static int number(String block, String key) {

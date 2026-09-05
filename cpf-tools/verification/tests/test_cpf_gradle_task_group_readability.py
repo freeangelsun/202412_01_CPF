@@ -237,9 +237,12 @@ def test_vscode_gradle_view_stays_on_the_single_root_and_refreshable_without_rel
     settings = json.loads(VSCODE_SETTINGS.read_text(encoding="utf-8"))
     assert settings["gradle.nestedProjects"] is False
     assert settings["gradle.reuseTerminals"] is True
-    cache_arg = settings["java.import.gradle.arguments"]
+    # IDE 와 CLI 는 하나의 Gradle project cache 를 공유한다. 나눠 두면 stale-output registry 가 두 벌이
+    # 되어 서로의 build/classes 를 지우고, VS Code 에 code 964 가 반복된다(Harness 36 과 같은 기전).
+    # 계약 정본은 test_cpf_developer_shell_contract.test_vscode_gradle_import_shares_the_single_project_cache 다.
+    cache_arg = settings.get("java.import.gradle.arguments", "")
     assert "C:\\" not in cache_arg
-    assert "cpf-docs/governance/development-harness/evidence/platform/current/generated/gradle/project-cache" in cache_arg
+    assert "--project-cache-dir" not in cache_arg
 
 
 # --- 생성형 Domain 자동 등록/삭제 계약 -------------------------------------------------

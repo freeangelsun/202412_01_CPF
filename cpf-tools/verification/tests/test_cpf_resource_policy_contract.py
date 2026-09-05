@@ -93,3 +93,11 @@ def test_root_generated_and_jvm_failure_artifacts_use_managed_evidence_paths():
     assert 'java-hs_err_pid%%p.log' in wrapper_bat
     assert '-XX:ErrorFile=\\"' not in wrapper_bat
     assert '/cpf-docs/governance/development-harness/evidence/platform/current/generated/' in ignore
+
+
+def test_root_windows_gradle_wrapper_requires_explicit_cpf_debug_opt_in():
+    """상위 Shell의 일반 DEBUG 환경변수는 Gradle wrapper UX를 오염시키지 않는다."""
+    wrapper = (ROOT / 'gradlew.bat').read_text(encoding='utf-8')
+    assert 'CPF_GRADLE_DEBUG' in wrapper
+    assert '%DEBUG%' not in wrapper
+    assert '@echo off' in wrapper
